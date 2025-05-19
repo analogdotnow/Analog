@@ -245,6 +245,18 @@ importers:
         specifier: ^5
         version: 5.8.3
 
+  packages/google-calendar:
+    devDependencies:
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../../tooling/typescript-config
+      '@types/node':
+        specifier: ^20
+        version: 20.17.47
+      typescript:
+        specifier: ^5
+        version: 5.8.3
+
   tooling/eslint-config:
     devDependencies:
       '@eslint/js':
