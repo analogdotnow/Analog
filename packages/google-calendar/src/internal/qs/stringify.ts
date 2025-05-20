@@ -287,9 +287,7 @@ function normalize_stringify_options(opts: StringifyOptions = defaults): NonNull
 		// @ts-ignore
 		allowDots: allowDots,
 		allowEmptyArrays:
-			typeof opts.allowEmptyArrays === "boolean"
-				? !!opts.allowEmptyArrays
-				: defaults.allowEmptyArrays,
+			typeof opts.allowEmptyArrays === "boolean" ? !!opts.allowEmptyArrays : defaults.allowEmptyArrays,
 		arrayFormat: arrayFormat,
 		charset: charset,
 		charsetSentinel:
@@ -301,9 +299,7 @@ function normalize_stringify_options(opts: StringifyOptions = defaults): NonNull
 			typeof opts.encodeDotInKeys === "boolean" ? opts.encodeDotInKeys : defaults.encodeDotInKeys,
 		encoder: typeof opts.encoder === "function" ? opts.encoder : defaults.encoder,
 		encodeValuesOnly:
-			typeof opts.encodeValuesOnly === "boolean"
-				? opts.encodeValuesOnly
-				: defaults.encodeValuesOnly,
+			typeof opts.encodeValuesOnly === "boolean" ? opts.encodeValuesOnly : defaults.encodeValuesOnly,
 		filter: filter,
 		format: format,
 		formatter: formatter,

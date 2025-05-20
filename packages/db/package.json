@@ -1,27 +1,27 @@
 {
-  "name": "@repo/db",
-  "version": "0.1.0",
-  "private": true,
-  "exports": {
-    ".": "./src/index.ts",
-    "./schema": "./src/schema/index.ts"
-  },
-  "scripts": {
-    "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
-    "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio"
-  },
-  "dependencies": {
-    "@repo/env": "workspace:*",
-    "drizzle-orm": "^0.43.1",
-    "postgres": "^3.4.5",
-    "server-only": "^0.0.1"
-  },
-  "devDependencies": {
-    "@repo/typescript-config": "workspace:*",
-    "@types/node": "^20",
-    "drizzle-kit": "^0.31.1",
-    "typescript": "^5"
-  }
+ "name": "@repo/db",
+ "version": "0.1.0",
+ "private": true,
+ "exports": {
+  ".": "./src/index.ts",
+  "./schema": "./src/schema/index.ts"
+ },
+ "scripts": {
+  "db:generate": "drizzle-kit generate",
+  "db:migrate": "drizzle-kit migrate",
+  "db:push": "drizzle-kit push",
+  "db:studio": "drizzle-kit studio"
+ },
+ "dependencies": {
+  "@repo/env": "workspace:*",
+  "drizzle-orm": "^0.43.1",
+  "postgres": "^3.4.5",
+  "server-only": "^0.0.1"
+ },
+ "devDependencies": {
+  "@repo/typescript-config": "workspace:*",
+  "@types/node": "^20",
+  "drizzle-kit": "^0.31.1",
+  "typescript": "^5"
+ }
 }

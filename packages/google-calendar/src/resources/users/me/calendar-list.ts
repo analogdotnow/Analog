@@ -15,17 +15,8 @@ export class CalendarList extends APIResource {
 		params: CalendarListCreateParams | null | undefined = {},
 		options?: RequestOptions,
 	): APIPromise<CalendarListEntry> {
-		const {
-			alt,
-			colorRgbFormat,
-			fields,
-			key,
-			oauth_token,
-			prettyPrint,
-			quotaUser,
-			userIp,
-			...body
-		} = params ?? {};
+		const { alt, colorRgbFormat, fields, key, oauth_token, prettyPrint, quotaUser, userIp, ...body } =
+			params ?? {};
 		return this._client.post("/users/me/calendarList", {
 			query: {
 				alt,
@@ -64,17 +55,8 @@ export class CalendarList extends APIResource {
 		params: CalendarListUpdateParams | null | undefined = {},
 		options?: RequestOptions,
 	): APIPromise<CalendarListEntry> {
-		const {
-			alt,
-			colorRgbFormat,
-			fields,
-			key,
-			oauth_token,
-			prettyPrint,
-			quotaUser,
-			userIp,
-			...body
-		} = params ?? {};
+		const { alt, colorRgbFormat, fields, key, oauth_token, prettyPrint, quotaUser, userIp, ...body } =
+			params ?? {};
 		return this._client.put(path`/users/me/calendarList/${calendarID}`, {
 			query: {
 				alt,

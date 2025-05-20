@@ -1,40 +1,40 @@
 {
-  "name": "@repo/web",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev --turbopack --port 3000",
-    "build": "next build",
-    "start": "next start"
-  },
-  "dependencies": {
-    "@radix-ui/react-label": "^2.1.6",
-    "@radix-ui/react-slot": "^1.2.2",
-    "@repo/api": "workspace:*",
-    "@repo/auth": "workspace:*",
-    "@repo/env": "workspace:*",
-    "@tanstack/react-query": "^5.76.1",
-    "@trpc/client": "^11.1.2",
-    "@trpc/server": "^11.1.2",
-    "@trpc/tanstack-react-query": "^11.1.2",
-    "better-auth": "^1.2.8",
-    "class-variance-authority": "^0.7.1",
-    "clsx": "^2.1.1",
-    "lucide-react": "^0.511.0",
-    "next": "15.3.2",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "superjson": "^2.2.2",
-    "tailwind-merge": "^3.3.0",
-    "tw-animate-css": "^1.3.0"
-  },
-  "devDependencies": {
-    "@repo/typescript-config": "workspace:*",
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "tailwindcss": "^4",
-    "typescript": "^5"
-  }
+ "name": "@repo/web",
+ "version": "0.1.0",
+ "private": true,
+ "scripts": {
+  "dev": "next dev --turbopack --port 3000",
+  "build": "next build",
+  "start": "next start"
+ },
+ "dependencies": {
+  "@radix-ui/react-label": "^2.1.6",
+  "@radix-ui/react-slot": "^1.2.2",
+  "@repo/api": "workspace:*",
+  "@repo/auth": "workspace:*",
+  "@repo/env": "workspace:*",
+  "@tanstack/react-query": "^5.76.1",
+  "@trpc/client": "^11.1.2",
+  "@trpc/server": "^11.1.2",
+  "@trpc/tanstack-react-query": "^11.1.2",
+  "better-auth": "^1.2.8",
+  "class-variance-authority": "^0.7.1",
+  "clsx": "^2.1.1",
+  "lucide-react": "^0.511.0",
+  "next": "15.3.2",
+  "react": "^19.0.0",
+  "react-dom": "^19.0.0",
+  "superjson": "^2.2.2",
+  "tailwind-merge": "^3.3.0",
+  "tw-animate-css": "^1.3.0"
+ },
+ "devDependencies": {
+  "@repo/typescript-config": "workspace:*",
+  "@tailwindcss/postcss": "^4",
+  "@types/node": "^20",
+  "@types/react": "^19",
+  "@types/react-dom": "^19",
+  "tailwindcss": "^4",
+  "typescript": "^5"
+ }
 }

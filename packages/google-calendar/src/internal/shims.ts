@@ -37,9 +37,7 @@ export function makeReadableStream(...args: ReadableStreamArgs): ReadableStream 
 
 export function ReadableStreamFrom<T>(iterable: Iterable<T> | AsyncIterable<T>): ReadableStream<T> {
 	const iter: AsyncIterator<T> | Iterator<T> =
-		Symbol.asyncIterator in iterable
-			? iterable[Symbol.asyncIterator]()
-			: iterable[Symbol.iterator]();
+		Symbol.asyncIterator in iterable ? iterable[Symbol.asyncIterator]() : iterable[Symbol.iterator]();
 
 	return makeReadableStream({
 		start() {},

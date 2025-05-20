@@ -1,25 +1,25 @@
 {
-  "name": "analog",
-  "private": true,
-  "scripts": {
-    "build": "dotenv -- turbo run build",
-    "dev": "dotenv -- turbo run dev",
-    "lint": "biome lint ./",
-    "lint:fix": "biome lint --fix ./",
-    "format": "biome format ./",
-    "format:write": "biome  format --write ./",
-    "pre-commit": "bun run lint:fix && bun run format:write",
-    "db:generate": "turbo run db:generate",
-    "db:migrate": "dotenv -- turbo run db:migrate",
-    "db:push": "dotenv -- turbo run db:push",
-    "db:studio": "dotenv -- turbo run db:studio"
-  },
-  "devDependencies": {
-    "@biomejs/biome": "^1.9.4",
-    "dotenv-cli": "^8.0.0",
-    "prettier": "^3.5.3",
-    "turbo": "^2.5.3"
-  },
-  "packageManager": "bun@1.2.13",
-  "workspaces": ["apps/*", "packages/*", "tooling/*"]
+ "name": "analog",
+ "private": true,
+ "scripts": {
+  "build": "dotenv -- turbo run build",
+  "dev": "dotenv -- turbo run dev",
+  "lint": "biome lint ./",
+  "lint:fix": "biome lint --fix ./",
+  "format": "biome format ./",
+  "format:write": "biome  format --write ./",
+  "pre-commit": "bun run lint:fix && bun run format:write",
+  "db:generate": "turbo run db:generate",
+  "db:migrate": "dotenv -- turbo run db:migrate",
+  "db:push": "dotenv -- turbo run db:push",
+  "db:studio": "dotenv -- turbo run db:studio"
+ },
+ "devDependencies": {
+  "@biomejs/biome": "^1.9.4",
+  "dotenv-cli": "^8.0.0",
+  "prettier": "^3.5.3",
+  "turbo": "^2.5.3"
+ },
+ "packageManager": "bun@1.2.13",
+ "workspaces": ["apps/*", "packages/*", "tooling/*"]
 }

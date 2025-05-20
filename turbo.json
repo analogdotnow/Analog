@@ -1,52 +1,49 @@
 {
-  "$schema": "https://turbo.build/schema.json",
-  "tasks": {
-    "build": {
-      "dependsOn": ["^build"],
-      "env": [
-        "NODE_ENV",
-        "DATABASE_URL",
-        "BETTER_AUTH_SECRET",
-        "BETTER_AUTH_URL",
-        "GOOGLE_CLIENT_ID",
-        "GOOGLE_CLIENT_SECRET"
-      ],
-      "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
-    },
-    "dev": {
-      "persistent": true,
-      "cache": false,
-      "env": [
-        "NODE_ENV",
-        "DATABASE_URL",
-        "BETTER_AUTH_SECRET",
-        "BETTER_AUTH_URL",
-        "GOOGLE_CLIENT_ID",
-        "GOOGLE_CLIENT_SECRET"
-      ]
-    },
-    "lint": {
-      "dependsOn": ["^lint"]
-    },
-    "db:generate": {
-      "cache": false
-    },
-    "db:migrate": {
-      "cache": false,
-      "env": ["DATABASE_URL"],
-      "inputs": ["$TURBO_DEFAULT$", ".env*"]
-    },
-    "db:push": {
-      "cache": false,
-      "env": ["DATABASE_URL"],
-      "inputs": ["$TURBO_DEFAULT$", ".env*"]
-    },
-    "db:studio": {
-      "persistent": true,
-      "cache": false,
-      "env": ["DATABASE_URL"],
-      "inputs": ["$TURBO_DEFAULT$", ".env*"]
-    }
+ "$schema": "https://turbo.build/schema.json",
+ "tasks": {
+  "build": {
+   "dependsOn": ["^build"],
+   "env": [
+    "NODE_ENV",
+    "DATABASE_URL",
+    "BETTER_AUTH_SECRET",
+    "BETTER_AUTH_URL",
+    "GOOGLE_CLIENT_ID",
+    "GOOGLE_CLIENT_SECRET"
+   ],
+   "inputs": ["$TURBO_DEFAULT$", ".env*"],
+   "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
+  },
+  "dev": {
+   "persistent": true,
+   "cache": false,
+   "env": [
+    "NODE_ENV",
+    "DATABASE_URL",
+    "BETTER_AUTH_SECRET",
+    "BETTER_AUTH_URL",
+    "GOOGLE_CLIENT_ID",
+    "GOOGLE_CLIENT_SECRET"
+   ]
+  },
+  "db:generate": {
+   "cache": false
+  },
+  "db:migrate": {
+   "cache": false,
+   "env": ["DATABASE_URL"],
+   "inputs": ["$TURBO_DEFAULT$", ".env*"]
+  },
+  "db:push": {
+   "cache": false,
+   "env": ["DATABASE_URL"],
+   "inputs": ["$TURBO_DEFAULT$", ".env*"]
+  },
+  "db:studio": {
+   "persistent": true,
+   "cache": false,
+   "env": ["DATABASE_URL"],
+   "inputs": ["$TURBO_DEFAULT$", ".env*"]
   }
+ }
 }

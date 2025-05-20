@@ -1,10 +1,10 @@
 {
-  "extends": "@repo/typescript-config/base.json",
-  "compilerOptions": {
-    "composite": false,
-    "declaration": false,
-    "declarationMap": false
-  },
-  "include": ["**/*.ts", "**/*.tsx", "../db/src/schema/auth-schema.ts"],
-  "exclude": ["node_modules"]
+ "extends": "@repo/typescript-config/base.json",
+ "compilerOptions": {
+  "composite": false,
+  "declaration": false,
+  "declarationMap": false
+ },
+ "include": ["**/*.ts", "**/*.tsx", "../db/src/schema/auth-schema.ts"],
+ "exclude": ["node_modules"]
 }

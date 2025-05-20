@@ -242,8 +242,7 @@ export class GoogleCalendar {
 		const url = isAbsoluteURL(path)
 			? new URL(path)
 			: new URL(
-					this.baseURL +
-						(this.baseURL.endsWith("/") && path.startsWith("/") ? path.slice(1) : path),
+					this.baseURL + (this.baseURL.endsWith("/") && path.startsWith("/") ? path.slice(1) : path),
 				);
 
 		const defaultQuery = this.defaultQuery();
@@ -334,8 +333,7 @@ export class GoogleCalendar {
 
 		/** Not an API request ID, just for correlating local log entries. */
 		const requestLogID = `log_${((Math.random() * (1 << 24)) | 0).toString(16).padStart(6, "0")}`;
-		const retryLogStr =
-			retryOfRequestLogID === undefined ? "" : `, retryOf: ${retryOfRequestLogID}`;
+		const retryLogStr = retryOfRequestLogID === undefined ? "" : `, retryOf: ${retryOfRequestLogID}`;
 		const startTime = Date.now();
 
 		loggerFor(this).debug(

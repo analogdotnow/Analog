@@ -1,22 +1,22 @@
 {
-  "name": "@repo/auth",
-  "version": "0.1.0",
-  "private": true,
-  "exports": {
-    "./client": "./src/client.ts",
-    "./server": "./src/server.ts"
-  },
-  "peerDependencies": {
-    "better-auth": "^1.2.8",
-    "server-only": "^0.0.1"
-  },
-  "dependencies": {
-    "@repo/db": "workspace:*",
-    "@repo/env": "workspace:*"
-  },
-  "devDependencies": {
-    "@repo/typescript-config": "workspace:*",
-    "@types/node": "^20",
-    "typescript": "^5"
-  }
+ "name": "@repo/auth",
+ "version": "0.1.0",
+ "private": true,
+ "exports": {
+  "./client": "./src/client.ts",
+  "./server": "./src/server.ts"
+ },
+ "peerDependencies": {
+  "better-auth": "^1.2.8",
+  "server-only": "^0.0.1"
+ },
+ "dependencies": {
+  "@repo/db": "workspace:*",
+  "@repo/env": "workspace:*"
+ },
+ "devDependencies": {
+  "@repo/typescript-config": "workspace:*",
+  "@types/node": "^20",
+  "typescript": "^5"
+ }
 }

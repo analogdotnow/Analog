@@ -1,25 +1,25 @@
 {
-  "name": "@repo/api",
-  "version": "0.1.0",
-  "private": true,
-  "exports": {
-    ".": "./src/root.ts"
-  },
-  "peerDependencies": {
-    "@trpc/server": "^11.1.2",
-    "next": "^15",
-    "server-only": "^0.0.1",
-    "superjson": "^2.2.2",
-    "zod": "^3.24.4"
-  },
-  "dependencies": {
-    "@repo/auth": "workspace:*",
-    "@repo/db": "workspace:*",
-    "@repo/env": "workspace:*"
-  },
-  "devDependencies": {
-    "@repo/typescript-config": "workspace:*",
-    "@types/node": "^20",
-    "typescript": "^5"
-  }
+ "name": "@repo/api",
+ "version": "0.1.0",
+ "private": true,
+ "exports": {
+  ".": "./src/root.ts"
+ },
+ "peerDependencies": {
+  "@trpc/server": "^11.1.2",
+  "next": "^15",
+  "server-only": "^0.0.1",
+  "superjson": "^2.2.2",
+  "zod": "^3.24.4"
+ },
+ "dependencies": {
+  "@repo/auth": "workspace:*",
+  "@repo/db": "workspace:*",
+  "@repo/env": "workspace:*"
+ },
+ "devDependencies": {
+  "@repo/typescript-config": "workspace:*",
+  "@types/node": "^20",
+  "typescript": "^5"
+ }
 }

@@ -68,9 +68,7 @@ export class APIPromise<T> extends Promise<T> {
 
 	private parse(): Promise<T> {
 		if (!this.parsedPromise) {
-			this.parsedPromise = this.responsePromise.then((data) =>
-				this.parseResponse(this.#client, data),
-			);
+			this.parsedPromise = this.responsePromise.then((data) => this.parseResponse(this.#client, data));
 		}
 		return this.parsedPromise;
 	}
