@@ -7,7 +7,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: analog_db 
+      POSTGRES_DB: analog_db
     ports:
       - 5432:5432
     volumes:
