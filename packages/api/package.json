@@ -5,9 +5,6 @@
   "exports": {
     ".": "./src/root.ts"
   },
-  "scripts": {
-    "lint": "eslint ."
-  },
   "peerDependencies": {
     "@trpc/server": "^11.1.2",
     "next": "^15",
@@ -21,10 +18,8 @@
     "@repo/env": "workspace:*"
   },
   "devDependencies": {
-    "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@types/node": "^20",
-    "eslint": "^9",
     "typescript": "^5"
   }
 }

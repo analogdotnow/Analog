@@ -5,8 +5,7 @@
   "scripts": {
     "dev": "next dev --turbopack --port 3000",
     "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
+    "start": "next start"
   },
   "dependencies": {
     "@radix-ui/react-label": "^2.1.6",
@@ -30,15 +29,11 @@
     "tw-animate-css": "^1.3.0"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3",
-    "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "15.3.2",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

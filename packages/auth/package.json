@@ -6,9 +6,6 @@
     "./client": "./src/client.ts",
     "./server": "./src/server.ts"
   },
-  "scripts": {
-    "lint": "eslint ."
-  },
   "peerDependencies": {
     "better-auth": "^1.2.8",
     "server-only": "^0.0.1"
@@ -18,10 +15,8 @@
     "@repo/env": "workspace:*"
   },
   "devDependencies": {
-    "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@types/node": "^20",
-    "eslint": "^9",
     "typescript": "^5"
   }
 }

@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+name: CI
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+jobs:
+  lint-format:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@cb605e52c26070c328afc4562f0b4ada7618a84e # v2.10.4
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      # https://biomejs.dev/recipes/continuous-integration/#github-actions
+      - name: Lint with Biome
+        uses: biomejs/setup-biome@c016c38f26f2c4a6eb3662679143614a254263fd # v2.3.0
+        with:
+          version: latest
+      - name: Run Biome
+        run: biome ci .

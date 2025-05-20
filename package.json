@@ -12,9 +12,10 @@
     "db:studio": "dotenv -- turbo run db:studio"
   },
   "devDependencies": {
-    "turbo": "^2.5.3",
+    "@biomejs/biome": "^1.9.4",
     "dotenv-cli": "^8.0.0",
-    "prettier": "^3.5.3"
+    "prettier": "^3.5.3",
+    "turbo": "^2.5.3"
   },
   "packageManager": "bun@1.2.13",
   "workspaces": ["apps/*", "packages/*", "tooling/*"]

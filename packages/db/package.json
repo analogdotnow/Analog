@@ -7,7 +7,6 @@
     "./schema": "./src/schema/index.ts"
   },
   "scripts": {
-    "lint": "eslint .",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
@@ -20,11 +19,9 @@
     "server-only": "^0.0.1"
   },
   "devDependencies": {
-    "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@types/node": "^20",
     "drizzle-kit": "^0.31.1",
-    "eslint": "^9",
     "typescript": "^5"
   }
 }

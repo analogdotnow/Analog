@@ -25,7 +25,6 @@ export function isEmptyObj(obj: Object | null | undefined): boolean {
   return true;
 }
 
-// https://eslint.org/docs/latest/rules/no-prototype-builtins
 export function hasOwn<T extends object = object>(
   obj: T,
   key: PropertyKey,
