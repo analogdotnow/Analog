@@ -16,7 +16,7 @@
   "dependencies": {
     "@repo/env": "workspace:*",
     "drizzle-orm": "^0.43.1",
-    "pg": "^8.16.0",
+    "postgres": "^3.4.5",	
     "server-only": "^0.0.1"
   },
   "devDependencies": {

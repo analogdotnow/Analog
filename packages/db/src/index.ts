@@ -1,6 +1,10 @@
 import "server-only";
 import { drizzle } from "drizzle-orm/postgres-js";
-import * as schema from "./schema";
+import postgres from "postgres";
 import { env } from "@repo/env/server";
+import * as schema from "./schema";
 
-export const db = drizzle(env.DATABASE_URL, { schema });
+// Disable prefetch as it is not supported for Supabase "Transaction" pool mode
+const client = postgres(env.DATABASE_URL, { prepare: false });
+
+export const db = drizzle({ client, schema });
