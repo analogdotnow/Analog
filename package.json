@@ -6,7 +6,7 @@
     "dev": "dotenv -- turbo run dev",
     "lint": "biome lint ./",
     "lint:fix": "biome lint --fix ./",
-    "fromat": "biome format ./",
+    "format": "biome format ./",
     "format:write": "biome  format --write ./",
     "pre-commit": "bun run lint:fix && bun run format:write",
     "db:generate": "turbo run db:generate",
