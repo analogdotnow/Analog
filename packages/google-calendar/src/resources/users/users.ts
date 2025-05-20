@@ -5,11 +5,11 @@ import * as MeAPI from "./me/me";
 import { Me } from "./me/me";
 
 export class Users extends APIResource {
-  me: MeAPI.Me = new MeAPI.Me(this._client);
+	me: MeAPI.Me = new MeAPI.Me(this._client);
 }
 
 Users.Me = Me;
 
 export declare namespace Users {
-  export { Me as Me };
+	export { Me };
 }

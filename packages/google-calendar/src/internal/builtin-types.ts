@@ -1,9 +1,6 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-export type Fetch = (
-  input: string | URL | Request,
-  init?: RequestInit,
-) => Promise<Response>;
+export type Fetch = (input: string | URL | Request, init?: RequestInit) => Promise<Response>;
 
 /**
  * An alias to the builtin `RequestInit` type so we can
@@ -55,13 +52,13 @@ type _Array<T> = Array<T>;
 type _Record<K extends keyof any, T> = Record<K, T>;
 
 export type {
-  _Array as Array,
-  _BodyInit as BodyInit,
-  _HeadersInit as HeadersInit,
-  _Record as Record,
-  _RequestInfo as RequestInfo,
-  _RequestInit as RequestInit,
-  _Response as Response,
+	_Array as Array,
+	_BodyInit as BodyInit,
+	_HeadersInit as HeadersInit,
+	_Record as Record,
+	_RequestInfo as RequestInfo,
+	_RequestInit as RequestInit,
+	_Response as Response,
 };
 
 /**
@@ -80,8 +77,8 @@ type EndingType = "native" | "transparent";
  * https://developer.mozilla.org/en-US/docs/Web/API/Blob/Blob#options
  */
 export interface BlobPropertyBag {
-  endings?: EndingType;
-  type?: string;
+	endings?: EndingType;
+	type?: string;
 }
 
 /**
@@ -92,5 +89,5 @@ export interface BlobPropertyBag {
  * https://developer.mozilla.org/en-US/docs/Web/API/File/File#options
  */
 export interface FilePropertyBag extends BlobPropertyBag {
-  lastModified?: number;
+	lastModified?: number;
 }

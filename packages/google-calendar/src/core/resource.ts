@@ -3,9 +3,9 @@
 import type { GoogleCalendar } from "../client";
 
 export class APIResource {
-  protected _client: GoogleCalendar;
+	protected _client: GoogleCalendar;
 
-  constructor(client: GoogleCalendar) {
-    this._client = client;
-  }
+	constructor(client: GoogleCalendar) {
+		this._client = client;
+	}
 }

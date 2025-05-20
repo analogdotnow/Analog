@@ -13,26 +13,26 @@ type NotAny<T> = [unknown] extends [T] ? never : T;
  * Some environments overload the global fetch function, and Parameters<T> only gets the last signature.
  */
 type OverloadedParameters<T> = T extends {
-  (...args: infer A): unknown;
-  (...args: infer B): unknown;
-  (...args: infer C): unknown;
-  (...args: infer D): unknown;
+	(...args: infer A): unknown;
+	(...args: infer B): unknown;
+	(...args: infer C): unknown;
+	(...args: infer D): unknown;
 }
-  ? A | B | C | D
-  : T extends {
-        (...args: infer A): unknown;
-        (...args: infer B): unknown;
-        (...args: infer C): unknown;
-      }
-    ? A | B | C
-    : T extends {
-          (...args: infer A): unknown;
-          (...args: infer B): unknown;
-        }
-      ? A | B
-      : T extends (...args: infer A) => unknown
-        ? A
-        : never;
+	? A | B | C | D
+	: T extends {
+				(...args: infer A): unknown;
+				(...args: infer B): unknown;
+				(...args: infer C): unknown;
+			}
+		? A | B | C
+		: T extends {
+					(...args: infer A): unknown;
+					(...args: infer B): unknown;
+				}
+			? A | B
+			: T extends (...args: infer A) => unknown
+				? A
+				: never;
 
 /**
  * These imports attempt to get types from a parent package's dependencies.
@@ -58,71 +58,57 @@ type OverloadedParameters<T> = T extends {
  */
 /** @ts-ignore For users with \@types/node */
 type UndiciTypesRequestInit =
-  | NotAny<import("../node_modules/undici-types").RequestInit>
-  | NotAny<import("../../node_modules/undici-types").RequestInit>
-  | NotAny<import("../../../node_modules/undici-types").RequestInit>
-  | NotAny<import("../../../../node_modules/undici-types").RequestInit>
-  | NotAny<import("../../../../../node_modules/undici-types").RequestInit>
-  | NotAny<import("../../../../../../node_modules/undici-types").RequestInit>
-  | NotAny<import("../../../../../../../node_modules/undici-types").RequestInit>
-  | NotAny<
-      import("../../../../../../../../node_modules/undici-types").RequestInit
-    >
-  | NotAny<
-      import("../../../../../../../../../node_modules/undici-types").RequestInit
-    >
-  | NotAny<
-      import("../../../../../../../../../../node_modules/undici-types").RequestInit
-    >;
+	| NotAny<import("../node_modules/undici-types").RequestInit>
+	| NotAny<import("../../node_modules/undici-types").RequestInit>
+	| NotAny<import("../../../node_modules/undici-types").RequestInit>
+	| NotAny<import("../../../../node_modules/undici-types").RequestInit>
+	| NotAny<import("../../../../../node_modules/undici-types").RequestInit>
+	| NotAny<import("../../../../../../node_modules/undici-types").RequestInit>
+	| NotAny<import("../../../../../../../node_modules/undici-types").RequestInit>
+	| NotAny<import("../../../../../../../../node_modules/undici-types").RequestInit>
+	| NotAny<import("../../../../../../../../../node_modules/undici-types").RequestInit>
+	| NotAny<import("../../../../../../../../../../node_modules/undici-types").RequestInit>;
 /** @ts-ignore For users with undici */
 type UndiciRequestInit =
-  | NotAny<import("../node_modules/undici").RequestInit>
-  | NotAny<import("../../node_modules/undici").RequestInit>
-  | NotAny<import("../../../node_modules/undici").RequestInit>
-  | NotAny<import("../../../../node_modules/undici").RequestInit>
-  | NotAny<import("../../../../../node_modules/undici").RequestInit>
-  | NotAny<import("../../../../../../node_modules/undici").RequestInit>
-  | NotAny<import("../../../../../../../node_modules/undici").RequestInit>
-  | NotAny<import("../../../../../../../../node_modules/undici").RequestInit>
-  | NotAny<import("../../../../../../../../../node_modules/undici").RequestInit>
-  | NotAny<
-      import("../../../../../../../../../../node_modules/undici").RequestInit
-    >;
+	| NotAny<import("../node_modules/undici").RequestInit>
+	| NotAny<import("../../node_modules/undici").RequestInit>
+	| NotAny<import("../../../node_modules/undici").RequestInit>
+	| NotAny<import("../../../../node_modules/undici").RequestInit>
+	| NotAny<import("../../../../../node_modules/undici").RequestInit>
+	| NotAny<import("../../../../../../node_modules/undici").RequestInit>
+	| NotAny<import("../../../../../../../node_modules/undici").RequestInit>
+	| NotAny<import("../../../../../../../../node_modules/undici").RequestInit>
+	| NotAny<import("../../../../../../../../../node_modules/undici").RequestInit>
+	| NotAny<import("../../../../../../../../../../node_modules/undici").RequestInit>;
 /** @ts-ignore For users with \@types/bun */
 type BunRequestInit = globalThis.FetchRequestInit;
 /** @ts-ignore For users with node-fetch */
 type NodeFetchRequestInit =
-  | NotAny<import("../node_modules/node-fetch").RequestInit>
-  | NotAny<import("../../node_modules/node-fetch").RequestInit>
-  | NotAny<import("../../../node_modules/node-fetch").RequestInit>
-  | NotAny<import("../../../../node_modules/node-fetch").RequestInit>
-  | NotAny<import("../../../../../node_modules/node-fetch").RequestInit>
-  | NotAny<import("../../../../../../node_modules/node-fetch").RequestInit>
-  | NotAny<import("../../../../../../../node_modules/node-fetch").RequestInit>
-  | NotAny<
-      import("../../../../../../../../node_modules/node-fetch").RequestInit
-    >
-  | NotAny<
-      import("../../../../../../../../../node_modules/node-fetch").RequestInit
-    >
-  | NotAny<
-      import("../../../../../../../../../../node_modules/node-fetch").RequestInit
-    >;
+	| NotAny<import("../node_modules/node-fetch").RequestInit>
+	| NotAny<import("../../node_modules/node-fetch").RequestInit>
+	| NotAny<import("../../../node_modules/node-fetch").RequestInit>
+	| NotAny<import("../../../../node_modules/node-fetch").RequestInit>
+	| NotAny<import("../../../../../node_modules/node-fetch").RequestInit>
+	| NotAny<import("../../../../../../node_modules/node-fetch").RequestInit>
+	| NotAny<import("../../../../../../../node_modules/node-fetch").RequestInit>
+	| NotAny<import("../../../../../../../../node_modules/node-fetch").RequestInit>
+	| NotAny<import("../../../../../../../../../node_modules/node-fetch").RequestInit>
+	| NotAny<import("../../../../../../../../../../node_modules/node-fetch").RequestInit>;
 /** @ts-ignore For users who use Deno */
 type FetchRequestInit = NonNullable<OverloadedParameters<typeof fetch>[1]>;
 
 type RequestInits =
-  | NotAny<UndiciTypesRequestInit>
-  | NotAny<UndiciRequestInit>
-  | NotAny<BunRequestInit>
-  | NotAny<NodeFetchRequestInit>
-  | NotAny<RequestInit>
-  | NotAny<FetchRequestInit>;
+	| NotAny<UndiciTypesRequestInit>
+	| NotAny<UndiciRequestInit>
+	| NotAny<BunRequestInit>
+	| NotAny<NodeFetchRequestInit>
+	| NotAny<RequestInit>
+	| NotAny<FetchRequestInit>;
 
 /**
  * This type contains `RequestInit` options that may be available on the current runtime,
  * including per-platform extensions like `dispatcher`, `agent`, `client`, etc.
  */
 export type MergedRequestInit = RequestInits &
-  /** We don't include these in the types as they'll be overridden for every request. */
-  Partial<Record<"body" | "headers" | "method" | "signal", never>>;
+	/** We don't include these in the types as they'll be overridden for every request. */
+	Partial<Record<"body" | "headers" | "method" | "signal", never>>;

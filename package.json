@@ -4,8 +4,11 @@
   "scripts": {
     "build": "dotenv -- turbo run build",
     "dev": "dotenv -- turbo run dev",
-    "lint": "turbo run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,css,,md}\"",
+    "lint": "biome lint ./",
+    "lint:fix": "biome lint --fix ./",
+    "fromat": "biome format ./",
+    "format:write": "biome  format --write ./",
+    "pre-commit": "bun run lint:fix && bun run format:write",
     "db:generate": "turbo run db:generate",
     "db:migrate": "dotenv -- turbo run db:migrate",
     "db:push": "dotenv -- turbo run db:push",

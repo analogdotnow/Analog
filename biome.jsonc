@@ -1,0 +1,67 @@
+{
+	"$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+	"vcs": {
+		"enabled": false,
+		"clientKind": "git",
+		"useIgnoreFile": false
+	},
+	"organizeImports": {
+		"enabled": false
+	},
+	"files": {
+		"include": ["**/*.js", "**/*.ts", "**/*.json", "**/*.tsx", "**/*.css"]
+	},
+	"formatter": {
+		"enabled": true,
+		"useEditorconfig": true
+	},
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"recommended": true,
+			"suspicious": {
+				"noExplicitAny": "off",
+				"noThenProperty": "off",
+				"noAssignInExpressions": "off",
+				"noImplicitAnyLet": "off",
+				"noUnsafeDeclarationMerging": "off",
+				"noShadowRestrictedNames": "off"
+			},
+			"complexity": {
+				"noBannedTypes": "off"
+			},
+			"a11y": {
+				"noSvgWithoutTitle": "off"
+			},
+			"style": {
+				"noNonNullAssertion": "off",
+				"noCommaOperator": "off",
+				"noParameterAssign": "off"
+			}
+		}
+	},
+	"javascript": {
+		"formatter": {
+			"enabled": true
+		},
+		"linter": {
+			"enabled": true
+		}
+	},
+	"json": {
+		"formatter": {
+			"enabled": true
+		},
+		"linter": {
+			"enabled": true
+		}
+	},
+	"css": {
+		"formatter": {
+			"enabled": true
+		},
+		"linter": {
+			"enabled": true
+		}
+	}
+}

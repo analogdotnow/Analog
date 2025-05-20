@@ -2,26 +2,26 @@
 
 export * from "./shared";
 export {
-  Calendars,
-  type Calendar,
-  type CalendarCreateParams,
-  type CalendarRetrieveParams,
-  type CalendarUpdateParams,
-  type CalendarDeleteParams,
-  type CalendarClearParams,
+	Calendars,
+	type Calendar,
+	type CalendarCreateParams,
+	type CalendarRetrieveParams,
+	type CalendarUpdateParams,
+	type CalendarDeleteParams,
+	type CalendarClearParams,
 } from "./calendars/calendars";
 export {
-  CheckFreeBusy,
-  type CheckFreeBusyCheckFreeBusyResponse,
-  type CheckFreeBusyCheckFreeBusyParams,
+	CheckFreeBusy,
+	type CheckFreeBusyCheckFreeBusyResponse,
+	type CheckFreeBusyCheckFreeBusyParams,
 } from "./check-free-busy";
 export {
-  ListColors,
-  type ListColorListColorsResponse,
-  type ListColorListColorsParams,
+	ListColors,
+	type ListColorListColorsResponse,
+	type ListColorListColorsParams,
 } from "./list-colors";
 export {
-  StopWatching,
-  type StopWatchingStopWatchingParams,
+	StopWatching,
+	type StopWatchingStopWatchingParams,
 } from "./stop-watching";
 export { Users } from "./users/users";
