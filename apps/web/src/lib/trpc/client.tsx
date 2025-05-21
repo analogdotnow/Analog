@@ -10,7 +10,7 @@ import {
 import { createTRPCContext } from "@trpc/tanstack-react-query";
 import superjson from "superjson";
 import type { AppRouter } from "@repo/api";
-import { env } from "@repo/env/server";
+import { env } from "@repo/env/client";
 import { getQueryClient } from "./query-client";
 
 export const { TRPCProvider, useTRPC } = createTRPCContext<AppRouter>();
@@ -18,7 +18,7 @@ export const { TRPCProvider, useTRPC } = createTRPCContext<AppRouter>();
 function getUrl() {
   const base = (() => {
     if (typeof window !== "undefined") return "";
-    if (env.VERCEL_URL) return `https://${env.VERCEL_URL}`;
+    if (env.NEXT_PUBLIC_VERCEL_URL) return `https://${env.NEXT_PUBLIC_VERCEL_URL}`;
     return "http://localhost:3000";
   })();
 
@@ -40,7 +40,7 @@ export function TRPCReactProvider(props: Readonly<TRPCReactProviderProps>) {
       links: [
         loggerLink({
           enabled: (op) =>
-            env.NODE_ENV === "development" ||
+            process.env.NEXT_PUBLIC_ENV === "development" ||
             (op.direction === "down" && op.result instanceof Error),
         }),
         httpBatchStreamLink({
