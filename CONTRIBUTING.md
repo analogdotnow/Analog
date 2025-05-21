@@ -89,6 +89,7 @@ Thank you for your interest in contributing to Analog! We aim to make the contri
   6.  Click **Apply** to save your changes.
 
   7.  After enabling these APIs, return to the [OAuth Scopes](https://console.cloud.google.com/auth/scopes) page if needed, and ensure the above scopes are added and applied.
+  8.  Navigate to the [OAuth consent screen](https://console.cloud.google.com/auth/audience) or click on "Audience" in the left side navigation bar. In the "Add users" field, add the Gmail addresses of your test users.
 
 ## Making Changes
 
