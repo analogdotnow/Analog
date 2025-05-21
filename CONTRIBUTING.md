@@ -26,22 +26,24 @@ Thank you for your interest in contributing to Analog! We aim to make the contri
    # Install dependencies
    bun i
 
-   # Set up environment variables
+   # Copy environment variables template
    cp .env.example .env
+   ```
 
-   # Populate .env
-   see below
+3. **Configure environment variables**
+   - Generate `BETTER_AUTH_SECRET`: Run `openssl rand -hex 32`
+   - Set up Google OAuth:
+     1. Create a Google project in cloud console. Follow [step 1 in better auth docs](https://www.better-auth.com/docs/authentication/google)
+     2. Set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`
+
+4. **Initialize the application**
+   ```bash
+   # Run database migrations
+   bun run db:migrate
 
    # Start development server
    bun dev
    ```
-
-### Populate env
-- BETTER_AUTH_SECRET
-  generate a 32 char string `openssl rand -hex 32`
-
-- GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET
-  create a google project in the cloud console. Follow [step 1 in better auth docs](https://www.better-auth.com/docs/authentication/google)
 
 ## Making Changes
 
