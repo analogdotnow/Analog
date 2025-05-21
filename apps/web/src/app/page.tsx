@@ -20,9 +20,9 @@ export default function Home() {
   }, [resolvedTheme]);
 
   return (
-    <main className="flex flex-col gap-16 w-full items-center justify-center">
-      <div className="flex flex-col gap-11">
-        <div className="flex flex-col gap-6 items-center justify-center text-center">
+    <main className="flex flex-col gap-12 w-full items-center justify-center">
+      <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-3 items-center justify-center text-center">
           <h1 className="font-safiro text-5xl">
             Beyond Scheduling. <br /> A calendar that understands your life.
           </h1>
