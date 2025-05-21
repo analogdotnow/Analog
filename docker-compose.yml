@@ -4,8 +4,10 @@ services:
   db:
     container_name: analog_db
     image: bitnami/postgresql:15
-    env_file:
-      - .env
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: analog_db
     ports:
       - 5432:5432
     volumes:
