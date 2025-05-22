@@ -32,15 +32,15 @@ export default function Home() {
         </div>
 
         <div className="flex flex-col gap-3 items-center justify-center w-full">
-          <div className="flex flex-col sm:flex-row gap-3 w-full max-w-lg mx-auto">
+          <form className="flex flex-col sm:flex-row gap-3 w-full max-w-lg mx-auto">
             <Input
               placeholder="john@acme.de"
               className="font-medium h-11 placeholder:text-muted-foreground placeholder:font-medium bg-white outline outline-neutral-200 w-full rounded-md px-4"
             />
-            <Button className="w-full sm:w-fit pl-4 pr-3 h-11">
+            <Button className="w-full sm:w-fit pl-4 pr-3 h-11" type="submit">
               Join Waitlist <ChevronRight className="h-5 w-5" />
             </Button>
-          </div>
+          </form>
 
           <div className="relative flex flex-row gap-2 items-center justify-center">
             <span className="bg-green-400 size-2 rounded-full" />
