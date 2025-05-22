@@ -15,6 +15,7 @@ import {
   SidebarMenuItem,
   SidebarSeparator,
 } from "@/components/ui/sidebar";
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useTRPC } from "@/lib/trpc/client";
 import { useQuery } from "@tanstack/react-query";
 
@@ -54,15 +55,22 @@ export function Calendars() {
                   <SidebarMenu>
                     {account.calendars.map((item, index) => (
                       <SidebarMenuItem key={item.id}>
-                        <SidebarMenuButton>
-                          <div
-                            data-active={index < 2}
-                            className="group/calendar-item border-sidebar-border text-sidebar-primary-foreground data-[active=true]:border-sidebar-primary data-[active=true]:bg-sidebar-primary flex aspect-square size-4 shrink-0 items-center justify-center rounded-sm border"
-                          >
-                            <Check className="hidden size-3 group-data-[active=true]/calendar-item:block" />
-                          </div>
-                          {item.name}
-                        </SidebarMenuButton>
+                        <Tooltip>
+                          <SidebarMenuButton>
+                            <div
+                              data-active={index < 2}
+                              className="group/calendar-item border-sidebar-border text-sidebar-primary-foreground data-[active=true]:border-sidebar-primary data-[active=true]:bg-sidebar-primary flex aspect-square size-4 shrink-0 items-center justify-center rounded-sm border"
+                            >
+                              <Check className="hidden size-3 group-data-[active=true]/calendar-item:block" />
+                            </div>
+                            <TooltipTrigger asChild>
+                              <span className="line-clamp-1 block">{item.name}</span>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <span className="max-w-[600px] break-words">{item.name}</span>
+                            </TooltipContent>
+                          </SidebarMenuButton>
+                        </Tooltip>
                       </SidebarMenuItem>
                     ))}
                   </SidebarMenu>
