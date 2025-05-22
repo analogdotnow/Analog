@@ -1,12 +1,13 @@
-import type { ReactNode } from "react";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import type { ReactNode } from "react";
 import "./globals.css";
 import { Providers } from "./providers";
 
-import localFont from "next/font/local";
-import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
+import { Header } from "@/components/header";
+import { Toaster } from "@/components/ui/sonner";
+import localFont from "next/font/local";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -40,6 +41,11 @@ export default function RootLayout({
       >
         <Providers>
           <div className="mx-auto w-full max-w-7xl">
+            <Toaster
+              richColors
+              closeButton
+              position="bottom-right"
+            />
             <Header />
             <div className="py-20 sm:py-28 md:py-32 lg:py-40 min-h-[calc(100vh-8rem)]">
               {children}

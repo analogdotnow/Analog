@@ -4,9 +4,10 @@ import { count } from "drizzle-orm";
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "../trpc";
 import { TRPCError } from "@trpc/server";
+import { eq } from "drizzle-orm";
 
 export const waitlistRouter = createTRPCRouter({
-  getCount: publicProcedure.query(async () => {
+  getWaitlistCount: publicProcedure.query(async () => {
     const waitlistCount = await db.select({ count: count() }).from(waitlist);
 
     if (!waitlistCount[0])
@@ -27,6 +28,17 @@ export const waitlistRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ input }) => {
+      const userAlreadyInWaitlist = await db
+        .select()
+        .from(waitlist)
+        .where(eq(waitlist.email, input.email));
+
+      if (userAlreadyInWaitlist[0])
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "You're already on the waitlist!",
+        });
+
       await db.insert(waitlist).values({
         email: input.email,
       });

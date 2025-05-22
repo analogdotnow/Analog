@@ -2,22 +2,64 @@
 
 import { Button } from "@/components/ui/button";
 import { ChevronRight } from "lucide-react";
-import Image from "next/image";
 
 import { Input } from "@/components/ui/input";
-import { useTheme } from "next-themes";
+
+import NumberFlow from "@number-flow/react";
+
+import { useTRPC } from "@/lib/trpc/client";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { z } from "zod";
+
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { useEffect, useState } from "react";
 
-import calendarPreview from "@/assets/preview.png";
-import calendarPreviewDark from "@/assets/dark-preview.png";
+const formSchema = z.object({
+  email: z.string().email(),
+});
+
+type FormSchema = z.infer<typeof formSchema>;
 
 export default function Home() {
-  const { resolvedTheme } = useTheme();
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [waitlistCount, setWaitlistCount] = useState<number>(0);
+
+  const { register, handleSubmit } = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: "",
+    },
+  });
+
+  const trpc = useTRPC();
+
+  const { mutate: joinWaitlist } = useMutation(
+    trpc.waitlist.joinWaitlist.mutationOptions({
+      onSuccess: () => {
+        toast.success("You've been added to the waitlist!");
+        setWaitlistCount(waitlistCount + 1);
+      },
+      onError: (error) => {
+        if (error.data?.code === "BAD_REQUEST")
+          return toast.error("You're already on the waitlist!");
+
+        return toast.error("Something went wrong. Please try again.");
+      },
+    }),
+  );
+
+  const { data: waitlistCountResult } = useQuery(
+    trpc.waitlist.getWaitlistCount.queryOptions(),
+  );
 
   useEffect(() => {
-    setIsDarkMode(resolvedTheme === "dark");
-  }, [resolvedTheme]);
+    if (waitlistCountResult) setWaitlistCount(waitlistCountResult.count);
+  }, [waitlistCountResult]);
+
+  function handleJoinWaitlist({ email }: FormSchema) {
+    joinWaitlist({ email });
+  }
 
   return (
     <main className="flex flex-col gap-8 md:gap-12 w-full items-center justify-center px-4 md:px-6">
@@ -33,10 +75,14 @@ export default function Home() {
         </div>
 
         <div className="flex flex-col gap-3 items-center justify-center w-full">
-          <form className="flex flex-col sm:flex-row gap-3 w-full max-w-lg mx-auto">
+          <form
+            className="flex flex-col sm:flex-row gap-3 w-full max-w-lg mx-auto"
+            onSubmit={handleSubmit(handleJoinWaitlist)}
+          >
             <Input
               placeholder="john@acme.de"
               className="font-medium h-11 placeholder:text-muted-foreground placeholder:font-medium bg-white outline outline-neutral-200 w-full rounded-md px-4"
+              {...register("email")}
             />
             <Button className="w-full sm:w-fit pl-4 pr-3 h-11" type="submit">
               Join Waitlist <ChevronRight className="h-5 w-5" />
@@ -47,20 +93,10 @@ export default function Home() {
             <span className="bg-green-400 size-2 rounded-full" />
             <span className="bg-green-400 size-2 rounded-full blur-xs left-0 absolute" />
             <span className="text-green-400 text-sm sm:text-base">
-              285 people already joined
+              <NumberFlow value={waitlistCount} /> people already joined
             </span>
           </div>
         </div>
-      </div>
-
-      <div className="rounded-md shadow-lg w-[300%] md:w-full translate-x-1/3 md:translate-x-0 overflow-hidden">
-        <Image
-          src={isDarkMode ? calendarPreviewDark : calendarPreview}
-          alt="Calendar Preview"
-          aria-hidden
-          className="w-full h-auto"
-          priority
-        />
       </div>
     </main>
   );
