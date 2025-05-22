@@ -4,10 +4,11 @@ import type { ReactNode } from "react";
 import "./globals.css";
 import { Providers } from "./providers";
 
+import localFont from "next/font/local";
+
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
 import { Toaster } from "@/components/ui/sonner";
-import localFont from "next/font/local";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,9 +20,9 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const safiro = localFont({
-  variable: "--font-safiro",
-  src: "./fonts/Safiro-Medium.ttf",
+const satoshi = localFont({
+  src: "./fonts/Satoshi-Variable.ttf",
+  variable: "--font-satoshi",
   display: "swap",
   weight: "500",
 });
@@ -37,15 +38,11 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${safiro.variable} antialiased min-h-screen flex flex-col`}
+        className={`${geistSans.variable} ${geistMono.variable} ${satoshi.variable} antialiased min-h-screen flex flex-col`}
       >
         <Providers>
           <div className="mx-auto w-full max-w-7xl">
-            <Toaster
-              richColors
-              closeButton
-              position="bottom-right"
-            />
+            <Toaster richColors closeButton position="bottom-right" />
             <Header />
             <div className="py-20 sm:py-28 md:py-32 lg:py-40 min-h-[calc(100vh-8rem)]">
               {children}
