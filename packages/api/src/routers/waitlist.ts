@@ -20,15 +20,19 @@ export const waitlistRouter = createTRPCRouter({
     };
   }),
 
-  joinWaitlist: publicProcedure.input(z.object({
-    email: z.string().email(),
-  })).mutation(async ({ input }) => {
-    await db.insert(waitlist).values({
-      email: input.email,
-    });
+  joinWaitlist: publicProcedure
+    .input(
+      z.object({
+        email: z.string().email(),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      await db.insert(waitlist).values({
+        email: input.email,
+      });
 
-    return {
-      success: true,
-    };
-  }),
+      return {
+        success: true,
+      };
+    }),
 });

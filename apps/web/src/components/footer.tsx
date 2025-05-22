@@ -9,10 +9,16 @@ export function Footer() {
         <FullSVGLogo />
 
         <div className="flex flex-row gap-2 items-center justify-center text-muted-foreground">
-          <Link href="/terms" className="underline underline-offset-2 text-xs md:text-sm">
+          <Link
+            href="/terms"
+            className="underline underline-offset-2 text-xs md:text-sm"
+          >
             Terms os Use
           </Link>
-          <Link href="/privacy" className="underline underline-offset-2 text-xs md:text-sm">
+          <Link
+            href="/privacy"
+            className="underline underline-offset-2 text-xs md:text-sm"
+          >
             Privacy Policy
           </Link>
 

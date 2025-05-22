@@ -18,7 +18,8 @@ export const { TRPCProvider, useTRPC } = createTRPCContext<AppRouter>();
 function getUrl() {
   const base = (() => {
     if (typeof window !== "undefined") return "";
-    if (env.NEXT_PUBLIC_VERCEL_URL) return `https://${env.NEXT_PUBLIC_VERCEL_URL}`;
+    if (env.NEXT_PUBLIC_VERCEL_URL)
+      return `https://${env.NEXT_PUBLIC_VERCEL_URL}`;
     return "http://localhost:3000";
   })();
 

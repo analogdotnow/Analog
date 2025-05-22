@@ -42,9 +42,11 @@ export function SignInForm({ redirectUrl = "/" }: SignInFormProps) {
   return (
     <Card className="max-w-md shadow-none border-none">
       <CardHeader>
-        <CardTitle className="text-xl md:text-2xl text-center">Analog</CardTitle>
+        <CardTitle className="text-xl md:text-2xl text-center">
+          Analog
+        </CardTitle>
         <CardDescription className="text-md md:text-lg text-center text-balance">
-        The calendar that changes everything
+          The calendar that changes everything
         </CardDescription>
       </CardHeader>
       <CardContent>
