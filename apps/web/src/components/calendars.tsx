@@ -56,20 +56,20 @@ export function Calendars() {
                     {account.calendars.map((item, index) => (
                       <SidebarMenuItem key={item.id}>
                         <Tooltip>
-                          <SidebarMenuButton>
-                            <div
-                              data-active={index < 2}
-                              className="group/calendar-item border-sidebar-border text-sidebar-primary-foreground data-[active=true]:border-sidebar-primary data-[active=true]:bg-sidebar-primary flex aspect-square size-4 shrink-0 items-center justify-center rounded-sm border"
-                            >
-                              <Check className="hidden size-3 group-data-[active=true]/calendar-item:block" />
-                            </div>
-                            <TooltipTrigger asChild>
+                          <TooltipTrigger asChild>
+                            <SidebarMenuButton>
+                              <div
+                                data-active={index < 2}
+                                className="group/calendar-item border-sidebar-border text-sidebar-primary-foreground data-[active=true]:border-sidebar-primary data-[active=true]:bg-sidebar-primary flex aspect-square size-4 shrink-0 items-center justify-center rounded-sm border"
+                              >
+                                <Check className="hidden size-3 group-data-[active=true]/calendar-item:block" />
+                              </div>
                               <span className="line-clamp-1 block">{item.name}</span>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <span className="max-w-[600px] break-words">{item.name}</span>
-                            </TooltipContent>
-                          </SidebarMenuButton>
+                            </SidebarMenuButton>
+                          </TooltipTrigger>
+                          <TooltipContent side="bottom" align="start" sideOffset={8} className="bg-sidebar-accent text-sidebar-accent-foreground">
+                            <span>{item.name}</span>
+                          </TooltipContent>
                         </Tooltip>
                       </SidebarMenuItem>
                     ))}
