@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { FullSVGLogo } from "./brand/full-svg-logo";
+import { ModeToggle } from "./ui/theme-toggle";
 
 export function Footer() {
   return (
@@ -8,13 +9,14 @@ export function Footer() {
         <FullSVGLogo />
 
         <div className="flex flex-row gap-2 items-center justify-center text-muted-foreground">
-          <Link href="/terms" className="underline underline-offset-2">
+          <Link href="/terms" className="underline underline-offset-2 text-xs md:text-sm">
             Terms os Use
           </Link>
-          <Link href="/privacy" className="underline underline-offset-2">
+          <Link href="/privacy" className="underline underline-offset-2 text-xs md:text-sm">
             Privacy Policy
           </Link>
 
+          <ModeToggle />
         </div>
       </div>
     </header>

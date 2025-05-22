@@ -27,6 +27,7 @@ const safiro = localFont({
 
 export const metadata: Metadata = {
   title: "Analog",
+  description: "Beyond Scheduling. A calendar that understands your life.",
 };
 
 export default function RootLayout({
@@ -35,12 +36,16 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${safiro.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${safiro.variable} antialiased min-h-screen flex flex-col`}
       >
         <Providers>
-          <Header />
-          <div className="py-40"> {children}</div>
-          <Footer />
+          <div className="mx-auto w-full max-w-7xl">
+            <Header />
+            <div className="py-20 sm:py-28 md:py-32 lg:py-40 min-h-[calc(100vh-8rem)]">
+              {children}
+            </div>
+            <Footer />
+          </div>
         </Providers>
       </body>
     </html>
