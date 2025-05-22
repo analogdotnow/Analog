@@ -39,6 +39,7 @@ Ensure you have the following installed:
     *   `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`:
         1.  Create a Google project in the [Google Cloud Console](https://console.cloud.google.com/).
         2.  Follow [step 1 in the Better Auth documentation](https://www.better-auth.com/docs/authentication/google) to set up Google OAuth credentials.
+        3.  Enable the Google Calendar API by visiting [Google Cloud Console APIs](https://console.cloud.google.com/apis/library/calendar-json.googleapis.com) and enabling it for your project.
 
 ### Database Setup
 
