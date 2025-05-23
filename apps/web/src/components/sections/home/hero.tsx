@@ -4,6 +4,8 @@ import PreviewLight from "@/assets/preview.png";
 import { WaitlistForm } from "./waitlist-form";
 import { HydrateClient, prefetch, trpc } from "@/lib/trpc/server";
 import { AnimatedGroup } from "@/components/ui/animated-group";
+// import { CalendarWindow } from "./calendar-window";
+// import { cn } from "@/lib/utils";
 
 const transitionVariants = {
   item: {
@@ -33,14 +35,6 @@ export function Hero() {
       <AnimatedGroup variants={transitionVariants}>
         <div className="flex flex-col gap-12 px-4 md:px-6">
           <div className="flex flex-col gap-3 md:gap-6 items-center justify-center text-center">
-            {/* <TextEffect
-            preset="fade-in-blur"
-            speedSegment={0.5}
-            as="h1"
-            className="text-4xl sm:text-5xl lg:text-6xl leading-tight font-satoshi"
-          >
-            Beyond Scheduling. A calendar that understands your life.
-          </TextEffect> */}
             <h1 className="text-4xl md:text-5xl lg:text-6xl leading-tight font-satoshi">
               Beyond Scheduling. <br className="hidden sm:block" /> A calendar
               that understands your life.
@@ -71,6 +65,12 @@ export function Hero() {
         }}
       >
         <div className="min-w-[300vw] px-4 sm:px-6 w-full sm:max-w-7xl sm:min-w-0 sm:translate-x-0 mx-auto">
+          {/* <div className="w-full [--base-height:874px] [--display-height:calc(var(--base-height)_*_var(--preview-scale))] [--preview-scale:0.5] sm:[--preview-scale:0.8]">
+            <div className="[--item-width:1400px]">
+              <CalendarWindow className="h-(--base-height) w-(--item-width) scale-(--preview-scale) origin-top-left" />
+            </div>
+          </div>
+          <CalendarWindow className="w-full h-[50vh]" /> */}
           <Image
             src={PreviewDark}
             alt="Hero"
