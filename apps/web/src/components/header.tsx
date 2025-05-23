@@ -22,7 +22,7 @@ export function Header() {
           <span className="text-sm hidden md:block">and follow on</span>
           <a
             className="underline text-primary underline-offset-2 text-sm hover:text-primary/80 transition-colors"
-            href="https://x.com/initjean"
+            href="https://x.com/analogdotnow"
             target="_blank"
             rel="noopener noreferrer"
           >
