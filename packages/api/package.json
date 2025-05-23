@@ -3,13 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "exports": {
-    ".": "./src/root.ts"
+    ".": "./src/root.ts",
+    "./trpc": "./src/trpc.ts"
   },
   "scripts": {
     "lint": "eslint ."
   },
   "peerDependencies": {
     "@trpc/server": "^11.1.2",
+    "better-auth": "^1.2.8",
     "next": "^15",
     "server-only": "^0.0.1",
     "superjson": "^2.2.2",
@@ -18,7 +20,8 @@
   "dependencies": {
     "@repo/auth": "workspace:*",
     "@repo/db": "workspace:*",
-    "@repo/env": "workspace:*"
+    "@repo/env": "workspace:*",
+    "@repo/google-calendar": "workspace:*"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
