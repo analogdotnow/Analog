@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import ogImage from "@/assets/og-image.png";
 import localFont from "next/font/local";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
@@ -25,7 +26,37 @@ const satoshi = localFont({
 
 export const metadata: Metadata = {
   title: "Analog",
-  description: "Beyond Scheduling. A calendar that understands your life.",
+  description: "A calendar that understands your life.",
+  openGraph: {
+    title: "Analog",
+    description: "A calendar that understands your life.",
+    url: "https://analog.now",
+    siteName: "Analog",
+    images: [
+      {
+        url: ogImage.src,
+        width: ogImage.width,
+        height: ogImage.height,
+        alt: "Analog",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    title: "Analog",
+    description: "A calendar that understands your life.",
+    site: "@analogdotnow",
+    card: "summary_large_image",
+    images: [
+      {
+        url: ogImage.src,
+        width: ogImage.width,
+        height: ogImage.height,
+        alt: "Analog",
+      },
+    ],
+  },
 };
 
 export default function RootLayout({
