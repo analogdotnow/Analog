@@ -76,12 +76,11 @@ export function WaitlistForm({ className }: WaitlistFormProps) {
     >
       {waitlist.success ? (
         <div className="flex flex-col items-center justify-center gap-4 text-center">
-          <p className="text-2xl font-semibold text-gray-900 dark:text-white">
-            You&apos;re on the list! 🎉
+          <p className="text-xl font-semibold">
+            You&apos;re on the waitlist! 🎉
           </p>
-          <p className="dark:text-shinyGray text-lg text-muted-foreground">
-            We&apos;ll let you know when we&apos;re ready to revolutionize your
-            email experience.
+          <p className="text-base text-muted-foreground">
+            We&apos;ll let you know when we&#39;re ready to show you what we&#39;ve been working on.
           </p>
         </div>
       ) : (

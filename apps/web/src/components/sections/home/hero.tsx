@@ -4,7 +4,6 @@ import PreviewLight from "@/assets/preview.png";
 import { WaitlistForm } from "./waitlist-form";
 import { HydrateClient, prefetch, trpc } from "@/lib/trpc/server";
 import { AnimatedGroup } from "@/components/ui/animated-group";
-import { TextEffect } from "@/components/ui/text-effect";
 
 const transitionVariants = {
   item: {
