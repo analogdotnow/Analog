@@ -30,7 +30,7 @@ export function Hero() {
   prefetch(trpc.earlyAccess.getWaitlistCount.queryOptions());
 
   return (
-    <div className="flex flex-col gap-8 md:gap-16 w-full max-w-6xl overflow-hidden">
+    <div className="flex flex-col gap-12 md:gap-16 w-full max-w-6xl overflow-hidden">
       <AnimatedGroup variants={transitionVariants}>
         <div className="flex flex-col gap-12 px-4 md:px-6">
           <div className="flex flex-col gap-3 md:gap-6 items-center justify-center text-center">
@@ -42,8 +42,8 @@ export function Hero() {
           >
             Beyond Scheduling. A calendar that understands your life.
           </TextEffect> */}
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl leading-tight font-satoshi">
-              Beyond Scheduling. <br className="hidden md:block" /> A calendar
+            <h1 className="text-4xl md:text-5xl lg:text-6xl leading-tight font-satoshi">
+              Beyond Scheduling. <br className="hidden sm:block" /> A calendar
               that understands your life.
             </h1>
             <p className="text-muted-foreground text-base md:text-lg max-w-xl">

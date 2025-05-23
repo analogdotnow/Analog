@@ -107,7 +107,7 @@ export function WaitlistForm({ className }: WaitlistFormProps) {
         <span className="bg-green-600 dark:bg-green-400 size-2 rounded-full" />
         <span className="bg-green-600 dark:bg-green-400 size-2 rounded-full blur-xs left-0 absolute" />
         <span className="text-green-600 dark:text-green-400 text-sm sm:text-base">
-          <NumberFlow value={waitlist.count} /> people already joined
+          <NumberFlow value={waitlist.count} /> person already joined
         </span>
       </div>
     </div>
