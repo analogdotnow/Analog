@@ -1,19 +1,19 @@
 import Link from "next/link";
-import { FullSVGLogo } from "./brand/full-svg-logo";
+import { Logo } from "./branding/logo";
 import { ModeToggle } from "./ui/theme-toggle";
 
 export function Footer() {
   return (
-    <header className="flex flex-row w-full py-10 px-2.5">
+    <footer className="flex flex-row w-full py-10 sm:py-6 md:py-8 px-4 sm:px-6 md:px-8">
       <div className="flex flex-row items-center justify-between max-w-7xl w-full mx-auto">
-        <FullSVGLogo />
+        <Logo className="opacity-50" />
 
         <div className="flex flex-row gap-2 items-center justify-center text-muted-foreground">
           <Link
             href="/terms"
             className="underline underline-offset-2 text-xs md:text-sm"
           >
-            Terms os Use
+            Terms of Use
           </Link>
           <Link
             href="/privacy"
@@ -25,6 +25,6 @@ export function Footer() {
           <ModeToggle />
         </div>
       </div>
-    </header>
+    </footer>
   );
 }

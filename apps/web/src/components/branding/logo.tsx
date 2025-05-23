@@ -1,6 +1,6 @@
 import type { LucideProps } from "lucide-react";
 
-export function FullSVGLogo(props: LucideProps) {
+export function Logo(props: LucideProps) {
   return (
     <svg
       width="72"
