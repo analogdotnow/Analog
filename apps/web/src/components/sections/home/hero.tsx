@@ -75,11 +75,13 @@ export function Hero() {
             src={PreviewDark}
             alt="Hero"
             className="rounded-lg hidden dark:block"
+            unoptimized
           />
           <Image
             src={PreviewLight}
             alt="Hero"
             className="rounded-lg block dark:hidden"
+            unoptimized
           />
         </div>
       </AnimatedGroup>
