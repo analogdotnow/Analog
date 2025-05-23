@@ -105,7 +105,7 @@ export function MonthView({
           </div>
         ))}
       </div>
-      <div className="grid flex-1 auto-rows-fr">
+      <div className="grid flex-1 auto-rows-fr h-[calc(100%-37px)]">
         {weeks.map((week, weekIndex) => (
           <div
             key={`week-${weekIndex}`}

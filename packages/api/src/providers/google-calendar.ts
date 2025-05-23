@@ -25,4 +25,44 @@ export class GoogleCalendarProvider {
       })) ?? []
     );
   }
+
+  async events(calendarId: string, timeMin?: string, timeMax?: string) {
+    const { items } = await this.client.calendars.events.list(calendarId, {
+      timeMin: timeMin || new Date().toISOString(),
+      timeMax: timeMax || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      singleEvents: true,
+      orderBy: "startTime",
+      maxResults: 250,
+    });
+
+    return (
+      items?.map((event) => {
+        const isAllDay = !event.start?.dateTime;
+
+        let start: string;
+        let end: string;
+
+        if (isAllDay) {
+          start = event.start?.date ? `${event.start.date}T00:00:00` : "";
+          end = event.end?.date ? `${event.end.date}T00:00:00` : "";
+        } else {
+          start = event.start?.dateTime || "";
+          end = event.end?.dateTime || "";
+        }
+
+        return {
+          id: event.id || "",
+          title: event.summary || "Untitled Event",
+          description: event.description,
+          start,
+          end,
+          allDay: isAllDay,
+          location: event.location,
+          status: event.status,
+          htmlLink: event.htmlLink,
+          colorId: event.colorId,
+        };
+      }) ?? []
+    );
+  }
 }
