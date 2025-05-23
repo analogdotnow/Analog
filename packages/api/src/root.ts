@@ -5,11 +5,11 @@ import {
   createTRPCRouter,
 } from "./trpc";
 import { userRouter } from "./routers/user";
-import { waitlistRouter } from "./routers/waitlist";
+import { earlyAccessRouter } from "./routers/early-access";
 
 export const appRouter = createTRPCRouter({
   user: userRouter,
-  waitlist: waitlistRouter,
+  earlyAccess: earlyAccessRouter,
 });
 
 export type AppRouter = typeof appRouter;

@@ -9,20 +9,20 @@ export function Footer() {
         <Logo className="opacity-50" />
 
         <div className="flex flex-row gap-2 items-center justify-center text-muted-foreground">
-          <Link
-            href="/terms"
-            className="underline underline-offset-2 text-xs md:text-sm"
-          >
-            Terms of Use
-          </Link>
-          <Link
-            href="/privacy"
-            className="underline underline-offset-2 text-xs md:text-sm"
-          >
-            Privacy Policy
-          </Link>
+          {/*<Link*/}
+          {/*  href="/terms"*/}
+          {/*  className="underline underline-offset-2 text-xs md:text-sm"*/}
+          {/*>*/}
+          {/*  Terms of Use*/}
+          {/*</Link>*/}
+          {/*<Link*/}
+          {/*  href="/privacy"*/}
+          {/*  className="underline underline-offset-2 text-xs md:text-sm"*/}
+          {/*>*/}
+          {/*  Privacy Policy*/}
+          {/*</Link>*/}
 
-          <ModeToggle />
+          {/* <ModeToggle /> */}
         </div>
       </div>
     </footer>

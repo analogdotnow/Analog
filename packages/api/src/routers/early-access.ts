@@ -5,7 +5,7 @@ import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "../trpc";
 import { TRPCError } from "@trpc/server";
 
-export const waitlistRouter = createTRPCRouter({
+export const earlyAccessRouter = createTRPCRouter({
   getWaitlistCount: publicProcedure.query(async () => {
     const waitlistCount = await db.select({ count: count() }).from(waitlist);
 
@@ -33,18 +33,13 @@ export const waitlistRouter = createTRPCRouter({
         .where(eq(waitlist.email, input.email));
 
       if (userAlreadyInWaitlist[0]) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "You're already on the waitlist!",
-        });
+        return { message: "You're already on the waitlist!" };
       }
 
       await db.insert(waitlist).values({
         email: input.email,
       });
 
-      return {
-        success: true,
-      };
+      return { message: "You've been added to the waitlist!" };
     }),
 });
