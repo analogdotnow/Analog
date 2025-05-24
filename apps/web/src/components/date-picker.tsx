@@ -23,9 +23,9 @@ export function DatePicker() {
           className="[&_[role=gridcell]]:w-[33px]"
           classNames={{
             day_selected:
-              "bg-sidebar-primary text-sidebar-primary-foreground hover:!bg-sidebar-primary hover:!text-sidebar-primary-foreground hover:filter hover:brightness-[0.8] focus:bg-sidebar-primary focus:text-sidebar-primary-foreground",
+              "!bg-sidebar-primary !text-sidebar-primary-foreground hover:!bg-sidebar-primary hover:!text-sidebar-primary-foreground hover:filter hover:brightness-[0.8] focus:!bg-sidebar-primary focus:!text-sidebar-primary-foreground",
             day_today:
-              "border-1 border-accent-foreground/50 bg-transparent font-medium hover:opacity-80 aria-selected:border-0",
+              "!border-1 !border-sidebar-primary/30 dark:!border-sidebar-primary/70 font-medium hover:opacity-80 aria-selected:!border-0 aria-selected:!bg-sidebar-primary",
           }}
         />
       </SidebarGroupContent>
