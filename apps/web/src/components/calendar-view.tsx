@@ -1,8 +1,12 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { addDays, subDays, endOfDay } from "date-fns";
-import { EventCalendar, type CalendarEvent, type EventColor } from "@/components/event-calendar";
+import {
+  EventCalendar,
+  type CalendarEvent,
+  type EventColor,
+} from "@/components/event-calendar";
 import { useTRPC } from "@/lib/trpc/client";
 import { useQuery } from "@tanstack/react-query";
 
@@ -30,7 +34,7 @@ export function CalendarView({ className }: CalendarViewProps) {
   const timeMin = useMemo(() => subDays(new Date(), 30).toISOString(), []);
   const timeMax = useMemo(() => addDays(new Date(), 60).toISOString(), []);
 
-  const { data, isLoading, error } = useQuery(
+  const { data } = useQuery(
     trpc.calendars.events.queryOptions({
       timeMin,
       timeMax,
@@ -44,8 +48,20 @@ export function CalendarView({ className }: CalendarViewProps) {
       const startDate = new Date(event.start);
       let endDate = new Date(event.end);
 
-      if (event.allDay && endDate.getHours() === 0 && endDate.getMinutes() === 0 && endDate.getSeconds() === 0) {
-        const nextDayOfStart = addDays(new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate()), 1);
+      if (
+        event.allDay &&
+        endDate.getHours() === 0 &&
+        endDate.getMinutes() === 0 &&
+        endDate.getSeconds() === 0
+      ) {
+        const nextDayOfStart = addDays(
+          new Date(
+            startDate.getFullYear(),
+            startDate.getMonth(),
+            startDate.getDate()
+          ),
+          1
+        );
         if (endDate.getTime() === nextDayOfStart.getTime()) {
           endDate = endOfDay(startDate);
         } else {
