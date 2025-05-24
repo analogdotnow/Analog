@@ -45,7 +45,13 @@ export default {
       .filter((item) =>
         item.label.toLowerCase().startsWith(query.toLowerCase())
       )
-      .slice(0, 5);
+      .reduce((acc, item) => {
+        const sameTypeCount = acc.filter(i => i.type === item.type).length;
+        if (sameTypeCount < 5) {
+          acc.push(item);
+        }
+        return acc;
+      }, [] as SuggestionItem[]);
   },
 
   render: () => {
@@ -54,6 +60,7 @@ export default {
 
     return {
       onStart: (props) => {
+        console.log("onStart", props);
         component = new ReactRenderer(TimeSelector, {
           props,
           editor: props.editor,
