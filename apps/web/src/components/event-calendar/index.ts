@@ -12,6 +12,11 @@ export { EventCalendar } from "./event-calendar";
 export { MonthView } from "./month-view";
 export { WeekView } from "./week-view";
 export { CalendarDndProvider, useCalendarDnd } from "./calendar-dnd-context";
+export { CalendarSettingsPopover } from "./view-preferences-popover";
+export type {
+  ViewPreferences as CalendarSettings,
+  ViewPreferencesPopoverProps,
+} from "./view-preferences-popover";
 
 // Constants and utility exports
 export * from "./constants";
