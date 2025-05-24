@@ -1,9 +1,10 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck - TODO: fix properly
 import { ReactRenderer } from "@tiptap/react";
-import tippy from "tippy.js";
+import { type MentionOptions } from "@tiptap/extension-mention";
+import tippy, { Instance, Props } from "tippy.js";
 
 import TimeSelector from "./time-selector";
+
+type MentionSuggestion = MentionOptions["suggestion"];
 
 type SuggestionItem = {
   type: "time" | "duration";
@@ -46,7 +47,7 @@ export default {
         item.label.toLowerCase().startsWith(query.toLowerCase())
       )
       .reduce((acc, item) => {
-        const sameTypeCount = acc.filter(i => i.type === item.type).length;
+        const sameTypeCount = acc.filter((i) => i.type === item.type).length;
         if (sameTypeCount < 5) {
           acc.push(item);
         }
@@ -55,12 +56,11 @@ export default {
   },
 
   render: () => {
-    let component;
-    let popup;
+    let component: ReactRenderer<any>;
+    let popup: Instance<Props>;
 
     return {
       onStart: (props) => {
-        console.log("onStart", props);
         component = new ReactRenderer(TimeSelector, {
           props,
           editor: props.editor,
@@ -70,8 +70,11 @@ export default {
           return;
         }
 
-        popup = tippy("body", {
-          getReferenceClientRect: props.clientRect,
+        popup = tippy(document.body, {
+          getReferenceClientRect: () => {
+            const rect = props.clientRect?.();
+            return rect || new DOMRect();
+          },
           appendTo: () => document.body,
           content: component.element,
           showOnCreate: true,
@@ -88,15 +91,17 @@ export default {
           return;
         }
 
-        popup[0].setProps({
-          getReferenceClientRect: props.clientRect,
+        popup?.setProps({
+          getReferenceClientRect: () => {
+            const rect = props.clientRect?.();
+            return rect || new DOMRect();
+          },
         });
       },
 
       onKeyDown(props) {
         if (props.event.key === "Escape") {
-          popup[0].hide();
-
+          popup?.hide();
           return true;
         }
 
@@ -104,9 +109,9 @@ export default {
       },
 
       onExit() {
-        popup[0].destroy();
+        popup?.destroy();
         component.destroy();
       },
     };
   },
-};
+} as MentionSuggestion;
