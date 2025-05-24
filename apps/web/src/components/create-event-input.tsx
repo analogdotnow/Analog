@@ -10,6 +10,8 @@ import createEventInputSuggestions from "./create-event-input-suggestions";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 
+import { AnimatePresence, motion } from "motion/react";
+
 export function CreateEventInput() {
   const [isEmpty, setIsEmpty] = useState(true);
 
@@ -22,6 +24,7 @@ export function CreateEventInput() {
         HTMLAttributes: {
           class: "mention",
         },
+
         deleteTriggerWithBackspace: true,
         suggestion: createEventInputSuggestions,
       }),
@@ -64,6 +67,7 @@ export function CreateEventInput() {
       (node) => node.type === "mention"
     );
 
+
     console.log({ content: sanitizedContent, mentions });
     editor?.commands.clearContent();
   };
@@ -71,8 +75,14 @@ export function CreateEventInput() {
   if (!editor) return null;
 
   return (
-    <div className="relative">
-      {isEmpty && <Placeholder />}
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ type: "spring", duration: 0.4 }}
+      className="relative"
+    >
+      <AnimatePresence>{isEmpty && <Placeholder />}</AnimatePresence>
 
       <EditorContent
         editor={editor}
@@ -85,14 +95,20 @@ export function CreateEventInput() {
           "event-editor-content"
         )}
       />
-    </div>
+    </motion.div>
   );
 }
 
 const Placeholder = () => {
   return (
-    <div className="text-muted-foreground text-sm absolute top-0 left-0 p-2 pointer-events-none">
+    <motion.div
+      initial={{ opacity: 0, filter: "blur(2px)", x: -2 }}
+      animate={{ opacity: 1, filter: "blur(0px)", x: 0 }}
+      exit={{ opacity: 0, filter: "blur(2px)", x: -2 }}
+      transition={{ type: "spring", duration: 0.4 }}
+      className="text-muted-foreground text-sm absolute top-0 left-px p-2 pointer-events-none"
+    >
       Sales meeting at @22:00
-    </div>
+    </motion.div>
   );
 };

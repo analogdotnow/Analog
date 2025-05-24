@@ -10,6 +10,7 @@ type SuggestionItem = {
   type: "time" | "duration";
   label: string;
   value: string;
+  id: string;
 };
 
 export default forwardRef(function TimeSelector(
@@ -24,7 +25,10 @@ export default forwardRef(function TimeSelector(
   const selectItem = (index: number) => {
     const item = props.items[index];
     if (item) {
-      props.command(item);
+      props.command({
+        ...item,
+        id: "mention-" + item.type,
+      });
     }
   };
 
