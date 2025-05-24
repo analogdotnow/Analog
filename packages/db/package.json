@@ -1,5 +1,5 @@
 {
-  "name": "@repo/db",
+  "name": "@analog/db",
   "version": "0.1.0",
   "private": true,
   "exports": {
@@ -15,14 +15,14 @@
     "format": "prettier --write \"**/*.{ts,tsx,css,,md}\""
   },
   "dependencies": {
-    "@repo/env": "workspace:*",
+    "@analog/env": "workspace:*",
     "drizzle-orm": "^0.43.1",
     "postgres": "^3.4.5",
     "server-only": "^0.0.1"
   },
   "devDependencies": {
-    "@repo/eslint-config": "workspace:*",
-    "@repo/typescript-config": "workspace:*",
+    "@analog/eslint-config": "workspace:*",
+    "@analog/typescript-config": "workspace:*",
     "@types/node": "^20",
     "drizzle-kit": "^0.31.1",
     "eslint": "^9",

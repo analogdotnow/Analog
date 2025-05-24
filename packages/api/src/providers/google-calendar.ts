@@ -1,4 +1,4 @@
-import { GoogleCalendar } from "@repo/google-calendar";
+import { GoogleCalendar } from "@analog/google-calendar";
 
 interface GoogleCalendarProviderOptions {
   accessToken: string;

@@ -1,5 +1,5 @@
 {
-  "name": "@repo/web",
+  "name": "@analog/web",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -27,9 +27,9 @@
     "@remixicon/react": "^4.6.0",
     "@hookform/resolvers": "^5.0.1",
     "@number-flow/react": "^0.5.9",
-    "@repo/api": "workspace:*",
-    "@repo/auth": "workspace:*",
-    "@repo/env": "workspace:*",
+    "@analog/api": "workspace:*",
+    "@analog/auth": "workspace:*",
+    "@analog/env": "workspace:*",
     "@tanstack/react-query": "^5.76.1",
     "@trpc/client": "^11.1.2",
     "@trpc/server": "^11.1.2",
@@ -52,8 +52,8 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
-    "@repo/eslint-config": "workspace:*",
-    "@repo/typescript-config": "workspace:*",
+    "@analog/eslint-config": "workspace:*",
+    "@analog/typescript-config": "workspace:*",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

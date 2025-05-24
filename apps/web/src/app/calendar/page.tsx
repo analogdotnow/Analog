@@ -1,6 +1,6 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { auth } from "@repo/auth/server";
+import { auth } from "@analog/auth/server";
 import { CalendarLayout } from "@/components/calendar-layout";
 
 export default async function Page() {

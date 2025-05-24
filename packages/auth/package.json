@@ -1,5 +1,5 @@
 {
-  "name": "@repo/auth",
+  "name": "@analog/auth",
   "version": "0.1.0",
   "private": true,
   "exports": {
@@ -14,12 +14,12 @@
     "server-only": "^0.0.1"
   },
   "dependencies": {
-    "@repo/db": "workspace:*",
-    "@repo/env": "workspace:*"
+    "@analog/db": "workspace:*",
+    "@analog/env": "workspace:*"
   },
   "devDependencies": {
-    "@repo/eslint-config": "workspace:*",
-    "@repo/typescript-config": "workspace:*",
+    "@analog/eslint-config": "workspace:*",
+    "@analog/typescript-config": "workspace:*",
     "@types/node": "^20",
     "eslint": "^9",
     "typescript": "^5"

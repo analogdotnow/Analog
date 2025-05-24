@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { auth } from "@repo/auth/server";
+import { auth } from "@analog/auth/server";
 import { SignInForm } from "./sign-in-form";
 
 export const metadata: Metadata = {

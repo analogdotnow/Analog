@@ -1,5 +1,5 @@
 {
-  "name": "@repo/env",
+  "name": "@analog/env",
   "version": "0.1.0",
   "private": true,
   "exports": {
@@ -14,8 +14,8 @@
     "zod": "^3.24.4"
   },
   "devDependencies": {
-    "@repo/eslint-config": "workspace:*",
-    "@repo/typescript-config": "workspace:*",
+    "@analog/eslint-config": "workspace:*",
+    "@analog/typescript-config": "workspace:*",
     "@types/node": "^20",
     "eslint": "^9",
     "typescript": "^5"
