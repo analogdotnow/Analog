@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useCalendarContextOptional } from "@/contexts/calendar-context";
 import { RiCalendarCheckLine } from "@remixicon/react";
 import {
   addDays,
@@ -64,11 +65,18 @@ export function EventCalendar({
   className,
   initialView = "week",
 }: EventCalendarProps) {
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [view, setView] = useState<CalendarView>(initialView);
+  // Use context if available, otherwise use local state
+  const context = useCalendarContextOptional();
+  const [localCurrentDate, setLocalCurrentDate] = useState(new Date());
+  const [localView, setLocalView] = useState<CalendarView>(initialView);
+
+  const currentDate = context?.currentDate ?? localCurrentDate;
+  const setCurrentDate = context?.setCurrentDate ?? setLocalCurrentDate;
+  const view = context?.view ?? localView;
+  const setView = context?.setView ?? setLocalView;
   const [isEventDialogOpen, setIsEventDialogOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(
-    null,
+    null
   );
 
   // Add keyboard shortcuts for view switching
@@ -106,7 +114,7 @@ export function EventCalendar({
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [isEventDialogOpen]);
+  }, [isEventDialogOpen, setView]);
 
   const handlePrevious = () => {
     if (view === "month") {
@@ -265,7 +273,7 @@ export function EventCalendar({
     <div
       className={cn(
         "flex flex-col has-data-[slot=month-view]:flex-1 overflow-scroll",
-        className,
+        className
       )}
       style={
         {
@@ -278,7 +286,7 @@ export function EventCalendar({
       <CalendarDndProvider onEventUpdate={handleEventUpdate}>
         <header
           className={cn(
-            "flex items-center justify-between p-2 sm:p-4 h-16 gap-2 border-b px-4",
+            "flex items-center justify-between p-2 sm:p-4 h-16 gap-2 border-b px-4"
           )}
         >
           <div className="flex items-center gap-1 sm:gap-4">
