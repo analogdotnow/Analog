@@ -1,5 +1,5 @@
 {
-  "name": "@repo/api",
+  "name": "@analog/api",
   "version": "0.1.0",
   "private": true,
   "exports": {
@@ -18,14 +18,14 @@
     "zod": "^3.24.4"
   },
   "dependencies": {
-    "@repo/auth": "workspace:*",
-    "@repo/db": "workspace:*",
-    "@repo/env": "workspace:*",
-    "@repo/google-calendar": "workspace:*"
+    "@analog/auth": "workspace:*",
+    "@analog/db": "workspace:*",
+    "@analog/env": "workspace:*",
+    "@analog/google-calendar": "workspace:*"
   },
   "devDependencies": {
-    "@repo/eslint-config": "workspace:*",
-    "@repo/typescript-config": "workspace:*",
+    "@analog/eslint-config": "workspace:*",
+    "@analog/typescript-config": "workspace:*",
     "@types/node": "^20",
     "eslint": "^9",
     "typescript": "^5"

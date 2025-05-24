@@ -1,8 +1,8 @@
 import "server-only";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { db } from "@repo/db";
-import { env } from "@repo/env/server";
+import { db } from "@analog/db";
+import { env } from "@analog/env/server";
 
 export const GOOGLE_OAUTH_SCOPES = [
   "email",

@@ -1,5 +1,5 @@
-import { db } from "@repo/db";
-import { waitlist } from "@repo/db/schema";
+import { db } from "@analog/db";
+import { waitlist } from "@analog/db/schema";
 import { count, eq } from "drizzle-orm";
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "../trpc";

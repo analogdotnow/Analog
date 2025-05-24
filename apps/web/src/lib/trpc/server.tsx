@@ -5,7 +5,7 @@ import {
   createTRPCOptionsProxy,
   TRPCQueryOptions,
 } from "@trpc/tanstack-react-query";
-import { appRouter, createContext } from "@repo/api";
+import { appRouter, createContext } from "@analog/api";
 import { makeQueryClient } from "./query-client";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 

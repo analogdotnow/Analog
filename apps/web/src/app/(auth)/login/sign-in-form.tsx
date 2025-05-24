@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { authClient } from "@repo/auth/client";
+import { authClient } from "@analog/auth/client";
 import { Button } from "@/components/ui/button";
 import {
   Card,
