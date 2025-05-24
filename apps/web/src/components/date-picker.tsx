@@ -3,15 +3,19 @@
 import { Calendar } from "@/components/ui/calendar";
 import { SidebarGroup, SidebarGroupContent } from "@/components/ui/sidebar";
 import { useCalendarContext } from "@/contexts/calendar-context";
+import { useCallback } from "react";
 
 export function DatePicker() {
   const { currentDate, setCurrentDate } = useCalendarContext();
 
-  const handleDateSelect = (date: Date | undefined) => {
-    if (date) {
-      setCurrentDate(date);
-    }
-  };
+  const handleDateSelect = useCallback(
+    (date: Date | undefined) => {
+      if (date) {
+        setCurrentDate(date);
+      }
+    },
+    [setCurrentDate]
+  );
 
   return (
     <SidebarGroup className="px-0">
