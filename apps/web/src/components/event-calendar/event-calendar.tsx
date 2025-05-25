@@ -1,5 +1,7 @@
 "use client";
 
+import { useMemo } from "react";
+import { useAtom } from "jotai";
 import {
   CalendarDndProvider,
   CalendarEvent,
@@ -10,10 +12,12 @@ import {
   useEventOperations,
   useKeyboardShortcuts,
   WeekCellsHeight,
+  filterPastEvents,
 } from "@/components/event-calendar";
 import { CalendarHeader } from "./calendar-header";
 import { CalendarContent } from "./calendar-content";
 import { cn } from "@/lib/utils";
+import { viewPreferencesAtom } from "@/atoms";
 
 export interface EventCalendarProps {
   events?: CalendarEvent[];
@@ -30,6 +34,13 @@ export function EventCalendar({
   onEventDelete,
   className,
 }: EventCalendarProps) {
+  const [viewPreferences] = useAtom(viewPreferencesAtom);
+
+  const filteredEvents = useMemo(
+    () => filterPastEvents(events, viewPreferences.showPastEvents),
+    [events, viewPreferences.showPastEvents],
+  );
+
   const {
     isEventDialogOpen,
     selectedEvent,
@@ -40,7 +51,7 @@ export function EventCalendar({
 
   const { handleEventSave, handleEventDelete, handleEventMove } =
     useEventOperations({
-      events,
+      events: filteredEvents,
       onEventAdd,
       onEventUpdate,
       onEventDelete,
@@ -55,7 +66,7 @@ export function EventCalendar({
     <div
       className={cn(
         "flex flex-col has-data-[slot=month-view]:flex-1 overflow-scroll",
-        className
+        className,
       )}
       style={
         {
@@ -70,7 +81,7 @@ export function EventCalendar({
 
         <div className="grow overflow-scroll">
           <CalendarContent
-            events={events}
+            events={filteredEvents}
             onEventSelect={handleEventSelect}
             onEventCreate={handleEventCreate}
           />

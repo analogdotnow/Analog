@@ -18,7 +18,7 @@ export function ViewPreferencesPopover() {
 
   const handlePreferenceChange = (
     key: keyof ViewPreferences,
-    value: boolean
+    value: boolean,
   ) => {
     setPreferences({
       ...preferences,
@@ -73,7 +73,7 @@ export function ViewPreferencesPopover() {
             <div className="flex items-center justify-between">
               <Label
                 htmlFor="show-declined-events"
-                className="text-sm font-normal"
+                className="text-sm font-normal text-muted-foreground"
               >
                 Declined events
               </Label>
@@ -83,6 +83,7 @@ export function ViewPreferencesPopover() {
                 onCheckedChange={(checked) =>
                   handlePreferenceChange("showDeclinedEvents", checked)
                 }
+                disabled
                 className="h-5 w-8 [&_span]:size-4 data-[state=checked]:[&_span]:translate-x-3 data-[state=checked]:[&_span]:rtl:-translate-x-3"
               />
             </div>
@@ -90,7 +91,7 @@ export function ViewPreferencesPopover() {
             <div className="flex items-center justify-between">
               <Label
                 htmlFor="show-week-numbers"
-                className="text-sm font-normal"
+                className="text-sm font-normal text-muted-foreground"
               >
                 Week numbers
               </Label>
@@ -100,6 +101,7 @@ export function ViewPreferencesPopover() {
                 onCheckedChange={(checked) =>
                   handlePreferenceChange("showWeekNumbers", checked)
                 }
+                disabled
                 className="h-5 w-8 [&_span]:size-4 data-[state=checked]:[&_span]:translate-x-3 data-[state=checked]:[&_span]:rtl:-translate-x-3"
               />
             </div>
