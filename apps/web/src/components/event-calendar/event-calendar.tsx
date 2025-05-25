@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import { useCalendarContextOptional } from "@/contexts/calendar-context";
 import {
   CalendarDndProvider,
   CalendarEvent,
@@ -7,7 +9,10 @@ import {
   EventDialog,
   EventGap,
   EventHeight,
-  useCalendarStateManagement,
+  useCalendarNavigation,
+  useEventDialog,
+  useEventOperations,
+  useKeyboardShortcuts,
   WeekCellsHeight,
 } from "@/components/event-calendar";
 import { CalendarHeader } from "./calendar-header";
@@ -31,27 +36,42 @@ export function EventCalendar({
   className,
   initialView = "week",
 }: EventCalendarProps) {
+  // Unified state management - use context if available, otherwise local state
+  const context = useCalendarContextOptional();
+  const [localCurrentDate, setLocalCurrentDate] = useState(new Date());
+  const [localView, setLocalView] = useState<CalendarView>(initialView);
+
+  const currentDate = context?.currentDate ?? localCurrentDate;
+  const setCurrentDate = context?.setCurrentDate ?? setLocalCurrentDate;
+  const view = context?.view ?? localView;
+  const setView = context?.setView ?? setLocalView;
+
   const {
-    currentDate,
-    view,
-    setView,
     isEventDialogOpen,
     selectedEvent,
-    handlePrevious,
-    handleNext,
-    handleToday,
     handleEventSelect,
     handleEventCreate,
-    handleEventSave,
-    handleEventDelete,
-    handleEventMove,
     handleDialogClose,
-  } = useCalendarStateManagement({
-    events,
-    onEventAdd,
-    onEventUpdate,
-    onEventDelete,
-    initialView,
+  } = useEventDialog();
+
+  const { handlePrevious, handleNext, handleToday } = useCalendarNavigation({
+    currentDate,
+    setCurrentDate,
+    view,
+  });
+
+  const { handleEventSave, handleEventDelete, handleEventMove } =
+    useEventOperations({
+      events,
+      onEventAdd,
+      onEventUpdate,
+      onEventDelete,
+      onDialogClose: handleDialogClose,
+    });
+
+  useKeyboardShortcuts({
+    setView,
+    isEventDialogOpen,
   });
 
   return (
