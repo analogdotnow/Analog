@@ -375,7 +375,7 @@ export function EventCalendar({
           </div>
         </header>
 
-        <div className="grow overflow-scroll">
+        <div className="grow">
           {view === "month" && (
             <MonthView
               currentDate={currentDate}
