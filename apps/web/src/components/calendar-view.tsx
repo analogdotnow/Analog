@@ -10,6 +10,7 @@ import {
 import { useTRPC } from "@/lib/trpc/client";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { dateHelpers } from "@/lib/date-helpers";
+import { RouterOutputs } from "@/lib/trpc";
 
 interface CalendarViewProps {
   className?: string;
@@ -35,31 +36,33 @@ const CALENDAR_CONFIG = {
   DEFAULT_CALENDAR_ID: "primary",
 };
 
-export function CalendarView({ className }: CalendarViewProps) {
+type Event = RouterOutputs["events"]["list"]["events"][number];
+
+function useCalendarActions() {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
   const timeMin = useMemo(
     () =>
       subDays(new Date(), CALENDAR_CONFIG.TIME_RANGE_DAYS_PAST).toISOString(),
-    []
+    [],
   );
   const timeMax = useMemo(
     () =>
       addDays(new Date(), CALENDAR_CONFIG.TIME_RANGE_DAYS_FUTURE).toISOString(),
-    []
+    [],
   );
 
   const eventsQueryKey = useMemo(
     () => trpc.events.list.queryOptions({ timeMin, timeMax }).queryKey,
-    [trpc.events.list, timeMin, timeMax]
+    [trpc.events.list, timeMin, timeMax],
   );
 
   const { data } = useQuery(
     trpc.events.list.queryOptions({
       timeMin,
       timeMax,
-    })
+    }),
   );
 
   const transformedEvents = useMemo(() => {
@@ -70,7 +73,7 @@ export function CalendarView({ className }: CalendarViewProps) {
       const endDate = dateHelpers.adjustEndDateForDisplay(
         startDate,
         new Date(event.end),
-        event.allDay
+        event.allDay,
       );
 
       return {
@@ -86,122 +89,150 @@ export function CalendarView({ className }: CalendarViewProps) {
     });
   }, [data]);
 
-  const { mutate: createEvent, isPending: isCreating } = useMutation({
-    ...trpc.events.create.mutationOptions(),
-    onMutate: async (newEvent) => {
-      await queryClient.cancelQueries({ queryKey: eventsQueryKey });
+  const { mutate: createEvent, isPending: isCreating } = useMutation(
+    trpc.events.create.mutationOptions({
+      onMutate: async (newEvent) => {
+        await queryClient.cancelQueries({ queryKey: eventsQueryKey });
 
-      const previousEvents = queryClient.getQueryData(eventsQueryKey);
+        const previousEvents = queryClient.getQueryData(eventsQueryKey);
 
-      queryClient.setQueryData(eventsQueryKey, (old: any) => {
-        if (!old) return old;
+        queryClient.setQueryData(eventsQueryKey, (old) => {
+          if (!old) return old;
 
-        const tempEvent = {
-          id: `temp-${Date.now()}`,
-          title: newEvent.title,
-          description: newEvent.description,
-          start: newEvent.start,
-          end: newEvent.end,
-          allDay: newEvent.allDay || false,
-          location: newEvent.location,
-          colorId: "1",
-        };
+          const tempEvent: Event = {
+            id: `temp-${Date.now()}`,
+            title: newEvent.title,
+            description: newEvent.description,
+            start: newEvent.start,
+            end: newEvent.end,
+            allDay: newEvent.allDay || false,
+            location: newEvent.location,
+            colorId: "1",
+            status: undefined,
+            htmlLink: undefined,
+          };
 
-        return {
-          ...old,
-          events: [...(old.events || []), tempEvent].sort(
-            (a, b) => new Date(a.start).getTime() - new Date(b.start).getTime()
-          ),
-        };
-      });
-
-      return { previousEvents };
-    },
-    onError: (err, newEvent, context) => {
-      if (context?.previousEvents) {
-        queryClient.setQueryData(eventsQueryKey, context.previousEvents);
-      }
-    },
-    onSuccess: () => {},
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: eventsQueryKey });
-    },
-  });
-
-  const { mutate: updateEvent, isPending: isUpdating } = useMutation({
-    ...trpc.events.update.mutationOptions(),
-    onMutate: async (updatedEvent) => {
-      await queryClient.cancelQueries({ queryKey: eventsQueryKey });
-
-      const previousEvents = queryClient.getQueryData(eventsQueryKey);
-
-      queryClient.setQueryData(eventsQueryKey, (old: any) => {
-        if (!old) return old;
-
-        return {
-          ...old,
-          events: old.events
-            .map((event: any) =>
-              event.id === updatedEvent.eventId
-                ? {
-                    ...event,
-                    title: updatedEvent.title ?? event.title,
-                    description: updatedEvent.description ?? event.description,
-                    start: updatedEvent.start ?? event.start,
-                    end: updatedEvent.end ?? event.end,
-                    allDay: updatedEvent.allDay ?? event.allDay,
-                    location: updatedEvent.location ?? event.location,
-                  }
-                : event
-            )
-            .sort(
-              (a: any, b: any) =>
-                new Date(a.start).getTime() - new Date(b.start).getTime()
+          return {
+            ...old,
+            events: [...(old.events || []), tempEvent].sort(
+              (a, b) =>
+                new Date(a.start).getTime() - new Date(b.start).getTime(),
             ),
-        };
-      });
+          };
+        });
 
-      return { previousEvents };
-    },
-    onError: (err, updatedEvent, context) => {
-      if (context?.previousEvents) {
-        queryClient.setQueryData(eventsQueryKey, context.previousEvents);
-      }
-    },
-    onSuccess: () => {},
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: eventsQueryKey });
-    },
-  });
+        return { previousEvents };
+      },
+      onError: (err, _, context) => {
+        // TODO: error message
 
-  const { mutate: deleteEvent, isPending: isDeleting } = useMutation({
-    ...trpc.events.delete.mutationOptions(),
-    onMutate: async ({ eventId }) => {
-      await queryClient.cancelQueries({ queryKey: eventsQueryKey });
+        if (context?.previousEvents) {
+          queryClient.setQueryData(eventsQueryKey, context.previousEvents);
+        }
+      },
+      onSuccess: () => {},
+      onSettled: () => {
+        queryClient.invalidateQueries({ queryKey: eventsQueryKey });
+      },
+    }),
+  );
 
-      const previousEvents = queryClient.getQueryData(eventsQueryKey);
+  const { mutate: updateEvent, isPending: isUpdating } = useMutation(
+    trpc.events.update.mutationOptions({
+      onMutate: async (updatedEvent) => {
+        await queryClient.cancelQueries({ queryKey: eventsQueryKey });
 
-      queryClient.setQueryData(eventsQueryKey, (old: any) => {
-        if (!old) return old;
+        const previousEvents = queryClient.getQueryData(eventsQueryKey);
 
-        return {
-          ...old,
-          events: old.events.filter((event: any) => event.id !== eventId),
-        };
-      });
+        queryClient.setQueryData(eventsQueryKey, (old) => {
+          if (!old) return old;
 
-      return { previousEvents };
-    },
-    onError: (err, deletedEvent, context) => {
-      if (context?.previousEvents) {
-        queryClient.setQueryData(eventsQueryKey, context.previousEvents);
-      }
-    },
-    onSuccess: () => {},
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: eventsQueryKey });
-    },
-  });
+          return {
+            ...old,
+            events: old.events
+              .map((event) =>
+                event.id === updatedEvent.eventId
+                  ? {
+                      ...event,
+                      title: updatedEvent.title ?? event.title,
+                      description:
+                        updatedEvent.description ?? event.description,
+                      start: updatedEvent.start ?? event.start,
+                      end: updatedEvent.end ?? event.end,
+                      allDay: updatedEvent.allDay ?? event.allDay,
+                      location: updatedEvent.location ?? event.location,
+                    }
+                  : event,
+              )
+              .sort(
+                (a, b) =>
+                  new Date(a.start).getTime() - new Date(b.start).getTime(),
+              ),
+          };
+        });
+
+        return { previousEvents };
+      },
+      onError: (error, _, context) => {
+        // TODO: error message
+
+        if (context?.previousEvents) {
+          queryClient.setQueryData(eventsQueryKey, context.previousEvents);
+        }
+      },
+      onSuccess: () => {},
+      onSettled: () => {
+        queryClient.invalidateQueries({ queryKey: eventsQueryKey });
+      },
+    }),
+  );
+
+  const { mutate: deleteEvent, isPending: isDeleting } = useMutation(
+    trpc.events.delete.mutationOptions({
+      onMutate: async ({ eventId }) => {
+        await queryClient.cancelQueries({ queryKey: eventsQueryKey });
+
+        const previousEvents = queryClient.getQueryData(eventsQueryKey);
+
+        queryClient.setQueryData(eventsQueryKey, (old) => {
+          if (!old) return old;
+
+          return {
+            ...old,
+            events: old.events.filter((event) => event.id !== eventId),
+          };
+        });
+
+        return { previousEvents };
+      },
+      onError: (error, _, context) => {
+        // TODO: error message
+
+        if (context?.previousEvents) {
+          queryClient.setQueryData(eventsQueryKey, context.previousEvents);
+        }
+      },
+      onSuccess: () => {},
+      onSettled: () => {
+        queryClient.invalidateQueries({ queryKey: eventsQueryKey });
+      },
+    }),
+  );
+
+  return {
+    events: transformedEvents,
+    createEvent,
+    updateEvent,
+    deleteEvent,
+    isCreating,
+    isUpdating,
+    isDeleting,
+  };
+}
+
+export function CalendarView({ className }: CalendarViewProps) {
+  const { events, createEvent, updateEvent, deleteEvent } =
+    useCalendarActions();
 
   const handleEventAdd = (event: CalendarEvent) => {
     createEvent({
@@ -222,11 +253,11 @@ export function CalendarView({ className }: CalendarViewProps) {
       title: updatedEvent.title,
       start: dateHelpers.formatDateForAPI(
         updatedEvent.start,
-        updatedEvent.allDay || false
+        updatedEvent.allDay || false,
       ),
       end: dateHelpers.formatDateForAPI(
         updatedEvent.end,
-        updatedEvent.allDay || false
+        updatedEvent.allDay || false,
       ),
       allDay: updatedEvent.allDay,
       description: updatedEvent.description,
@@ -243,7 +274,7 @@ export function CalendarView({ className }: CalendarViewProps) {
 
   return (
     <EventCalendar
-      events={transformedEvents}
+      events={events}
       onEventAdd={handleEventAdd}
       onEventUpdate={handleEventUpdate}
       onEventDelete={handleEventDelete}
