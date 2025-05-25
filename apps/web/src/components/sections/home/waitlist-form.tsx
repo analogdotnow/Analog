@@ -13,7 +13,10 @@ import { z } from "zod";
 import { cn } from "@/lib/utils";
 
 const formSchema = z.object({
-  email: z.string().email(),
+  email: z
+    .string()
+    .email()
+    .transform((email) => email.toLowerCase()),
 });
 
 type FormSchema = z.infer<typeof formSchema>;
