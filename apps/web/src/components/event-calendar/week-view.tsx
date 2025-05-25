@@ -1,11 +1,11 @@
 "use client";
 
-import { viewPreferencesAtom } from "@/atoms";
 import {
   DraggableEvent,
   DroppableCell,
   EventItem,
   useCurrentTimeIndicator,
+  useViewPreferences,
   WeekCellsHeight,
   type CalendarEvent,
 } from "@/components/event-calendar";
@@ -22,7 +22,6 @@ import {
   startOfDay,
   startOfWeek,
 } from "date-fns";
-import { useAtom } from "jotai";
 import React, { createContext, useContext, useMemo } from "react";
 import {
   filterDaysByWeekendPreference,
@@ -42,7 +41,6 @@ interface WeekViewContextType {
   hours: Date[];
   processedDayEvents: PositionedEvent[][];
   currentDate: Date;
-  viewPreferences: { showWeekends: boolean };
   gridTemplateColumns: string;
   onEventClick: (event: CalendarEvent, e: React.MouseEvent) => void;
   onEventCreate: (startTime: Date) => void;
@@ -71,7 +69,7 @@ export function WeekView({
   onEventSelect,
   onEventCreate,
 }: WeekViewProps) {
-  const [viewPreferences] = useAtom(viewPreferencesAtom);
+  const viewPreferences = useViewPreferences();
 
   const allDays = useMemo(() => getWeekDays(currentDate), [currentDate]);
 
@@ -125,7 +123,6 @@ export function WeekView({
     hours,
     processedDayEvents,
     currentDate,
-    viewPreferences,
     gridTemplateColumns,
     onEventClick: handleEventClick,
     onEventCreate,
@@ -152,8 +149,8 @@ export function WeekView({
 }
 
 function WeekViewHeader() {
-  const { allDays, viewPreferences, gridTemplateColumns } =
-    useWeekViewContext();
+  const { allDays, gridTemplateColumns } = useWeekViewContext();
+  const viewPreferences = useViewPreferences();
 
   return (
     <div
@@ -190,14 +187,9 @@ function WeekViewHeader() {
 }
 
 function WeekViewAllDaySection({ weekStart }: { weekStart: Date }) {
-  const {
-    allDays,
-    visibleDays,
-    events,
-    viewPreferences,
-    gridTemplateColumns,
-    onEventClick,
-  } = useWeekViewContext();
+  const { allDays, visibleDays, events, gridTemplateColumns, onEventClick } =
+    useWeekViewContext();
+  const viewPreferences = useViewPreferences();
 
   const allDayEvents = useMemo(
     () => getAllDayEventsForDays(events, visibleDays),
@@ -306,9 +298,9 @@ function WeekViewDayColumns() {
     visibleDays,
     processedDayEvents,
     currentDate,
-    viewPreferences,
     onEventClick,
   } = useWeekViewContext();
+  const viewPreferences = useViewPreferences();
 
   const { currentTimePosition, currentTimeVisible } = useCurrentTimeIndicator(
     currentDate,

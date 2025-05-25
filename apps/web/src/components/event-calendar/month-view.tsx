@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { useAtom } from "jotai";
 import {
   addDays,
   eachDayOfInterval,
@@ -26,6 +25,7 @@ import {
   getSpanningEventsForDay,
   sortEvents,
   useEventVisibility,
+  useViewPreferences,
   type CalendarEvent,
 } from "@/components/event-calendar";
 import { DefaultStartHour } from "@/components/event-calendar/constants";
@@ -36,7 +36,6 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { isWeekend, isWeekendIndex } from "./utils/date-time";
-import { viewPreferencesAtom } from "@/atoms";
 
 interface MonthViewProps {
   currentDate: Date;
@@ -51,7 +50,7 @@ export function MonthView({
   onEventSelect,
   onEventCreate,
 }: MonthViewProps) {
-  const [viewPreferences] = useAtom(viewPreferencesAtom);
+  const viewPreferences = useViewPreferences();
 
   const days = useMemo(() => {
     const monthStart = startOfMonth(currentDate);
@@ -121,7 +120,7 @@ export function MonthView({
       <div
         className={cn(
           "border-border/70 grid border-b transition-[grid-template-columns] duration-200 ease-linear",
-          gridColsClass,
+          gridColsClass
         )}
       >
         {weekdays.map((day) => (
@@ -139,7 +138,7 @@ export function MonthView({
             key={`week-${weekIndex}`}
             className={cn(
               "grid [&:last-child>*]:border-b-0 transition-[grid-template-columns] duration-200 ease-linear",
-              gridColsClass,
+              gridColsClass
             )}
           >
             {week.map((day, dayIndex) => {
@@ -216,7 +215,7 @@ export function MonthView({
                                     <span>
                                       {format(
                                         new Date(event.start),
-                                        "h:mm",
+                                        "h:mm"
                                       )}{" "}
                                     </span>
                                   )}
