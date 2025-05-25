@@ -11,7 +11,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useTRPC } from "@/lib/trpc/client";
 import { z } from "zod";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
 
 const formSchema = z.object({
   email: z.string().email(),
@@ -21,50 +20,39 @@ type FormSchema = z.infer<typeof formSchema>;
 
 function useWaitlistCount() {
   const trpc = useTRPC();
-
   const queryClient = useQueryClient();
 
+  const waitlistKey = trpc.earlyAccess.getWaitlistCount.queryKey();
   const query = useQuery(trpc.earlyAccess.getWaitlistCount.queryOptions());
 
-  const [success, setSuccess] = useState(false);
-
-  const { mutate } = useMutation(
+  const { mutate, isPending, isSuccess } = useMutation(
     trpc.earlyAccess.joinWaitlist.mutationOptions({
       onMutate: async () => {
         await queryClient.cancelQueries({
-          queryKey: trpc.earlyAccess.getWaitlistCount.queryKey(),
+          queryKey: waitlistKey,
         });
 
-        const previousCount = queryClient.getQueryData([
-          trpc.earlyAccess.getWaitlistCount.queryKey(),
-        ]);
+        const previousCount = queryClient.getQueryData(waitlistKey);
 
-        queryClient.setQueryData(
-          [trpc.earlyAccess.getWaitlistCount.queryKey()],
-          { count: (query.data?.count ?? 0) + 1 }
-        );
+        queryClient.setQueryData(waitlistKey, {
+          count: (query.data?.count ?? 0) + 1,
+        });
 
         return { previousCount };
       },
-      onSuccess: () => {
-        setSuccess(true);
-      },
-      onError: (err, newTodo, context) => {
-        queryClient.setQueryData(
-          [trpc.earlyAccess.getWaitlistCount.queryKey()],
-          context?.previousCount
-        );
+      onError: (_, __, context) => {
+        queryClient.setQueryData(waitlistKey, context?.previousCount);
         toast.error("Something went wrong. Please try again.");
       },
       onSettled: () => {
         queryClient.invalidateQueries({
-          queryKey: trpc.earlyAccess.getWaitlistCount.queryKey(),
+          queryKey: waitlistKey,
         });
       },
     })
   );
 
-  return { count: query.data?.count ?? 0, mutate, success };
+  return { count: query.data?.count ?? 0, mutate, isSuccess, isPending };
 }
 
 interface WaitlistFormProps {
@@ -92,7 +80,7 @@ export function WaitlistForm({ className }: WaitlistFormProps) {
         className
       )}
     >
-      {waitlist.success ? (
+      {waitlist.isSuccess ? (
         <div className="flex flex-col items-center justify-center gap-4 text-center">
           <p className="text-xl font-semibold">
             You&apos;re on the waitlist! 🎉
@@ -115,8 +103,10 @@ export function WaitlistForm({ className }: WaitlistFormProps) {
           <Button
             className="w-full sm:w-fit pl-4 pr-3 h-11 text-base"
             type="submit"
+            disabled={waitlist.isPending}
           >
-            Join Waitlist <ChevronRight className="h-5 w-5" />
+            {waitlist.isPending ? "Joining..." : "Join Waitlist"}{" "}
+            <ChevronRight className="h-5 w-5" />
           </Button>
         </form>
       )}
