@@ -2,6 +2,10 @@
 
 // Component exports
 export { AgendaView } from "./agenda-view";
+export { CalendarContent } from "./calendar-content";
+export { CalendarHeader } from "./calendar-header";
+export { CalendarNavigation } from "./calendar-navigation";
+export { CalendarViewSelector } from "./calendar-view-selector";
 export { CalendarViewTitle } from "./calendar-view-title";
 export { DayView } from "./day-view";
 export { DraggableEvent } from "./draggable-event";
