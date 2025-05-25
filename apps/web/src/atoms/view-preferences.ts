@@ -1,4 +1,4 @@
-import { atom } from "jotai";
+import { atomWithStorage } from "jotai/utils";
 
 export interface ViewPreferences {
   showWeekends: boolean;
@@ -7,9 +7,12 @@ export interface ViewPreferences {
   showWeekNumbers: boolean;
 }
 
-export const viewPreferencesAtom = atom<ViewPreferences>({
-  showWeekends: true,
-  showPastEvents: true,
-  showDeclinedEvents: false,
-  showWeekNumbers: false,
-});
+export const viewPreferencesAtom = atomWithStorage<ViewPreferences>(
+  "analog-view-preferences",
+  {
+    showWeekends: true,
+    showPastEvents: true,
+    showDeclinedEvents: false,
+    showWeekNumbers: false,
+  }
+);
