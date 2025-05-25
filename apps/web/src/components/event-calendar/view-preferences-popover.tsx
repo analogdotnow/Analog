@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useAtom } from "jotai";
 import { RiFilter3Line } from "@remixicon/react";
 
 import { Button } from "@/components/ui/button";
@@ -11,42 +11,27 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
+import { viewPreferencesAtom, type ViewPreferences } from "@/atoms";
 
-export interface ViewPreferences {
-  showWeekends: boolean;
-  showPastEvents: boolean;
-  showDeclinedEvents: boolean;
-  showWeekNumbers: boolean;
-}
+export function ViewPreferencesPopover() {
+  const [preferences, setPreferences] = useAtom(viewPreferencesAtom);
 
-export interface ViewPreferencesPopoverProps {
-  settings: ViewPreferences;
-  onSettingsChange: (settings: ViewPreferences) => void;
-}
-
-export function CalendarSettingsPopover({
-  settings,
-  onSettingsChange,
-}: ViewPreferencesPopoverProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const showWeekendsId = useId();
-  const showPastEventsId = useId();
-  const showDeclinedEventsId = useId();
-  const showWeekNumbersId = useId();
-
-  const handleSettingChange = (key: keyof ViewPreferences, value: boolean) => {
-    onSettingsChange({
-      ...settings,
+  const handlePreferenceChange = (
+    key: keyof ViewPreferences,
+    value: boolean
+  ) => {
+    setPreferences({
+      ...preferences,
       [key]: value,
     });
   };
 
   return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
+    <Popover>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
-          aria-label="Calendar settings"
+          aria-label="View preferences"
           className="gap-1.5 max-[479px]:h-8"
         >
           <RiFilter3Line size={16} aria-hidden="true" />
@@ -54,32 +39,32 @@ export function CalendarSettingsPopover({
       </PopoverTrigger>
       <PopoverContent align="end" className="w-64">
         <div className="space-y-4">
-          <h4 className="font-medium text-sm">View Settings</h4>
+          <h4 className="font-medium text-sm">View Preferences</h4>
 
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <Label htmlFor={showWeekendsId} className="text-sm font-normal">
+              <Label htmlFor="show-weekends" className="text-sm font-normal">
                 Weekends
               </Label>
               <Switch
-                id={showWeekendsId}
-                checked={settings.showWeekends}
+                id="show-weekends"
+                checked={preferences.showWeekends}
                 onCheckedChange={(checked) =>
-                  handleSettingChange("showWeekends", checked)
+                  handlePreferenceChange("showWeekends", checked)
                 }
                 className="h-5 w-8 [&_span]:size-4 data-[state=checked]:[&_span]:translate-x-3 data-[state=checked]:[&_span]:rtl:-translate-x-3"
               />
             </div>
 
             <div className="flex items-center justify-between">
-              <Label htmlFor={showPastEventsId} className="text-sm font-normal">
+              <Label htmlFor="show-past-events" className="text-sm font-normal">
                 Past events
               </Label>
               <Switch
-                id={showPastEventsId}
-                checked={settings.showPastEvents}
+                id="show-past-events"
+                checked={preferences.showPastEvents}
                 onCheckedChange={(checked) =>
-                  handleSettingChange("showPastEvents", checked)
+                  handlePreferenceChange("showPastEvents", checked)
                 }
                 className="h-5 w-8 [&_span]:size-4 data-[state=checked]:[&_span]:translate-x-3 data-[state=checked]:[&_span]:rtl:-translate-x-3"
               />
@@ -87,16 +72,16 @@ export function CalendarSettingsPopover({
 
             <div className="flex items-center justify-between">
               <Label
-                htmlFor={showDeclinedEventsId}
+                htmlFor="show-declined-events"
                 className="text-sm font-normal"
               >
                 Declined events
               </Label>
               <Switch
-                id={showDeclinedEventsId}
-                checked={settings.showDeclinedEvents}
+                id="show-declined-events"
+                checked={preferences.showDeclinedEvents}
                 onCheckedChange={(checked) =>
-                  handleSettingChange("showDeclinedEvents", checked)
+                  handlePreferenceChange("showDeclinedEvents", checked)
                 }
                 className="h-5 w-8 [&_span]:size-4 data-[state=checked]:[&_span]:translate-x-3 data-[state=checked]:[&_span]:rtl:-translate-x-3"
               />
@@ -104,16 +89,16 @@ export function CalendarSettingsPopover({
 
             <div className="flex items-center justify-between">
               <Label
-                htmlFor={showWeekNumbersId}
+                htmlFor="show-week-numbers"
                 className="text-sm font-normal"
               >
                 Week numbers
               </Label>
               <Switch
-                id={showWeekNumbersId}
-                checked={settings.showWeekNumbers}
+                id="show-week-numbers"
+                checked={preferences.showWeekNumbers}
                 onCheckedChange={(checked) =>
-                  handleSettingChange("showWeekNumbers", checked)
+                  handlePreferenceChange("showWeekNumbers", checked)
                 }
                 className="h-5 w-8 [&_span]:size-4 data-[state=checked]:[&_span]:translate-x-3 data-[state=checked]:[&_span]:rtl:-translate-x-3"
               />

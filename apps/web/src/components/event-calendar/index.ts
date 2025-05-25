@@ -2,6 +2,7 @@
 
 // Component exports
 export { AgendaView } from "./agenda-view";
+export { CalendarViewTitle } from "./calendar-view-title";
 export { DayView } from "./day-view";
 export { DraggableEvent } from "./draggable-event";
 export { DroppableCell } from "./droppable-cell";
@@ -12,14 +13,11 @@ export { EventCalendar } from "./event-calendar";
 export { MonthView } from "./month-view";
 export { WeekView } from "./week-view";
 export { CalendarDndProvider, useCalendarDnd } from "./calendar-dnd-context";
-export { CalendarSettingsPopover } from "./view-preferences-popover";
-export type {
-  ViewPreferences as CalendarSettings,
-  ViewPreferencesPopoverProps,
-} from "./view-preferences-popover";
+export { ViewPreferencesPopover } from "./view-preferences-popover";
 
 // Constants and utility exports
 export * from "./constants";
+export * from "./calendar-constants";
 export * from "./utils";
 
 // Hook exports
