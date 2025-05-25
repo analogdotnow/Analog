@@ -1,15 +1,3 @@
-/**
- * Calendar Navigation Hook
- *
- * Handles all calendar navigation logic including:
- * - Previous/next period navigation based on current view
- * - Today navigation
- * - Navigation state management
- *
- * This hook encapsulates the navigation logic that was previously
- * scattered throughout the EventCalendar component.
- */
-
 import { useCallback } from "react";
 import { CalendarView } from "../types";
 import { navigateToNext, navigateToPrevious } from "../utils";

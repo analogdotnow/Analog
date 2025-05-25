@@ -1,18 +1,7 @@
-/**
- * Keyboard Shortcuts Hook
- *
- * Handles keyboard shortcuts for calendar navigation including:
- * - View switching shortcuts (M, W, D, A)
- * - Keyboard event filtering (ignore when dialog open or typing)
- * - Event listener management
- *
- * This hook encapsulates all keyboard shortcut logic that was previously
- * mixed with other component logic in EventCalendar.
- */
-
 import { useEffect } from "react";
 import { CalendarView } from "../types";
-import { KEYBOARD_SHORTCUTS, shouldIgnoreKeyboardEvent } from "../utils";
+import { shouldIgnoreKeyboardEvent } from "../utils";
+import { KEYBOARD_SHORTCUTS } from "../calendar-constants";
 
 interface UseKeyboardShortcutsProps {
   setView: (view: CalendarView) => void;

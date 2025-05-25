@@ -1,16 +1,3 @@
-/**
- * Event Operations Hook
- *
- * Handles all event CRUD operations including:
- * - Event creation, updating, and deletion
- * - Toast notifications for user feedback
- * - Event ID generation for new events
- * - Coordination with external event handlers
- *
- * This hook encapsulates all event operation logic and side effects
- * that were previously scattered in the EventCalendar component.
- */
-
 import { useCallback } from "react";
 import { CalendarEvent } from "../types";
 import {
@@ -39,11 +26,9 @@ export function useEventOperations({
   const handleEventSave = useCallback(
     (event: CalendarEvent) => {
       if (event.id) {
-        // Update existing event
         onEventUpdate?.(event);
         showEventUpdatedToast(event);
       } else {
-        // Create new event
         const eventWithId = { ...event, id: generateEventId() };
         onEventAdd?.(eventWithId);
         showEventAddedToast(eventWithId);

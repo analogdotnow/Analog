@@ -1,19 +1,7 @@
-/**
- * Event Dialog Hook
- *
- * Manages the state and logic for the event dialog including:
- * - Dialog open/close state
- * - Selected event state
- * - Event selection and creation handlers
- * - Dialog state synchronization
- *
- * This hook encapsulates all event dialog related state management
- * that was previously inline in the EventCalendar component.
- */
-
 import { useCallback, useState } from "react";
 import { CalendarEvent } from "../types";
-import { addHoursToDate, snapTimeToInterval, TIME_INTERVALS } from "../utils";
+import { addHoursToDate, snapTimeToInterval } from "../utils";
+import { TIME_INTERVALS } from "../calendar-constants";
 
 export function useEventDialog() {
   const [isEventDialogOpen, setIsEventDialogOpen] = useState(false);
