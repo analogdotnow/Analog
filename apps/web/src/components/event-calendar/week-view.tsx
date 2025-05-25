@@ -24,10 +24,10 @@ import {
 } from "date-fns";
 import { useAtom } from "jotai";
 import React, { useMemo } from "react";
-import { getWeekDays, filterDaysByWeekendPreference } from "./utils/date-time";
+import { filterDaysByWeekendPreference, getWeekDays } from "./utils/date-time";
 import {
-  getAllDayEventsForDays,
   calculateWeekViewEventPositions,
+  getAllDayEventsForDays,
   type PositionedEvent,
 } from "./utils/event";
 
@@ -50,12 +50,12 @@ export function WeekView({
 
   const days = useMemo(
     () => filterDaysByWeekendPreference(allDays, viewPreferences.showWeekends),
-    [allDays, viewPreferences.showWeekends],
+    [allDays, viewPreferences.showWeekends]
   );
 
   const weekStart = useMemo(
     () => startOfWeek(currentDate, { weekStartsOn: 0 }),
-    [currentDate],
+    [currentDate]
   );
 
   const hours = useMemo(() => {
@@ -68,13 +68,13 @@ export function WeekView({
 
   const allDayEvents = useMemo(
     () => getAllDayEventsForDays(events, days),
-    [events, days],
+    [events, days]
   );
 
   const processedDayEvents = useMemo(
     () =>
       calculateWeekViewEventPositions(events, days, StartHour, WeekCellsHeight),
-    [events, days],
+    [events, days]
   );
 
   const handleEventClick = (event: CalendarEvent, e: React.MouseEvent) => {
@@ -85,7 +85,7 @@ export function WeekView({
   const showAllDaySection = allDayEvents.length > 0;
   const { currentTimePosition, currentTimeVisible } = useCurrentTimeIndicator(
     currentDate,
-    "week",
+    "week"
   );
   const gridTemplateColumns = `6rem repeat(${days.length}, 1fr)`;
 
@@ -178,8 +178,8 @@ function WeekViewAllDaySection({
         className="grid transition-[grid-template-columns] duration-200 ease-linear"
         style={{ gridTemplateColumns }}
       >
-        <div className="border-border/70 relative border-r">
-          <span className="text-muted-foreground/70 absolute bottom-0 left-0 h-6 w-16 max-w-full pe-2 text-right text-[10px] sm:pe-4 sm:text-xs">
+        <div className="border-border/70 relative border-r flex flex-col justify-center">
+          <span className="text-muted-foreground/70 w-16 max-w-full ps-2 text-right text-[10px] sm:ps-4 sm:text-xs">
             All day
           </span>
         </div>
@@ -221,7 +221,7 @@ function WeekViewAllDaySection({
                     <div
                       className={cn(
                         "truncate",
-                        !shouldShowTitle && "invisible",
+                        !shouldShowTitle && "invisible"
                       )}
                       aria-hidden={!shouldShowTitle}
                     >
@@ -337,7 +337,7 @@ function WeekViewDayColumn({
                     quarter === 0 && "top-0",
                     quarter === 1 && "top-[calc(var(--week-cells-height)/4)]",
                     quarter === 2 && "top-[calc(var(--week-cells-height)/4*2)]",
-                    quarter === 3 && "top-[calc(var(--week-cells-height)/4*3)]",
+                    quarter === 3 && "top-[calc(var(--week-cells-height)/4*3)]"
                   )}
                   onClick={() => {
                     const startTime = new Date(day);
