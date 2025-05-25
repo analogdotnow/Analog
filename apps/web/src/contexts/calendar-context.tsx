@@ -1,8 +1,7 @@
 "use client";
 
-import React, { createContext, useContext } from "react";
+import React, { createContext, useContext, useState } from "react";
 import { CalendarView } from "@/components/event-calendar";
-import { useCalendarState } from "@/hooks/use-calendar-state";
 
 interface CalendarContextType {
   currentDate: Date;
@@ -22,10 +21,18 @@ export function CalendarProvider({
   children: React.ReactNode;
   initialView?: CalendarView;
 }) {
-  const calendarState = useCalendarState(initialView);
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [view, setView] = useState<CalendarView>(initialView);
+
+  const value = {
+    currentDate,
+    setCurrentDate,
+    view,
+    setView,
+  };
 
   return (
-    <CalendarContext.Provider value={calendarState}>
+    <CalendarContext.Provider value={value}>
       {children}
     </CalendarContext.Provider>
   );
@@ -39,8 +46,4 @@ export function useCalendarContext() {
     );
   }
   return context;
-}
-
-export function useCalendarContextOptional() {
-  return useContext(CalendarContext);
 }
