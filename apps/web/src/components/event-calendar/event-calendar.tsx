@@ -1,7 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useCalendarContextOptional } from "@/contexts/calendar-context";
 import { RiCalendarCheckLine } from "@remixicon/react";
 import {
   ChevronDownIcon,
@@ -10,7 +8,6 @@ import {
 } from "lucide-react";
 
 import {
-  addHoursToDate,
   AgendaView,
   CalendarDndProvider,
   CalendarEvent,
@@ -19,18 +16,8 @@ import {
   EventDialog,
   EventGap,
   EventHeight,
-  generateEventId,
-  KEYBOARD_SHORTCUTS,
   MonthView,
-  navigateToNext,
-  navigateToPrevious,
-  shouldIgnoreKeyboardEvent,
-  showEventAddedToast,
-  showEventDeletedToast,
-  showEventMovedToast,
-  showEventUpdatedToast,
-  snapTimeToInterval,
-  TIME_INTERVALS,
+  useCalendarStateManagement,
   WeekCellsHeight,
   WeekView,
 } from "@/components/event-calendar";
@@ -44,7 +31,6 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
 import { SidebarTrigger } from "@/components/ui/sidebar";
 
 export interface EventCalendarProps {
@@ -64,108 +50,29 @@ export function EventCalendar({
   className,
   initialView = "week",
 }: EventCalendarProps) {
-  const context = useCalendarContextOptional();
-  const [localCurrentDate, setLocalCurrentDate] = useState(new Date());
-  const [localView, setLocalView] = useState<CalendarView>(initialView);
-
-  const currentDate = context?.currentDate ?? localCurrentDate;
-  const setCurrentDate = context?.setCurrentDate ?? setLocalCurrentDate;
-  const view = context?.view ?? localView;
-  const setView = context?.setView ?? setLocalView;
-  const [isEventDialogOpen, setIsEventDialogOpen] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(
-    null
-  );
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (shouldIgnoreKeyboardEvent(e, isEventDialogOpen)) {
-        return;
-      }
-
-      switch (e.key.toLowerCase()) {
-        case KEYBOARD_SHORTCUTS.MONTH:
-          setView("month");
-          break;
-        case KEYBOARD_SHORTCUTS.WEEK:
-          setView("week");
-          break;
-        case KEYBOARD_SHORTCUTS.DAY:
-          setView("day");
-          break;
-        case KEYBOARD_SHORTCUTS.AGENDA:
-          setView("agenda");
-          break;
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isEventDialogOpen, setView]);
-
-  const handlePrevious = () => {
-    setCurrentDate(navigateToPrevious(currentDate, view));
-  };
-
-  const handleNext = () => {
-    setCurrentDate(navigateToNext(currentDate, view));
-  };
-
-  const handleToday = () => {
-    setCurrentDate(new Date());
-  };
-
-  const handleEventSelect = (event: CalendarEvent) => {
-    setSelectedEvent(event);
-    setIsEventDialogOpen(true);
-  };
-
-  const handleEventCreate = (startTime: Date) => {
-    const snappedTime = snapTimeToInterval(startTime);
-
-    const newEvent: CalendarEvent = {
-      id: "",
-      title: "",
-      start: snappedTime,
-      end: addHoursToDate(
-        snappedTime,
-        TIME_INTERVALS.DEFAULT_EVENT_DURATION_HOURS
-      ),
-      allDay: false,
-    };
-
-    setSelectedEvent(newEvent);
-    setIsEventDialogOpen(true);
-  };
-
-  const handleEventSave = (event: CalendarEvent) => {
-    if (event.id) {
-      onEventUpdate?.(event);
-      showEventUpdatedToast(event);
-    } else {
-      const eventWithId = { ...event, id: generateEventId() };
-      onEventAdd?.(eventWithId);
-      showEventAddedToast(eventWithId);
-    }
-    setIsEventDialogOpen(false);
-    setSelectedEvent(null);
-  };
-
-  const handleEventDelete = (eventId: string) => {
-    const deletedEvent = events.find((e) => e.id === eventId);
-    onEventDelete?.(eventId);
-    setIsEventDialogOpen(false);
-    setSelectedEvent(null);
-
-    if (deletedEvent) {
-      showEventDeletedToast(deletedEvent);
-    }
-  };
-
-  const handleEventUpdate = (updatedEvent: CalendarEvent) => {
-    onEventUpdate?.(updatedEvent);
-    showEventMovedToast(updatedEvent);
-  };
+  // Single hook manages all calendar state and logic
+  const {
+    currentDate,
+    view,
+    setView,
+    isEventDialogOpen,
+    selectedEvent,
+    handlePrevious,
+    handleNext,
+    handleToday,
+    handleEventSelect,
+    handleEventCreate,
+    handleEventSave,
+    handleEventDelete,
+    handleEventMove,
+    handleDialogClose,
+  } = useCalendarStateManagement({
+    events,
+    onEventAdd,
+    onEventUpdate,
+    onEventDelete,
+    initialView,
+  });
 
   return (
     <div
@@ -181,7 +88,7 @@ export function EventCalendar({
         } as React.CSSProperties
       }
     >
-      <CalendarDndProvider onEventUpdate={handleEventUpdate}>
+      <CalendarDndProvider onEventUpdate={handleEventMove}>
         <header
           className={cn(
             "flex items-center justify-between p-2 sm:p-4 h-16 gap-2 border-b px-4"
@@ -302,10 +209,7 @@ export function EventCalendar({
         <EventDialog
           event={selectedEvent}
           isOpen={isEventDialogOpen}
-          onClose={() => {
-            setIsEventDialogOpen(false);
-            setSelectedEvent(null);
-          }}
+          onClose={handleDialogClose}
           onSave={handleEventSave}
           onDelete={handleEventDelete}
         />

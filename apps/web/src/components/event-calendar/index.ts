@@ -21,8 +21,7 @@ export * from "./calendar-constants";
 export * from "./utils";
 
 // Hook exports
-export * from "./hooks/use-current-time-indicator";
-export * from "./hooks/use-event-visibility";
+export * from "./hooks";
 
 // Type exports
 export type { CalendarEvent, CalendarView, EventColor } from "./types";
