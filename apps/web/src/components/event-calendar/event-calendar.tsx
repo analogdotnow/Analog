@@ -6,13 +6,11 @@ import {
   EventDialog,
   EventGap,
   EventHeight,
-  useCalendarNavigation,
   useEventDialog,
   useEventOperations,
   useKeyboardShortcuts,
   WeekCellsHeight,
 } from "@/components/event-calendar";
-import { useCalendarContext } from "@/contexts/calendar-context";
 import { CalendarHeader } from "./calendar-header";
 import { CalendarContent } from "./calendar-content";
 import { cn } from "@/lib/utils";
@@ -32,8 +30,6 @@ export function EventCalendar({
   onEventDelete,
   className,
 }: EventCalendarProps) {
-  const { currentDate, setCurrentDate, view, setView } = useCalendarContext();
-
   const {
     isEventDialogOpen,
     selectedEvent,
@@ -42,23 +38,16 @@ export function EventCalendar({
     handleDialogClose,
   } = useEventDialog();
 
-  const { handlePrevious, handleNext, handleToday } = useCalendarNavigation({
-    currentDate,
-    setCurrentDate,
-    view,
-  });
-
   const { handleEventSave, handleEventDelete, handleEventMove } =
     useEventOperations({
       events,
       onEventAdd,
       onEventUpdate,
       onEventDelete,
-      onDialogClose: handleDialogClose,
+      onOperationComplete: handleDialogClose,
     });
 
   useKeyboardShortcuts({
-    setView,
     isEventDialogOpen,
   });
 
@@ -77,19 +66,10 @@ export function EventCalendar({
       }
     >
       <CalendarDndProvider onEventUpdate={handleEventMove}>
-        <CalendarHeader
-          currentDate={currentDate}
-          view={view}
-          onViewChange={setView}
-          onPrevious={handlePrevious}
-          onNext={handleNext}
-          onToday={handleToday}
-        />
+        <CalendarHeader />
 
         <div className="grow overflow-scroll">
           <CalendarContent
-            view={view}
-            currentDate={currentDate}
             events={events}
             onEventSelect={handleEventSelect}
             onEventCreate={handleEventCreate}

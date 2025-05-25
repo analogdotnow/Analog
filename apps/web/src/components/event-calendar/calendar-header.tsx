@@ -1,6 +1,7 @@
 "use client";
 
-import { CalendarView } from "./types";
+import { useCalendarContext } from "@/contexts/calendar-context";
+import { useCalendarNavigation } from "@/components/event-calendar";
 import { CalendarViewTitle } from "./calendar-view-title";
 import { CalendarNavigation } from "./calendar-navigation";
 import { CalendarViewSelector } from "./calendar-view-selector";
@@ -8,24 +9,17 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 
 interface CalendarHeaderProps {
-  currentDate: Date;
-  view: CalendarView;
-  onViewChange: (view: CalendarView) => void;
-  onPrevious: () => void;
-  onNext: () => void;
-  onToday: () => void;
   className?: string;
 }
 
-export function CalendarHeader({
-  currentDate,
-  view,
-  onViewChange,
-  onPrevious,
-  onNext,
-  onToday,
-  className,
-}: CalendarHeaderProps) {
+export function CalendarHeader({ className }: CalendarHeaderProps) {
+  const { currentDate, view, setView, setCurrentDate } = useCalendarContext();
+  const { handlePrevious, handleNext, handleToday } = useCalendarNavigation({
+    currentDate,
+    setCurrentDate,
+    view,
+  });
+
   return (
     <header
       className={cn(
@@ -44,12 +38,12 @@ export function CalendarHeader({
 
       <div className="flex items-center gap-2">
         <CalendarNavigation
-          onPrevious={onPrevious}
-          onNext={onNext}
-          onToday={onToday}
+          onPrevious={handlePrevious}
+          onNext={handleNext}
+          onToday={handleToday}
         />
 
-        <CalendarViewSelector currentView={view} onViewChange={onViewChange} />
+        <CalendarViewSelector currentView={view} onViewChange={setView} />
       </div>
     </header>
   );

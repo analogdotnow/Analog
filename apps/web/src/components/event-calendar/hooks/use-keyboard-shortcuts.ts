@@ -1,20 +1,20 @@
 import { useEffect } from "react";
-import { CalendarView } from "../types";
 import { shouldIgnoreKeyboardEvent } from "../utils";
 import { KEYBOARD_SHORTCUTS } from "../calendar-constants";
+import { useCalendarContext } from "@/contexts/calendar-context";
 
 interface UseKeyboardShortcutsProps {
-  setView: (view: CalendarView) => void;
   isEventDialogOpen: boolean;
 }
 
 export function useKeyboardShortcuts({
-  setView,
   isEventDialogOpen,
 }: UseKeyboardShortcutsProps) {
+  const { setView } = useCalendarContext();
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (shouldIgnoreKeyboardEvent(e, isEventDialogOpen)) {
+      if (shouldIgnoreKeyboardEvent(e) || isEventDialogOpen) {
         return;
       }
 

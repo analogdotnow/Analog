@@ -44,12 +44,8 @@ export function getBorderRadiusClasses(
   }
 }
 
-export function shouldIgnoreKeyboardEvent(
-  event: KeyboardEvent,
-  isEventDialogOpen: boolean
-): boolean {
+export function shouldIgnoreKeyboardEvent(event: KeyboardEvent): boolean {
   return (
-    isEventDialogOpen ||
     event.target instanceof HTMLInputElement ||
     event.target instanceof HTMLTextAreaElement ||
     (event.target instanceof HTMLElement && event.target.isContentEditable)

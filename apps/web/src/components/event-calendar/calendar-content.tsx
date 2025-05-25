@@ -1,26 +1,25 @@
 "use client";
 
-import { CalendarEvent, CalendarView } from "./types";
+import { useCalendarContext } from "@/contexts/calendar-context";
+import { CalendarEvent } from "./types";
 import { AgendaView } from "./agenda-view";
 import { DayView } from "./day-view";
 import { MonthView } from "./month-view";
 import { WeekView } from "./week-view";
 
 interface CalendarContentProps {
-  view: CalendarView;
-  currentDate: Date;
   events: CalendarEvent[];
   onEventSelect: (event: CalendarEvent) => void;
   onEventCreate: (startTime: Date) => void;
 }
 
 export function CalendarContent({
-  view,
-  currentDate,
   events,
   onEventSelect,
   onEventCreate,
 }: CalendarContentProps) {
+  const { currentDate, view } = useCalendarContext();
+
   switch (view) {
     case "month":
       return (

@@ -13,7 +13,7 @@ interface UseEventOperationsProps {
   onEventAdd?: (event: CalendarEvent) => void;
   onEventUpdate?: (event: CalendarEvent) => void;
   onEventDelete?: (eventId: string) => void;
-  onDialogClose: () => void;
+  onOperationComplete: () => void;
 }
 
 export function useEventOperations({
@@ -21,7 +21,7 @@ export function useEventOperations({
   onEventAdd,
   onEventUpdate,
   onEventDelete,
-  onDialogClose,
+  onOperationComplete,
 }: UseEventOperationsProps) {
   const handleEventSave = useCallback(
     (event: CalendarEvent) => {
@@ -33,22 +33,22 @@ export function useEventOperations({
         onEventAdd?.(eventWithId);
         showEventAddedToast(eventWithId);
       }
-      onDialogClose();
+      onOperationComplete();
     },
-    [onEventAdd, onEventUpdate, onDialogClose]
+    [onEventAdd, onEventUpdate, onOperationComplete]
   );
 
   const handleEventDelete = useCallback(
     (eventId: string) => {
       const deletedEvent = events.find((e) => e.id === eventId);
       onEventDelete?.(eventId);
-      onDialogClose();
+      onOperationComplete();
 
       if (deletedEvent) {
         showEventDeletedToast(deletedEvent);
       }
     },
-    [events, onEventDelete, onDialogClose]
+    [events, onEventDelete, onOperationComplete]
   );
 
   const handleEventMove = useCallback(
