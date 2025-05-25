@@ -147,13 +147,11 @@ export function EventCalendar({
   };
 
   const handleEventSelect = (event: CalendarEvent) => {
-    console.log("Event selected:", event); // Debug log
     setSelectedEvent(event);
     setIsEventDialogOpen(true);
   };
 
   const handleEventCreate = (startTime: Date) => {
-    console.log("Creating new event at:", startTime); // Debug log
 
     // Snap to 15-minute intervals
     const minutes = startTime.getMinutes();
@@ -272,7 +270,7 @@ export function EventCalendar({
   return (
     <div
       className={cn(
-        "flex flex-col has-data-[slot=month-view]:flex-1 overflow-scroll",
+        "flex flex-col has-data-[slot=month-view]:flex-1",
         className
       )}
       style={

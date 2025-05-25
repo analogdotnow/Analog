@@ -1,5 +1,4 @@
 "use client";
-
 import {
   BadgeCheck,
   Bell,
@@ -26,6 +25,8 @@ import {
 } from "@/components/ui/sidebar";
 import { useTRPC } from "@/lib/trpc/client";
 import { useQuery } from "@tanstack/react-query";
+import { authClient } from "@repo/auth/client";
+import { useRouter } from "next/navigation";
 
 function useUser() {
   const trpc = useTRPC();
@@ -35,7 +36,7 @@ function useUser() {
 
 export function NavUser() {
   const { data: user } = useUser();
-
+  const router = useRouter();
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -85,7 +86,13 @@ export function NavUser() {
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={async () => await authClient.signOut({
+              fetchOptions: {
+                onSuccess: () => {
+                  router.push("/login");
+                },
+              },
+            })}>
               <LogOut />
               Log out
             </DropdownMenuItem>
