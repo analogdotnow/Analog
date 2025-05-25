@@ -23,13 +23,40 @@ import {
   startOfWeek,
 } from "date-fns";
 import { useAtom } from "jotai";
-import React, { useMemo } from "react";
-import { filterDaysByWeekendPreference, getWeekDays } from "./utils/date-time";
+import React, { createContext, useContext, useMemo } from "react";
+import {
+  filterDaysByWeekendPreference,
+  getWeekDays,
+  isWeekend,
+} from "./utils/date-time";
 import {
   calculateWeekViewEventPositions,
   getAllDayEventsForDays,
   type PositionedEvent,
 } from "./utils/event";
+
+interface WeekViewContextType {
+  allDays: Date[];
+  visibleDays: Date[];
+  events: CalendarEvent[];
+  hours: Date[];
+  processedDayEvents: PositionedEvent[][];
+  currentDate: Date;
+  viewPreferences: { showWeekends: boolean };
+  gridTemplateColumns: string;
+  onEventClick: (event: CalendarEvent, e: React.MouseEvent) => void;
+  onEventCreate: (startTime: Date) => void;
+}
+
+const WeekViewContext = createContext<WeekViewContextType | null>(null);
+
+function useWeekViewContext() {
+  const context = useContext(WeekViewContext);
+  if (!context) {
+    throw new Error("useWeekViewContext must be used within WeekViewProvider");
+  }
+  return context;
+}
 
 interface WeekViewProps {
   currentDate: Date;
@@ -48,7 +75,7 @@ export function WeekView({
 
   const allDays = useMemo(() => getWeekDays(currentDate), [currentDate]);
 
-  const days = useMemo(
+  const visibleDays = useMemo(
     () => filterDaysByWeekendPreference(allDays, viewPreferences.showWeekends),
     [allDays, viewPreferences.showWeekends]
   );
@@ -66,15 +93,15 @@ export function WeekView({
     });
   }, [currentDate]);
 
-  const allDayEvents = useMemo(
-    () => getAllDayEventsForDays(events, days),
-    [events, days]
-  );
-
   const processedDayEvents = useMemo(
     () =>
-      calculateWeekViewEventPositions(events, days, StartHour, WeekCellsHeight),
-    [events, days]
+      calculateWeekViewEventPositions(
+        events,
+        visibleDays,
+        StartHour,
+        WeekCellsHeight
+      ),
+    [events, visibleDays]
   );
 
   const handleEventClick = (event: CalendarEvent, e: React.MouseEvent) => {
@@ -82,59 +109,52 @@ export function WeekView({
     onEventSelect(event);
   };
 
-  const showAllDaySection = allDayEvents.length > 0;
-  const { currentTimePosition, currentTimeVisible } = useCurrentTimeIndicator(
+  // Use the "padding with 0fr" trick for smooth transitions
+  const gridTemplateColumns = useMemo(() => {
+    const columnSizes = allDays.map((day) => {
+      const isDayVisible = viewPreferences.showWeekends || !isWeekend(day);
+      return isDayVisible ? "1fr" : "0fr";
+    });
+    return `6rem ${columnSizes.join(" ")}`;
+  }, [allDays, viewPreferences.showWeekends]);
+
+  const contextValue: WeekViewContextType = {
+    allDays,
+    visibleDays,
+    events,
+    hours,
+    processedDayEvents,
     currentDate,
-    "week"
-  );
-  const gridTemplateColumns = `6rem repeat(${days.length}, 1fr)`;
+    viewPreferences,
+    gridTemplateColumns,
+    onEventClick: handleEventClick,
+    onEventCreate,
+  };
 
   return (
-    <div data-slot="week-view" className="flex flex-col isolate">
-      <div className="sticky top-0 z-30 backdrop-blur-md bg-background/80">
-        <WeekViewHeader days={days} gridTemplateColumns={gridTemplateColumns} />
+    <WeekViewContext.Provider value={contextValue}>
+      <div data-slot="week-view" className="flex flex-col isolate">
+        <div className="sticky top-0 z-30 backdrop-blur-md bg-background/80">
+          <WeekViewHeader />
+          <WeekViewAllDaySection weekStart={weekStart} />
+        </div>
 
-        {showAllDaySection && (
-          <WeekViewAllDaySection
-            days={days}
-            allDayEvents={allDayEvents}
-            weekStart={weekStart}
-            gridTemplateColumns={gridTemplateColumns}
-            onEventClick={handleEventClick}
-          />
-        )}
+        <div
+          className="grid flex-1 overflow-hidden transition-[grid-template-columns] duration-200 ease-linear"
+          style={{ gridTemplateColumns }}
+        >
+          <WeekViewTimeColumn />
+          <WeekViewDayColumns />
+        </div>
       </div>
-
-      <div
-        className="grid flex-1 overflow-hidden transition-[grid-template-columns] duration-200 ease-linear"
-        style={{ gridTemplateColumns }}
-      >
-        <WeekViewTimeColumn hours={hours} />
-
-        {days.map((day, dayIndex) => (
-          <WeekViewDayColumn
-            key={day.toString()}
-            day={day}
-            hours={hours}
-            positionedEvents={processedDayEvents[dayIndex] ?? []}
-            currentTimePosition={currentTimePosition}
-            currentTimeVisible={currentTimeVisible}
-            onEventClick={handleEventClick}
-            onEventCreate={onEventCreate}
-          />
-        ))}
-      </div>
-    </div>
+    </WeekViewContext.Provider>
   );
 }
 
-function WeekViewHeader({
-  days,
-  gridTemplateColumns,
-}: {
-  days: Date[];
-  gridTemplateColumns: string;
-}) {
+function WeekViewHeader() {
+  const { allDays, viewPreferences, gridTemplateColumns } =
+    useWeekViewContext();
+
   return (
     <div
       className="border-border/70 grid border-b transition-[grid-template-columns] duration-200 ease-linear"
@@ -143,35 +163,51 @@ function WeekViewHeader({
       <div className="text-muted-foreground/70 py-2 text-center text-sm">
         <span className="max-[479px]:sr-only">{format(new Date(), "O")}</span>
       </div>
-      {days.map((day) => (
-        <div
-          key={day.toString()}
-          className="data-today:text-foreground text-muted-foreground/70 py-2 text-center text-sm data-today:font-medium"
-          data-today={isToday(day) || undefined}
-        >
-          <span className="sm:hidden" aria-hidden="true">
-            {format(day, "E")[0]} {format(day, "d")}
-          </span>
-          <span className="max-sm:hidden">{format(day, "EEE dd")}</span>
-        </div>
-      ))}
+      {allDays.map((day) => {
+        const isDayVisible = viewPreferences.showWeekends || !isWeekend(day);
+
+        return (
+          <div
+            key={day.toString()}
+            className={cn(
+              "data-today:text-foreground text-muted-foreground/70 py-2 text-center text-sm data-today:font-medium overflow-hidden",
+              !isDayVisible && "w-0"
+            )}
+            data-today={isToday(day) || undefined}
+            style={{ visibility: isDayVisible ? "visible" : "hidden" }}
+          >
+            <span className="sm:hidden truncate" aria-hidden="true">
+              {format(day, "E")[0]} {format(day, "d")}
+            </span>
+            <span className="max-sm:hidden truncate">
+              {format(day, "EEE dd")}
+            </span>
+          </div>
+        );
+      })}
     </div>
   );
 }
 
-function WeekViewAllDaySection({
-  days,
-  allDayEvents,
-  weekStart,
-  gridTemplateColumns,
-  onEventClick,
-}: {
-  days: Date[];
-  allDayEvents: CalendarEvent[];
-  weekStart: Date;
-  gridTemplateColumns: string;
-  onEventClick: (event: CalendarEvent, e: React.MouseEvent) => void;
-}) {
+function WeekViewAllDaySection({ weekStart }: { weekStart: Date }) {
+  const {
+    allDays,
+    visibleDays,
+    events,
+    viewPreferences,
+    gridTemplateColumns,
+    onEventClick,
+  } = useWeekViewContext();
+
+  const allDayEvents = useMemo(
+    () => getAllDayEventsForDays(events, visibleDays),
+    [events, visibleDays]
+  );
+
+  if (allDayEvents.length === 0) {
+    return null;
+  }
+
   return (
     <div className="border-border/70 border-b">
       <div
@@ -183,7 +219,8 @@ function WeekViewAllDaySection({
             All day
           </span>
         </div>
-        {days.map((day, dayIndex) => {
+        {allDays.map((day, dayIndex) => {
+          const isDayVisible = viewPreferences.showWeekends || !isWeekend(day);
           const dayAllDayEvents = allDayEvents.filter((event) => {
             const eventStart = new Date(event.start);
             const eventEnd = new Date(event.end);
@@ -197,8 +234,12 @@ function WeekViewAllDaySection({
           return (
             <div
               key={day.toString()}
-              className="border-border/70 relative border-r p-1 last:border-r-0"
+              className={cn(
+                "border-border/70 relative border-r last:border-r-0 overflow-hidden",
+                isDayVisible ? "p-1" : "w-0"
+              )}
               data-today={isToday(day) || undefined}
+              style={{ visibility: isDayVisible ? "visible" : "hidden" }}
             >
               {dayAllDayEvents.map((event) => {
                 const eventStart = new Date(event.start);
@@ -238,7 +279,9 @@ function WeekViewAllDaySection({
   );
 }
 
-function WeekViewTimeColumn({ hours }: { hours: Date[] }) {
+function WeekViewTimeColumn() {
+  const { hours } = useWeekViewContext();
+
   return (
     <div className="border-border/70 grid auto-cols-fr border-r">
       {hours.map((hour, index) => (
@@ -257,66 +300,93 @@ function WeekViewTimeColumn({ hours }: { hours: Date[] }) {
   );
 }
 
-function WeekViewDayColumn({
-  day,
-  hours,
-  positionedEvents,
-  currentTimePosition,
-  currentTimeVisible,
-  onEventClick,
-  onEventCreate,
-}: {
-  day: Date;
-  hours: Date[];
-  positionedEvents: PositionedEvent[];
-  currentTimePosition: number;
-  currentTimeVisible: boolean;
-  onEventClick: (event: CalendarEvent, e: React.MouseEvent) => void;
-  onEventCreate: (startTime: Date) => void;
-}) {
+function WeekViewDayColumns() {
+  const {
+    allDays,
+    visibleDays,
+    processedDayEvents,
+    currentDate,
+    viewPreferences,
+    onEventClick,
+  } = useWeekViewContext();
+
+  const { currentTimePosition, currentTimeVisible } = useCurrentTimeIndicator(
+    currentDate,
+    "week"
+  );
+
   return (
-    <div
-      key={day.toString()}
-      className="border-border/70 relative grid auto-cols-fr border-r last:border-r-0"
-      data-today={isToday(day) || undefined}
-    >
-      {positionedEvents.map((positionedEvent) => (
-        <div
-          key={positionedEvent.event.id}
-          className="absolute z-10 px-0.5"
-          style={{
-            top: `${positionedEvent.top}px`,
-            height: `${positionedEvent.height}px`,
-            left: `${positionedEvent.left * 100}%`,
-            width: `${positionedEvent.width * 100}%`,
-            zIndex: positionedEvent.zIndex,
-          }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div className="size-full">
-            <DraggableEvent
-              event={positionedEvent.event}
-              view="week"
-              onClick={(e) => onEventClick(positionedEvent.event, e)}
-              showTime
-              height={positionedEvent.height}
-            />
-          </div>
-        </div>
-      ))}
+    <>
+      {allDays.map((day) => {
+        const isDayVisible = viewPreferences.showWeekends || !isWeekend(day);
+        const visibleDayIndex = visibleDays.findIndex(
+          (d) => d.getTime() === day.getTime()
+        );
+        const positionedEvents =
+          visibleDayIndex >= 0
+            ? (processedDayEvents[visibleDayIndex] ?? [])
+            : [];
 
-      {currentTimeVisible && isToday(day) && (
-        <div
-          className="pointer-events-none absolute right-0 left-0 z-20"
-          style={{ top: `${currentTimePosition}%` }}
-        >
-          <div className="relative flex items-center">
-            <div className="bg-primary absolute -left-1 h-2 w-2 rounded-full"></div>
-            <div className="bg-primary h-[2px] w-full"></div>
-          </div>
-        </div>
-      )}
+        return (
+          <div
+            key={day.toString()}
+            className={cn(
+              "border-border/70 relative grid auto-cols-fr border-r last:border-r-0 overflow-hidden",
+              !isDayVisible && "w-0"
+            )}
+            data-today={isToday(day) || undefined}
+            style={{ visibility: isDayVisible ? "visible" : "hidden" }}
+          >
+            {positionedEvents.map((positionedEvent) => (
+              <div
+                key={positionedEvent.event.id}
+                className="absolute z-10 px-0.5"
+                style={{
+                  top: `${positionedEvent.top}px`,
+                  height: `${positionedEvent.height}px`,
+                  left: `${positionedEvent.left * 100}%`,
+                  width: `${positionedEvent.width * 100}%`,
+                  zIndex: positionedEvent.zIndex,
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="size-full">
+                  <DraggableEvent
+                    event={positionedEvent.event}
+                    view="week"
+                    onClick={(e) => onEventClick(positionedEvent.event, e)}
+                    showTime
+                    height={positionedEvent.height}
+                  />
+                </div>
+              </div>
+            ))}
 
+            {currentTimeVisible && isToday(day) && (
+              <div
+                className="pointer-events-none absolute right-0 left-0 z-20"
+                style={{ top: `${currentTimePosition}%` }}
+              >
+                <div className="relative flex items-center">
+                  <div className="bg-primary absolute -left-1 h-2 w-2 rounded-full"></div>
+                  <div className="bg-primary h-[2px] w-full"></div>
+                </div>
+              </div>
+            )}
+
+            <WeekViewDayTimeSlots day={day} />
+          </div>
+        );
+      })}
+    </>
+  );
+}
+
+function WeekViewDayTimeSlots({ day }: { day: Date }) {
+  const { hours, onEventCreate } = useWeekViewContext();
+
+  return (
+    <>
       {hours.map((hour) => {
         const hourValue = getHours(hour);
         return (
@@ -351,6 +421,6 @@ function WeekViewDayColumn({
           </div>
         );
       })}
-    </div>
+    </>
   );
 }
