@@ -5,6 +5,7 @@ import { useCalendarNavigation } from "@/components/event-calendar";
 import { CalendarViewTitle } from "./calendar-view-title";
 import { CalendarNavigation } from "./calendar-navigation";
 import { CalendarViewSelector } from "./calendar-view-selector";
+import { ViewPreferencesPopover } from "./view-preferences-popover";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 
@@ -44,6 +45,8 @@ export function CalendarHeader({ className }: CalendarHeaderProps) {
         />
 
         <CalendarViewSelector currentView={view} onViewChange={setView} />
+
+        <ViewPreferencesPopover />
       </div>
     </header>
   );

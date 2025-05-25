@@ -3,7 +3,8 @@
  *
  * This file contains utility functions for:
  * - Date navigation (previous/next periods based on calendar view)
- * - Date / time manipulation
+ * - Date/time manipulation
+ * - Weekend detection and filtering
  * - Miscellaneous helpers
  */
 
@@ -13,10 +14,12 @@ import {
   addWeeks,
   endOfWeek,
   format,
+  getDay,
   isSameMonth,
   startOfWeek,
   subMonths,
   subWeeks,
+  eachDayOfInterval,
 } from "date-fns";
 import { CalendarView } from "../types";
 import { AgendaDaysToShow } from "../constants";
@@ -29,10 +32,8 @@ export function snapTimeToInterval(time: Date): Date {
 
   if (remainder !== 0) {
     if (remainder < TIME_INTERVALS.SNAP_THRESHOLD) {
-      // Round down to nearest interval
       snappedTime.setMinutes(minutes - remainder);
     } else {
-      // Round up to nearest interval
       snappedTime.setMinutes(
         minutes + (TIME_INTERVALS.SNAP_TO_MINUTES - remainder)
       );
@@ -146,4 +147,34 @@ export function getViewTitleData(currentDate: Date, view: CalendarView) {
         short: format(currentDate, "MMM yyyy"),
       };
   }
+}
+
+export function isWeekend(date: Date): boolean {
+  const day = getDay(date);
+  return day === 0 || day === 6;
+}
+
+export function filterWeekdays(dates: Date[]): Date[] {
+  return dates.filter((date) => !isWeekend(date));
+}
+
+export function isWeekendIndex(dayIndex: number): boolean {
+  return dayIndex === 0 || dayIndex === 6;
+}
+
+export function getWeekDays(currentDate: Date): Date[] {
+  const weekStart = startOfWeek(currentDate, {
+    weekStartsOn: CALENDAR_CONFIG.WEEK_STARTS_ON,
+  });
+  const weekEnd = endOfWeek(currentDate, {
+    weekStartsOn: CALENDAR_CONFIG.WEEK_STARTS_ON,
+  });
+  return eachDayOfInterval({ start: weekStart, end: weekEnd });
+}
+
+export function filterDaysByWeekendPreference(
+  days: Date[],
+  showWeekends: boolean
+): Date[] {
+  return showWeekends ? days : days.filter((day) => !isWeekend(day));
 }
