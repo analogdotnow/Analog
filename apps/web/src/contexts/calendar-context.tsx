@@ -11,7 +11,7 @@ interface CalendarContextType {
 }
 
 const CalendarContext = createContext<CalendarContextType | undefined>(
-  undefined
+  undefined,
 );
 
 export function CalendarProvider({
@@ -42,7 +42,7 @@ export function useCalendarContext() {
   const context = useContext(CalendarContext);
   if (context === undefined) {
     throw new Error(
-      "useCalendarContext must be used within a CalendarProvider"
+      "useCalendarContext must be used within a CalendarProvider",
     );
   }
   return context;

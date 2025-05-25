@@ -50,12 +50,12 @@ export function WeekView({
 
   const days = useMemo(
     () => filterDaysByWeekendPreference(allDays, viewPreferences.showWeekends),
-    [allDays, viewPreferences.showWeekends]
+    [allDays, viewPreferences.showWeekends],
   );
 
   const weekStart = useMemo(
     () => startOfWeek(currentDate, { weekStartsOn: 0 }),
-    [currentDate]
+    [currentDate],
   );
 
   const hours = useMemo(() => {
@@ -68,13 +68,13 @@ export function WeekView({
 
   const allDayEvents = useMemo(
     () => getAllDayEventsForDays(events, days),
-    [events, days]
+    [events, days],
   );
 
   const processedDayEvents = useMemo(
     () =>
       calculateWeekViewEventPositions(events, days, StartHour, WeekCellsHeight),
-    [events, days]
+    [events, days],
   );
 
   const handleEventClick = (event: CalendarEvent, e: React.MouseEvent) => {
@@ -85,7 +85,7 @@ export function WeekView({
   const showAllDaySection = allDayEvents.length > 0;
   const { currentTimePosition, currentTimeVisible } = useCurrentTimeIndicator(
     currentDate,
-    "week"
+    "week",
   );
   const gridTemplateColumns = `6rem repeat(${days.length}, 1fr)`;
 
@@ -221,7 +221,7 @@ function WeekViewAllDaySection({
                     <div
                       className={cn(
                         "truncate",
-                        !shouldShowTitle && "invisible"
+                        !shouldShowTitle && "invisible",
                       )}
                       aria-hidden={!shouldShowTitle}
                     >
@@ -337,7 +337,7 @@ function WeekViewDayColumn({
                     quarter === 0 && "top-0",
                     quarter === 1 && "top-[calc(var(--week-cells-height)/4)]",
                     quarter === 2 && "top-[calc(var(--week-cells-height)/4*2)]",
-                    quarter === 3 && "top-[calc(var(--week-cells-height)/4*3)]"
+                    quarter === 3 && "top-[calc(var(--week-cells-height)/4*3)]",
                   )}
                   onClick={() => {
                     const startTime = new Date(day);

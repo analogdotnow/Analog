@@ -31,7 +31,7 @@ export function getEventColorClasses(color?: EventColor | string): string {
 
 export function getBorderRadiusClasses(
   isFirstDay: boolean,
-  isLastDay: boolean
+  isLastDay: boolean,
 ): string {
   if (isFirstDay && isLastDay) {
     return "rounded-md"; // Both ends rounded

@@ -25,7 +25,7 @@ export function CalendarHeader({ className }: CalendarHeaderProps) {
     <header
       className={cn(
         "flex items-center justify-between p-2 sm:p-4 h-16 gap-2 border-b px-4",
-        className
+        className,
       )}
     >
       <div className="flex items-center gap-1 sm:gap-4">

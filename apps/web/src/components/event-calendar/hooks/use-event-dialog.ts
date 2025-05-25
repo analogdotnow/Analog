@@ -6,7 +6,7 @@ import { TIME_INTERVALS } from "../calendar-constants";
 export function useEventDialog() {
   const [isEventDialogOpen, setIsEventDialogOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(
-    null
+    null,
   );
 
   const handleEventSelect = useCallback((event: CalendarEvent) => {
@@ -23,7 +23,7 @@ export function useEventDialog() {
       start: snappedTime,
       end: addHoursToDate(
         snappedTime,
-        TIME_INTERVALS.DEFAULT_EVENT_DURATION_HOURS
+        TIME_INTERVALS.DEFAULT_EVENT_DURATION_HOURS,
       ),
       allDay: false,
     };

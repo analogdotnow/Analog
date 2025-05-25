@@ -121,7 +121,7 @@ export function MonthView({
       <div
         className={cn(
           "border-border/70 grid border-b transition-[grid-template-columns] duration-200 ease-linear",
-          gridColsClass
+          gridColsClass,
         )}
       >
         {weekdays.map((day) => (
@@ -139,7 +139,7 @@ export function MonthView({
             key={`week-${weekIndex}`}
             className={cn(
               "grid [&:last-child>*]:border-b-0 transition-[grid-template-columns] duration-200 ease-linear",
-              gridColsClass
+              gridColsClass,
             )}
           >
             {week.map((day, dayIndex) => {
@@ -216,7 +216,7 @@ export function MonthView({
                                     <span>
                                       {format(
                                         new Date(event.start),
-                                        "h:mm"
+                                        "h:mm",
                                       )}{" "}
                                     </span>
                                   )}

@@ -35,7 +35,7 @@ export function snapTimeToInterval(time: Date): Date {
       snappedTime.setMinutes(minutes - remainder);
     } else {
       snappedTime.setMinutes(
-        minutes + (TIME_INTERVALS.SNAP_TO_MINUTES - remainder)
+        minutes + (TIME_INTERVALS.SNAP_TO_MINUTES - remainder),
       );
     }
     snappedTime.setSeconds(0);
@@ -47,7 +47,7 @@ export function snapTimeToInterval(time: Date): Date {
 
 export function navigateToPrevious(
   currentDate: Date,
-  view: CalendarView
+  view: CalendarView,
 ): Date {
   switch (view) {
     case "month":
@@ -174,7 +174,7 @@ export function getWeekDays(currentDate: Date): Date[] {
 
 export function filterDaysByWeekendPreference(
   days: Date[],
-  showWeekends: boolean
+  showWeekends: boolean,
 ): Date[] {
   return showWeekends ? days : days.filter((day) => !isWeekend(day));
 }

@@ -38,7 +38,7 @@ export function CalendarView({ className }: CalendarViewProps) {
     trpc.calendars.events.queryOptions({
       timeMin,
       timeMax,
-    })
+    }),
   );
 
   const transformedEvents = useMemo(() => {
@@ -58,9 +58,9 @@ export function CalendarView({ className }: CalendarViewProps) {
           new Date(
             startDate.getFullYear(),
             startDate.getMonth(),
-            startDate.getDate()
+            startDate.getDate(),
           ),
-          1
+          1,
         );
         if (endDate.getTime() === nextDayOfStart.getTime()) {
           endDate = endOfDay(startDate);

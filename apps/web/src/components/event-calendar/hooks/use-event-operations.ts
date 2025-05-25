@@ -35,7 +35,7 @@ export function useEventOperations({
       }
       onOperationComplete();
     },
-    [onEventAdd, onEventUpdate, onOperationComplete]
+    [onEventAdd, onEventUpdate, onOperationComplete],
   );
 
   const handleEventDelete = useCallback(
@@ -48,7 +48,7 @@ export function useEventOperations({
         showEventDeletedToast(deletedEvent);
       }
     },
-    [events, onEventDelete, onOperationComplete]
+    [events, onEventDelete, onOperationComplete],
   );
 
   const handleEventMove = useCallback(
@@ -56,7 +56,7 @@ export function useEventOperations({
       onEventUpdate?.(updatedEvent);
       showEventMovedToast(updatedEvent);
     },
-    [onEventUpdate]
+    [onEventUpdate],
   );
 
   return {

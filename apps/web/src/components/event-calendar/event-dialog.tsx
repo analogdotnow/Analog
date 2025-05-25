@@ -147,7 +147,7 @@ export function EventDialog({
         endHours > EndHour
       ) {
         setError(
-          `Selected time must be between ${StartHour}:00 and ${EndHour}:00`
+          `Selected time must be between ${StartHour}:00 and ${EndHour}:00`,
         );
         return;
       }
@@ -277,13 +277,13 @@ export function EventDialog({
                     variant={"outline"}
                     className={cn(
                       "group bg-background hover:bg-background border-input w-full justify-between px-3 font-normal outline-offset-0 outline-none focus-visible:outline-[3px]",
-                      !startDate && "text-muted-foreground"
+                      !startDate && "text-muted-foreground",
                     )}
                   >
                     <span
                       className={cn(
                         "truncate",
-                        !startDate && "text-muted-foreground"
+                        !startDate && "text-muted-foreground",
                       )}
                     >
                       {startDate ? format(startDate, "PPP") : "Pick a date"}
@@ -345,13 +345,13 @@ export function EventDialog({
                     variant={"outline"}
                     className={cn(
                       "group bg-background hover:bg-background border-input w-full justify-between px-3 font-normal outline-offset-0 outline-none focus-visible:outline-[3px]",
-                      !endDate && "text-muted-foreground"
+                      !endDate && "text-muted-foreground",
                     )}
                   >
                     <span
                       className={cn(
                         "truncate",
-                        !endDate && "text-muted-foreground"
+                        !endDate && "text-muted-foreground",
                       )}
                     >
                       {endDate ? format(endDate, "PPP") : "Pick a date"}
@@ -436,7 +436,7 @@ export function EventDialog({
                   className={cn(
                     "size-6 shadow-none",
                     colorOption.bgClass,
-                    colorOption.borderClass
+                    colorOption.borderClass,
                   )}
                 />
               ))}
