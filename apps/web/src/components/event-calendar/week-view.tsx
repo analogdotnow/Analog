@@ -87,7 +87,7 @@ export function WeekView({
     currentDate,
     "week"
   );
-  const gridTemplateColumns = `4rem repeat(${days.length}, 1fr)`;
+  const gridTemplateColumns = `6rem repeat(${days.length}, 1fr)`;
 
   return (
     <div data-slot="week-view" className="flex flex-col isolate">
@@ -247,7 +247,7 @@ function WeekViewTimeColumn({ hours }: { hours: Date[] }) {
           className="border-border/70 relative min-h-[var(--week-cells-height)] border-b last:border-b-0"
         >
           {index > 0 && (
-            <span className="bg-background text-muted-foreground/70 absolute -top-3 left-0 flex h-6 w-16 max-w-full items-center justify-end pe-2 text-[10px] sm:pe-4 sm:text-xs">
+            <span className="bg-background text-muted-foreground/70 absolute -top-3 left-0 flex h-6 w-16 max-w-full items-center justify-end text-[10px] sm:text-xs pe-1 sm:pe-2">
               {format(hour, "h a")}
             </span>
           )}
