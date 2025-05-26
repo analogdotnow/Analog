@@ -1,6 +1,4 @@
-import Link from "next/link";
 import { Logo } from "./branding/logo";
-import { ModeToggle } from "./ui/theme-toggle";
 
 export function Footer() {
   return (
