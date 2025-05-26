@@ -10,26 +10,33 @@ import { env } from "@repo/env/server";
 import { getIp } from "../utils/ip";
 
 let ratelimit: Ratelimit | null = null;
+let initializationAttempted = false;
 
-function getRateLimiter() {
-  if (!ratelimit) {
+function getRateLimiter(): Ratelimit | null {
+  if (!ratelimit && !initializationAttempted) {
+    initializationAttempted = true;
     // Check if environment variables are available
-    if (!env.UPSTASH_REDIS_REST_URL || !env.UPSTASH_REDIS_REST_TOKEN) {
+    if (!env.UPSTASH_REDIS_REST_URL?.trim() || !env.UPSTASH_REDIS_REST_TOKEN?.trim()) {
       console.warn("Upstash Redis environment variables not found. Rate limiting disabled.");
       return null;
     }
     
-    const redis = new Redis({
-      url: env.UPSTASH_REDIS_REST_URL,
-      token: env.UPSTASH_REDIS_REST_TOKEN,
-    });
+    try {
+      const redis = new Redis({
+        url: env.UPSTASH_REDIS_REST_URL,
+        token: env.UPSTASH_REDIS_REST_TOKEN,
+      });
 
-    ratelimit = new Ratelimit({
-      redis,
-      limiter: Ratelimit.slidingWindow(2, "1m"),
-      analytics: true,
-      prefix: "ratelimit:early-access-count",
-    });
+      ratelimit = new Ratelimit({
+        redis,
+        limiter: Ratelimit.slidingWindow(2, "1m"),
+        analytics: true,
+        prefix: "ratelimit:early-access-count",
+      });
+    } catch (error) {
+      console.error("Failed to initialize rate limiter:", error);
+      return null;
+    }
   }
   return ratelimit;
 }

@@ -1,13 +1,21 @@
+import { isIP } from 'net';
+
 export function getIp(headers: Headers): string {
   const forwardedFor = headers.get("x-forwarded-for");
   const realIp = headers.get("x-real-ip");
 
   if (forwardedFor) {
-    return forwardedFor.split(",")[0]?.trim() || "127.0.0.1";
+    const firstIp = forwardedFor.split(",")[0]?.trim();
+    if (firstIp && isIP(firstIp)) {
+      return firstIp;
+    }
   }
 
   if (realIp) {
-    return realIp.trim();
+    const trimmedIp = realIp.trim();
+    if (isIP(trimmedIp)) {
+      return trimmedIp;
+    }
   }
 
   return "127.0.0.1";
