@@ -13,6 +13,7 @@ import { EndHour, StartHour } from "@/components/event-calendar/constants";
 import { cn } from "@/lib/utils";
 import {
   addHours,
+  differenceInCalendarDays,
   eachHourOfInterval,
   format,
   getHours,
@@ -75,12 +76,12 @@ export function WeekView({
 
   const visibleDays = useMemo(
     () => filterDaysByWeekendPreference(allDays, viewPreferences.showWeekends),
-    [allDays, viewPreferences.showWeekends]
+    [allDays, viewPreferences.showWeekends],
   );
 
   const weekStart = useMemo(
     () => startOfWeek(currentDate, { weekStartsOn: 0 }),
-    [currentDate]
+    [currentDate],
   );
 
   const hours = useMemo(() => {
@@ -97,9 +98,9 @@ export function WeekView({
         events,
         visibleDays,
         StartHour,
-        WeekCellsHeight
+        WeekCellsHeight,
       ),
-    [events, visibleDays]
+    [events, visibleDays],
   );
 
   const handleEventClick = (event: CalendarEvent, e: React.MouseEvent) => {
@@ -168,7 +169,7 @@ function WeekViewHeader() {
             key={day.toString()}
             className={cn(
               "data-today:text-foreground text-muted-foreground/70 py-2 text-center text-sm data-today:font-medium overflow-hidden",
-              !isDayVisible && "w-0"
+              !isDayVisible && "w-0",
             )}
             data-today={isToday(day) || undefined}
             style={{ visibility: isDayVisible ? "visible" : "hidden" }}
@@ -193,7 +194,7 @@ function WeekViewAllDaySection({ weekStart }: { weekStart: Date }) {
 
   const allDayEvents = useMemo(
     () => getAllDayEventsForDays(events, visibleDays),
-    [events, visibleDays]
+    [events, visibleDays],
   );
 
   if (allDayEvents.length === 0) {
@@ -227,8 +228,8 @@ function WeekViewAllDaySection({ weekStart }: { weekStart: Date }) {
             <div
               key={day.toString()}
               className={cn(
-                "border-border/70 relative border-r last:border-r-0 overflow-hidden",
-                isDayVisible ? "p-1" : "w-0"
+                "border-border/70 relative border-r last:border-r-0 overflow-visible",
+                isDayVisible ? "p-1" : "w-0",
               )}
               data-today={isToday(day) || undefined}
               style={{ visibility: isDayVisible ? "visible" : "hidden" }}
@@ -241,26 +242,39 @@ function WeekViewAllDaySection({ weekStart }: { weekStart: Date }) {
                 const isFirstVisibleDay =
                   dayIndex === 0 && isBefore(eventStart, weekStart);
                 const shouldShowTitle = isFirstDay || isFirstVisibleDay;
+                const isSingleDay = isSameDay(eventStart, eventEnd);
 
                 return (
-                  <EventItem
+                  <div
+                    style={{
+                      width:
+                        !isSingleDay && isFirstDay
+                          ? `calc(100% * ${differenceInCalendarDays(eventEnd, eventStart) * 1.05 + 1})`
+                          : "",
+                      zIndex: 100,
+                      position: "relative",
+                    }}
                     key={`spanning-${event.id}`}
-                    onClick={(e) => onEventClick(event, e)}
-                    event={event}
-                    view="month"
-                    isFirstDay={isFirstDay}
-                    isLastDay={isLastDay}
                   >
-                    <div
-                      className={cn(
-                        "truncate",
-                        !shouldShowTitle && "invisible"
-                      )}
-                      aria-hidden={!shouldShowTitle}
+                    <EventItem
+                      className={!isSingleDay && !isFirstDay ? "opacity-0" : ""}
+                      onClick={(e) => onEventClick(event, e)}
+                      event={event}
+                      view="month"
+                      isFirstDay={isFirstDay}
+                      isLastDay={!isSingleDay || isLastDay}
                     >
-                      {event.title}
-                    </div>
-                  </EventItem>
+                      <div
+                        className={cn(
+                          "truncate",
+                          !shouldShowTitle && "invisible",
+                        )}
+                        aria-hidden={!shouldShowTitle}
+                      >
+                        {event.title}
+                      </div>
+                    </EventItem>
+                  </div>
                 );
               })}
             </div>
@@ -304,7 +318,7 @@ function WeekViewDayColumns() {
 
   const { currentTimePosition, currentTimeVisible } = useCurrentTimeIndicator(
     currentDate,
-    "week"
+    "week",
   );
 
   return (
@@ -312,7 +326,7 @@ function WeekViewDayColumns() {
       {allDays.map((day) => {
         const isDayVisible = viewPreferences.showWeekends || !isWeekend(day);
         const visibleDayIndex = visibleDays.findIndex(
-          (d) => d.getTime() === day.getTime()
+          (d) => d.getTime() === day.getTime(),
         );
         const positionedEvents =
           visibleDayIndex >= 0
@@ -324,7 +338,7 @@ function WeekViewDayColumns() {
             key={day.toString()}
             className={cn(
               "border-border/70 relative grid auto-cols-fr border-r last:border-r-0 overflow-hidden",
-              !isDayVisible && "w-0"
+              !isDayVisible && "w-0",
             )}
             data-today={isToday(day) || undefined}
             style={{ visibility: isDayVisible ? "visible" : "hidden" }}
@@ -399,7 +413,7 @@ function WeekViewDayTimeSlots({ day }: { day: Date }) {
                     quarter === 0 && "top-0",
                     quarter === 1 && "top-[calc(var(--week-cells-height)/4)]",
                     quarter === 2 && "top-[calc(var(--week-cells-height)/4*2)]",
-                    quarter === 3 && "top-[calc(var(--week-cells-height)/4*3)]"
+                    quarter === 3 && "top-[calc(var(--week-cells-height)/4*3)]",
                   )}
                   onClick={() => {
                     const startTime = new Date(day);
