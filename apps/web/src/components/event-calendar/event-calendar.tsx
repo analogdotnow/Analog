@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo } from "react";
-import { useAtom } from "jotai";
 import {
   CalendarDndProvider,
   CalendarEvent,
