@@ -31,7 +31,7 @@ function getRateLimiter(): Ratelimit | null {
         redis,
         limiter: Ratelimit.slidingWindow(2, "1m"),
         analytics: true,
-        prefix: "ratelimit:early-access-count",
+        prefix: "ratelimit:early-access-waitlist",
       });
     } catch (error) {
       console.error("Failed to initialize rate limiter:", error);
