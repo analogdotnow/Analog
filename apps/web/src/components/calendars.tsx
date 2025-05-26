@@ -15,9 +15,15 @@ import {
   SidebarMenuItem,
   SidebarSeparator,
 } from "@/components/ui/sidebar";
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useTRPC } from "@/lib/trpc/client";
 import { useQuery } from "@tanstack/react-query";
+import { useCalendarsVisibility } from "@/components/event-calendar/hooks";
+import { Checkbox } from "@/components/ui/checkbox";
 
 function useCalendarList() {
   const trpc = useTRPC();
@@ -27,6 +33,7 @@ function useCalendarList() {
 
 export function Calendars() {
   const { data } = useCalendarList();
+  const [calendarVisibility, setCalendarVisibility] = useCalendarsVisibility();
 
   if (!data) {
     return null;
@@ -58,16 +65,38 @@ export function Calendars() {
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <SidebarMenuButton>
-                              <div
-                                data-active={index < 2}
-                                className="group/calendar-item border-sidebar-border text-sidebar-primary-foreground data-[active=true]:border-sidebar-primary data-[active=true]:bg-sidebar-primary flex aspect-square size-4 shrink-0 items-center justify-center rounded-sm border"
-                              >
-                                <Check className="hidden size-3 group-data-[active=true]/calendar-item:block" />
-                              </div>
-                              <span className="line-clamp-1 block">{item.name}</span>
+                              <Checkbox
+                                checked={
+                                  !calendarVisibility.hiddenCalendars.includes(
+                                    item.id
+                                  )
+                                }
+                                onCheckedChange={(checked) => {
+                                  const newHiddenCalendars = checked
+                                    ? calendarVisibility.hiddenCalendars.filter(
+                                        (id) => id !== item.id
+                                      )
+                                    : [
+                                        ...calendarVisibility.hiddenCalendars,
+                                        item.id,
+                                      ];
+                                  setCalendarVisibility({
+                                    hiddenCalendars: newHiddenCalendars,
+                                  });
+                                }}
+                                // className="group/calendar-item border-sidebar-border text-sidebar-primary-foreground data-[state=checked]:border-sidebar-primary data-[state=checked]:bg-sidebar-primary flex aspect-square size-4 shrink-0 items-center justify-center rounded-sm border"
+                              />
+                              <span className="line-clamp-1 block">
+                                {item.name}
+                              </span>
                             </SidebarMenuButton>
                           </TooltipTrigger>
-                          <TooltipContent side="bottom" align="start" sideOffset={8} className="bg-sidebar-accent text-sidebar-accent-foreground">
+                          <TooltipContent
+                            side="bottom"
+                            align="start"
+                            sideOffset={8}
+                            className="bg-sidebar-accent text-sidebar-accent-foreground"
+                          >
                             <span>{item.name}</span>
                           </TooltipContent>
                         </Tooltip>

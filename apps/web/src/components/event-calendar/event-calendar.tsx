@@ -13,11 +13,13 @@ import {
   useKeyboardShortcuts,
   WeekCellsHeight,
   filterPastEvents,
+  filterVisibleEvents,
 } from "@/components/event-calendar";
 import { CalendarHeader } from "./calendar-header";
 import { CalendarContent } from "./calendar-content";
 import { cn } from "@/lib/utils";
 import { viewPreferencesAtom } from "@/atoms";
+import { useCalendarsVisibility } from "./hooks";
 
 export interface EventCalendarProps {
   events?: CalendarEvent[];
@@ -35,10 +37,15 @@ export function EventCalendar({
   className,
 }: EventCalendarProps) {
   const [viewPreferences] = useAtom(viewPreferencesAtom);
+  const [calendarVisibility] = useCalendarsVisibility();
 
   const filteredEvents = useMemo(
-    () => filterPastEvents(events, viewPreferences.showPastEvents),
-    [events, viewPreferences.showPastEvents],
+    () =>
+      filterVisibleEvents(
+        filterPastEvents(events, viewPreferences.showPastEvents),
+        calendarVisibility.hiddenCalendars
+      ),
+    [events, viewPreferences.showPastEvents, calendarVisibility.hiddenCalendars]
   );
 
   const {
@@ -66,7 +73,7 @@ export function EventCalendar({
     <div
       className={cn(
         "flex flex-col has-data-[slot=month-view]:flex-1 overflow-scroll",
-        className,
+        className
       )}
       style={
         {

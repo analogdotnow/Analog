@@ -29,7 +29,7 @@ export function isMultiDayEvent(event: CalendarEvent): boolean {
 
 export function filterPastEvents(
   events: CalendarEvent[],
-  showPastEvents: boolean,
+  showPastEvents: boolean
 ): CalendarEvent[] {
   if (showPastEvents) return events;
 
@@ -37,9 +37,16 @@ export function filterPastEvents(
   return events.filter((event) => new Date(event.end) >= now);
 }
 
+export function filterVisibleEvents(
+  events: CalendarEvent[],
+  hiddenCalendars: string[]
+): CalendarEvent[] {
+  return events.filter((event) => !hiddenCalendars.includes(event.calendarId));
+}
+
 export function getEventsStartingOnDay(
   events: CalendarEvent[],
-  day: Date,
+  day: Date
 ): CalendarEvent[] {
   return events
     .filter((event) => {
@@ -51,7 +58,7 @@ export function getEventsStartingOnDay(
 
 export function getSpanningEventsForDay(
   events: CalendarEvent[],
-  day: Date,
+  day: Date
 ): CalendarEvent[] {
   return events.filter((event) => {
     if (!isMultiDayEvent(event)) return false;
@@ -68,7 +75,7 @@ export function getSpanningEventsForDay(
 
 export function getAllEventsForDay(
   events: CalendarEvent[],
-  day: Date,
+  day: Date
 ): CalendarEvent[] {
   return events
     .filter((event) => {
@@ -85,7 +92,7 @@ export function getAllEventsForDay(
 
 export function getAllDayEventsForDays(
   events: CalendarEvent[],
-  days: Date[],
+  days: Date[]
 ): CalendarEvent[] {
   return events
     .filter((event) => event.allDay || isMultiDayEvent(event))
@@ -96,7 +103,7 @@ export function getAllDayEventsForDays(
         (day) =>
           isSameDay(day, eventStart) ||
           isSameDay(day, eventEnd) ||
-          (day > eventStart && day < eventEnd),
+          (day > eventStart && day < eventEnd)
       );
     });
 }
@@ -121,7 +128,7 @@ interface EventColumn {
 
 function getTimedEventsForDay(
   events: CalendarEvent[],
-  day: Date,
+  day: Date
 ): CalendarEvent[] {
   return events.filter((event) => {
     if (event.allDay || isMultiDayEvent(event)) return false;
@@ -150,7 +157,7 @@ function calculateEventDimensions(
   adjustedStart: Date,
   adjustedEnd: Date,
   startHour: number,
-  cellHeight: number,
+  cellHeight: number
 ) {
   const startHourValue =
     getHours(adjustedStart) + getMinutes(adjustedStart) / 60;
@@ -166,7 +173,7 @@ function findEventColumn(
   event: CalendarEvent,
   adjustedStart: Date,
   adjustedEnd: Date,
-  columns: EventColumn[][],
+  columns: EventColumn[][]
 ): number {
   let columnIndex = 0;
 
@@ -181,8 +188,8 @@ function findEventColumn(
     const hasOverlap = column.some((c) =>
       areIntervalsOverlapping(
         { start: adjustedStart, end: adjustedEnd },
-        { start: new Date(c.event.start), end: new Date(c.event.end) },
-      ),
+        { start: new Date(c.event.start), end: new Date(c.event.end) }
+      )
     );
 
     if (!hasOverlap) {
@@ -205,7 +212,7 @@ function positionEventsForDay(
   events: CalendarEvent[],
   day: Date,
   startHour: number,
-  cellHeight: number,
+  cellHeight: number
 ): PositionedEvent[] {
   const timedEvents = getTimedEventsForDay(events, day);
   const sortedEvents = sortEventsByTime(timedEvents);
@@ -215,20 +222,20 @@ function positionEventsForDay(
   sortedEvents.forEach((event) => {
     const { start: adjustedStart, end: adjustedEnd } = getAdjustedEventTimes(
       event,
-      day,
+      day
     );
     const { top, height } = calculateEventDimensions(
       adjustedStart,
       adjustedEnd,
       startHour,
-      cellHeight,
+      cellHeight
     );
 
     const columnIndex = findEventColumn(
       event,
       adjustedStart,
       adjustedEnd,
-      columns,
+      columns
     );
     const { width, left, zIndex } = calculateEventLayout(columnIndex);
 
@@ -253,10 +260,10 @@ export function calculateWeekViewEventPositions(
   events: CalendarEvent[],
   days: Date[],
   startHour: number,
-  cellHeight: number,
+  cellHeight: number
 ): PositionedEvent[][] {
   return days.map((day) =>
-    positionEventsForDay(events, day, startHour, cellHeight),
+    positionEventsForDay(events, day, startHour, cellHeight)
   );
 }
 
