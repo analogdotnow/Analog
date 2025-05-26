@@ -81,7 +81,7 @@ export function WeekView({
 
   const weekStart = useMemo(
     () => startOfWeek(currentDate, { weekStartsOn: 0 }),
-    [currentDate],
+    [currentDate]
   );
 
   const hours = useMemo(() => {
@@ -194,7 +194,7 @@ function WeekViewAllDaySection({ weekStart }: { weekStart: Date }) {
 
   const allDayEvents = useMemo(
     () => getAllDayEventsForDays(events, visibleDays),
-    [events, visibleDays],
+    [events, visibleDays]
   );
 
   if (allDayEvents.length === 0) {
