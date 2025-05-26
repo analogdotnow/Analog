@@ -18,8 +18,7 @@ import {
 import { CalendarHeader } from "./calendar-header";
 import { CalendarContent } from "./calendar-content";
 import { cn } from "@/lib/utils";
-import { viewPreferencesAtom } from "@/atoms";
-import { useCalendarsVisibility } from "./hooks";
+import { useCalendarsVisibility, useViewPreferences } from "./hooks";
 
 export interface EventCalendarProps {
   events?: CalendarEvent[];
@@ -36,7 +35,7 @@ export function EventCalendar({
   onEventDelete,
   className,
 }: EventCalendarProps) {
-  const [viewPreferences] = useAtom(viewPreferencesAtom);
+  const viewPreferences = useViewPreferences();
   const [calendarVisibility] = useCalendarsVisibility();
 
   const filteredEvents = useMemo(

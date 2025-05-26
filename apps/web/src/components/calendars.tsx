@@ -33,7 +33,21 @@ function useCalendarList() {
 
 export function Calendars() {
   const { data } = useCalendarList();
-  const [calendarVisibility, setCalendarVisibility] = useCalendarsVisibility();
+  const [calendarsVisibility, setCalendarsVisibility] =
+    useCalendarsVisibility();
+
+  const handleCalendarVisibilityChange = React.useCallback(
+    (checked: boolean, calendarId: string) => {
+      const newHiddenCalendars = checked
+        ? calendarsVisibility.hiddenCalendars.filter((id) => id !== calendarId)
+        : [...calendarsVisibility.hiddenCalendars, calendarId];
+
+      setCalendarsVisibility({
+        hiddenCalendars: newHiddenCalendars,
+      });
+    },
+    [calendarsVisibility.hiddenCalendars, setCalendarsVisibility]
+  );
 
   if (!data) {
     return null;
@@ -67,22 +81,15 @@ export function Calendars() {
                             <SidebarMenuButton>
                               <Checkbox
                                 checked={
-                                  !calendarVisibility.hiddenCalendars.includes(
+                                  !calendarsVisibility.hiddenCalendars.includes(
                                     item.id
                                   )
                                 }
-                                onCheckedChange={(checked) => {
-                                  const newHiddenCalendars = checked
-                                    ? calendarVisibility.hiddenCalendars.filter(
-                                        (id) => id !== item.id
-                                      )
-                                    : [
-                                        ...calendarVisibility.hiddenCalendars,
-                                        item.id,
-                                      ];
-                                  setCalendarVisibility({
-                                    hiddenCalendars: newHiddenCalendars,
-                                  });
+                                onCheckedChange={(checked: boolean) => {
+                                  handleCalendarVisibilityChange(
+                                    checked,
+                                    item.id
+                                  );
                                 }}
                                 // className="group/calendar-item border-sidebar-border text-sidebar-primary-foreground data-[state=checked]:border-sidebar-primary data-[state=checked]:bg-sidebar-primary flex aspect-square size-4 shrink-0 items-center justify-center rounded-sm border"
                               />
