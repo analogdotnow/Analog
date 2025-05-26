@@ -1,11 +1,8 @@
 "use client";
 import {
   BadgeCheck,
-  Bell,
   ChevronsUpDown,
-  CreditCard,
   LogOut,
-  Sparkles,
 } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -27,16 +24,17 @@ import { useTRPC } from "@/lib/trpc/client";
 import { useQuery } from "@tanstack/react-query";
 import { authClient } from "@repo/auth/client";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 
 function useUser() {
   const trpc = useTRPC();
-
   return useQuery(trpc.user.me.queryOptions());
 }
 
 export function NavUser() {
   const { data: user } = useUser();
   const router = useRouter();
+  const queryClient = useQueryClient();  
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -89,6 +87,7 @@ export function NavUser() {
             <DropdownMenuItem onClick={async () => await authClient.signOut({
               fetchOptions: {
                 onSuccess: () => {
+                  queryClient.removeQueries();
                   router.push("/login");
                 },
               },

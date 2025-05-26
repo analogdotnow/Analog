@@ -45,6 +45,7 @@ export const eventsRouter = createTRPCRouter({
             const events = await client.events(calendarId, input.timeMin, input.timeMax);
             return events;
           } catch (error) {
+            console.error(`Failed to fetch events for calendar ${calendarId}:`, error);
             return [];
           }
         })

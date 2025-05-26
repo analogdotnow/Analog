@@ -121,6 +121,7 @@ export function CalendarDndProvider({
 
     // Add safety check for data.current
     if (!active.data.current) {
+      console.error("Missing data in drag start event", event);
       return;
     }
 
