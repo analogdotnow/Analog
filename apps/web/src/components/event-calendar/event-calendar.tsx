@@ -65,7 +65,7 @@ export function EventCalendar({
   return (
     <div
       className={cn(
-        "flex flex-col has-data-[slot=month-view]:flex-1 overflow-scroll",
+        "flex flex-col has-data-[slot=month-view]:flex-1 overflow-auto",
         className,
       )}
       style={
@@ -79,7 +79,7 @@ export function EventCalendar({
       <CalendarDndProvider onEventUpdate={handleEventMove}>
         <CalendarHeader />
 
-        <div className="grow overflow-scroll">
+        <div className="grow overflow-auto">
           <CalendarContent
             events={filteredEvents}
             onEventSelect={handleEventSelect}
