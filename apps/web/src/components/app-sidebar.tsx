@@ -16,7 +16,7 @@ import {
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar {...props}>
-      <SidebarHeader className="border-sidebar-border h-16 border-b" />
+      {/* <SidebarHeader className="border-sidebar-border h-16 border-b" /> */}
       <SidebarContent>
         <DatePicker />
         <SidebarSeparator className="mx-0" />

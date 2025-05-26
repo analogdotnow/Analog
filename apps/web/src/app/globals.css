@@ -64,7 +64,7 @@
   --chart-3: var(--color-amber-500);
   --chart-4: var(--color-purple-500);
   --chart-5: var(--color-rose-500);
-  --sidebar: var(--color-neutral-900);
+  --sidebar: #262626;
   --sidebar-foreground: var(--color-neutral-50);
   --sidebar-primary: var(--color-blue-500);
   --sidebar-primary-foreground: var(--color-neutral-50);
