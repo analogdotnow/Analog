@@ -20,9 +20,5 @@
     "prettier": "^3.5.3"
   },
   "packageManager": "bun@1.2.13",
-  "workspaces": ["apps/*", "packages/*", "tooling/*"],
-  "dependencies": {
-    "@upstash/ratelimit": "^2.0.5",
-    "@upstash/redis": "^1.34.9"
-  }
+  "workspaces": ["apps/*", "packages/*", "tooling/*"]
 }
