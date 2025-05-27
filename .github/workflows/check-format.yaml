@@ -23,4 +23,4 @@ jobs:
         run: bun install -D --frozen-lockfile
 
       - name: Run Prettier to check formatting
-        run: bun run prettier --check **/*.{ts,tsx,css,md}
+        run: bun run prettier -l **/*.{ts,tsx,css,md}
