@@ -97,21 +97,30 @@ export class GoogleCalendarProvider {
       location: event.location,
       colorId: event.colorId,
       start: event.allDay
-        ? { date: event.start.toISOString().split('T')[0] }
+        ? { date: event.start.toISOString().split("T")[0] }
         : { dateTime: event.start.toISOString() },
       end: event.allDay
-        ? { date: event.end.toISOString().split('T')[0] }
+        ? { date: event.end.toISOString().split("T")[0] }
         : { dateTime: event.end.toISOString() },
     };
 
-    const createdEvent = await this.client.calendars.events.create(calendarId, eventData);
+    const createdEvent = await this.client.calendars.events.create(
+      calendarId,
+      eventData,
+    );
 
     return this.transformGoogleEvent(createdEvent);
   }
 
-  async updateEvent(calendarId: string, eventId: string, event: UpdateEventInput) {
+  async updateEvent(
+    calendarId: string,
+    eventId: string,
+    event: UpdateEventInput,
+  ) {
     // First get the existing event to merge with updates
-    const existingEvent = await this.client.calendars.events.retrieve(eventId, { calendarId });
+    const existingEvent = await this.client.calendars.events.retrieve(eventId, {
+      calendarId,
+    });
 
     const eventData: EventUpdateParams = {
       calendarId,
@@ -120,18 +129,21 @@ export class GoogleCalendarProvider {
       location: event.location ?? existingEvent.location,
       colorId: event.colorId ?? existingEvent.colorId,
       start: event.start
-        ? (event.allDay
-            ? { date: event.start.toISOString().split('T')[0] }
-            : { dateTime: event.start.toISOString() })
+        ? event.allDay
+          ? { date: event.start.toISOString().split("T")[0] }
+          : { dateTime: event.start.toISOString() }
         : existingEvent.start,
       end: event.end
-        ? (event.allDay
-            ? { date: event.end.toISOString().split('T')[0] }
-            : { dateTime: event.end.toISOString() })
+        ? event.allDay
+          ? { date: event.end.toISOString().split("T")[0] }
+          : { dateTime: event.end.toISOString() }
         : existingEvent.end,
     };
 
-    const updatedEvent = await this.client.calendars.events.update(eventId, eventData);
+    const updatedEvent = await this.client.calendars.events.update(
+      eventId,
+      eventData,
+    );
 
     return this.transformGoogleEvent(updatedEvent);
   }

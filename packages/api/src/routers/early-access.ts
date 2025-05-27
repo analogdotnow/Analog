@@ -1,14 +1,14 @@
 import { TRPCError } from "@trpc/server";
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
 import { count, eq } from "drizzle-orm";
 import { z } from "zod";
 
 import { db } from "@repo/db";
 import { waitlist } from "@repo/db/schema";
+import { env } from "@repo/env/server";
 
 import { createTRPCRouter, publicProcedure } from "../trpc";
-import { Ratelimit } from "@upstash/ratelimit";
-import { Redis } from "@upstash/redis";
-import { env } from "@repo/env/server";
 import { getIp } from "../utils/ip";
 
 let ratelimit: Ratelimit | null = null;
