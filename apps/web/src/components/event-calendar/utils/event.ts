@@ -102,6 +102,55 @@ export function getAllDayEventsForDays(
     });
 }
 
+export function getEventSpanInfoForDay(event: CalendarEvent, day: Date) {
+  const eventStart = new Date(event.start);
+  const eventEnd = new Date(event.end);
+  const isFirstDay = isSameDay(day, eventStart);
+  const isLastDay = isSameDay(day, eventEnd);
+  return { eventStart, eventEnd, isFirstDay, isLastDay };
+}
+
+export function getEventCollectionsForDay(events: CalendarEvent[], day: Date) {
+  const dayEvents: CalendarEvent[] = [];
+  const spanningEvents: CalendarEvent[] = [];
+  const allEvents: CalendarEvent[] = [];
+
+  events.forEach((event) => {
+    const eventStart = new Date(event.start);
+    const eventEnd = new Date(event.end);
+    const isEventOnDay =
+      isSameDay(day, eventStart) ||
+      isSameDay(day, eventEnd) ||
+      (day > eventStart && day < eventEnd);
+
+    if (isEventOnDay) {
+      allEvents.push(event);
+
+      if (isSameDay(day, eventStart)) {
+        dayEvents.push(event);
+      } else if (isMultiDayEvent(event)) {
+        spanningEvents.push(event);
+      }
+    }
+  });
+
+  const sortByStartTime = (a: CalendarEvent, b: CalendarEvent) =>
+    new Date(a.start).getTime() - new Date(b.start).getTime();
+
+  dayEvents.sort(sortByStartTime);
+  spanningEvents.sort(sortByStartTime);
+  allEvents.sort(sortByStartTime);
+
+  const allDayEvents = [...spanningEvents, ...dayEvents];
+
+  return {
+    dayEvents,
+    spanningEvents,
+    allDayEvents,
+    allEvents,
+  };
+}
+
 // ============================================================================
 // WEEK VIEW POSITIONING
 // ============================================================================
