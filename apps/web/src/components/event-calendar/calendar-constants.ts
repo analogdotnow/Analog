@@ -3,6 +3,9 @@ export const KEYBOARD_SHORTCUTS = {
   WEEK: "w",
   DAY: "d",
   AGENDA: "a",
+  NEXT_PERIOD: "n",
+  PREVIOUS_PERIOD: "p",
+  TODAY: "t",
 } as const;
 
 export const TIME_INTERVALS = {

@@ -19,7 +19,7 @@ interface SignInFormProps {
   redirectUrl?: string;
 }
 
-export function SignInForm({ redirectUrl = "/" }: SignInFormProps) {
+export function SignInForm({ redirectUrl = "/calendar" }: SignInFormProps) {
   const [loading, setLoading] = useState(false);
 
   const signInWithGoogle = async () => {

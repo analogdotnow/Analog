@@ -13,6 +13,7 @@ import { EndHour, StartHour } from "@/components/event-calendar/constants";
 import { cn } from "@/lib/utils";
 import {
   addHours,
+  differenceInCalendarDays,
   eachHourOfInterval,
   format,
   getHours,
@@ -227,7 +228,7 @@ function WeekViewAllDaySection({ weekStart }: { weekStart: Date }) {
             <div
               key={day.toString()}
               className={cn(
-                "border-border/70 relative border-r last:border-r-0 overflow-hidden",
+                "border-border/70 relative border-r last:border-r-0 overflow-visible",
                 isDayVisible ? "p-1" : "w-0"
               )}
               data-today={isToday(day) || undefined}
@@ -241,26 +242,38 @@ function WeekViewAllDaySection({ weekStart }: { weekStart: Date }) {
                 const isFirstVisibleDay =
                   dayIndex === 0 && isBefore(eventStart, weekStart);
                 const shouldShowTitle = isFirstDay || isFirstVisibleDay;
+                const isSingleDay = isSameDay(eventStart, eventEnd);
 
                 return (
-                  <EventItem
+                  <div
+                    className="z-10 relative"
+                    style={{
+                      width:
+                        !isSingleDay && isFirstDay
+                          ? `calc(100% * ${differenceInCalendarDays(eventEnd, eventStart) * 1.05 + 1})`
+                          : "",
+                    }}
                     key={`spanning-${event.id}`}
-                    onClick={(e) => onEventClick(event, e)}
-                    event={event}
-                    view="month"
-                    isFirstDay={isFirstDay}
-                    isLastDay={isLastDay}
                   >
-                    <div
-                      className={cn(
-                        "truncate",
-                        !shouldShowTitle && "invisible"
-                      )}
-                      aria-hidden={!shouldShowTitle}
+                    <EventItem
+                      className={!isSingleDay && !isFirstDay ? "opacity-0" : ""}
+                      onClick={(e) => onEventClick(event, e)}
+                      event={event}
+                      view="month"
+                      isFirstDay={isFirstDay}
+                      isLastDay={!isSingleDay || isLastDay}
                     >
-                      {event.title}
-                    </div>
-                  </EventItem>
+                      <div
+                        className={cn(
+                          "truncate",
+                          !shouldShowTitle && "invisible",
+                        )}
+                        aria-hidden={!shouldShowTitle}
+                      >
+                        {event.title}
+                      </div>
+                    </EventItem>
+                  </div>
                 );
               })}
             </div>

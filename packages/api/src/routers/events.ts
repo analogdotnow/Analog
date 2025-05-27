@@ -9,10 +9,10 @@ export const eventsRouter = createTRPCRouter({
   list: protectedProcedure
     .input(
       z.object({
-        calendarIds: z.array(z.string()).optional(),
+        calendarIds: z.array(z.string()).default([]),
         timeMin: z.string().optional(),
         timeMax: z.string().optional(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       const { accessToken } = await auth.api.getAccessToken({
@@ -31,12 +31,14 @@ export const eventsRouter = createTRPCRouter({
       });
 
       let calendarIds = input.calendarIds;
-      if (!calendarIds || calendarIds.length === 0) {
+
+      if (calendarIds.length === 0) {
         const calendars = await client.calendars();
+
         calendarIds = calendars
           .filter(
             (cal) =>
-              cal.primary || cal.id?.includes("@group.calendar.google.com")
+              cal.primary || cal.id?.includes("@group.calendar.google.com"),
           )
           .map((cal) => cal.id)
           .filter(Boolean);
@@ -58,13 +60,13 @@ export const eventsRouter = createTRPCRouter({
             );
             return [];
           }
-        })
+        }),
       );
 
       const events = allEvents
         .flat()
         .sort(
-          (a, b) => new Date(a.start).getTime() - new Date(b.start).getTime()
+          (a, b) => new Date(a.start).getTime() - new Date(b.start).getTime(),
         );
 
       return { events };
@@ -80,7 +82,7 @@ export const eventsRouter = createTRPCRouter({
         allDay: z.boolean().optional(),
         description: z.string().optional(),
         location: z.string().optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const { accessToken } = await auth.api.getAccessToken({
@@ -114,7 +116,7 @@ export const eventsRouter = createTRPCRouter({
         allDay: z.boolean().optional(),
         description: z.string().optional(),
         location: z.string().optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const { accessToken } = await auth.api.getAccessToken({
@@ -136,7 +138,7 @@ export const eventsRouter = createTRPCRouter({
       const event = await client.updateEvent(
         input.calendarId,
         input.eventId,
-        googleParams
+        googleParams,
       );
 
       return { event };
@@ -147,7 +149,7 @@ export const eventsRouter = createTRPCRouter({
       z.object({
         calendarId: z.string(),
         eventId: z.string(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const { accessToken } = await auth.api.getAccessToken({

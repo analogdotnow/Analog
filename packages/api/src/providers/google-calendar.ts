@@ -1,6 +1,7 @@
 import { GoogleCalendar } from "@repo/google-calendar";
 import { dateHelpers } from "../utils/date-helpers";
 import { CALENDAR_DEFAULTS } from "../constants/calendar";
+import type { CreateEventOptions, UpdateEventOptions } from "./interfaces";
 
 interface GoogleCalendarProviderOptions {
   accessToken: string;
@@ -32,7 +33,10 @@ export class GoogleCalendarProvider {
 
   async events(calendarId: string, timeMin?: string, timeMax?: string) {
     const defaultTimeMin = new Date();
-    const defaultTimeMax = new Date(Date.now() + CALENDAR_DEFAULTS.TIME_RANGE_DAYS_FUTURE * 24 * 60 * 60 * 1000);
+    const defaultTimeMax = new Date(
+      Date.now() +
+        CALENDAR_DEFAULTS.TIME_RANGE_DAYS_FUTURE * 24 * 60 * 60 * 1000,
+    );
 
     const { items } = await this.client.calendars.events.list(calendarId, {
       timeMin: timeMin || defaultTimeMin.toISOString(),
@@ -45,13 +49,23 @@ export class GoogleCalendarProvider {
     return items?.map((event) => this.transformGoogleEvent(event)) ?? [];
   }
 
-  async createEvent(calendarId: string, params: any) {
-    const googleEvent = await this.client.calendars.events.create(calendarId, params);
+  async createEvent(calendarId: string, params: CreateEventOptions) {
+    const googleEvent = await this.client.calendars.events.create(
+      calendarId,
+      params,
+    );
     return this.transformGoogleEvent(googleEvent);
   }
 
-  async updateEvent(calendarId: string, eventId: string, params: any) {
-    const googleEvent = await this.client.calendars.events.update(eventId, { calendarId, ...params });
+  async updateEvent(
+    calendarId: string,
+    eventId: string,
+    params: UpdateEventOptions,
+  ) {
+    const googleEvent = await this.client.calendars.events.update(eventId, {
+      calendarId,
+      ...params,
+    });
     return this.transformGoogleEvent(googleEvent);
   }
 
@@ -59,10 +73,15 @@ export class GoogleCalendarProvider {
     await this.client.calendars.events.delete(eventId, { calendarId });
   }
 
-  private transformGoogleEvent(googleEvent: any) {
+  private transformGoogleEvent(
+    googleEvent: GoogleCalendar.Calendars.Events.Event,
+  ) {
     const isAllDay = !googleEvent.start?.dateTime;
 
-    const start = dateHelpers.parseGoogleDate(googleEvent.start || {}, isAllDay);
+    const start = dateHelpers.parseGoogleDate(
+      googleEvent.start || {},
+      isAllDay,
+    );
     const end = dateHelpers.parseGoogleDate(googleEvent.end || {}, isAllDay);
 
     return {

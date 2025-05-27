@@ -24,7 +24,6 @@ export function AgendaView({
 }: AgendaViewProps) {
   // Show events for the next days based on constant
   const days = useMemo(() => {
-    console.log("Agenda view updating with date:", currentDate.toISOString());
     return Array.from({ length: AgendaDaysToShow }, (_, i) =>
       addDays(new Date(currentDate), i),
     );
