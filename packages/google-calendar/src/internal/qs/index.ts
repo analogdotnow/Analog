@@ -1,4 +1,4 @@
-import { default_format, formatters, RFC1738, RFC3986 } from "./formats";
+import { RFC1738, RFC3986, default_format, formatters } from "./formats";
 
 const formats = {
   formatters,

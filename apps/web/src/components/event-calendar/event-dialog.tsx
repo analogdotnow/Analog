@@ -11,7 +11,6 @@ import {
   EndHour,
   StartHour,
 } from "@/components/event-calendar/constants";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -39,6 +38,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 
 interface EventDialogProps {
   event: CalendarEvent | null;
@@ -67,11 +67,6 @@ export function EventDialog({
   const [error, setError] = useState<string | null>(null);
   const [startDateOpen, setStartDateOpen] = useState(false);
   const [endDateOpen, setEndDateOpen] = useState(false);
-
-  // Debug log to check what event is being passed
-  useEffect(() => {
-    console.log("EventDialog received event:", event);
-  }, [event]);
 
   useEffect(() => {
     if (event) {
@@ -147,7 +142,7 @@ export function EventDialog({
         endHours > EndHour
       ) {
         setError(
-          `Selected time must be between ${StartHour}:00 and ${EndHour}:00`
+          `Selected time must be between ${StartHour}:00 and ${EndHour}:00`,
         );
         return;
       }
@@ -243,7 +238,7 @@ export function EventDialog({
           </DialogDescription>
         </DialogHeader>
         {error && (
-          <div className="bg-destructive/15 text-destructive rounded-md px-3 py-2 text-sm">
+          <div className="rounded-md bg-destructive/15 px-3 py-2 text-sm text-destructive">
             {error}
           </div>
         )}
@@ -276,21 +271,21 @@ export function EventDialog({
                     id="start-date"
                     variant={"outline"}
                     className={cn(
-                      "group bg-background hover:bg-background border-input w-full justify-between px-3 font-normal outline-offset-0 outline-none focus-visible:outline-[3px]",
-                      !startDate && "text-muted-foreground"
+                      "group w-full justify-between border-input bg-background px-3 font-normal outline-offset-0 outline-none hover:bg-background focus-visible:outline-[3px]",
+                      !startDate && "text-muted-foreground",
                     )}
                   >
                     <span
                       className={cn(
                         "truncate",
-                        !startDate && "text-muted-foreground"
+                        !startDate && "text-muted-foreground",
                       )}
                     >
                       {startDate ? format(startDate, "PPP") : "Pick a date"}
                     </span>
                     <RiCalendarLine
                       size={16}
-                      className="text-muted-foreground/80 shrink-0"
+                      className="shrink-0 text-muted-foreground/80"
                       aria-hidden="true"
                     />
                   </Button>
@@ -344,21 +339,21 @@ export function EventDialog({
                     id="end-date"
                     variant={"outline"}
                     className={cn(
-                      "group bg-background hover:bg-background border-input w-full justify-between px-3 font-normal outline-offset-0 outline-none focus-visible:outline-[3px]",
-                      !endDate && "text-muted-foreground"
+                      "group w-full justify-between border-input bg-background px-3 font-normal outline-offset-0 outline-none hover:bg-background focus-visible:outline-[3px]",
+                      !endDate && "text-muted-foreground",
                     )}
                   >
                     <span
                       className={cn(
                         "truncate",
-                        !endDate && "text-muted-foreground"
+                        !endDate && "text-muted-foreground",
                       )}
                     >
                       {endDate ? format(endDate, "PPP") : "Pick a date"}
                     </span>
                     <RiCalendarLine
                       size={16}
-                      className="text-muted-foreground/80 shrink-0"
+                      className="shrink-0 text-muted-foreground/80"
                       aria-hidden="true"
                     />
                   </Button>
@@ -418,7 +413,7 @@ export function EventDialog({
             />
           </div>
           <fieldset className="space-y-4">
-            <legend className="text-foreground text-sm leading-none font-medium">
+            <legend className="text-sm leading-none font-medium text-foreground">
               Etiquette
             </legend>
             <RadioGroup
@@ -436,7 +431,7 @@ export function EventDialog({
                   className={cn(
                     "size-6 shadow-none",
                     colorOption.bgClass,
-                    colorOption.borderClass
+                    colorOption.borderClass,
                   )}
                 />
               ))}

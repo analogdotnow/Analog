@@ -14,5 +14,5 @@ export const viewPreferencesAtom = atomWithStorage<ViewPreferences>(
     showPastEvents: true,
     showDeclinedEvents: false,
     showWeekNumbers: false,
-  }
+  },
 );

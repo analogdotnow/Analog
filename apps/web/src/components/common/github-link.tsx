@@ -15,7 +15,7 @@ export function GitHubLink({ className }: GitHubLinkProps) {
       className={cn(
         buttonVariants({ variant: "ghost", size: "sm" }),
         "h-9 w-9 p-0",
-        className
+        className,
       )}
     >
       <GitHub />

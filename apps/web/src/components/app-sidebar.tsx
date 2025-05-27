@@ -3,7 +3,6 @@ import * as React from "react";
 import { Calendars } from "@/components/calendars";
 import { DatePicker } from "@/components/date-picker";
 import { NavUser } from "@/components/nav-user";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import {
   Sidebar,
   SidebarContent,
@@ -12,6 +11,7 @@ import {
   SidebarRail,
   SidebarSeparator,
 } from "@/components/ui/sidebar";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (

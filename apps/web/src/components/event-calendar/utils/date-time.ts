@@ -12,6 +12,7 @@ import {
   addDays,
   addMonths,
   addWeeks,
+  eachDayOfInterval,
   endOfWeek,
   format,
   getDay,
@@ -19,11 +20,11 @@ import {
   startOfWeek,
   subMonths,
   subWeeks,
-  eachDayOfInterval,
 } from "date-fns";
-import { CalendarView } from "../types";
+
+import { CALENDAR_CONFIG, TIME_INTERVALS } from "../calendar-constants";
 import { AgendaDaysToShow } from "../constants";
-import { TIME_INTERVALS, CALENDAR_CONFIG } from "../calendar-constants";
+import { CalendarView } from "../types";
 
 export function snapTimeToInterval(time: Date): Date {
   const snappedTime = new Date(time);

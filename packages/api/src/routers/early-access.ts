@@ -1,9 +1,11 @@
-import { db } from "@repo/db";
-import { waitlist } from "@repo/db/schema";
+import { TRPCError } from "@trpc/server";
 import { count, eq } from "drizzle-orm";
 import { z } from "zod";
+
+import { db } from "@repo/db";
+import { waitlist } from "@repo/db/schema";
+
 import { createTRPCRouter, publicProcedure } from "../trpc";
-import { TRPCError } from "@trpc/server";
 
 export const earlyAccessRouter = createTRPCRouter({
   getWaitlistCount: publicProcedure.query(async () => {

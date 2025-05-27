@@ -14,7 +14,10 @@ export const dateHelpers = {
     }
   },
 
-  parseGoogleDate(googleDate: { date?: string; dateTime?: string }, isAllDay: boolean): string {
+  parseGoogleDate(
+    googleDate: { date?: string; dateTime?: string },
+    isAllDay: boolean,
+  ): string {
     if (isAllDay && googleDate.date) {
       return `${googleDate.date}T00:00:00`;
     } else if (googleDate.dateTime) {
@@ -23,12 +26,23 @@ export const dateHelpers = {
     return new Date().toISOString();
   },
 
-  adjustEndDateForDisplay(startDate: Date, endDate: Date, allDay: boolean): Date {
+  adjustEndDateForDisplay(
+    startDate: Date,
+    endDate: Date,
+    allDay: boolean,
+  ): Date {
     if (!allDay) {
       return endDate;
     }
 
-    const nextDayOfStart = addDays(new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate()), 1);
+    const nextDayOfStart = addDays(
+      new Date(
+        startDate.getFullYear(),
+        startDate.getMonth(),
+        startDate.getDate(),
+      ),
+      1,
+    );
 
     if (endDate.getTime() === nextDayOfStart.getTime()) {
       return endOfDay(startDate);
@@ -37,7 +51,14 @@ export const dateHelpers = {
     }
   },
 
-  prepareGoogleParams(input: { title?: string; description?: string; location?: string; start?: string; end?: string; allDay?: boolean }) {
+  prepareGoogleParams(input: {
+    title?: string;
+    description?: string;
+    location?: string;
+    start?: string;
+    end?: string;
+    allDay?: boolean;
+  }) {
     const params: any = {};
 
     if (input.title !== undefined) params.summary = input.title;
