@@ -22,7 +22,6 @@ interface SignInFormProps {
 export function SignInForm({ redirectUrl = "/calendar" }: SignInFormProps) {
   const [loading, setLoading] = useState(false);
 
-
   const signInWithGoogle = async () => {
     await authClient.signIn.social(
       {
