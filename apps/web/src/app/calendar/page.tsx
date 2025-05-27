@@ -1,6 +1,8 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+
 import { auth } from "@repo/auth/server";
+
 import { CalendarLayout } from "@/components/calendar-layout";
 
 export default async function Page() {
@@ -11,7 +13,7 @@ export default async function Page() {
   }
 
   return (
-    <div className="flex w-dvw h-dvh">
+    <div className="flex h-dvh w-dvw">
       <CalendarLayout />
     </div>
   );

@@ -1,7 +1,8 @@
 import { useCallback, useState } from "react";
+
+import { TIME_INTERVALS } from "../calendar-constants";
 import { CalendarEvent } from "../types";
 import { addHoursToDate, snapTimeToInterval } from "../utils";
-import { TIME_INTERVALS } from "../calendar-constants";
 
 export function useEventDialog() {
   const [isEventDialogOpen, setIsEventDialogOpen] = useState(false);
@@ -26,6 +27,7 @@ export function useEventDialog() {
         TIME_INTERVALS.DEFAULT_EVENT_DURATION_HOURS,
       ),
       allDay: false,
+      calendarId: "primary", // the primary calendar of the logged in user
     };
 
     setSelectedEvent(newEvent);

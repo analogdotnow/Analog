@@ -1,10 +1,3 @@
-export const KEYBOARD_SHORTCUTS = {
-  MONTH: "m",
-  WEEK: "w",
-  DAY: "d",
-  AGENDA: "a",
-} as const;
-
 export const TIME_INTERVALS = {
   SNAP_TO_MINUTES: 15,
   SNAP_THRESHOLD: 7.5,

@@ -1,15 +1,17 @@
 import { TRPCError } from "@trpc/server";
-import { auth } from "@repo/auth/server";
-import { createTRPCRouter, protectedProcedure } from "../trpc";
-import { GoogleCalendarProvider } from "../providers/google-calendar";
-import { dateHelpers } from "../utils/date-helpers";
 import { z } from "zod";
+
+import { auth } from "@repo/auth/server";
+
+import { GoogleCalendarProvider } from "../providers/google-calendar";
+import { createTRPCRouter, protectedProcedure } from "../trpc";
+import { dateHelpers } from "../utils/date-helpers";
 
 export const eventsRouter = createTRPCRouter({
   list: protectedProcedure
     .input(
       z.object({
-        calendarIds: z.array(z.string()).optional(),
+        calendarIds: z.array(z.string()).default([]),
         timeMin: z.string().optional(),
         timeMax: z.string().optional(),
       }),
@@ -31,8 +33,10 @@ export const eventsRouter = createTRPCRouter({
       });
 
       let calendarIds = input.calendarIds;
-      if (!calendarIds || calendarIds.length === 0) {
+
+      if (calendarIds.length === 0) {
         const calendars = await client.calendars();
+
         calendarIds = calendars
           .filter(
             (cal) =>
@@ -50,7 +54,7 @@ export const eventsRouter = createTRPCRouter({
               input.timeMin,
               input.timeMax,
             );
-            return events;
+            return events.map((event) => ({ ...event, calendarId }));
           } catch (error) {
             console.error(
               `Failed to fetch events for calendar ${calendarId}:`,

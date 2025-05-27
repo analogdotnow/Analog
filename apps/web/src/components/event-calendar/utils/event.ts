@@ -1,12 +1,13 @@
 import {
-  isSameDay,
-  startOfDay,
   addHours,
+  areIntervalsOverlapping,
+  differenceInMinutes,
   getHours,
   getMinutes,
-  differenceInMinutes,
-  areIntervalsOverlapping,
+  isSameDay,
+  startOfDay,
 } from "date-fns";
+
 import type { CalendarEvent } from "../types";
 
 // ============================================================================
@@ -35,6 +36,13 @@ export function filterPastEvents(
 
   const now = new Date();
   return events.filter((event) => new Date(event.end) >= now);
+}
+
+export function filterVisibleEvents(
+  events: CalendarEvent[],
+  hiddenCalendars: string[],
+): CalendarEvent[] {
+  return events.filter((event) => !hiddenCalendars.includes(event.calendarId));
 }
 
 export function getEventsStartingOnDay(

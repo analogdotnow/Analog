@@ -1,13 +1,13 @@
 "use client";
 
-import { useCalendarContext } from "@/contexts/calendar-context";
 import { useCalendarNavigation } from "@/components/event-calendar";
-import { CalendarViewTitle } from "./calendar-view-title";
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import { useCalendarContext } from "@/contexts/calendar-context";
+import { cn } from "@/lib/utils";
 import { CalendarNavigation } from "./calendar-navigation";
 import { CalendarViewSelector } from "./calendar-view-selector";
+import { CalendarViewTitle } from "./calendar-view-title";
 import { ViewPreferencesPopover } from "./view-preferences-popover";
-import { SidebarTrigger } from "@/components/ui/sidebar";
-import { cn } from "@/lib/utils";
 
 interface CalendarHeaderProps {
   className?: string;
@@ -24,7 +24,7 @@ export function CalendarHeader({ className }: CalendarHeaderProps) {
   return (
     <header
       className={cn(
-        "flex items-center justify-between p-2 sm:p-4 h-16 gap-2 border-b px-4",
+        "flex h-16 items-center justify-between gap-2 border-b p-2 px-4 sm:p-4",
         className,
       )}
     >

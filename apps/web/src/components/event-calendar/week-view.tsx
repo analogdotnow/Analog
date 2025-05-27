@@ -1,18 +1,9 @@
 "use client";
 
-import {
-  DraggableEvent,
-  DroppableCell,
-  EventItem,
-  useCurrentTimeIndicator,
-  useViewPreferences,
-  WeekCellsHeight,
-  type CalendarEvent,
-} from "@/components/event-calendar";
-import { EndHour, StartHour } from "@/components/event-calendar/constants";
-import { cn } from "@/lib/utils";
+import React, { createContext, useContext, useMemo } from "react";
 import {
   addHours,
+  differenceInCalendarDays,
   eachHourOfInterval,
   format,
   getHours,
@@ -22,7 +13,18 @@ import {
   startOfDay,
   startOfWeek,
 } from "date-fns";
-import React, { createContext, useContext, useMemo } from "react";
+
+import {
+  DraggableEvent,
+  DroppableCell,
+  EventItem,
+  WeekCellsHeight,
+  useCurrentTimeIndicator,
+  useViewPreferences,
+  type CalendarEvent,
+} from "@/components/event-calendar";
+import { EndHour, StartHour } from "@/components/event-calendar/constants";
+import { cn } from "@/lib/utils";
 import {
   filterDaysByWeekendPreference,
   getWeekDays,
@@ -130,8 +132,8 @@ export function WeekView({
 
   return (
     <WeekViewContext.Provider value={contextValue}>
-      <div data-slot="week-view" className="flex flex-col isolate">
-        <div className="sticky top-0 z-30 backdrop-blur-md bg-background/80">
+      <div data-slot="week-view" className="isolate flex flex-col">
+        <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-md">
           <WeekViewHeader />
           <WeekViewAllDaySection weekStart={weekStart} />
         </div>
@@ -154,10 +156,10 @@ function WeekViewHeader() {
 
   return (
     <div
-      className="border-border/70 grid border-b transition-[grid-template-columns] duration-200 ease-linear"
+      className="grid border-b border-border/70 transition-[grid-template-columns] duration-200 ease-linear"
       style={{ gridTemplateColumns }}
     >
-      <div className="text-muted-foreground/70 py-2 text-center text-sm">
+      <div className="py-2 text-center text-sm text-muted-foreground/70">
         <span className="max-[479px]:sr-only">{format(new Date(), "O")}</span>
       </div>
       {allDays.map((day) => {
@@ -167,16 +169,16 @@ function WeekViewHeader() {
           <div
             key={day.toString()}
             className={cn(
-              "data-today:text-foreground text-muted-foreground/70 py-2 text-center text-sm data-today:font-medium overflow-hidden",
+              "overflow-hidden py-2 text-center text-sm text-muted-foreground/70 data-today:font-medium data-today:text-foreground",
               !isDayVisible && "w-0",
             )}
             data-today={isToday(day) || undefined}
             style={{ visibility: isDayVisible ? "visible" : "hidden" }}
           >
-            <span className="sm:hidden truncate" aria-hidden="true">
+            <span className="truncate sm:hidden" aria-hidden="true">
               {format(day, "E")[0]} {format(day, "d")}
             </span>
-            <span className="max-sm:hidden truncate">
+            <span className="truncate max-sm:hidden">
               {format(day, "EEE dd")}
             </span>
           </div>
@@ -201,13 +203,13 @@ function WeekViewAllDaySection({ weekStart }: { weekStart: Date }) {
   }
 
   return (
-    <div className="border-border/70 border-b">
+    <div className="border-b border-border/70">
       <div
         className="grid transition-[grid-template-columns] duration-200 ease-linear"
         style={{ gridTemplateColumns }}
       >
-        <div className="border-border/70 relative border-r flex flex-col justify-center">
-          <span className="text-muted-foreground/70 w-16 max-w-full ps-2 text-right text-[10px] sm:ps-4 sm:text-xs">
+        <div className="relative flex flex-col justify-center border-r border-border/70">
+          <span className="w-16 max-w-full ps-2 text-right text-[10px] text-muted-foreground/70 sm:ps-4 sm:text-xs">
             All day
           </span>
         </div>
@@ -227,7 +229,7 @@ function WeekViewAllDaySection({ weekStart }: { weekStart: Date }) {
             <div
               key={day.toString()}
               className={cn(
-                "border-border/70 relative border-r last:border-r-0 overflow-hidden",
+                "relative overflow-visible border-r border-border/70 last:border-r-0",
                 isDayVisible ? "p-1" : "w-0",
               )}
               data-today={isToday(day) || undefined}
@@ -241,26 +243,38 @@ function WeekViewAllDaySection({ weekStart }: { weekStart: Date }) {
                 const isFirstVisibleDay =
                   dayIndex === 0 && isBefore(eventStart, weekStart);
                 const shouldShowTitle = isFirstDay || isFirstVisibleDay;
+                const isSingleDay = isSameDay(eventStart, eventEnd);
 
                 return (
-                  <EventItem
+                  <div
+                    className="relative z-10"
+                    style={{
+                      width:
+                        !isSingleDay && isFirstDay
+                          ? `calc(100% * ${differenceInCalendarDays(eventEnd, eventStart) * 1.05 + 1})`
+                          : "",
+                    }}
                     key={`spanning-${event.id}`}
-                    onClick={(e) => onEventClick(event, e)}
-                    event={event}
-                    view="month"
-                    isFirstDay={isFirstDay}
-                    isLastDay={isLastDay}
                   >
-                    <div
-                      className={cn(
-                        "truncate",
-                        !shouldShowTitle && "invisible",
-                      )}
-                      aria-hidden={!shouldShowTitle}
+                    <EventItem
+                      className={!isSingleDay && !isFirstDay ? "opacity-0" : ""}
+                      onClick={(e) => onEventClick(event, e)}
+                      event={event}
+                      view="month"
+                      isFirstDay={isFirstDay}
+                      isLastDay={!isSingleDay || isLastDay}
                     >
-                      {event.title}
-                    </div>
-                  </EventItem>
+                      <div
+                        className={cn(
+                          "truncate",
+                          !shouldShowTitle && "invisible",
+                        )}
+                        aria-hidden={!shouldShowTitle}
+                      >
+                        {event.title}
+                      </div>
+                    </EventItem>
+                  </div>
                 );
               })}
             </div>
@@ -275,14 +289,14 @@ function WeekViewTimeColumn() {
   const { hours } = useWeekViewContext();
 
   return (
-    <div className="border-border/70 grid auto-cols-fr border-r">
+    <div className="grid auto-cols-fr border-r border-border/70">
       {hours.map((hour, index) => (
         <div
           key={hour.toString()}
-          className="border-border/70 relative min-h-[var(--week-cells-height)] border-b last:border-b-0"
+          className="relative min-h-[var(--week-cells-height)] border-b border-border/70 last:border-b-0"
         >
           {index > 0 && (
-            <span className="bg-background text-muted-foreground/70 absolute -top-3 left-0 flex h-6 w-16 max-w-full items-center justify-end text-[10px] sm:text-xs pe-1 sm:pe-2">
+            <span className="absolute -top-3 left-0 flex h-6 w-16 max-w-full items-center justify-end bg-background pe-1 text-[10px] text-muted-foreground/70 sm:pe-2 sm:text-xs">
               {format(hour, "h a")}
             </span>
           )}
@@ -323,7 +337,7 @@ function WeekViewDayColumns() {
           <div
             key={day.toString()}
             className={cn(
-              "border-border/70 relative grid auto-cols-fr border-r last:border-r-0 overflow-hidden",
+              "relative grid auto-cols-fr overflow-hidden border-r border-border/70 last:border-r-0",
               !isDayVisible && "w-0",
             )}
             data-today={isToday(day) || undefined}
@@ -360,8 +374,8 @@ function WeekViewDayColumns() {
                 style={{ top: `${currentTimePosition}%` }}
               >
                 <div className="relative flex items-center">
-                  <div className="bg-primary absolute -left-1 h-2 w-2 rounded-full"></div>
-                  <div className="bg-primary h-[2px] w-full"></div>
+                  <div className="absolute -left-1 h-2 w-2 rounded-full bg-primary"></div>
+                  <div className="h-[2px] w-full bg-primary"></div>
                 </div>
               </div>
             )}
@@ -384,7 +398,7 @@ function WeekViewDayTimeSlots({ day }: { day: Date }) {
         return (
           <div
             key={hour.toString()}
-            className="border-border/70 relative min-h-[var(--week-cells-height)] border-b last:border-b-0"
+            className="relative min-h-[var(--week-cells-height)] border-b border-border/70 last:border-b-0"
           >
             {[0, 1, 2, 3].map((quarter) => {
               const quarterHourTime = hourValue + quarter * 0.25;

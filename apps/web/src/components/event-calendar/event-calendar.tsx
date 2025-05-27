@@ -1,23 +1,24 @@
 "use client";
 
-import { useMemo } from "react";
-import { useAtom } from "jotai";
+import { useEffect, useMemo } from "react";
+import { useHotkeysContext } from "react-hotkeys-hook";
+
 import {
   CalendarDndProvider,
   CalendarEvent,
   EventDialog,
   EventGap,
   EventHeight,
-  useEventDialog,
-  useEventOperations,
-  useKeyboardShortcuts,
   WeekCellsHeight,
   filterPastEvents,
+  filterVisibleEvents,
+  useEventDialog,
+  useEventOperations,
 } from "@/components/event-calendar";
-import { CalendarHeader } from "./calendar-header";
-import { CalendarContent } from "./calendar-content";
 import { cn } from "@/lib/utils";
-import { viewPreferencesAtom } from "@/atoms";
+import { CalendarContent } from "./calendar-content";
+import { CalendarHeader } from "./calendar-header";
+import { useCalendarsVisibility, useViewPreferences } from "./hooks";
 
 export interface EventCalendarProps {
   events?: CalendarEvent[];
@@ -34,11 +35,20 @@ export function EventCalendar({
   onEventDelete,
   className,
 }: EventCalendarProps) {
-  const [viewPreferences] = useAtom(viewPreferencesAtom);
+  const viewPreferences = useViewPreferences();
+  const [calendarVisibility] = useCalendarsVisibility();
 
   const filteredEvents = useMemo(
-    () => filterPastEvents(events, viewPreferences.showPastEvents),
-    [events, viewPreferences.showPastEvents],
+    () =>
+      filterVisibleEvents(
+        filterPastEvents(events, viewPreferences.showPastEvents),
+        calendarVisibility.hiddenCalendars,
+      ),
+    [
+      events,
+      viewPreferences.showPastEvents,
+      calendarVisibility.hiddenCalendars,
+    ],
   );
 
   const {
@@ -58,14 +68,20 @@ export function EventCalendar({
       onOperationComplete: handleDialogClose,
     });
 
-  useKeyboardShortcuts({
-    isEventDialogOpen,
-  });
+  const { enableScope, disableScope } = useHotkeysContext();
+
+  useEffect(() => {
+    if (isEventDialogOpen) {
+      disableScope("calendar");
+    } else {
+      enableScope("calendar");
+    }
+  }, [isEventDialogOpen, enableScope, disableScope]);
 
   return (
     <div
       className={cn(
-        "flex flex-col has-data-[slot=month-view]:flex-1 overflow-auto",
+        "flex flex-col overflow-auto has-data-[slot=month-view]:flex-1",
         className,
       )}
       style={

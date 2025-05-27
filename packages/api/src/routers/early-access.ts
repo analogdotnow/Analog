@@ -1,9 +1,11 @@
-import { db } from "@repo/db";
-import { waitlist } from "@repo/db/schema";
+import { TRPCError } from "@trpc/server";
 import { count, eq } from "drizzle-orm";
 import { z } from "zod";
+
+import { db } from "@repo/db";
+import { waitlist } from "@repo/db/schema";
+
 import { createTRPCRouter, publicProcedure } from "../trpc";
-import { TRPCError } from "@trpc/server";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 import { env } from "@repo/env/server";

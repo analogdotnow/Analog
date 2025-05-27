@@ -1,7 +1,9 @@
 import { TRPCError } from "@trpc/server";
+
 import { auth } from "@repo/auth/server";
-import { createTRPCRouter, protectedProcedure } from "../trpc";
+
 import { GoogleCalendarProvider } from "../providers/google-calendar";
+import { createTRPCRouter, protectedProcedure } from "../trpc";
 
 export const calendarsRouter = createTRPCRouter({
   list: protectedProcedure.query(async ({ ctx }) => {
