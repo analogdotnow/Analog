@@ -32,7 +32,10 @@ export class GoogleCalendarProvider {
 
   async events(calendarId: string, timeMin?: string, timeMax?: string) {
     const defaultTimeMin = new Date();
-    const defaultTimeMax = new Date(Date.now() + CALENDAR_DEFAULTS.TIME_RANGE_DAYS_FUTURE * 24 * 60 * 60 * 1000);
+    const defaultTimeMax = new Date(
+      Date.now() +
+        CALENDAR_DEFAULTS.TIME_RANGE_DAYS_FUTURE * 24 * 60 * 60 * 1000,
+    );
 
     const { items } = await this.client.calendars.events.list(calendarId, {
       timeMin: timeMin || defaultTimeMin.toISOString(),
@@ -46,12 +49,18 @@ export class GoogleCalendarProvider {
   }
 
   async createEvent(calendarId: string, params: any) {
-    const googleEvent = await this.client.calendars.events.create(calendarId, params);
+    const googleEvent = await this.client.calendars.events.create(
+      calendarId,
+      params,
+    );
     return this.transformGoogleEvent(googleEvent);
   }
 
   async updateEvent(calendarId: string, eventId: string, params: any) {
-    const googleEvent = await this.client.calendars.events.update(eventId, { calendarId, ...params });
+    const googleEvent = await this.client.calendars.events.update(eventId, {
+      calendarId,
+      ...params,
+    });
     return this.transformGoogleEvent(googleEvent);
   }
 
@@ -62,7 +71,10 @@ export class GoogleCalendarProvider {
   private transformGoogleEvent(googleEvent: any) {
     const isAllDay = !googleEvent.start?.dateTime;
 
-    const start = dateHelpers.parseGoogleDate(googleEvent.start || {}, isAllDay);
+    const start = dateHelpers.parseGoogleDate(
+      googleEvent.start || {},
+      isAllDay,
+    );
     const end = dateHelpers.parseGoogleDate(googleEvent.end || {}, isAllDay);
 
     return {

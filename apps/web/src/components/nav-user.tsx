@@ -40,7 +40,10 @@ export function NavUser() {
               <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarImage src={user?.image ?? undefined} alt={user?.name} />
                 <AvatarFallback className="rounded-lg bg-accent-foreground text-background">
-                  {user?.name?.split(" ").map((name) => name.charAt(0)).join("")}
+                  {user?.name
+                    ?.split(" ")
+                    .map((name) => name.charAt(0))
+                    .join("")}
                 </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">

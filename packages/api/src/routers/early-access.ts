@@ -15,10 +15,12 @@ function getRateLimiter() {
   if (!ratelimit) {
     // Check if environment variables are available
     if (!env.UPSTASH_REDIS_REST_URL || !env.UPSTASH_REDIS_REST_TOKEN) {
-      console.warn("Upstash Redis environment variables not found. Rate limiting disabled.");
+      console.warn(
+        "Upstash Redis environment variables not found. Rate limiting disabled.",
+      );
       return null;
     }
-    
+
     const redis = new Redis({
       url: env.UPSTASH_REDIS_REST_URL,
       token: env.UPSTASH_REDIS_REST_TOKEN,

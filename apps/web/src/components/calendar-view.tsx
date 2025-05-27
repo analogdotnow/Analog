@@ -42,24 +42,24 @@ export function CalendarView({ className }: CalendarViewProps) {
   const timeMin = useMemo(
     () =>
       subDays(new Date(), CALENDAR_CONFIG.TIME_RANGE_DAYS_PAST).toISOString(),
-    []
+    [],
   );
   const timeMax = useMemo(
     () =>
       addDays(new Date(), CALENDAR_CONFIG.TIME_RANGE_DAYS_FUTURE).toISOString(),
-    []
+    [],
   );
 
   const eventsQueryKey = useMemo(
     () => trpc.events.list.queryOptions({ timeMin, timeMax }).queryKey,
-    [trpc.events.list, timeMin, timeMax]
+    [trpc.events.list, timeMin, timeMax],
   );
 
   const { data } = useQuery(
     trpc.events.list.queryOptions({
       timeMin,
       timeMax,
-    })
+    }),
   );
 
   const transformedEvents = useMemo(() => {
@@ -70,7 +70,7 @@ export function CalendarView({ className }: CalendarViewProps) {
       const endDate = dateHelpers.adjustEndDateForDisplay(
         startDate,
         new Date(event.end),
-        event.allDay
+        event.allDay,
       );
 
       return {
@@ -110,7 +110,7 @@ export function CalendarView({ className }: CalendarViewProps) {
         return {
           ...old,
           events: [...(old.events || []), tempEvent].sort(
-            (a, b) => new Date(a.start).getTime() - new Date(b.start).getTime()
+            (a, b) => new Date(a.start).getTime() - new Date(b.start).getTime(),
           ),
         };
       });
@@ -152,11 +152,11 @@ export function CalendarView({ className }: CalendarViewProps) {
                     allDay: updatedEvent.allDay ?? event.allDay,
                     location: updatedEvent.location ?? event.location,
                   }
-                : event
+                : event,
             )
             .sort(
               (a: any, b: any) =>
-                new Date(a.start).getTime() - new Date(b.start).getTime()
+                new Date(a.start).getTime() - new Date(b.start).getTime(),
             ),
         };
       });
@@ -222,11 +222,11 @@ export function CalendarView({ className }: CalendarViewProps) {
       title: updatedEvent.title,
       start: dateHelpers.formatDateForAPI(
         updatedEvent.start,
-        updatedEvent.allDay || false
+        updatedEvent.allDay || false,
       ),
       end: dateHelpers.formatDateForAPI(
         updatedEvent.end,
-        updatedEvent.allDay || false
+        updatedEvent.allDay || false,
       ),
       allDay: updatedEvent.allDay,
       description: updatedEvent.description,

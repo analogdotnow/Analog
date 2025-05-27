@@ -14,7 +14,7 @@ export function DatePicker() {
         setCurrentDate(date);
       }
     },
-    [setCurrentDate]
+    [setCurrentDate],
   );
 
   return (

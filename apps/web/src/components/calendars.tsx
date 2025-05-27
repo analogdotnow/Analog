@@ -15,7 +15,11 @@ import {
   SidebarMenuItem,
   SidebarSeparator,
 } from "@/components/ui/sidebar";
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useTRPC } from "@/lib/trpc/client";
 import { useQuery } from "@tanstack/react-query";
 
@@ -64,10 +68,17 @@ export function Calendars() {
                               >
                                 <Check className="hidden size-3 group-data-[active=true]/calendar-item:block" />
                               </div>
-                              <span className="line-clamp-1 block">{item.name}</span>
+                              <span className="line-clamp-1 block">
+                                {item.name}
+                              </span>
                             </SidebarMenuButton>
                           </TooltipTrigger>
-                          <TooltipContent side="bottom" align="start" sideOffset={8} className="bg-sidebar-accent text-sidebar-accent-foreground">
+                          <TooltipContent
+                            side="bottom"
+                            align="start"
+                            sideOffset={8}
+                            className="bg-sidebar-accent text-sidebar-accent-foreground"
+                          >
                             <span>{item.name}</span>
                           </TooltipContent>
                         </Tooltip>

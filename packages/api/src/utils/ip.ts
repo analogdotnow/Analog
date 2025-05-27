@@ -1,4 +1,4 @@
-import { isIP } from 'net';
+import { isIP } from "net";
 
 export function getIp(headers: Headers): string {
   const forwardedFor = headers.get("x-forwarded-for");
