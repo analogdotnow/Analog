@@ -56,7 +56,6 @@ export function EventCalendar({
       onEventUpdate,
       onEventDelete,
       onOperationComplete: handleDialogClose,
-
     });
 
   useKeyboardShortcuts({
