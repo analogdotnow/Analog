@@ -1,11 +1,11 @@
 "use client";
 
+import { AgendaView } from "@/components/event-calendar/views/agenda-view";
+import { DayView } from "@/components/event-calendar/views/day-view";
+import { MonthView } from "@/components/event-calendar/views/month-view";
+import { WeekView } from "@/components/event-calendar/views/week-view";
 import { useCalendarContext } from "@/contexts/calendar-context";
-import { AgendaView } from "./agenda-view";
-import { DayView } from "./day-view";
-import { MonthView } from "./month-view";
 import { CalendarEvent } from "./types";
-import { WeekView } from "./week-view";
 
 interface CalendarContentProps {
   events: CalendarEvent[];

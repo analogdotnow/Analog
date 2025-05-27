@@ -17,21 +17,23 @@ import {
   DraggableEvent,
   DroppableCell,
   EventItem,
+  type CalendarEvent,
+} from "@/components/event-calendar";
+import { EndHour, StartHour } from "@/components/event-calendar/constants";
+import {
   useCurrentTimeIndicator,
   useEventCollection,
   useGridLayout,
   useViewPreferences,
-  type CalendarEvent,
-} from "@/components/event-calendar";
-import { EndHour, StartHour } from "@/components/event-calendar/constants";
-import { cn } from "@/lib/utils";
-import type { EventCollectionForWeek } from "./hooks/use-event-collection";
+  type EventCollectionForWeek,
+} from "@/components/event-calendar/hooks";
 import {
   filterDaysByWeekendPreference,
   getWeekDays,
   isWeekend,
-} from "./utils/date-time";
-import { type PositionedEvent } from "./utils/event";
+  type PositionedEvent,
+} from "@/components/event-calendar/utils";
+import { cn } from "@/lib/utils";
 
 interface WeekViewContextType {
   allDays: Date[];

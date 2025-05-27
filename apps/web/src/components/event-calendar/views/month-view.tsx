@@ -19,23 +19,29 @@ import {
   EventGap,
   EventHeight,
   EventItem,
+  type CalendarEvent,
+} from "@/components/event-calendar";
+import { DefaultStartHour } from "@/components/event-calendar/constants";
+import {
   useEventCollection,
   useEventVisibility,
   useGridLayout,
   useViewPreferences,
-  type CalendarEvent,
-} from "@/components/event-calendar";
-import { DefaultStartHour } from "@/components/event-calendar/constants";
-import { sortEventsForDisplay } from "@/components/event-calendar/utils";
+  type EventCollectionForMonth,
+} from "@/components/event-calendar/hooks";
+import {
+  getDayKey,
+  getEventSpanInfoForDay,
+  isWeekend,
+  isWeekendIndex,
+  sortEventsForDisplay,
+} from "@/components/event-calendar/utils";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn, groupArrayIntoChunks } from "@/lib/utils";
-import type { EventCollectionForMonth } from "./hooks/use-event-collection";
-import { getDayKey, isWeekend, isWeekendIndex } from "./utils/date-time";
-import { getEventSpanInfoForDay } from "./utils/event";
 
 const WEEKDAYS = Array.from({ length: 7 }).map((_, i) => {
   const date = addDays(startOfWeek(new Date()), i);
