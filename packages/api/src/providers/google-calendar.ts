@@ -1,6 +1,7 @@
 import { GoogleCalendar } from "@repo/google-calendar";
 import { dateHelpers } from "../utils/date-helpers";
 import { CALENDAR_DEFAULTS } from "../constants/calendar";
+import type { CreateEventOptions, UpdateEventOptions } from "./interfaces";
 
 interface GoogleCalendarProviderOptions {
   accessToken: string;
@@ -48,13 +49,7 @@ export class GoogleCalendarProvider {
     return items?.map((event) => this.transformGoogleEvent(event)) ?? [];
   }
 
-  async createEvent(
-    calendarId: string,
-    params: Omit<
-      GoogleCalendar.Calendars.Events.EventCreateParams,
-      "calendarId"
-    >,
-  ) {
+  async createEvent(calendarId: string, params: CreateEventOptions) {
     const googleEvent = await this.client.calendars.events.create(
       calendarId,
       params,
@@ -65,10 +60,7 @@ export class GoogleCalendarProvider {
   async updateEvent(
     calendarId: string,
     eventId: string,
-    params: Omit<
-      GoogleCalendar.Calendars.Events.EventUpdateParams,
-      "calendarId"
-    >,
+    params: UpdateEventOptions,
   ) {
     const googleEvent = await this.client.calendars.events.update(eventId, {
       calendarId,
