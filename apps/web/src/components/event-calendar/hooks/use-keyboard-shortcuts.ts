@@ -1,8 +1,13 @@
 import { useEffect } from "react";
-import { shouldIgnoreKeyboardEvent } from "../utils";
+import {
+  navigateToNext,
+  navigateToPrevious,
+  shouldIgnoreKeyboardEvent,
+} from "../utils";
 import { KEYBOARD_SHORTCUTS } from "../calendar-constants";
 import { useCalendarContext } from "@/contexts/calendar-context";
 import { addDays, addMonths, startOfMonth, subDays, subMonths } from "date-fns";
+import { useCalendarNavigation } from "./use-calendar-navigation";
 
 interface UseKeyboardShortcutsProps {
   isEventDialogOpen: boolean;
@@ -11,7 +16,12 @@ interface UseKeyboardShortcutsProps {
 export function useKeyboardShortcuts({
   isEventDialogOpen,
 }: UseKeyboardShortcutsProps) {
-  const { view, setView, setCurrentDate } = useCalendarContext();
+  const { currentDate, view, setView, setCurrentDate } = useCalendarContext();
+  const { handlePrevious, handleNext, handleToday } = useCalendarNavigation({
+    currentDate,
+    setCurrentDate,
+    view,
+  });
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -36,41 +46,10 @@ export function useKeyboardShortcuts({
           setCurrentDate(new Date());
           break;
         case KEYBOARD_SHORTCUTS.NEXT_PERIOD:
-          switch (view) {
-            case "month":
-              setCurrentDate((prevDate) => {
-                return startOfMonth(addMonths(prevDate, 1));
-              });
-              break;
-            case "week":
-              setCurrentDate((prevDate) => addDays(prevDate, 7));
-              break;
-            case "day":
-            case "agenda":
-              setCurrentDate((prevDate) => {
-                return addDays(prevDate, 1);
-              });
-              break;
-          }
-
+          setCurrentDate((prevDate) => navigateToNext(prevDate, view));
           break;
         case KEYBOARD_SHORTCUTS.PREVIOUS_PERIOD:
-          switch (view) {
-            case "month":
-              setCurrentDate((prevDate) => {
-                return startOfMonth(subMonths(prevDate, 1));
-              });
-              break;
-            case "week":
-              setCurrentDate((prevDate) => subDays(prevDate, 7));
-              break;
-            case "day":
-            case "agenda":
-              setCurrentDate((prevDate) => {
-                return subDays(prevDate, 1);
-              });
-              break;
-          }
+          setCurrentDate((prevDate) => navigateToPrevious(prevDate, view));
           break;
       }
     };
