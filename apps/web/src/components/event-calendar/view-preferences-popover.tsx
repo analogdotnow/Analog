@@ -1,8 +1,9 @@
 "use client";
 
-import { useAtom } from "jotai";
 import { RiFilter3Line } from "@remixicon/react";
+import { useAtom } from "jotai";
 
+import { viewPreferencesAtom, type ViewPreferences } from "@/atoms";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
@@ -11,7 +12,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
-import { viewPreferencesAtom, type ViewPreferences } from "@/atoms";
 
 export function ViewPreferencesPopover() {
   const [preferences, setPreferences] = useAtom(viewPreferencesAtom);
@@ -39,7 +39,7 @@ export function ViewPreferencesPopover() {
       </PopoverTrigger>
       <PopoverContent align="end" className="w-64">
         <div className="space-y-4">
-          <h4 className="font-medium text-sm">View Preferences</h4>
+          <h4 className="text-sm font-medium">View Preferences</h4>
 
           <div className="space-y-3">
             <div className="flex items-center justify-between">

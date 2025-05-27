@@ -1,10 +1,10 @@
 "use client";
 
 import { useCalendarContext } from "@/contexts/calendar-context";
-import { CalendarEvent } from "./types";
 import { AgendaView } from "./agenda-view";
 import { DayView } from "./day-view";
 import { MonthView } from "./month-view";
+import { CalendarEvent } from "./types";
 import { WeekView } from "./week-view";
 
 interface CalendarContentProps {

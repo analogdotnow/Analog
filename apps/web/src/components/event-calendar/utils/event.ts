@@ -1,12 +1,13 @@
 import {
-  isSameDay,
-  startOfDay,
   addHours,
+  areIntervalsOverlapping,
+  differenceInMinutes,
   getHours,
   getMinutes,
-  differenceInMinutes,
-  areIntervalsOverlapping,
+  isSameDay,
+  startOfDay,
 } from "date-fns";
+
 import type { CalendarEvent } from "../types";
 
 // ============================================================================

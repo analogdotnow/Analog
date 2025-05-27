@@ -64,7 +64,7 @@ export function Calendars() {
             >
               <SidebarGroupLabel
                 asChild
-                className="group/label hover:bg-sidebar-accent w-full text-sm"
+                className="group/label w-full text-sm hover:bg-sidebar-accent"
               >
                 <CollapsibleTrigger>
                   {account.name}{" "}

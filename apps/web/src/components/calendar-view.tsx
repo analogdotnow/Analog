@@ -1,16 +1,17 @@
 "use client";
 
 import { useMemo } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { addDays, subDays } from "date-fns";
+
 import {
   EventCalendar,
   type CalendarEvent,
   type EventColor,
 } from "@/components/event-calendar";
-import { useTRPC } from "@/lib/trpc/client";
-import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { dateHelpers } from "@/lib/date-helpers";
 import { RouterOutputs } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc/client";
 
 interface CalendarViewProps {
   className?: string;

@@ -1,7 +1,8 @@
 import { useCallback, useState } from "react";
+
+import { TIME_INTERVALS } from "../calendar-constants";
 import { CalendarEvent } from "../types";
 import { addHoursToDate, snapTimeToInterval } from "../utils";
-import { TIME_INTERVALS } from "../calendar-constants";
 
 export function useEventDialog() {
   const [isEventDialogOpen, setIsEventDialogOpen] = useState(false);

@@ -1,9 +1,10 @@
 "use client";
 
+import { useCallback } from "react";
+
 import { Calendar } from "@/components/ui/calendar";
 import { SidebarGroup, SidebarGroupContent } from "@/components/ui/sidebar";
 import { useCalendarContext } from "@/contexts/calendar-context";
-import { useCallback } from "react";
 
 export function DatePicker() {
   const { currentDate, setCurrentDate } = useCalendarContext();
@@ -14,7 +15,7 @@ export function DatePicker() {
         setCurrentDate(date);
       }
     },
-    [setCurrentDate]
+    [setCurrentDate],
   );
 
   return (

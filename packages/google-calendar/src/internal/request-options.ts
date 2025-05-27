@@ -1,10 +1,8 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import { NullableHeaders } from "./headers";
-
 import type { BodyInit } from "./builtin-types";
+import { NullableHeaders, type HeadersLike } from "./headers";
 import type { HTTPMethod, MergedRequestInit } from "./types";
-import { type HeadersLike } from "./headers";
 
 export type FinalRequestOptions = RequestOptions & {
   method: HTTPMethod;

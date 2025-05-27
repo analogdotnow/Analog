@@ -9,7 +9,6 @@
 export { useCalendarNavigation } from "./use-calendar-navigation";
 export { useEventDialog } from "./use-event-dialog";
 export { useEventOperations } from "./use-event-operations";
-export { useKeyboardShortcuts } from "./use-keyboard-shortcuts";
 
 // Utility hooks
 export { useCurrentTimeIndicator } from "./use-current-time-indicator";
