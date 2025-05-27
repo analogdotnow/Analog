@@ -23,6 +23,8 @@ export function DatePicker() {
       <SidebarGroupContent>
         <Calendar
           mode="single"
+          month={currentDate}
+          onMonthChange={setCurrentDate}
           selected={currentDate}
           onSelect={handleDateSelect}
           className="[&_[role=gridcell]]:w-[33px]"
