@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useAtom } from "jotai";
 import {
   CalendarDndProvider,
@@ -10,7 +10,6 @@ import {
   EventHeight,
   useEventDialog,
   useEventOperations,
-  useKeyboardShortcuts,
   WeekCellsHeight,
   filterPastEvents,
 } from "@/components/event-calendar";
@@ -18,6 +17,7 @@ import { CalendarHeader } from "./calendar-header";
 import { CalendarContent } from "./calendar-content";
 import { cn } from "@/lib/utils";
 import { viewPreferencesAtom } from "@/atoms";
+import { useHotkeysContext } from "react-hotkeys-hook";
 
 export interface EventCalendarProps {
   events?: CalendarEvent[];
@@ -58,9 +58,15 @@ export function EventCalendar({
       onOperationComplete: handleDialogClose,
     });
 
-  useKeyboardShortcuts({
-    isEventDialogOpen,
-  });
+  const { enableScope, disableScope } = useHotkeysContext();
+
+  useEffect(() => {
+    if (isEventDialogOpen) {
+      disableScope("calendar");
+    } else {
+      enableScope("calendar");
+    }
+  }, [isEventDialogOpen, enableScope, disableScope]);
 
   return (
     <div
