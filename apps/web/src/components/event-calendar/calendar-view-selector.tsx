@@ -41,7 +41,7 @@ export function CalendarViewSelector({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-32">
-        <DropdownMenuItem onClick={() => onViewChange("month")} disabled>
+        <DropdownMenuItem onClick={() => onViewChange("month")}>
           Month <DropdownMenuShortcut>M</DropdownMenuShortcut>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => onViewChange("week")}>
@@ -50,7 +50,7 @@ export function CalendarViewSelector({
         <DropdownMenuItem onClick={() => onViewChange("day")}>
           Day <DropdownMenuShortcut>D</DropdownMenuShortcut>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onViewChange("agenda")} disabled>
+        <DropdownMenuItem onClick={() => onViewChange("agenda")}>
           Agenda <DropdownMenuShortcut>A</DropdownMenuShortcut>
         </DropdownMenuItem>
       </DropdownMenuContent>
