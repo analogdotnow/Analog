@@ -2,8 +2,11 @@
 
 import { useHotkeys } from "react-hotkeys-hook";
 
+import {
+  navigateToNext,
+  navigateToPrevious,
+} from "@/components/event-calendar";
 import { useCalendarContext } from "@/contexts/calendar-context";
-import { navigateToNext, navigateToPrevious } from "@/components/event-calendar";
 
 export const KEYBOARD_SHORTCUTS = {
   MONTH: "m",
