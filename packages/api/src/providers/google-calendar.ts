@@ -1,6 +1,7 @@
 import { GoogleCalendar } from "@repo/google-calendar";
-import { dateHelpers } from "../utils/date-helpers";
+
 import { CALENDAR_DEFAULTS } from "../constants/calendar";
+import { dateHelpers } from "../utils/date-helpers";
 import type { CreateEventOptions, UpdateEventOptions } from "./interfaces";
 
 interface GoogleCalendarProviderOptions {

@@ -1,7 +1,8 @@
 "use client";
 
-import { useHotkeys } from "react-hotkeys-hook";
 import { addDays, addMonths, startOfMonth, subDays, subMonths } from "date-fns";
+import { useHotkeys } from "react-hotkeys-hook";
+
 import { useCalendarContext } from "@/contexts/calendar-context";
 
 export const KEYBOARD_SHORTCUTS = {

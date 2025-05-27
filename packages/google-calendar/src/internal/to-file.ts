@@ -1,6 +1,11 @@
-import { BlobPart, getName, makeFile, isAsyncIterable } from "./uploads";
 import type { FilePropertyBag } from "./builtin-types";
-import { checkFileSupport } from "./uploads";
+import {
+  BlobPart,
+  checkFileSupport,
+  getName,
+  isAsyncIterable,
+  makeFile,
+} from "./uploads";
 
 type BlobLikePart =
   | string

@@ -9,8 +9,9 @@
 
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { CalendarEvent } from "../types";
+
 import { TOAST_CONFIG } from "../calendar-constants";
+import { CalendarEvent } from "../types";
 
 export function showEventAddedToast(event: CalendarEvent): void {
   toast(`Event "${event.title}" added`, {

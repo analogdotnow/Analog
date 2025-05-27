@@ -2,17 +2,19 @@
 
 import { useState } from "react";
 import Link from "next/link";
+
 import { authClient } from "@repo/auth/client";
+
+import { Google } from "@/components/icons/google";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardHeader,
-  CardTitle,
   CardDescription,
   CardFooter,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
-import { Google } from "@/components/icons/google";
 import { cn } from "@/lib/utils";
 
 interface SignInFormProps {
@@ -40,12 +42,12 @@ export function SignInForm({ redirectUrl = "/calendar" }: SignInFormProps) {
   };
 
   return (
-    <Card className="max-w-md shadow-none border-none">
+    <Card className="max-w-md border-none shadow-none">
       <CardHeader>
-        <CardTitle className="text-xl md:text-2xl text-center">
+        <CardTitle className="text-center text-xl md:text-2xl">
           Analog
         </CardTitle>
-        <CardDescription className="text-md md:text-lg text-center text-balance">
+        <CardDescription className="text-md text-center text-balance md:text-lg">
           The calendar that changes everything
         </CardDescription>
       </CardHeader>
@@ -53,8 +55,8 @@ export function SignInForm({ redirectUrl = "/calendar" }: SignInFormProps) {
         <div className="grid gap-8">
           <div
             className={cn(
-              "w-full gap-2 flex items-center",
-              "justify-between flex-col",
+              "flex w-full items-center gap-2",
+              "flex-col justify-between",
             )}
           >
             <Button
@@ -70,8 +72,8 @@ export function SignInForm({ redirectUrl = "/calendar" }: SignInFormProps) {
         </div>
       </CardContent>
       <CardFooter>
-        <div className="flex justify-center w-full py-4">
-          <p className="text-center text-sm text-muted-foreground text-balance">
+        <div className="flex w-full justify-center py-4">
+          <p className="text-center text-sm text-balance text-muted-foreground">
             By continuing, you agree to our{" "}
             <Link
               href="/terms"

@@ -1,5 +1,11 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { BadgeCheck, ChevronsUpDown, LogOut } from "lucide-react";
+
+import { authClient } from "@repo/auth/client";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -16,11 +22,6 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { useTRPC } from "@/lib/trpc/client";
-import { useQuery } from "@tanstack/react-query";
-import { authClient } from "@repo/auth/client";
-import { useRouter } from "next/navigation";
-import { useQueryClient } from "@tanstack/react-query";
-import { BadgeCheck, ChevronsUpDown, LogOut } from "lucide-react";
 
 function useUser() {
   const trpc = useTRPC();
@@ -30,7 +31,7 @@ function useUser() {
 export function NavUser() {
   const { data: user } = useUser();
   const router = useRouter();
-  const queryClient = useQueryClient();  
+  const queryClient = useQueryClient();
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -43,7 +44,10 @@ export function NavUser() {
               <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarImage src={user?.image ?? undefined} alt={user?.name} />
                 <AvatarFallback className="rounded-lg bg-accent-foreground text-background">
-                  {user?.name?.split(" ").map((name) => name.charAt(0)).join("")}
+                  {user?.name
+                    ?.split(" ")
+                    .map((name) => name.charAt(0))
+                    .join("")}
                 </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
@@ -82,14 +86,18 @@ export function NavUser() {
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={async () => await authClient.signOut({
-              fetchOptions: {
-                onSuccess: () => {
-                  queryClient.removeQueries();
-                  router.push("/login");
-                },
-              },
-            })}>
+            <DropdownMenuItem
+              onClick={async () =>
+                await authClient.signOut({
+                  fetchOptions: {
+                    onSuccess: () => {
+                      queryClient.removeQueries();
+                      router.push("/login");
+                    },
+                  },
+                })
+              }
+            >
               <LogOut />
               Log out
             </DropdownMenuItem>

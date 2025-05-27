@@ -2,22 +2,23 @@
 
 import { useEffect, useMemo } from "react";
 import { useAtom } from "jotai";
+import { useHotkeysContext } from "react-hotkeys-hook";
+
+import { viewPreferencesAtom } from "@/atoms";
 import {
   CalendarDndProvider,
   CalendarEvent,
   EventDialog,
   EventGap,
   EventHeight,
-  useEventDialog,
-  useEventOperations,
   WeekCellsHeight,
   filterPastEvents,
+  useEventDialog,
+  useEventOperations,
 } from "@/components/event-calendar";
-import { CalendarHeader } from "./calendar-header";
-import { CalendarContent } from "./calendar-content";
 import { cn } from "@/lib/utils";
-import { viewPreferencesAtom } from "@/atoms";
-import { useHotkeysContext } from "react-hotkeys-hook";
+import { CalendarContent } from "./calendar-content";
+import { CalendarHeader } from "./calendar-header";
 
 export interface EventCalendarProps {
   events?: CalendarEvent[];
@@ -71,7 +72,7 @@ export function EventCalendar({
   return (
     <div
       className={cn(
-        "flex flex-col has-data-[slot=month-view]:flex-1 overflow-auto",
+        "flex flex-col overflow-auto has-data-[slot=month-view]:flex-1",
         className,
       )}
       style={

@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { HotkeysProvider } from "react-hotkeys-hook";
+
 import { CalendarHotkeys } from "@/lib/hotkeys/calendar-hotkeys";
 
 interface AppHotkeyProviderProps {

@@ -1,12 +1,13 @@
 "use client";
 
 import React, {
-  createContext,
   Dispatch,
   SetStateAction,
+  createContext,
   useContext,
   useState,
 } from "react";
+
 import { CalendarView } from "@/components/event-calendar";
 
 interface CalendarContextType {
@@ -17,7 +18,7 @@ interface CalendarContextType {
 }
 
 const CalendarContext = createContext<CalendarContextType | undefined>(
-  undefined
+  undefined,
 );
 
 export function CalendarProvider({
@@ -48,7 +49,7 @@ export function useCalendarContext() {
   const context = useContext(CalendarContext);
   if (context === undefined) {
     throw new Error(
-      "useCalendarContext must be used within a CalendarProvider"
+      "useCalendarContext must be used within a CalendarProvider",
     );
   }
   return context;

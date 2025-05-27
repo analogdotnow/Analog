@@ -1,9 +1,11 @@
 import { TRPCError } from "@trpc/server";
-import { auth } from "@repo/auth/server";
-import { createTRPCRouter, protectedProcedure } from "../trpc";
-import { GoogleCalendarProvider } from "../providers/google-calendar";
-import { dateHelpers } from "../utils/date-helpers";
 import { z } from "zod";
+
+import { auth } from "@repo/auth/server";
+
+import { GoogleCalendarProvider } from "../providers/google-calendar";
+import { createTRPCRouter, protectedProcedure } from "../trpc";
+import { dateHelpers } from "../utils/date-helpers";
 
 export const eventsRouter = createTRPCRouter({
   list: protectedProcedure
