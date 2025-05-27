@@ -38,6 +38,13 @@ export function filterPastEvents(
   return events.filter((event) => new Date(event.end) >= now);
 }
 
+export function filterVisibleEvents(
+  events: CalendarEvent[],
+  hiddenCalendars: string[],
+): CalendarEvent[] {
+  return events.filter((event) => !hiddenCalendars.includes(event.calendarId));
+}
+
 export function getEventsStartingOnDay(
   events: CalendarEvent[],
   day: Date,
