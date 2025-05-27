@@ -1,5 +1,6 @@
 "use client";
 
+import { useCallback } from "react";
 import { ChevronDownIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { CalendarView } from "./types";
 
+const VIEW_OPTIONS = [
+  { value: "month" as const, label: "Month", shortcut: "M" },
+  { value: "week" as const, label: "Week", shortcut: "W" },
+  { value: "day" as const, label: "Day", shortcut: "D" },
+  { value: "agenda" as const, label: "Agenda", shortcut: "A" },
+];
+
 interface CalendarViewSelectorProps {
   currentView: CalendarView;
   onViewChange: (view: CalendarView) => void;
@@ -23,6 +31,13 @@ export function CalendarViewSelector({
 }: CalendarViewSelectorProps) {
   const viewDisplayName =
     currentView.charAt(0).toUpperCase() + currentView.slice(1);
+
+  const handleViewChange = useCallback(
+    (view: CalendarView) => {
+      onViewChange(view);
+    },
+    [onViewChange],
+  );
 
   return (
     <DropdownMenu>
@@ -42,18 +57,14 @@ export function CalendarViewSelector({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-32">
-        <DropdownMenuItem onClick={() => onViewChange("month")}>
-          Month <DropdownMenuShortcut>M</DropdownMenuShortcut>
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onViewChange("week")}>
-          Week <DropdownMenuShortcut>W</DropdownMenuShortcut>
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onViewChange("day")}>
-          Day <DropdownMenuShortcut>D</DropdownMenuShortcut>
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onViewChange("agenda")}>
-          Agenda <DropdownMenuShortcut>A</DropdownMenuShortcut>
-        </DropdownMenuItem>
+        {VIEW_OPTIONS.map(({ value, label, shortcut }) => (
+          <DropdownMenuItem key={value} onClick={() => handleViewChange(value)}>
+            {label}{" "}
+            <DropdownMenuShortcut className="min-w-5 text-center font-thin">
+              {shortcut}
+            </DropdownMenuShortcut>
+          </DropdownMenuItem>
+        ))}
       </DropdownMenuContent>
     </DropdownMenu>
   );
