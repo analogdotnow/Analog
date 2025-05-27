@@ -19,23 +19,23 @@ import {
   EventGap,
   EventHeight,
   EventItem,
-  sortEvents,
+  useEventCollection,
   useEventVisibility,
+  useGridLayout,
   useViewPreferences,
   type CalendarEvent,
 } from "@/components/event-calendar";
 import { DefaultStartHour } from "@/components/event-calendar/constants";
+import { sortEventsForDisplay } from "@/components/event-calendar/utils";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn, groupArrayIntoChunks } from "@/lib/utils";
-import { isWeekend, isWeekendIndex } from "./utils/date-time";
-import {
-  getEventCollectionsForDay,
-  getEventSpanInfoForDay,
-} from "./utils/event";
+import type { EventCollectionForMonth } from "./hooks/use-event-collection";
+import { getDayKey, isWeekend, isWeekendIndex } from "./utils/date-time";
+import { getEventSpanInfoForDay } from "./utils/event";
 
 const WEEKDAYS = Array.from({ length: 7 }).map((_, i) => {
   const date = addDays(startOfWeek(new Date()), i);
@@ -44,10 +44,10 @@ const WEEKDAYS = Array.from({ length: 7 }).map((_, i) => {
 
 interface MonthViewContextType {
   currentDate: Date;
-  events: CalendarEvent[];
   days: Date[];
   weeks: Date[][];
   gridTemplateColumns: string;
+  eventCollection: EventCollectionForMonth;
   onEventClick: (event: CalendarEvent, e: React.MouseEvent) => void;
   onEventCreate: (startTime: Date) => void;
 }
@@ -77,8 +77,6 @@ export function MonthView({
   onEventSelect,
   onEventCreate,
 }: MonthViewProps) {
-  const viewPreferences = useViewPreferences();
-
   const { days, weeks } = useMemo(() => {
     const monthStart = startOfMonth(currentDate);
     const monthEnd = endOfMonth(monthStart);
@@ -103,20 +101,15 @@ export function MonthView({
     [onEventSelect],
   );
 
-  const gridTemplateColumns = useMemo(() => {
-    const allWeekdays = Array.from({ length: 7 }).map((_, i) => {
-      const isDayVisible = viewPreferences.showWeekends || !isWeekendIndex(i);
-      return isDayVisible ? "1fr" : "0fr";
-    });
-    return allWeekdays.join(" ");
-  }, [viewPreferences.showWeekends]);
+  const gridTemplateColumns = useGridLayout(WEEKDAYS.map(() => new Date()));
+  const eventCollection = useEventCollection(events, days, "month");
 
   const contextValue: MonthViewContextType = {
     currentDate,
-    events,
     days,
     weeks,
     gridTemplateColumns,
+    eventCollection,
     onEventClick: handleEventClick,
     onEventCreate,
   };
@@ -162,42 +155,25 @@ function MonthViewHeader() {
 }
 
 function MonthViewWeeks() {
-  const { weeks } = useMonthViewContext();
+  const { weeks, gridTemplateColumns } = useMonthViewContext();
 
   return (
     <div className="grid h-[calc(100%-37px)] flex-1 auto-rows-fr">
       {weeks.map((week, weekIndex) => (
-        <MonthViewWeek
+        <div
           key={`week-${weekIndex}`}
-          week={week}
-          weekIndex={weekIndex}
-        />
-      ))}
-    </div>
-  );
-}
-
-function MonthViewWeek({
-  week,
-  weekIndex,
-}: {
-  week: Date[];
-  weekIndex: number;
-}) {
-  const { gridTemplateColumns } = useMonthViewContext();
-
-  return (
-    <div
-      className="grid transition-[grid-template-columns] duration-200 ease-linear [&:last-child>*]:border-b-0"
-      style={{ gridTemplateColumns }}
-    >
-      {week.map((day, dayIndex) => (
-        <MonthViewDay
-          key={day.toString()}
-          day={day}
-          weekIndex={weekIndex}
-          dayIndex={dayIndex}
-        />
+          className="grid transition-[grid-template-columns] duration-200 ease-linear [&:last-child>*]:border-b-0"
+          style={{ gridTemplateColumns }}
+        >
+          {week.map((day, dayIndex) => (
+            <MonthViewDay
+              key={day.toString()}
+              day={day}
+              weekIndex={weekIndex}
+              dayIndex={dayIndex}
+            />
+          ))}
+        </div>
       ))}
     </div>
   );
@@ -255,17 +231,19 @@ function MonthViewDayEvents({
   day: Date;
   isReferenceCell: boolean;
 }) {
-  const { events } = useMonthViewContext();
-
+  const { eventCollection } = useMonthViewContext();
   const { contentRef, getVisibleEventCount } = useEventVisibility({
     eventHeight: EventHeight,
     eventGap: EventGap,
   });
 
-  const { allDayEvents, allEvents } = useMemo(
-    () => getEventCollectionsForDay(events, day),
-    [events, day],
-  );
+  const { allDayEvents, allEvents } = useMemo(() => {
+    const dayKey = getDayKey(day);
+    return eventCollection.eventsByDay.get(dayKey) as {
+      allDayEvents: CalendarEvent[];
+      allEvents: CalendarEvent[];
+    };
+  }, [eventCollection, day]);
 
   const visibleCount = getVisibleEventCount(allDayEvents.length);
   const hasMore =
@@ -277,7 +255,7 @@ function MonthViewDayEvents({
       ref={isReferenceCell ? contentRef : null}
       className="min-h-[calc((var(--event-height)+var(--event-gap))*2)] sm:min-h-[calc((var(--event-height)+var(--event-gap))*3)] lg:min-h-[calc((var(--event-height)+var(--event-gap))*4)]"
     >
-      {sortEvents(allDayEvents).map((event, index) => {
+      {sortEventsForDisplay(allDayEvents).map((event, index) => {
         const isHidden = Boolean(visibleCount && index >= visibleCount);
 
         if (!visibleCount) return null;
@@ -320,7 +298,25 @@ function MonthViewEvent({
 
   if (!isFirstDay) {
     return (
-      <SpanningEventContinuation event={event} day={day} isHidden={isHidden} />
+      <div
+        className="aria-hidden:hidden"
+        aria-hidden={isHidden ? "true" : undefined}
+      >
+        <EventItem
+          onClick={(e) => onEventClick(event, e)}
+          event={event}
+          view="month"
+          isFirstDay={isFirstDay}
+          isLastDay={isLastDay}
+        >
+          <div className="invisible" aria-hidden={true}>
+            {!event.allDay && (
+              <span>{format(new Date(event.start), "h:mm")} </span>
+            )}
+            {event.title}
+          </div>
+        </EventItem>
+      </div>
     );
   }
 
@@ -336,44 +332,6 @@ function MonthViewEvent({
         isFirstDay={isFirstDay}
         isLastDay={isLastDay}
       />
-    </div>
-  );
-}
-
-function SpanningEventContinuation({
-  event,
-  day,
-  isHidden,
-}: {
-  event: CalendarEvent;
-  day: Date;
-  isHidden: boolean;
-}) {
-  const { onEventClick } = useMonthViewContext();
-  const { isFirstDay, isLastDay } = useMemo(
-    () => getEventSpanInfoForDay(event, day),
-    [event, day],
-  );
-
-  return (
-    <div
-      className="aria-hidden:hidden"
-      aria-hidden={isHidden ? "true" : undefined}
-    >
-      <EventItem
-        onClick={(e) => onEventClick(event, e)}
-        event={event}
-        view="month"
-        isFirstDay={isFirstDay}
-        isLastDay={isLastDay}
-      >
-        <div className="invisible" aria-hidden={true}>
-          {!event.allDay && (
-            <span>{format(new Date(event.start), "h:mm")} </span>
-          )}
-          {event.title}
-        </div>
-      </EventItem>
     </div>
   );
 }
@@ -413,7 +371,7 @@ function MonthViewMoreEventsPopover({
         <div className="space-y-2">
           <div className="text-sm font-medium">{format(day, "EEE d")}</div>
           <div className="space-y-1">
-            {sortEvents(allEvents).map((event) => {
+            {sortEventsForDisplay(allEvents).map((event) => {
               const { isFirstDay, isLastDay } = getEventSpanInfoForDay(
                 event,
                 day,

@@ -17,30 +17,27 @@ import {
   DraggableEvent,
   DroppableCell,
   EventItem,
-  WeekCellsHeight,
   useCurrentTimeIndicator,
+  useEventCollection,
+  useGridLayout,
   useViewPreferences,
   type CalendarEvent,
 } from "@/components/event-calendar";
 import { EndHour, StartHour } from "@/components/event-calendar/constants";
 import { cn } from "@/lib/utils";
+import type { EventCollectionForWeek } from "./hooks/use-event-collection";
 import {
   filterDaysByWeekendPreference,
   getWeekDays,
   isWeekend,
 } from "./utils/date-time";
-import {
-  calculateWeekViewEventPositions,
-  getAllDayEventsForDays,
-  type PositionedEvent,
-} from "./utils/event";
+import { type PositionedEvent } from "./utils/event";
 
 interface WeekViewContextType {
   allDays: Date[];
   visibleDays: Date[];
-  events: CalendarEvent[];
   hours: Date[];
-  processedDayEvents: PositionedEvent[][];
+  eventCollection: EventCollectionForWeek;
   currentDate: Date;
   gridTemplateColumns: string;
   onEventClick: (event: CalendarEvent, e: React.MouseEvent) => void;
@@ -79,11 +76,6 @@ export function WeekView({
     [allDays, viewPreferences.showWeekends],
   );
 
-  const weekStart = useMemo(
-    () => startOfWeek(currentDate, { weekStartsOn: 0 }),
-    [currentDate],
-  );
-
   const hours = useMemo(() => {
     const dayStart = startOfDay(currentDate);
     return eachHourOfInterval({
@@ -92,37 +84,21 @@ export function WeekView({
     });
   }, [currentDate]);
 
-  const processedDayEvents = useMemo(
-    () =>
-      calculateWeekViewEventPositions(
-        events,
-        visibleDays,
-        StartHour,
-        WeekCellsHeight,
-      ),
-    [events, visibleDays],
-  );
-
   const handleEventClick = (event: CalendarEvent, e: React.MouseEvent) => {
     e.stopPropagation();
     onEventSelect(event);
   };
 
-  // Use the "padding with 0fr" trick for smooth transitions
-  const gridTemplateColumns = useMemo(() => {
-    const columnSizes = allDays.map((day) => {
-      const isDayVisible = viewPreferences.showWeekends || !isWeekend(day);
-      return isDayVisible ? "1fr" : "0fr";
-    });
-    return `6rem ${columnSizes.join(" ")}`;
-  }, [allDays, viewPreferences.showWeekends]);
+  const gridTemplateColumns = useGridLayout(allDays, {
+    includeTimeColumn: true,
+  });
+  const eventCollection = useEventCollection(events, visibleDays, "week");
 
   const contextValue: WeekViewContextType = {
     allDays,
     visibleDays,
-    events,
     hours,
-    processedDayEvents,
+    eventCollection,
     currentDate,
     gridTemplateColumns,
     onEventClick: handleEventClick,
@@ -134,7 +110,7 @@ export function WeekView({
       <div data-slot="week-view" className="isolate flex flex-col">
         <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-md">
           <WeekViewHeader />
-          <WeekViewAllDaySection weekStart={weekStart} />
+          <WeekViewAllDaySection />
         </div>
 
         <div
@@ -187,15 +163,22 @@ function WeekViewHeader() {
   );
 }
 
-function WeekViewAllDaySection({ weekStart }: { weekStart: Date }) {
-  const { allDays, visibleDays, events, gridTemplateColumns, onEventClick } =
-    useWeekViewContext();
+function WeekViewAllDaySection() {
+  const {
+    allDays,
+    eventCollection,
+    gridTemplateColumns,
+    onEventClick,
+    currentDate,
+  } = useWeekViewContext();
   const viewPreferences = useViewPreferences();
 
-  const allDayEvents = useMemo(
-    () => getAllDayEventsForDays(events, visibleDays),
-    [events, visibleDays],
+  const weekStart = useMemo(
+    () => startOfWeek(currentDate, { weekStartsOn: 0 }),
+    [currentDate],
   );
+  const allDayEvents =
+    eventCollection.type === "week" ? eventCollection.allDayEvents : [];
 
   if (allDayEvents.length === 0) {
     return null;
@@ -300,13 +283,8 @@ function WeekViewTimeColumn() {
 }
 
 function WeekViewDayColumns() {
-  const {
-    allDays,
-    visibleDays,
-    processedDayEvents,
-    currentDate,
-    onEventClick,
-  } = useWeekViewContext();
+  const { allDays, visibleDays, eventCollection, currentDate, onEventClick } =
+    useWeekViewContext();
   const viewPreferences = useViewPreferences();
 
   const { currentTimePosition, currentTimeVisible } = useCurrentTimeIndicator(
@@ -321,9 +299,10 @@ function WeekViewDayColumns() {
         const visibleDayIndex = visibleDays.findIndex(
           (d) => d.getTime() === day.getTime(),
         );
+
         const positionedEvents =
-          visibleDayIndex >= 0
-            ? (processedDayEvents[visibleDayIndex] ?? [])
+          eventCollection.type === "week" && visibleDayIndex >= 0
+            ? (eventCollection.positionedEvents[visibleDayIndex] ?? [])
             : [];
 
         return (
@@ -336,7 +315,7 @@ function WeekViewDayColumns() {
             data-today={isToday(day) || undefined}
             style={{ visibility: isDayVisible ? "visible" : "hidden" }}
           >
-            {positionedEvents.map((positionedEvent) => (
+            {positionedEvents.map((positionedEvent: PositionedEvent) => (
               <div
                 key={positionedEvent.event.id}
                 className="absolute z-10 px-0.5"

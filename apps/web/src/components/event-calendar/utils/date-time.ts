@@ -26,6 +26,17 @@ import { CALENDAR_CONFIG, TIME_INTERVALS } from "../calendar-constants";
 import { AgendaDaysToShow } from "../constants";
 import { CalendarView } from "../types";
 
+/**
+ * Generate a simple date key for Map lookups
+ * Uses the day's timestamp at start of day for uniqueness
+ */
+export function getDayKey(date: Date): string {
+  const year = date.getFullYear();
+  const month = date.getMonth();
+  const day = date.getDate();
+  return `${year}-${month}-${day}`;
+}
+
 export function snapTimeToInterval(time: Date): Date {
   const snappedTime = new Date(time);
   const minutes = snappedTime.getMinutes();
@@ -85,68 +96,66 @@ export function addHoursToDate(date: Date, hours: number): Date {
   return result;
 }
 
-/**
- * Generates view title data for different calendar views
- * Returns an object with different formats for responsive design
- */
+export function getMonthTitle(date: Date) {
+  return {
+    full: format(date, "MMMM yyyy"),
+    medium: "",
+    short: format(date, "MMM yyyy"),
+  };
+}
+
+export function getWeekTitle(date: Date) {
+  const start = startOfWeek(date, {
+    weekStartsOn: CALENDAR_CONFIG.WEEK_STARTS_ON,
+  });
+  const end = endOfWeek(date, { weekStartsOn: CALENDAR_CONFIG.WEEK_STARTS_ON });
+
+  if (isSameMonth(start, end)) {
+    return getMonthTitle(start);
+  }
+
+  return {
+    full: `${format(start, "MMM")} - ${format(end, "MMM yyyy")}`,
+    medium: "",
+    short: `${format(start, "MMM")} - ${format(end, "MMM")}`,
+  };
+}
+
+export function getDayTitle(date: Date) {
+  return {
+    full: format(date, "EEE MMMM d, yyyy"),
+    medium: format(date, "MMMM d, yyyy"),
+    short: format(date, "MMM d, yyyy"),
+  };
+}
+
+export function getAgendaTitle(date: Date) {
+  const start = date;
+  const end = addDays(date, AgendaDaysToShow - 1);
+
+  if (isSameMonth(start, end)) {
+    return getMonthTitle(start);
+  }
+
+  return {
+    full: `${format(start, "MMM")} - ${format(end, "MMM yyyy")}`,
+    medium: "",
+    short: `${format(start, "MMM")} - ${format(end, "MMM")}`,
+  };
+}
+
 export function getViewTitleData(currentDate: Date, view: CalendarView) {
   switch (view) {
     case "month":
-      return {
-        full: format(currentDate, "MMMM yyyy"),
-        short: format(currentDate, "MMM yyyy"),
-      };
-
-    case "week": {
-      const start = startOfWeek(currentDate, {
-        weekStartsOn: CALENDAR_CONFIG.WEEK_STARTS_ON,
-      });
-      const end = endOfWeek(currentDate, {
-        weekStartsOn: CALENDAR_CONFIG.WEEK_STARTS_ON,
-      });
-
-      if (isSameMonth(start, end)) {
-        return {
-          full: format(start, "MMMM yyyy"),
-          short: format(start, "MMM yyyy"),
-        };
-      } else {
-        return {
-          full: `${format(start, "MMM")} - ${format(end, "MMM yyyy")}`,
-          short: `${format(start, "MMM")} - ${format(end, "MMM")}`,
-        };
-      }
-    }
-
+      return getMonthTitle(currentDate);
+    case "week":
+      return getWeekTitle(currentDate);
     case "day":
-      return {
-        full: format(currentDate, "EEE MMMM d, yyyy"),
-        medium: format(currentDate, "MMMM d, yyyy"),
-        short: format(currentDate, "MMM d, yyyy"),
-      };
-
-    case "agenda": {
-      const start = currentDate;
-      const end = addDays(currentDate, AgendaDaysToShow - 1);
-
-      if (isSameMonth(start, end)) {
-        return {
-          full: format(start, "MMMM yyyy"),
-          short: format(start, "MMM yyyy"),
-        };
-      } else {
-        return {
-          full: `${format(start, "MMM")} - ${format(end, "MMM yyyy")}`,
-          short: `${format(start, "MMM")} - ${format(end, "MMM")}`,
-        };
-      }
-    }
-
+      return getDayTitle(currentDate);
+    case "agenda":
+      return getAgendaTitle(currentDate);
     default:
-      return {
-        full: format(currentDate, "MMMM yyyy"),
-        short: format(currentDate, "MMM yyyy"),
-      };
+      return getMonthTitle(currentDate);
   }
 }
 

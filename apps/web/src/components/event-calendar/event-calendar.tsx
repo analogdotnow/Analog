@@ -12,10 +12,10 @@ import {
   EventGap,
   EventHeight,
   WeekCellsHeight,
-  filterPastEvents,
   useEventDialog,
   useEventOperations,
 } from "@/components/event-calendar";
+import { filterPastEvents } from "@/components/event-calendar/utils";
 import { cn } from "@/lib/utils";
 import { CalendarContent } from "./calendar-content";
 import { CalendarHeader } from "./calendar-header";

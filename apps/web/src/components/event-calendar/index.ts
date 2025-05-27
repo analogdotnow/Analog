@@ -22,7 +22,6 @@ export { ViewPreferencesPopover } from "./view-preferences-popover";
 // Constants and utility exports
 export * from "./constants";
 export * from "./calendar-constants";
-export * from "./utils";
 
 // Hook exports
 export * from "./hooks";

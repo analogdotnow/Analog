@@ -5,11 +5,11 @@ import type { DraggableAttributes } from "@dnd-kit/core";
 import type { SyntheticListenerMap } from "@dnd-kit/core/dist/hooks/utilities";
 import { differenceInMinutes, format, getMinutes, isPast } from "date-fns";
 
+import { type CalendarEvent } from "@/components/event-calendar";
 import {
   getBorderRadiusClasses,
   getEventColorClasses,
-  type CalendarEvent,
-} from "@/components/event-calendar";
+} from "@/components/event-calendar/utils";
 import { cn } from "@/lib/utils";
 
 // Using date-fns format with custom formatting:

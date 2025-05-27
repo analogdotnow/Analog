@@ -18,11 +18,11 @@ import {
   DroppableCell,
   EventItem,
   WeekCellsHeight,
-  isMultiDayEvent,
   useCurrentTimeIndicator,
   type CalendarEvent,
 } from "@/components/event-calendar";
 import { EndHour, StartHour } from "@/components/event-calendar/constants";
+import { isMultiDayEvent } from "@/components/event-calendar/utils";
 import { cn } from "@/lib/utils";
 
 interface DayViewProps {

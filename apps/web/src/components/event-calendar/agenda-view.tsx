@@ -8,8 +8,8 @@ import {
   AgendaDaysToShow,
   CalendarEvent,
   EventItem,
-  getAllEventsForDay,
 } from "@/components/event-calendar";
+import { getAllEventsForDay } from "@/components/event-calendar/utils";
 
 interface AgendaViewProps {
   currentDate: Date;
