@@ -11,7 +11,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useTRPC } from "@/lib/trpc/client";
 import { z } from "zod";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
 
 const formSchema = z.object({
   email: z.string().email(),
@@ -21,32 +20,39 @@ type FormSchema = z.infer<typeof formSchema>;
 
 function useWaitlistCount() {
   const trpc = useTRPC();
-
   const queryClient = useQueryClient();
 
+  const waitlistKey = trpc.earlyAccess.getWaitlistCount.queryKey();
   const query = useQuery(trpc.earlyAccess.getWaitlistCount.queryOptions());
 
-  const [success, setSuccess] = useState(false);
-
-  const { mutate } = useMutation(
+  const { mutate, isPending, isSuccess } = useMutation(
     trpc.earlyAccess.joinWaitlist.mutationOptions({
-      onSuccess: () => {
-        setSuccess(true);
+      onMutate: async () => {
+        await queryClient.cancelQueries({
+          queryKey: waitlistKey,
+        });
 
-        queryClient.setQueryData(
-          [trpc.earlyAccess.getWaitlistCount.queryKey()],
-          {
-            count: (query.data?.count ?? 0) + 1,
-          },
-        );
+        const previousCount = queryClient.getQueryData(waitlistKey);
+
+        queryClient.setQueryData(waitlistKey, {
+          count: (query.data?.count ?? 0) + 1,
+        });
+
+        return { previousCount };
       },
-      onError: () => {
+      onError: (_, __, context) => {
+        queryClient.setQueryData(waitlistKey, context?.previousCount);
         toast.error("Something went wrong. Please try again.");
       },
-    }),
+      onSettled: () => {
+        queryClient.invalidateQueries({
+          queryKey: waitlistKey,
+        });
+      },
+    })
   );
 
-  return { count: query.data?.count ?? 0, mutate, success };
+  return { count: query.data?.count ?? 0, mutate, isSuccess, isPending };
 }
 
 interface WaitlistFormProps {
@@ -71,10 +77,10 @@ export function WaitlistForm({ className }: WaitlistFormProps) {
     <div
       className={cn(
         "flex flex-col gap-6 items-center justify-center w-full max-w-3xl mx-auto",
-        className,
+        className
       )}
     >
-      {waitlist.success ? (
+      {waitlist.isSuccess ? (
         <div className="flex flex-col items-center justify-center gap-4 text-center">
           <p className="text-xl font-semibold">
             You&apos;re on the waitlist! 🎉
@@ -97,8 +103,10 @@ export function WaitlistForm({ className }: WaitlistFormProps) {
           <Button
             className="w-full sm:w-fit pl-4 pr-3 h-11 text-base"
             type="submit"
+            disabled={waitlist.isPending}
           >
-            Join Waitlist <ChevronRight className="h-5 w-5" />
+            {waitlist.isPending ? "Joining..." : "Join Waitlist"}{" "}
+            <ChevronRight className="h-5 w-5" />
           </Button>
         </form>
       )}
