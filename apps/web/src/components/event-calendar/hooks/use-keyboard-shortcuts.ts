@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { shouldIgnoreKeyboardEvent } from "../utils";
 import { KEYBOARD_SHORTCUTS } from "../calendar-constants";
 import { useCalendarContext } from "@/contexts/calendar-context";
-import { addDays, addMonths, startOfMonth } from "date-fns";
+import { addDays, addMonths, startOfMonth, subDays, subMonths } from "date-fns";
 
 interface UseKeyboardShortcutsProps {
   isEventDialogOpen: boolean;
@@ -55,7 +55,22 @@ export function useKeyboardShortcuts({
 
           break;
         case KEYBOARD_SHORTCUTS.PREVIOUS_PERIOD:
-          setCurrentDate(new Date());
+          switch (view) {
+            case "month":
+              setCurrentDate((prevDate) => {
+                return startOfMonth(subMonths(prevDate, 1));
+              });
+              break;
+            case "week":
+              setCurrentDate((prevDate) => subDays(prevDate, 7));
+              break;
+            case "day":
+            case "agenda":
+              setCurrentDate((prevDate) => {
+                return subDays(prevDate, 1);
+              });
+              break;
+          }
           break;
       }
     };
