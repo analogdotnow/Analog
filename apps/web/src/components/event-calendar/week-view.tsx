@@ -3,7 +3,6 @@
 import React, { createContext, useContext, useMemo } from "react";
 import {
   addHours,
-  differenceInCalendarDays,
   eachHourOfInterval,
   format,
   getHours,
@@ -229,7 +228,7 @@ function WeekViewAllDaySection({ weekStart }: { weekStart: Date }) {
             <div
               key={day.toString()}
               className={cn(
-                "relative overflow-visible border-r border-border/70 last:border-r-0",
+                "relative overflow-hidden border-r border-border/70 last:border-r-0",
                 isDayVisible ? "p-1" : "w-0",
               )}
               data-today={isToday(day) || undefined}
@@ -247,13 +246,7 @@ function WeekViewAllDaySection({ weekStart }: { weekStart: Date }) {
 
                 return (
                   <div
-                    className="relative z-10"
-                    style={{
-                      width:
-                        !isSingleDay && isFirstDay
-                          ? `calc(100% * ${differenceInCalendarDays(eventEnd, eventStart) * 1.05 + 1})`
-                          : "",
-                    }}
+                    className="relative z-10 w-full min-w-0"
                     key={`spanning-${event.id}`}
                   >
                     <EventItem
