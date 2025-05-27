@@ -1,6 +1,9 @@
 import * as React from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Check, ChevronRight } from "lucide-react";
 
+import { useCalendarsVisibility } from "@/components/event-calendar/hooks";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Collapsible,
   CollapsibleContent,
@@ -21,9 +24,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useTRPC } from "@/lib/trpc/client";
-import { useQuery } from "@tanstack/react-query";
-import { useCalendarsVisibility } from "@/components/event-calendar/hooks";
-import { Checkbox } from "@/components/ui/checkbox";
 
 function useCalendarList() {
   const trpc = useTRPC();
@@ -46,7 +46,7 @@ export function Calendars() {
         hiddenCalendars: newHiddenCalendars,
       });
     },
-    [calendarsVisibility.hiddenCalendars, setCalendarsVisibility]
+    [calendarsVisibility.hiddenCalendars, setCalendarsVisibility],
   );
 
   if (!data) {
@@ -82,13 +82,13 @@ export function Calendars() {
                               <Checkbox
                                 checked={
                                   !calendarsVisibility.hiddenCalendars.includes(
-                                    item.id
+                                    item.id,
                                   )
                                 }
                                 onCheckedChange={(checked: boolean) => {
                                   handleCalendarVisibilityChange(
                                     checked,
-                                    item.id
+                                    item.id,
                                   );
                                 }}
                               />

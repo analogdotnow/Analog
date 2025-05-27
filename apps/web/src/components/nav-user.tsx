@@ -6,7 +6,6 @@ import { BadgeCheck, ChevronsUpDown, LogOut } from "lucide-react";
 
 import { authClient } from "@repo/auth/client";
 
-
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,

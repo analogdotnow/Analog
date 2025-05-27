@@ -11,9 +11,9 @@ import {
   EventHeight,
   WeekCellsHeight,
   filterPastEvents,
+  filterVisibleEvents,
   useEventDialog,
   useEventOperations,
-  filterVisibleEvents,
 } from "@/components/event-calendar";
 import { cn } from "@/lib/utils";
 import { CalendarContent } from "./calendar-content";
@@ -42,9 +42,13 @@ export function EventCalendar({
     () =>
       filterVisibleEvents(
         filterPastEvents(events, viewPreferences.showPastEvents),
-        calendarVisibility.hiddenCalendars
+        calendarVisibility.hiddenCalendars,
       ),
-    [events, viewPreferences.showPastEvents, calendarVisibility.hiddenCalendars]
+    [
+      events,
+      viewPreferences.showPastEvents,
+      calendarVisibility.hiddenCalendars,
+    ],
   );
 
   const {

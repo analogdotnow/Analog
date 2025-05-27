@@ -6,5 +6,5 @@ export interface CalendarsVisibility {
 
 export const calendarsVisibilityAtom = atomWithStorage<CalendarsVisibility>(
   "analog-calendars-visibility",
-  { hiddenCalendars: [] }
+  { hiddenCalendars: [] },
 );
