@@ -9,8 +9,8 @@ export function CalendarLayout() {
   return (
     <CalendarProvider>
       <SidebarProvider>
-        <AppSidebar />
-        <SidebarInset>
+        <AppSidebar variant="inset"/>
+        <SidebarInset className="overflow-hidden">
           <CalendarView className="grow" />
         </SidebarInset>
       </SidebarProvider>

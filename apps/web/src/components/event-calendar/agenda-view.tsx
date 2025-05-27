@@ -8,7 +8,7 @@ import {
   AgendaDaysToShow,
   CalendarEvent,
   EventItem,
-  getAgendaEventsForDay,
+  getAllEventsForDay,
 } from "@/components/event-calendar";
 
 interface AgendaViewProps {
@@ -37,7 +37,7 @@ export function AgendaView({
 
   // Check if there are any days with events
   const hasEvents = days.some(
-    (day) => getAgendaEventsForDay(events, day).length > 0,
+    (day) => getAllEventsForDay(events, day).length > 0,
   );
 
   return (
@@ -55,7 +55,7 @@ export function AgendaView({
         </div>
       ) : (
         days.map((day) => {
-          const dayEvents = getAgendaEventsForDay(events, day);
+          const dayEvents = getAllEventsForDay(events, day);
 
           if (dayEvents.length === 0) return null;
 

@@ -2,7 +2,11 @@
 
 import { useMemo } from "react";
 import { addDays, subDays } from "date-fns";
-import { EventCalendar, type CalendarEvent, type EventColor } from "@/components/event-calendar";
+import {
+  EventCalendar,
+  type CalendarEvent,
+  type EventColor,
+} from "@/components/event-calendar";
 import { useTRPC } from "@/lib/trpc/client";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { dateHelpers } from "@/lib/date-helpers";
@@ -35,10 +39,21 @@ export function CalendarView({ className }: CalendarViewProps) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
-  const timeMin = useMemo(() => subDays(new Date(), CALENDAR_CONFIG.TIME_RANGE_DAYS_PAST).toISOString(), []);
-  const timeMax = useMemo(() => addDays(new Date(), CALENDAR_CONFIG.TIME_RANGE_DAYS_FUTURE).toISOString(), []);
+  const timeMin = useMemo(
+    () =>
+      subDays(new Date(), CALENDAR_CONFIG.TIME_RANGE_DAYS_PAST).toISOString(),
+    []
+  );
+  const timeMax = useMemo(
+    () =>
+      addDays(new Date(), CALENDAR_CONFIG.TIME_RANGE_DAYS_FUTURE).toISOString(),
+    []
+  );
 
-  const eventsQueryKey = useMemo(() => trpc.events.list.queryOptions({ timeMin, timeMax }).queryKey, [trpc.events.list, timeMin, timeMax]);
+  const eventsQueryKey = useMemo(
+    () => trpc.events.list.queryOptions({ timeMin, timeMax }).queryKey,
+    [trpc.events.list, timeMin, timeMax]
+  );
 
   const { data } = useQuery(
     trpc.events.list.queryOptions({
@@ -52,7 +67,11 @@ export function CalendarView({ className }: CalendarViewProps) {
 
     return data.events.map((event): CalendarEvent => {
       const startDate = new Date(event.start);
-      const endDate = dateHelpers.adjustEndDateForDisplay(startDate, new Date(event.end), event.allDay);
+      const endDate = dateHelpers.adjustEndDateForDisplay(
+        startDate,
+        new Date(event.end),
+        event.allDay
+      );
 
       return {
         id: event.id,
@@ -90,7 +109,9 @@ export function CalendarView({ className }: CalendarViewProps) {
 
         return {
           ...old,
-          events: [...(old.events || []), tempEvent].sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime()),
+          events: [...(old.events || []), tempEvent].sort(
+            (a, b) => new Date(a.start).getTime() - new Date(b.start).getTime()
+          ),
         };
       });
 
@@ -133,7 +154,10 @@ export function CalendarView({ className }: CalendarViewProps) {
                   }
                 : event
             )
-            .sort((a: any, b: any) => new Date(a.start).getTime() - new Date(b.start).getTime()),
+            .sort(
+              (a: any, b: any) =>
+                new Date(a.start).getTime() - new Date(b.start).getTime()
+            ),
         };
       });
 
@@ -196,8 +220,14 @@ export function CalendarView({ className }: CalendarViewProps) {
       calendarId: CALENDAR_CONFIG.DEFAULT_CALENDAR_ID,
       eventId: updatedEvent.id,
       title: updatedEvent.title,
-      start: dateHelpers.formatDateForAPI(updatedEvent.start, updatedEvent.allDay || false),
-      end: dateHelpers.formatDateForAPI(updatedEvent.end, updatedEvent.allDay || false),
+      start: dateHelpers.formatDateForAPI(
+        updatedEvent.start,
+        updatedEvent.allDay || false
+      ),
+      end: dateHelpers.formatDateForAPI(
+        updatedEvent.end,
+        updatedEvent.allDay || false
+      ),
       allDay: updatedEvent.allDay,
       description: updatedEvent.description,
       location: updatedEvent.location,

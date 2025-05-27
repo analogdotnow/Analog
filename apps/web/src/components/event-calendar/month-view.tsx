@@ -21,10 +21,11 @@ import {
   EventHeight,
   EventItem,
   getAllEventsForDay,
-  getEventsForDay,
+  getEventsStartingOnDay,
   getSpanningEventsForDay,
   sortEvents,
   useEventVisibility,
+  useViewPreferences,
   type CalendarEvent,
 } from "@/components/event-calendar";
 import { DefaultStartHour } from "@/components/event-calendar/constants";
@@ -33,6 +34,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { isWeekend, isWeekendIndex } from "./utils/date-time";
 
 interface MonthViewProps {
   currentDate: Date;
@@ -47,36 +50,50 @@ export function MonthView({
   onEventSelect,
   onEventCreate,
 }: MonthViewProps) {
+  const viewPreferences = useViewPreferences();
+
   const days = useMemo(() => {
     const monthStart = startOfMonth(currentDate);
     const monthEnd = endOfMonth(monthStart);
     const calendarStart = startOfWeek(monthStart, { weekStartsOn: 0 });
     const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 0 });
 
-    return eachDayOfInterval({ start: calendarStart, end: calendarEnd });
-  }, [currentDate]);
+    const allDays = eachDayOfInterval({
+      start: calendarStart,
+      end: calendarEnd,
+    });
+
+    return viewPreferences.showWeekends
+      ? allDays
+      : allDays.filter((day) => !isWeekend(day));
+  }, [currentDate, viewPreferences.showWeekends]);
 
   const weekdays = useMemo(() => {
-    return Array.from({ length: 7 }).map((_, i) => {
+    const allWeekdays = Array.from({ length: 7 }).map((_, i) => {
       const date = addDays(startOfWeek(new Date()), i);
       return format(date, "EEE");
     });
-  }, []);
+
+    return viewPreferences.showWeekends
+      ? allWeekdays
+      : allWeekdays.filter((_, index) => !isWeekendIndex(index));
+  }, [viewPreferences.showWeekends]);
 
   const weeks = useMemo(() => {
     const result = [];
     let week = [];
+    const daysPerWeek = viewPreferences.showWeekends ? 7 : 5;
 
     for (let i = 0; i < days.length; i++) {
       week.push(days[i]);
-      if (week.length === 7 || i === days.length - 1) {
+      if (week.length === daysPerWeek || i === days.length - 1) {
         result.push(week);
         week = [];
       }
     }
 
     return result;
-  }, [days]);
+  }, [days, viewPreferences.showWeekends]);
 
   const handleEventClick = (event: CalendarEvent, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -93,9 +110,19 @@ export function MonthView({
     setIsMounted(true);
   }, []);
 
+  // Calculate dynamic grid columns based on visible days
+  const gridColsClass = viewPreferences.showWeekends
+    ? "grid-cols-7"
+    : "grid-cols-5";
+
   return (
     <div data-slot="month-view" className="contents">
-      <div className="border-border/70 grid grid-cols-7 border-b">
+      <div
+        className={cn(
+          "border-border/70 grid border-b transition-[grid-template-columns] duration-200 ease-linear",
+          gridColsClass
+        )}
+      >
         {weekdays.map((day) => (
           <div
             key={day}
@@ -109,12 +136,15 @@ export function MonthView({
         {weeks.map((week, weekIndex) => (
           <div
             key={`week-${weekIndex}`}
-            className="grid grid-cols-7 [&:last-child>*]:border-b-0"
+            className={cn(
+              "grid [&:last-child>*]:border-b-0 transition-[grid-template-columns] duration-200 ease-linear",
+              gridColsClass
+            )}
           >
             {week.map((day, dayIndex) => {
               if (!day) return null; // Skip if day is undefined
 
-              const dayEvents = getEventsForDay(events, day);
+              const dayEvents = getEventsStartingOnDay(events, day);
               const spanningEvents = getSpanningEventsForDay(events, day);
               const isCurrentMonth = isSameMonth(day, currentDate);
               const cellId = `month-cell-${day.toISOString()}`;
@@ -185,7 +215,7 @@ export function MonthView({
                                     <span>
                                       {format(
                                         new Date(event.start),
-                                        "h:mm",
+                                        "h:mm"
                                       )}{" "}
                                     </span>
                                   )}
