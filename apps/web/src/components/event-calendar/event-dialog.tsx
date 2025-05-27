@@ -172,7 +172,7 @@ export function EventDialog({
       allDay,
       location,
       color,
-      calendarId: "primary"
+      calendarId: "primary",
     });
   };
 
