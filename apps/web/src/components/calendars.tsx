@@ -91,7 +91,6 @@ export function Calendars() {
                                     item.id
                                   );
                                 }}
-                                // className="group/calendar-item border-sidebar-border text-sidebar-primary-foreground data-[state=checked]:border-sidebar-primary data-[state=checked]:bg-sidebar-primary flex aspect-square size-4 shrink-0 items-center justify-center rounded-sm border"
                               />
                               <span className="line-clamp-1 block">
                                 {item.name}
