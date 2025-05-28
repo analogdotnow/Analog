@@ -5,7 +5,7 @@ import Link from "next/link";
 
 import { authClient } from "@repo/auth/client";
 
-import { Google } from "@/components/icons/google";
+import { Icons } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -65,7 +65,7 @@ export function SignInForm({ redirectUrl = "/calendar" }: SignInFormProps) {
               disabled={loading}
               onClick={signInWithGoogle}
             >
-              <Google />
+              <Icons.google />
               Continue with Google
             </Button>
           </div>
