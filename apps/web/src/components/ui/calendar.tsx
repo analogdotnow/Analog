@@ -2,10 +2,11 @@
 
 import * as React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { DayPicker } from "react-day-picker";
+import { DayPicker, type StyledComponent } from "react-day-picker";
 
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { CalendarAnimatedLabel } from "./calendar-animated-label";
 
 function Calendar({
   className,
@@ -60,12 +61,13 @@ function Calendar({
         ...classNames,
       }}
       components={{
-        IconLeft: ({ className, ...props }) => (
+        IconLeft: ({ className, ...props }: StyledComponent) => (
           <ChevronLeft className={cn("size-4", className)} {...props} />
         ),
-        IconRight: ({ className, ...props }) => (
+        IconRight: ({ className, ...props }: StyledComponent) => (
           <ChevronRight className={cn("size-4", className)} {...props} />
         ),
+        CaptionLabel: CalendarAnimatedLabel,
       }}
       {...props}
     />
