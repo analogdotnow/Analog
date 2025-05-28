@@ -27,6 +27,7 @@ export function useEventDialog() {
         TIME_INTERVALS.DEFAULT_EVENT_DURATION_HOURS,
       ),
       allDay: false,
+      calendarId: "primary", // the primary calendar of the logged in user
     };
 
     setSelectedEvent(newEvent);

@@ -1,10 +1,8 @@
 "use client";
 
 import { useEffect, useMemo } from "react";
-import { useAtom } from "jotai";
 import { useHotkeysContext } from "react-hotkeys-hook";
 
-import { viewPreferencesAtom } from "@/atoms";
 import {
   CalendarDndProvider,
   CalendarEvent,
@@ -14,13 +12,18 @@ import {
   WeekCellsHeight,
 } from "@/components/event-calendar";
 import {
-  useEventDialog,
-  useEventOperations,
-} from "@/components/event-calendar/hooks";
-import { filterPastEvents } from "@/components/event-calendar/utils";
+  filterPastEvents,
+  filterVisibleEvents,
+} from "@/components/event-calendar/utils";
 import { cn } from "@/lib/utils";
 import { CalendarContent } from "./calendar-content";
 import { CalendarHeader } from "./calendar-header";
+import {
+  useCalendarsVisibility,
+  useEventDialog,
+  useEventOperations,
+  useViewPreferences,
+} from "./hooks";
 
 export interface EventCalendarProps {
   events?: CalendarEvent[];
@@ -37,11 +40,20 @@ export function EventCalendar({
   onEventDelete,
   className,
 }: EventCalendarProps) {
-  const [viewPreferences] = useAtom(viewPreferencesAtom);
+  const viewPreferences = useViewPreferences();
+  const [calendarVisibility] = useCalendarsVisibility();
 
   const filteredEvents = useMemo(
-    () => filterPastEvents(events, viewPreferences.showPastEvents),
-    [events, viewPreferences.showPastEvents],
+    () =>
+      filterVisibleEvents(
+        filterPastEvents(events, viewPreferences.showPastEvents),
+        calendarVisibility.hiddenCalendars,
+      ),
+    [
+      events,
+      viewPreferences.showPastEvents,
+      calendarVisibility.hiddenCalendars,
+    ],
   );
 
   const {

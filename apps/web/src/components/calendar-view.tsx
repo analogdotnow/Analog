@@ -86,6 +86,7 @@ function useCalendarActions() {
         allDay: event.allDay,
         color: event.colorId ? colorMap[event.colorId] || "sky" : "sky",
         location: event.location,
+        calendarId: event.calendarId,
       };
     });
   }, [data]);
@@ -111,6 +112,7 @@ function useCalendarActions() {
             colorId: "1",
             status: undefined,
             htmlLink: undefined,
+            calendarId: "primary",
           };
 
           return {

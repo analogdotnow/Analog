@@ -1,4 +1,4 @@
-name: Check formatting
+name: Lint
 
 on:
   pull_request:
@@ -12,8 +12,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  prettier:
-    name: Prettier
+  lint:
+    name: Lint
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -25,5 +25,5 @@ jobs:
       - name: Install dependencies
         run: bun install -D --frozen-lockfile
 
-      - name: Run Prettier to check formatting
-        run: bun run prettier --check **/*.{ts,tsx,css,md}
+      - name: Run ESLint
+        run: bun run lint

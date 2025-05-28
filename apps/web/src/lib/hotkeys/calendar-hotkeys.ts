@@ -1,8 +1,11 @@
 "use client";
 
-import { addDays, addMonths, startOfMonth, subDays, subMonths } from "date-fns";
 import { useHotkeys } from "react-hotkeys-hook";
 
+import {
+  navigateToNext,
+  navigateToPrevious,
+} from "@/components/event-calendar";
 import { useCalendarContext } from "@/contexts/calendar-context";
 
 export const KEYBOARD_SHORTCUTS = {
@@ -36,39 +39,13 @@ export function CalendarHotkeys() {
 
   useHotkeys(
     KEYBOARD_SHORTCUTS.NEXT_PERIOD,
-    () => {
-      switch (view) {
-        case "month":
-          setCurrentDate((prevDate) => startOfMonth(addMonths(prevDate, 1)));
-          break;
-        case "week":
-          setCurrentDate((prevDate) => addDays(prevDate, 7));
-          break;
-        case "day":
-        case "agenda":
-          setCurrentDate((prevDate) => addDays(prevDate, 1));
-          break;
-      }
-    },
+    () => setCurrentDate((prevDate) => navigateToNext(prevDate, view)),
     { scopes: ["calendar"] },
   );
 
   useHotkeys(
     KEYBOARD_SHORTCUTS.PREVIOUS_PERIOD,
-    () => {
-      switch (view) {
-        case "month":
-          setCurrentDate((prevDate) => startOfMonth(subMonths(prevDate, 1)));
-          break;
-        case "week":
-          setCurrentDate((prevDate) => subDays(prevDate, 7));
-          break;
-        case "day":
-        case "agenda":
-          setCurrentDate((prevDate) => subDays(prevDate, 1));
-          break;
-      }
-    },
+    () => setCurrentDate((prevDate) => navigateToPrevious(prevDate, view)),
     { scopes: ["calendar"] },
   );
 

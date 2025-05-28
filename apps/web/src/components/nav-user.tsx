@@ -2,7 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { BadgeCheck, ChevronsUpDown, LogOut } from "lucide-react";
+import { BadgeCheck, ChevronsUpDown, LogOut, Moon, Sun } from "lucide-react";
+import { useTheme } from "next-themes";
 
 import { authClient } from "@repo/auth/client";
 
@@ -32,6 +33,14 @@ export function NavUser() {
   const { data: user } = useUser();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { theme, setTheme } = useTheme();
+  const toggleTheme = () => {
+    if (theme === "dark") {
+      setTheme("light");
+    } else {
+      setTheme("dark");
+    }
+  };
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -100,6 +109,12 @@ export function NavUser() {
             >
               <LogOut />
               Log out
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={toggleTheme}>
+              <Sun className="h-[1.2rem] w-[1.2rem] scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
+              <Moon className="absolute h-[1.2rem] w-[1.2rem] scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" />
+              App theme
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

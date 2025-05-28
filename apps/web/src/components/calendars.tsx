@@ -2,6 +2,8 @@ import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Check, ChevronRight } from "lucide-react";
 
+import { useCalendarsVisibility } from "@/components/event-calendar/hooks";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Collapsible,
   CollapsibleContent,
@@ -31,6 +33,21 @@ function useCalendarList() {
 
 export function Calendars() {
   const { data } = useCalendarList();
+  const [calendarsVisibility, setCalendarsVisibility] =
+    useCalendarsVisibility();
+
+  const handleCalendarVisibilityChange = React.useCallback(
+    (checked: boolean, calendarId: string) => {
+      const newHiddenCalendars = checked
+        ? calendarsVisibility.hiddenCalendars.filter((id) => id !== calendarId)
+        : [...calendarsVisibility.hiddenCalendars, calendarId];
+
+      setCalendarsVisibility({
+        hiddenCalendars: newHiddenCalendars,
+      });
+    },
+    [calendarsVisibility.hiddenCalendars, setCalendarsVisibility],
+  );
 
   if (!data) {
     return null;
@@ -62,12 +79,19 @@ export function Calendars() {
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <SidebarMenuButton>
-                              <div
-                                data-active={index < 2}
-                                className="group/calendar-item flex aspect-square size-4 shrink-0 items-center justify-center rounded-sm border border-sidebar-border text-sidebar-primary-foreground data-[active=true]:border-sidebar-primary data-[active=true]:bg-sidebar-primary"
-                              >
-                                <Check className="hidden size-3 group-data-[active=true]/calendar-item:block" />
-                              </div>
+                              <Checkbox
+                                checked={
+                                  !calendarsVisibility.hiddenCalendars.includes(
+                                    item.id,
+                                  )
+                                }
+                                onCheckedChange={(checked: boolean) => {
+                                  handleCalendarVisibilityChange(
+                                    checked,
+                                    item.id,
+                                  );
+                                }}
+                              />
                               <span className="line-clamp-1 block">
                                 {item.name}
                               </span>

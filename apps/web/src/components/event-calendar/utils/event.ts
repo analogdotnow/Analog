@@ -59,6 +59,42 @@ export function filterPastEvents(
   return events.filter((event) => getEventDates(event).end >= now);
 }
 
+export function filterVisibleEvents(
+  events: CalendarEvent[],
+  hiddenCalendars: string[],
+): CalendarEvent[] {
+  return events.filter((event) => !hiddenCalendars.includes(event.calendarId));
+}
+
+export function getEventsStartingOnDay(
+  events: CalendarEvent[],
+  day: Date,
+): CalendarEvent[] {
+  return events
+    .filter((event) => {
+      const eventStart = new Date(event.start);
+      return isSameDay(day, eventStart);
+    })
+    .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+}
+
+export function getSpanningEventsForDay(
+  events: CalendarEvent[],
+  day: Date,
+): CalendarEvent[] {
+  return events.filter((event) => {
+    if (!isMultiDayEvent(event)) return false;
+
+    const eventStart = new Date(event.start);
+    const eventEnd = new Date(event.end);
+
+    return (
+      !isSameDay(day, eventStart) &&
+      (isSameDay(day, eventEnd) || (day > eventStart && day < eventEnd))
+    );
+  });
+}
+
 export function getAllEventsForDay(
   events: CalendarEvent[],
   day: Date,

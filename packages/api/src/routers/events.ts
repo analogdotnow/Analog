@@ -49,11 +49,12 @@ export const eventsRouter = createTRPCRouter({
       const allEvents = await Promise.all(
         calendarIds.map(async (calendarId) => {
           try {
-            return await client.events(
+            const events = await client.events(
               calendarId,
               input.timeMin,
               input.timeMax,
             );
+            return events.map((event) => ({ ...event, calendarId }));
           } catch (error) {
             console.error(
               `Failed to fetch events for calendar ${calendarId}:`,

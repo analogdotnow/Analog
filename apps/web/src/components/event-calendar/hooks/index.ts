@@ -22,3 +22,4 @@ export { useGridLayout } from "./use-grid-layout";
 export { useCurrentTimeIndicator } from "./use-current-time-indicator";
 export { useEventVisibility } from "./use-event-visibility";
 export { useViewPreferences } from "./use-view-preferences";
+export { useCalendarsVisibility } from "./use-calendars-visibility";
