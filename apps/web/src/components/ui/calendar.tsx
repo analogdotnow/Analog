@@ -408,7 +408,7 @@ function Nav({
     <nav className={cn("flex items-center", className)}>
       <Button
         variant="outline"
-        className="absolute left-0 h-7 w-7 bg-transparent p-0 opacity-80 hover:opacity-100"
+        className="absolute left-1.5 h-7 w-7 bg-transparent p-0 opacity-80 hover:opacity-100 dark:bg-neutral-700/80 dark:hover:bg-neutral-700/90"
         type="button"
         tabIndex={isPreviousDisabled ? undefined : -1}
         disabled={isPreviousDisabled}
@@ -426,7 +426,7 @@ function Nav({
 
       <Button
         variant="outline"
-        className="absolute right-0 h-7 w-7 bg-transparent p-0 opacity-80 hover:opacity-100"
+        className="absolute right-1.5 h-7 w-7 bg-transparent p-0 opacity-80 hover:opacity-100 dark:bg-neutral-700/80 dark:hover:bg-neutral-700/90"
         type="button"
         tabIndex={isNextDisabled ? undefined : -1}
         disabled={isNextDisabled}
