@@ -1,72 +1,41 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Calendar } from "@/components/ui/calendar";
 import { SidebarGroup, SidebarGroupContent } from "@/components/ui/sidebar";
 import { useCalendarContext } from "@/contexts/calendar-context";
+import "react-day-picker/style.css";
+import "@/styles/date-picker.css";
 import { cn } from "@/lib/utils";
 
 export function DatePicker() {
   const { currentDate, setCurrentDate } = useCalendarContext();
-  const [shouldAnimate, setShouldAnimate] = useState(false);
-  const [displayedDate, setDisplayedDate] = useState<Date | undefined>(
-    undefined,
-  );
-  const [displayedMonth, setDisplayedMonth] = useState(currentDate);
+  const [displayedMonth, setDisplayedMonth] = useState<Date>(currentDate);
 
-  const handleMonthChange = useCallback(
-    (month: Date) => {
-      setDisplayedDate(undefined);
-      setTimeout(() => {
-        setDisplayedMonth(month);
-        setCurrentDate(month);
-      }, 50);
-    },
-    [setCurrentDate, setDisplayedMonth],
-  );
-
-  const handleDateSelect = useCallback(
-    (date: Date | undefined) => {
-      if (date) {
-        setShouldAnimate(true);
-        setCurrentDate(date);
-        setTimeout(() => {
-          setDisplayedMonth(date);
-          setShouldAnimate(false);
-        }, 800);
-      }
-    },
-    [setCurrentDate],
-  );
-
-  // we need to be able to set undefined date to avoid buggy jumps
-  // with react-day-picker, but date cannot be undefined in the context
-  // therefore the need for a mirror state
   useEffect(() => {
-    setDisplayedDate(currentDate);
+    setDisplayedMonth(currentDate);
   }, [currentDate]);
 
   return (
     <SidebarGroup className="px-0">
       <SidebarGroupContent>
         <Calendar
+          animate
           mode="single"
-          selected={displayedDate}
-          onSelect={handleDateSelect}
+          required
+          selected={currentDate}
+          onSelect={setCurrentDate}
           month={displayedMonth}
-          onMonthChange={handleMonthChange}
-          className={cn(
-            "px-0 [&_[role=gridcell]]:w-[33px] [&>div]:justify-center",
-            shouldAnimate &&
-              "[&_[role=gridcell]]:transition-colors [&_[role=gridcell]]:duration-700",
-          )}
-          classNames={{
-            day_selected:
-              "!bg-sidebar-primary !text-sidebar-primary-foreground hover:!bg-sidebar-primary hover:!text-sidebar-primary-foreground hover:filter hover:brightness-[0.8] focus:!bg-sidebar-primary focus:!text-sidebar-primary-foreground",
-            day_today:
-              "!border-1 !border-sidebar-primary/30 dark:!border-sidebar-primary/70 font-medium hover:opacity-80 aria-selected:!border-0 aria-selected:!bg-sidebar-primary",
-          }}
+          onMonthChange={setDisplayedMonth}
+          className={cn("w-full px-0 [&_[role=gridcell]]:w-[33px]")}
+          todayClassName="[&>button]:border-1 [&>button]:border-sidebar-primary/30 dark:[&>button]:border-sidebar-primary/80 [&>button]:font-medium hover:opacity-80 aria-selected:[&>button]:border-0 aria-selected:[&>button]:bg-sidebar-primary [&>button]:bg-transparent"
+          selectedClassName="[&>button]:bg-sidebar-primary [&>button]:text-sidebar-primary-foreground hover:[&>button]:!bg-sidebar-primary hover:[&>button]:text-sidebar-primary-foreground hover:filter hover:brightness-[0.8] focus:[&>button]:bg-sidebar-primary focus:[&>button]:text-sidebar-primary-foreground"
+          dayButtonClassName="dark:hover:bg-sidebar-foreground/15"
+          weekClassName="relative z-0 before:-z-10 before:absolute before:content-[''] before:inset-0 before:rounded-md dark:[&:has([aria-selected=true])]:before:bg-sidebar-foreground/10 [&:has([aria-selected=true])]:before:bg-sidebar-foreground/5"
+          weekdayClassName="flex-1"
+          outsideClassName="aria-selected:opacity-100 aria-selected:bg-transparent"
+          navClassName="[&>button]:z-10"
         />
       </SidebarGroupContent>
     </SidebarGroup>
