@@ -57,7 +57,7 @@ export function DatePicker() {
           month={displayedMonth}
           onMonthChange={handleMonthChange}
           className={cn(
-            "[&_[role=gridcell]]:w-[33px]",
+            "px-0 [&_[role=gridcell]]:w-[33px] [&>div]:justify-center",
             shouldAnimate &&
               "[&_[role=gridcell]]:transition-colors [&_[role=gridcell]]:duration-700",
           )}
