@@ -5,8 +5,6 @@ import { useEffect, useState } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { SidebarGroup, SidebarGroupContent } from "@/components/ui/sidebar";
 import { useCalendarContext } from "@/contexts/calendar-context";
-import "react-day-picker/style.css";
-import "@/styles/date-picker.css";
 import { cn } from "@/lib/utils";
 
 export function DatePicker() {
