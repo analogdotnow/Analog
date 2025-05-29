@@ -35,6 +35,7 @@
     "@repo/env": "workspace:*",
     "@tanstack/react-query": "^5.76.1",
     "@tauri-apps/api": "^2.5.0",
+    "@tauri-apps/plugin-process": "^2.2.1",
     "@trpc/client": "^11.1.2",
     "@trpc/server": "^11.1.2",
     "@trpc/tanstack-react-query": "^11.1.2",
