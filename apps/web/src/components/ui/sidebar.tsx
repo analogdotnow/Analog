@@ -362,7 +362,10 @@ function SidebarSeparator({
     <Separator
       data-slot="sidebar-separator"
       data-sidebar="separator"
-      className={cn("mx-2 w-auto bg-sidebar-border", className)}
+      className={cn(
+        "mx-2 w-auto bg-sidebar-border dark:bg-sidebar-foreground/10",
+        className,
+      )}
       {...props}
     />
   );
@@ -509,7 +512,6 @@ function SidebarMenuButton({
   tooltip?: string | React.ComponentProps<typeof TooltipContent>;
 } & VariantProps<typeof sidebarMenuButtonVariants>) {
   const Comp = asChild ? Slot : "button";
-  const { isMobile, state } = useSidebar();
 
   const button = (
     <Comp
@@ -538,7 +540,8 @@ function SidebarMenuButton({
       <TooltipContent
         side="right"
         align="center"
-        hidden={state !== "collapsed" || isMobile}
+        // uncomment this if needed in the future
+        // hidden={state !== "collapsed" || isMobile}
         {...tooltip}
       />
     </Tooltip>
