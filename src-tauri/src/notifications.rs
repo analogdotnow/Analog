@@ -1,3 +1,4 @@
+use chrono::{Duration as ChronoDuration, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Mutex;
@@ -53,7 +54,16 @@ pub async fn schedule_event_reminder(
     reminder_minutes: u32,
     app: AppHandle,
 ) -> Result<String, String> {
-    let reminder_time = chrono::Utc::now() + chrono::Duration::minutes(reminder_minutes as i64);
+    // Validate reminder minutes (1 minute to 1 week)
+    if reminder_minutes == 0 {
+        return Err("Reminder time cannot be zero".to_string());
+    }
+    if reminder_minutes > 10080 {
+        // 1 week = 7 * 24 * 60 minutes
+        return Err("Reminder time cannot exceed 1 week".to_string());
+    }
+
+    let reminder_time = Utc::now() + ChronoDuration::minutes(reminder_minutes as i64);
     let delay_duration = Duration::from_secs((reminder_minutes * 60) as u64);
 
     // Cancel existing reminder if any
@@ -82,6 +92,11 @@ pub async fn schedule_event_reminder(
         // Clean up from scheduled reminders
         if let Ok(mut reminders) = SCHEDULED_REMINDERS.lock() {
             reminders.remove(&event_id_clone);
+        } else {
+            log::warn!(
+                "Failed to acquire lock for reminder cleanup: {}",
+                event_id_clone
+            );
         }
     });
 
