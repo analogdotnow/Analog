@@ -5,7 +5,7 @@ import { useHotkeys } from "react-hotkeys-hook";
 import {
   navigateToNext,
   navigateToPrevious,
-} from "@/components/event-calendar/utils";
+} from "@/components/event-calendar/utils/date-time";
 import { useCalendarContext } from "@/contexts/calendar-context";
 
 export const KEYBOARD_SHORTCUTS = {

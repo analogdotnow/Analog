@@ -2,7 +2,6 @@
 
 import { createContext, useCallback, useContext, useMemo } from "react";
 import {
-  addDays,
   eachDayOfInterval,
   endOfMonth,
   endOfWeek,
@@ -32,6 +31,7 @@ import {
 import {
   getDayKey,
   getEventSpanInfoForDay,
+  getWeekDays,
   isWeekend,
   isWeekendIndex,
   sortEventsForDisplay,
@@ -43,10 +43,7 @@ import {
 } from "@/components/ui/popover";
 import { cn, groupArrayIntoChunks } from "@/lib/utils";
 
-const WEEKDAYS = Array.from({ length: 7 }).map((_, i) => {
-  const date = addDays(startOfWeek(new Date()), i);
-  return format(date, "EEE");
-});
+const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 interface MonthViewContextType {
   currentDate: Date;
@@ -107,7 +104,7 @@ export function MonthView({
     [onEventSelect],
   );
 
-  const gridTemplateColumns = useGridLayout(WEEKDAYS.map(() => new Date()));
+  const gridTemplateColumns = useGridLayout(getWeekDays(new Date()));
   const eventCollection = useEventCollection(events, days, "month");
 
   const contextValue: MonthViewContextType = {
@@ -245,10 +242,12 @@ function MonthViewDayEvents({
 
   const { allDayEvents, allEvents } = useMemo(() => {
     const dayKey = getDayKey(day);
-    return eventCollection.eventsByDay.get(dayKey) as {
-      allDayEvents: CalendarEvent[];
-      allEvents: CalendarEvent[];
-    };
+    return (
+      eventCollection.eventsByDay.get(dayKey) ?? {
+        allDayEvents: [],
+        allEvents: [],
+      }
+    );
   }, [eventCollection, day]);
 
   const visibleCount = getVisibleEventCount(allDayEvents.length);
