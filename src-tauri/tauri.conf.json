@@ -14,8 +14,8 @@
         "title": "",
         "width": 1400,
         "height": 900,
-        "minWidth": 1200,
-        "minHeight": 800,
+        "minWidth": 800,
+        "minHeight": 600,
         "resizable": true,
         "fullscreen": false,
         "center": true,
@@ -42,9 +42,6 @@
     }
   },
   "plugins": {
-    "http": {
-      "scope": ["https://api.github.com/*", "https://api.anthropic.com/*", "https://googleapis.com/*", "https://accounts.google.com/*", "http://localhost:3000/*"]
-    },
     "shell": {
       "open": "^https?://.*"
     }
