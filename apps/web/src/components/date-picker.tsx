@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Calendar } from "@/components/ui/calendar";
 import { SidebarGroup, SidebarGroupContent } from "@/components/ui/sidebar";
@@ -9,10 +9,28 @@ import { cn } from "@/lib/utils";
 
 export function DatePicker() {
   const { currentDate, setCurrentDate, view } = useCalendarContext();
+  const [displayedDate, setDisplayedDate] = useState<Date>(currentDate);
   const [displayedMonth, setDisplayedMonth] = useState<Date>(currentDate);
+  const updateSource = useRef<"internal" | "external">("external");
+
+  // Prevent circular updates and animation conflicts by tracking update source:
+  // - Internal (calendar clicks): Update context directly, skip useEffect
+  // - External (navigation/hotkeys): Update local state via useEffect
+
+  const handleSelect = (date: Date | undefined) => {
+    if (!date) return;
+
+    updateSource.current = "internal";
+    setDisplayedDate(date);
+    setCurrentDate(date);
+  };
 
   useEffect(() => {
-    setDisplayedMonth(currentDate);
+    if (updateSource.current === "external") {
+      setDisplayedDate(currentDate);
+      setDisplayedMonth(currentDate);
+    }
+    updateSource.current = "external";
   }, [currentDate]);
 
   const isWeekView = view === "week";
@@ -24,8 +42,8 @@ export function DatePicker() {
           animate
           mode="single"
           required
-          selected={currentDate}
-          onSelect={setCurrentDate}
+          selected={displayedDate}
+          onSelect={handleSelect}
           month={displayedMonth}
           onMonthChange={setDisplayedMonth}
           className={cn("w-full px-0 [&_[role=gridcell]]:w-[33px]")}
