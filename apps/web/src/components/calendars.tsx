@@ -55,7 +55,7 @@ export function Calendars() {
               defaultOpen={index === 0}
               className="group/collapsible"
             >
-              <CalendarName name={"nizzyadmin@0.email"} />
+              <CalendarName name={account.name} />
               <CollapsibleContent>
                 <SidebarGroupContent>
                   <SidebarMenu>
