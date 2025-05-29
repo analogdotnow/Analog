@@ -1,7 +1,6 @@
 import { Discord, GitHub, Logo, Twitter } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { ModeToggle } from "@/components/ui/theme-toggle";
-import { cn } from "@/lib/utils";
 
 export function Header() {
   return (
