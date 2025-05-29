@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Check, ChevronRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 
 import { useCalendarsVisibility } from "@/components/event-calendar/hooks";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -74,7 +74,7 @@ export function Calendars() {
               <CollapsibleContent>
                 <SidebarGroupContent>
                   <SidebarMenu>
-                    {account.calendars.map((item, index) => (
+                    {account.calendars.map((item) => (
                       <SidebarMenuItem key={item.id}>
                         <Tooltip>
                           <TooltipTrigger asChild>

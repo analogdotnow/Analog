@@ -12,6 +12,8 @@ import { GOOGLE_OAUTH_SCOPES } from "./providers/google";
 import { MICROSOFT_OAUTH_SCOPES } from "./providers/microsoft";
 
 const connectionHandlerHook = async (account: Account) => {
+  console.log({ account });
+
   if (!account.accessToken || !account.refreshToken) {
     throw new APIError("UNAUTHORIZED", {
       message: "Missing access or refresh token",
@@ -90,6 +92,7 @@ export const auth = betterAuth({
       clientSecret: env.GOOGLE_CLIENT_SECRET,
       scope: GOOGLE_OAUTH_SCOPES,
       accessType: "offline",
+      prompt: "consent",
     },
     microsoft: {
       clientId: env.MICROSOFT_CLIENT_ID,

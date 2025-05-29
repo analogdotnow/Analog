@@ -4,6 +4,7 @@ import type { User } from "@microsoft/microsoft-graph-types";
 import { Provider, ProviderConfig } from "./types";
 
 export const MICROSOFT_OAUTH_SCOPES = [
+  "https://graph.microsoft.com/User.Read",
   "https://graph.microsoft.com/Calendars.Read",
   "https://graph.microsoft.com/Calendars.Read.Shared",
   "https://graph.microsoft.com/Calendars.ReadBasic",

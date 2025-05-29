@@ -1,8 +1,4 @@
-import { TRPCError } from "@trpc/server";
-
-import { auth } from "@repo/auth/server";
-
-import { GoogleCalendarProvider } from "../providers/google-calendar";
+import { connectionToProvider } from "../providers";
 import {
   activeProviderProcedure,
   createTRPCRouter,
@@ -10,20 +6,42 @@ import {
 } from "../trpc";
 
 export const calendarsRouter = createTRPCRouter({
-  list: activeProviderProcedure.query(async ({ ctx }) => {
-    const calendars = await ctx.calendarClient.calendars();
+  list: protectedProcedure.query(async ({ ctx }) => {
+    const connections = await ctx.db.query.connection.findMany({
+      where: (table, { eq }) => eq(table.userId, ctx.user.id),
+    });
 
-    console.log({ calendars });
+    const activeConnections = connections.filter(
+      (connection) => connection.accessToken && connection.refreshToken,
+    );
+
+    const accounts = await Promise.all(
+      activeConnections.map(async (connection) => {
+        try {
+          const calendarClient = connectionToProvider(connection);
+          const calendars = await calendarClient.calendars();
+
+          return {
+            id: connection.id,
+            provider: connection.providerId,
+            name: connection.email,
+            calendars,
+          };
+        } catch {
+          return {
+            id: connection.id,
+            provider: connection.providerId,
+            name: connection.email,
+            calendars: [],
+          };
+        }
+      }),
+    );
+
+    console.log({ accounts });
 
     return {
-      accounts: [
-        {
-          id: "1",
-          provider: "google",
-          name: ctx.user.email,
-          calendars,
-        },
-      ],
+      accounts,
     };
   }),
 });

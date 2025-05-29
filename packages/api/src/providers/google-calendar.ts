@@ -2,30 +2,10 @@ import { GoogleCalendar } from "@repo/google-calendar";
 
 import { CALENDAR_DEFAULTS } from "../constants/calendar";
 import { dateHelpers } from "../utils/date-helpers";
-import type { CreateEventOptions, UpdateEventOptions } from "./interfaces";
+import type { CalendarEvent, CalendarProvider } from "./types";
 
 interface GoogleCalendarProviderOptions {
   accessToken: string;
-}
-
-interface CreateEventInput {
-  title: string;
-  description?: string;
-  start: Date;
-  end: Date;
-  allDay?: boolean;
-  location?: string;
-  colorId?: string;
-}
-
-interface UpdateEventInput {
-  title?: string;
-  description?: string;
-  start?: Date;
-  end?: Date;
-  allDay?: boolean;
-  location?: string;
-  colorId?: string;
 }
 
 // Type definitions for Google Calendar API
@@ -48,7 +28,8 @@ interface EventUpdateParams extends EventCreateParams {
   calendarId: string;
 }
 
-export class GoogleCalendarProvider {
+export class GoogleCalendarProvider implements CalendarProvider {
+  public providerId = "google" as const;
   private client: GoogleCalendar;
 
   constructor({ accessToken }: GoogleCalendarProviderOptions) {
@@ -68,7 +49,7 @@ export class GoogleCalendarProvider {
         id: calendar.id!,
         provider: "google",
         name: calendar.summary!,
-        primary: calendar.primary,
+        primary: calendar.primary || false,
       }));
   }
 
@@ -87,21 +68,21 @@ export class GoogleCalendarProvider {
       maxResults: CALENDAR_DEFAULTS.MAX_EVENTS_PER_CALENDAR,
     });
 
-    return items?.map((event) => this.transformGoogleEvent(event)) ?? [];
+    return items?.map((event) => this.transformEvent(event)) ?? [];
   }
 
-  async createEvent(calendarId: string, event: CreateEventInput) {
+  async createEvent(calendarId: string, event: Omit<CalendarEvent, "id">) {
     const eventData: EventCreateParams = {
       summary: event.title,
       description: event.description,
       location: event.location,
       colorId: event.colorId,
       start: event.allDay
-        ? { date: event.start.toISOString().split("T")[0] }
-        : { dateTime: event.start.toISOString() },
+        ? { date: new Date(event.start).toISOString().split("T")[0] }
+        : { dateTime: event.start },
       end: event.allDay
-        ? { date: event.end.toISOString().split("T")[0] }
-        : { dateTime: event.end.toISOString() },
+        ? { date: new Date(event.end).toISOString().split("T")[0] }
+        : { dateTime: event.end },
     };
 
     const createdEvent = await this.client.calendars.events.create(
@@ -109,13 +90,13 @@ export class GoogleCalendarProvider {
       eventData,
     );
 
-    return this.transformGoogleEvent(createdEvent);
+    return this.transformEvent(createdEvent);
   }
 
   async updateEvent(
     calendarId: string,
     eventId: string,
-    event: UpdateEventInput,
+    event: Partial<CalendarEvent>,
   ) {
     // First get the existing event to merge with updates
     const existingEvent = await this.client.calendars.events.retrieve(eventId, {
@@ -130,13 +111,13 @@ export class GoogleCalendarProvider {
       colorId: event.colorId ?? existingEvent.colorId,
       start: event.start
         ? event.allDay
-          ? { date: event.start.toISOString().split("T")[0] }
-          : { dateTime: event.start.toISOString() }
+          ? { date: new Date(event.start).toISOString().split("T")[0] }
+          : { dateTime: event.start }
         : existingEvent.start,
       end: event.end
         ? event.allDay
-          ? { date: event.end.toISOString().split("T")[0] }
-          : { dateTime: event.end.toISOString() }
+          ? { date: new Date(event.end).toISOString().split("T")[0] }
+          : { dateTime: event.end }
         : existingEvent.end,
     };
 
@@ -145,16 +126,16 @@ export class GoogleCalendarProvider {
       eventData,
     );
 
-    return this.transformGoogleEvent(updatedEvent);
+    return this.transformEvent(updatedEvent);
   }
 
-  async deleteEvent(calendarId: string, eventId: string) {
+  async deleteEvent(calendarId: string, eventId: string): Promise<void> {
     await this.client.calendars.events.delete(eventId, { calendarId });
   }
 
-  private transformGoogleEvent(
+  private transformEvent(
     googleEvent: GoogleCalendar.Calendars.Events.Event,
-  ) {
+  ): CalendarEvent {
     const isAllDay = !googleEvent.start?.dateTime;
 
     const start = dateHelpers.parseGoogleDate(

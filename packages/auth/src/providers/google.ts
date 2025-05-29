@@ -11,6 +11,8 @@ export const GOOGLE_OAUTH_SCOPES = [
   "openid",
   "https://mail.google.com/",
   "https://www.googleapis.com/auth/calendar",
+  "https://www.googleapis.com/auth/userinfo.profile",
+  "https://www.googleapis.com/auth/userinfo.email",
 ];
 
 export class GoogleProvider implements Provider {
@@ -24,6 +26,7 @@ export class GoogleProvider implements Provider {
 
     if (config.auth) {
       this.auth.setCredentials({
+        access_token: config.auth.accessToken,
         refresh_token: config.auth.refreshToken,
         scope: GOOGLE_OAUTH_SCOPES.join(" "),
       });
@@ -35,18 +38,25 @@ export class GoogleProvider implements Provider {
   }
 
   async getUserInfo() {
-    const response = await people({
-      version: "v1",
-      auth: this.auth,
-    }).people.get({
-      resourceName: "people/me",
-      personFields: "name,photos,emailAddresses",
-    });
+    console.log("getting user info");
 
-    return {
-      email: response.data.emailAddresses?.[0]?.value ?? "",
-      name: response.data.names?.[0]?.displayName ?? "",
-      image: response.data.photos?.[0]?.url ?? "",
-    };
+    try {
+      const response = await people({
+        version: "v1",
+        auth: this.auth,
+      }).people.get({
+        resourceName: "people/me",
+        personFields: "names,photos,emailAddresses",
+      });
+
+      return {
+        email: response.data.emailAddresses?.[0]?.value ?? "",
+        name: response.data.names?.[0]?.displayName ?? "",
+        image: response.data.photos?.[0]?.url ?? "",
+      };
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
   }
 }

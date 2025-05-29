@@ -1,14 +1,6 @@
-import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
-import { auth } from "@repo/auth/server";
-
-import { GoogleCalendarProvider } from "../providers/google-calendar";
-import {
-  activeProviderProcedure,
-  createTRPCRouter,
-  protectedProcedure,
-} from "../trpc";
+import { activeProviderProcedure, createTRPCRouter } from "../trpc";
 import { dateHelpers } from "../utils/date-helpers";
 
 export const eventsRouter = createTRPCRouter({
@@ -26,7 +18,6 @@ export const eventsRouter = createTRPCRouter({
       if (calendarIds.length === 0) {
         const calendars = await ctx.calendarClient.calendars();
 
-        // @ts-expect-error fuck microsoft
         calendarIds = calendars
           // .filter(
           //   (cal) =>
@@ -79,10 +70,9 @@ export const eventsRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const event = await ctx.calendarClient.createEvent(
         input.calendarId,
-        dateHelpers.prepareGoogleParams(input),
+        input,
       );
-      // const googleParams = dateHelpers.prepareGoogleParams(input);
-      // const event = await client.createEvent(input.calendarId, googleParams);
+
       return { event };
     }),
 
@@ -100,8 +90,14 @@ export const eventsRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      // const params = dateHelpers.prepareGoogleParams(input);
-      const params = dateHelpers.prepareMicrosoftParams(input);
+      const paramsPreparers = {
+        google: dateHelpers.prepareGoogleParams,
+        microsoft: dateHelpers.prepareMicrosoftParams,
+      } as const;
+
+      const prepareParams = paramsPreparers[ctx.calendarClient.providerId];
+      
+      const params = prepareParams(input);
       const event = await ctx.calendarClient.updateEvent(
         input.calendarId,
         input.eventId,

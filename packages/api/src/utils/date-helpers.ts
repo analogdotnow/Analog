@@ -26,6 +26,26 @@ export const dateHelpers = {
     return new Date().toISOString();
   },
 
+  parseMicrosoftDate(
+    microsoftDate:
+      | { dateTime?: string | null; timeZone?: string | null }
+      | undefined
+      | null,
+    isAllDay: boolean,
+  ): string {
+    if (!microsoftDate?.dateTime) {
+      return new Date().toISOString();
+    }
+
+    if (isAllDay) {
+      // For all-day events, return date in ISO format with time set to midnight
+      const date = new Date(microsoftDate.dateTime);
+      return `${date.toISOString().split("T")[0]}T00:00:00`;
+    }
+
+    return microsoftDate.dateTime;
+  },
+
   adjustEndDateForDisplay(
     startDate: Date,
     endDate: Date,
@@ -104,13 +124,27 @@ export const dateHelpers = {
     if (input.location !== undefined) params.location = input.location;
 
     if (input.start && input.end) {
-      const dateParams = this.prepareDateParams(
-        input.start,
-        input.end,
-        input.allDay || false,
-      );
-      params.start = dateParams.start;
-      params.end = dateParams.end;
+      if (input.allDay) {
+        const startDate = input.start.substring(0, 10);
+        let endDate = input.end.substring(0, 10);
+
+        const startDateObj = new Date(startDate);
+        const endDateObj = new Date(endDate);
+
+        if (startDateObj.getTime() === endDateObj.getTime()) {
+          const nextDay = addDays(endDateObj, 1);
+          endDate = `${nextDay.getFullYear()}-${String(nextDay.getMonth() + 1).padStart(2, "0")}-${String(nextDay.getDate()).padStart(2, "0")}`;
+        } else {
+          const nextDay = addDays(endDateObj, 1);
+          endDate = `${nextDay.getFullYear()}-${String(nextDay.getMonth() + 1).padStart(2, "0")}-${String(nextDay.getDate()).padStart(2, "0")}`;
+        }
+
+        params.start = { date: startDate };
+        params.end = { date: endDate };
+      } else {
+        params.start = { dateTime: input.start, timeZone: "UTC" };
+        params.end = { dateTime: input.end, timeZone: "UTC" };
+      }
     }
 
     return params;
@@ -144,13 +178,17 @@ export const dateHelpers = {
     }
 
     if (input.start && input.end) {
-      const dateParams = this.prepareDateParams(
-        input.start,
-        input.end,
-        input.allDay || false,
-      );
-      params.start = dateParams.start;
-      params.end = dateParams.end;
+      if (input.allDay) {
+        params.start = {
+          date: new Date(input.start).toISOString().split("T")[0],
+        };
+        params.end = { date: new Date(input.end).toISOString().split("T")[0] };
+        params.isAllDay = true;
+      } else {
+        params.start = { dateTime: input.start };
+        params.end = { dateTime: input.end };
+        params.isAllDay = false;
+      }
     }
 
     if (input.allDay !== undefined) {
@@ -165,13 +203,4 @@ export interface GoogleEventDate {
   date?: string;
   dateTime?: string;
   timeZone?: string;
-}
-
-export interface CalendarEventInput {
-  title: string;
-  start: string;
-  end: string;
-  allDay?: boolean;
-  description?: string;
-  location?: string;
 }

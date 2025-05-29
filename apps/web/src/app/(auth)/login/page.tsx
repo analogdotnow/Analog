@@ -13,9 +13,9 @@ export const metadata: Metadata = {
 export default async function Page() {
   const session = await auth.api.getSession({ headers: await headers() });
 
-  if (session) {
-    redirect("/");
-  }
+  // if (session) {
+  //   redirect("/");
+  // }
 
   return (
     <div className="flex h-dvh w-dvw items-center justify-center">
