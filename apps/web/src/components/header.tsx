@@ -17,6 +17,7 @@ export function Header() {
             rel="noopener noreferrer"
           >
             <GitHub className="fill-primary" />
+            <span className="sr-only">GitHub</span>
           </a>
 
           <a
@@ -26,6 +27,7 @@ export function Header() {
             rel="noopener noreferrer"
           >
             <Twitter className="fill-primary" />
+            <span className="sr-only">Twitter</span>
           </a>
 
           <a
@@ -35,6 +37,7 @@ export function Header() {
             rel="noopener noreferrer"
           >
             <Discord className="fill-primary" />
+            <span className="sr-only">Discord</span>
           </a>
 
           <ModeToggle />
