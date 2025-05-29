@@ -5,12 +5,13 @@
   "identifier": "com.analog.calendar",
   "build": {
     "frontendDist": "../apps/web/out",
-    "devUrl": "http://localhost:3000/login"
+    "devUrl": "http://localhost:3000/calendar",
+    "beforeDevCommand": "bun dev"
   },
   "app": {
     "windows": [
       {
-        "title": "Analog Calendar",
+        "title": "",
         "width": 1400,
         "height": 900,
         "minWidth": 1200,
