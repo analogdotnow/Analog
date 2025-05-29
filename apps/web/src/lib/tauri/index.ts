@@ -3,6 +3,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { getVersion } from "@tauri-apps/api/app";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 
 export interface CalendarEvent {
   id: string;
@@ -73,14 +74,45 @@ export interface AuthResponse {
 
 // Check if we're running in Tauri
 export const isTauri = () => {
-  return typeof window !== "undefined" && "__TAURI__" in window;
+  if (typeof window === "undefined") return false;
+  
+  // Primary detection methods
+  const hasTauriGlobal = "__TAURI__" in window;
+  const hasTauriInvoke = "__TAURI_INVOKE__" in window;
+  
+  // Try to detect by attempting to import Tauri
+  let canImportTauri = false;
+  try {
+    // This will only work in Tauri environment
+    if (typeof (window as any).__TAURI_INVOKE__ === "function") {
+      canImportTauri = true;
+    }
+  } catch (e) {
+    canImportTauri = false;
+  }
+  
+  // Check user agent
+  const userAgent = window.navigator?.userAgent || "";
+  const isTauriUserAgent = userAgent.includes("Tauri");
+  
+  // Check for window.ipc which is Tauri-specific
+  const hasIpc = "ipc" in window;
+  
+  // Check location protocol for tauri://
+  const isTauriProtocol = window.location.protocol === "tauri:";
+  
+  const result = hasTauriGlobal || hasTauriInvoke || canImportTauri || isTauriUserAgent || hasIpc || isTauriProtocol;
+  
+  
+  return result;
 };
 
 // Auth commands
 export const authCommands = {
-  openAuthUrl: (): Promise<string> => invoke("open_auth_url"),
-  handleAuthCallback: (callbackUrl: string): Promise<AuthResponse> =>
-    invoke("handle_auth_callback", { callbackUrl }),
+  startOAuthServer: (): Promise<number> => invoke("start_oauth_server"),
+  openAuthUrl: (port: number): Promise<string> => invoke("open_auth_url", { port }),
+  exchangeCodeForTokens: (code: string, port: number): Promise<AuthResponse> =>
+    invoke("exchange_code_for_tokens", { code, port }),
   getAuthStatus: (): Promise<boolean> => invoke("get_auth_status"),
   logout: (): Promise<string> => invoke("logout"),
 };
@@ -110,6 +142,10 @@ export const shortcutCommands = {
 
 // Event listeners
 export const eventListeners = {
+  onOAuthCallback: (callback: (event: any) => void) =>
+    listen("oauth_callback", callback),
+  onOAuthError: (callback: (event: any) => void) =>
+    listen("oauth_error", callback),
   onAuthSuccess: (callback: (event: any) => void) =>
     listen("auth-success", callback),
   onAuthLogout: (callback: (event: any) => void) =>

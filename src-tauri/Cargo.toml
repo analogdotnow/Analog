@@ -37,3 +37,5 @@ url = "2.3"
 chrono = { version = "0.4", features = ["serde"] }
 lazy_static = "1.4"
 tauri-plugin-window-state = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v2" }
+tauri-plugin-oauth = "2"
+dotenvy = "0.15"

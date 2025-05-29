@@ -20,7 +20,11 @@ export function TauriProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const checkTauri = async () => {
-      setIsDesktop(isTauri());
+      // Add a small delay to ensure Tauri is fully initialized
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      const tauriDetected = isTauri();
+      setIsDesktop(tauriDetected);
       setIsLoading(false);
     };
 

@@ -13,31 +13,57 @@ interface AuthWrapperProps {
 export function AuthWrapper({ children, fallback }: AuthWrapperProps) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const { isDesktop, auth } = useTauri();
+  const { isDesktop, auth, events } = useTauri();
   const router = useRouter();
 
+  const checkAuth = async () => {
+    try {
+      if (isDesktop) {
+        // Desktop auth check
+        const authStatus = await auth.getAuthStatus();
+        setIsAuthenticated(authStatus);
+      } else {
+        // Web auth check
+        const session = await authClient.getSession();
+        setIsAuthenticated(!!session.data);
+      }
+    } catch (error) {
+      console.error("Auth check failed:", error);
+      setIsAuthenticated(false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const checkAuth = async () => {
+    checkAuth();
+  }, [isDesktop]);
+
+  // Listen for auth success events to re-check auth status
+  useEffect(() => {
+    if (!isDesktop) return;
+
+    let unlistenAuthSuccess: (() => void) | undefined;
+
+    const setupAuthListener = async () => {
       try {
-        if (isDesktop) {
-          // Desktop auth check
-          const authStatus = await auth.getAuthStatus();
-          setIsAuthenticated(authStatus);
-        } else {
-          // Web auth check
-          const session = await authClient.getSession();
-          setIsAuthenticated(!!session.data);
-        }
+        unlistenAuthSuccess = await events.onAuthSuccess(() => {
+          // Re-check auth status when auth success event is received
+          checkAuth();
+        });
       } catch (error) {
-        console.error("Auth check failed:", error);
-        setIsAuthenticated(false);
-      } finally {
-        setIsLoading(false);
+        console.error("Failed to setup auth listener:", error);
       }
     };
 
-    checkAuth();
-  }, [isDesktop, auth]);
+    setupAuthListener();
+
+    return () => {
+      if (unlistenAuthSuccess) {
+        unlistenAuthSuccess();
+      }
+    };
+  }, [isDesktop, events]);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {

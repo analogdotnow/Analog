@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTauri } from "@/providers/tauri-provider";
@@ -16,6 +17,7 @@ export function DesktopAuth({ onAuthSuccess, onAuthError }: DesktopAuthProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     if (!isDesktop) return;
@@ -72,11 +74,48 @@ export function DesktopAuth({ onAuthSuccess, onAuthError }: DesktopAuthProps) {
       setIsLoading(true);
       setError(null);
       
-      // Open Google OAuth URL in system browser
-      await auth.openAuthUrl();
+      // Start the OAuth server and get the port
+      const port = await auth.startOAuthServer();
       
-      // The auth flow will continue in the system browser
-      // and the callback will be handled by the Rust backend
+      // Set up OAuth callback listener
+      const unlistenCallback = await events.onOAuthCallback(async (event) => {
+        try {
+          const { code, state } = event.payload;
+          
+          // Exchange code for tokens
+          const authResponse = await auth.exchangeCodeForTokens(code, port);
+          
+          if (authResponse.success) {
+            setIsAuthenticated(true);
+            setError(null);
+            onAuthSuccess?.();
+            // Redirect to calendar after successful authentication
+            router.push("/calendar");
+          } else {
+            setError(authResponse.message);
+            onAuthError?.(authResponse.message);
+          }
+        } catch (error) {
+          console.error("Failed to exchange code for tokens:", error);
+          setError("Failed to complete authentication");
+          onAuthError?.(error as string);
+        } finally {
+          setIsLoading(false);
+          unlistenCallback();
+        }
+      });
+      
+      // Set up OAuth error listener
+      const unlistenError = await events.onOAuthError((event) => {
+        console.error("OAuth error:", event.payload);
+        setError("Authentication failed");
+        onAuthError?.(event.payload);
+        setIsLoading(false);
+        unlistenError();
+      });
+      
+      // Open Google OAuth URL in system browser
+      await auth.openAuthUrl(port);
       
     } catch (error) {
       console.error("Failed to start OAuth flow:", error);
@@ -106,28 +145,8 @@ export function DesktopAuth({ onAuthSuccess, onAuthError }: DesktopAuthProps) {
     return null; // Return null for web version, use regular auth
   }
 
-  if (isAuthenticated) {
-    return (
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Authenticated</CardTitle>
-          <CardDescription>
-            You are successfully signed in to your calendar.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button
-            onClick={handleLogout}
-            disabled={isLoading}
-            variant="outline"
-            className="w-full"
-          >
-            {isLoading ? "Signing out..." : "Sign Out"}
-          </Button>
-        </CardContent>
-      </Card>
-    );
-  }
+  // If authenticated, user will be redirected by router.push("/calendar")
+  // so this component won't be visible
 
   return (
     <Card className="w-full max-w-md">

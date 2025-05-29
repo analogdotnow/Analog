@@ -12,6 +12,15 @@ mod tray;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    // Load environment variables from .env file
+    if let Err(e) = dotenvy::from_path("../.env") {
+        eprintln!("Warning: Could not load .env file: {}", e);
+        // Try alternative paths
+        if let Err(e2) = dotenvy::dotenv() {
+            eprintln!("Warning: Could not load .env from current dir: {}", e2);
+        }
+    }
+
     tauri::Builder::default()
         .plugin(tauri_plugin_log::Builder::new().build())
         .plugin(tauri_plugin_window_state::Builder::default().build())
@@ -20,9 +29,11 @@ pub fn run() {
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_oauth::init())
         .invoke_handler(tauri::generate_handler![
+            auth::start_oauth_server,
             auth::open_auth_url,
-            auth::handle_auth_callback,
+            auth::exchange_code_for_tokens,
             auth::get_auth_status,
             auth::logout,
             calendar::get_calendar_events,
