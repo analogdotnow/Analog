@@ -1,0 +1,62 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "Analog",
+  "version": "0.1.0",
+  "identifier": "com.analog.calendar",
+  "build": {
+    "frontendDist": "../apps/web/out",
+    "devUrl": "http://localhost:3000/login"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Analog Calendar",
+        "width": 1400,
+        "height": 900,
+        "minWidth": 1200,
+        "minHeight": 800,
+        "resizable": true,
+        "fullscreen": false,
+        "center": true,
+        "titleBarStyle": "Overlay"
+      }
+    ],
+    "security": {
+      "csp": null
+    },
+    "macOSPrivateApi": true
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "macOS": {
+      "entitlements": null,
+      "exceptionDomain": "",
+      "frameworks": [],
+      "providerShortName": null,
+      "signingIdentity": null
+    }
+  },
+  "plugins": {
+    "http": {
+      "scope": ["https://**", "http://localhost:3000"]
+    },
+    "shell": {
+      "open": true,
+      "scope": [
+        {
+          "name": "open-url",
+          "cmd": "open",
+          "args": ["$URL"]
+        }
+      ]
+    }
+  }
+}
