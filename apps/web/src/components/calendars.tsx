@@ -78,7 +78,7 @@ function CalendarsSkeleton() {
   const accountsData = [{ calendars: 3 }, { calendars: 2 }];
 
   return (
-    <div className="flex flex-col gap-2 py-2">
+    <div className="flex flex-col gap-2 pb-2">
       {accountsData.map((account, accountIndex) => (
         <div key={accountIndex}>
           <div className="flex items-center gap-2 px-2 py-2">
