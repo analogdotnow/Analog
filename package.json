@@ -28,6 +28,7 @@
   "packageManager": "bun@1.2.13",
   "workspaces": ["apps/*", "packages/*", "tooling/*"],
   "dependencies": {
+    "@tauri-apps/plugin-updater": "~2",
     "tauri": "^0.15.0"
   }
 }
