@@ -43,17 +43,10 @@
   },
   "plugins": {
     "http": {
-      "scope": ["https://api.github.com", "https://api.anthropic.com", "https://googleapis.com", "https://accounts.google.com", "http://localhost:3000"]
+      "scope": ["https://api.github.com/*", "https://api.anthropic.com/*", "https://googleapis.com/*", "https://accounts.google.com/*", "http://localhost:3000/*"]
     },
     "shell": {
-      "open": true,
-      "scope": [
-        {
-          "name": "open-url",
-          "cmd": "open",
-          "args": ["$URL"]
-        }
-      ]
+      "open": "^https?://.*"
     }
   }
 }

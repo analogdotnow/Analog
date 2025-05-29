@@ -34,38 +34,48 @@ export function TauriProvider({ children }: { children: ReactNode }) {
     const unlisten: (() => void)[] = [];
 
     const setupEventListeners = async () => {
-      // Listen for auth events
-      const unlistenAuthSuccess = await eventListeners.onAuthSuccess((event) => {
-        console.log("Auth success:", event.payload);
-        // Handle auth success in your app
-      });
-      unlisten.push(unlistenAuthSuccess);
+      try {
+        // Listen for auth events
+        const unlistenAuthSuccess = await eventListeners.onAuthSuccess((event) => {
+          console.log("Auth success:", event.payload);
+          // Handle auth success in your app
+        });
+        unlisten.push(unlistenAuthSuccess);
 
-      const unlistenAuthLogout = await eventListeners.onAuthLogout(() => {
-        console.log("Auth logout");
-        // Handle logout in your app
-      });
-      unlisten.push(unlistenAuthLogout);
+        const unlistenAuthLogout = await eventListeners.onAuthLogout(() => {
+          console.log("Auth logout");
+          // Handle logout in your app
+        });
+        unlisten.push(unlistenAuthLogout);
 
-      // Listen for global shortcuts
-      const unlistenGlobalShortcut = await eventListeners.onGlobalShortcut((event) => {
-        console.log("Global shortcut triggered:", event.payload);
-        handleGlobalShortcut(event.payload);
-      });
-      unlisten.push(unlistenGlobalShortcut);
+        // Listen for global shortcuts
+        const unlistenGlobalShortcut = await eventListeners.onGlobalShortcut((event) => {
+          console.log("Global shortcut triggered:", event.payload);
+          handleGlobalShortcut(event.payload);
+        });
+        unlisten.push(unlistenGlobalShortcut);
 
-      // Listen for calendar events
-      const unlistenCalendarSync = await eventListeners.onCalendarSyncCompleted(() => {
-        console.log("Calendar sync completed");
-        // Refresh calendar data
-      });
-      unlisten.push(unlistenCalendarSync);
+        // Listen for calendar events
+        const unlistenCalendarSync = await eventListeners.onCalendarSyncCompleted(() => {
+          console.log("Calendar sync completed");
+          // Refresh calendar data
+        });
+        unlisten.push(unlistenCalendarSync);
+      } catch (error) {
+        console.error("Failed to setup event listeners:", error);
+      }
     };
 
     setupEventListeners();
 
     return () => {
-      unlisten.forEach((fn) => fn());
+      unlisten.forEach((fn) => {
+        try {
+          fn();
+        } catch (error) {
+          console.error("Failed to unlisten:", error);
+        }
+      });
     };
   }, [isDesktop]);
 

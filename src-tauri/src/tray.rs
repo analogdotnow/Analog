@@ -11,6 +11,6 @@ pub fn handle_tray_event(_app: &AppHandle, _event: &str) {
     // Tray event handling placeholder
 }
 
-pub fn update_tray_menu_visibility(_app: &AppHandle, _is_window_visible: bool) {
+pub fn update_tray_menu_visibility(_app: AppHandle, _is_window_visible: bool) {
     // Tray menu update placeholder
 }

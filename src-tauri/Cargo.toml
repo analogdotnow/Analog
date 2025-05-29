@@ -1,7 +1,7 @@
 [package]
 name = "Analog"
 version = "0.1.0"
-description = "The Tauri Desktop App for Analog, Your new Calendar""
+description = "The Tauri Desktop App for Analog, Your new Calendar"
 authors = ["plyght"]
 license = ""
 repository = "https://github.com/analogdotnow/analog"
@@ -35,3 +35,4 @@ tokio = { version = "1.0", features = ["full"] }
 reqwest = { version = "0.11", features = ["json"] }
 url = "2.3"
 chrono = { version = "0.4", features = ["serde"] }
+lazy_static = "1.4"

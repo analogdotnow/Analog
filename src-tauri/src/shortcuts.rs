@@ -1,6 +1,67 @@
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use tauri::{command, AppHandle};
 use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut};
+
+fn get_key_code_map() -> HashMap<String, Code> {
+    let mut map = HashMap::new();
+
+    // Letters
+    for (letter, code) in [
+        ("a", Code::KeyA),
+        ("b", Code::KeyB),
+        ("c", Code::KeyC),
+        ("d", Code::KeyD),
+        ("e", Code::KeyE),
+        ("f", Code::KeyF),
+        ("g", Code::KeyG),
+        ("h", Code::KeyH),
+        ("i", Code::KeyI),
+        ("j", Code::KeyJ),
+        ("k", Code::KeyK),
+        ("l", Code::KeyL),
+        ("m", Code::KeyM),
+        ("n", Code::KeyN),
+        ("o", Code::KeyO),
+        ("p", Code::KeyP),
+        ("q", Code::KeyQ),
+        ("r", Code::KeyR),
+        ("s", Code::KeyS),
+        ("t", Code::KeyT),
+        ("u", Code::KeyU),
+        ("v", Code::KeyV),
+        ("w", Code::KeyW),
+        ("x", Code::KeyX),
+        ("y", Code::KeyY),
+        ("z", Code::KeyZ),
+    ] {
+        map.insert(letter.to_string(), code);
+    }
+
+    // Numbers
+    for (digit, code) in [
+        ("0", Code::Digit0),
+        ("1", Code::Digit1),
+        ("2", Code::Digit2),
+        ("3", Code::Digit3),
+        ("4", Code::Digit4),
+        ("5", Code::Digit5),
+        ("6", Code::Digit6),
+        ("7", Code::Digit7),
+        ("8", Code::Digit8),
+        ("9", Code::Digit9),
+    ] {
+        map.insert(digit.to_string(), code);
+    }
+
+    // Special keys
+    map.insert("space".to_string(), Code::Space);
+    map.insert("enter".to_string(), Code::Enter);
+    map.insert("escape".to_string(), Code::Escape);
+    map.insert("tab".to_string(), Code::Tab);
+
+    map
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ShortcutConfig {
@@ -63,49 +124,14 @@ pub async fn register_global_shortcuts(
             }
         }
 
-        // Parse key code
-        let code = match shortcut_config.key.to_lowercase().as_str() {
-            "a" => Code::KeyA,
-            "b" => Code::KeyB,
-            "c" => Code::KeyC,
-            "d" => Code::KeyD,
-            "e" => Code::KeyE,
-            "f" => Code::KeyF,
-            "g" => Code::KeyG,
-            "h" => Code::KeyH,
-            "i" => Code::KeyI,
-            "j" => Code::KeyJ,
-            "k" => Code::KeyK,
-            "l" => Code::KeyL,
-            "m" => Code::KeyM,
-            "n" => Code::KeyN,
-            "o" => Code::KeyO,
-            "p" => Code::KeyP,
-            "q" => Code::KeyQ,
-            "r" => Code::KeyR,
-            "s" => Code::KeyS,
-            "t" => Code::KeyT,
-            "u" => Code::KeyU,
-            "v" => Code::KeyV,
-            "w" => Code::KeyW,
-            "x" => Code::KeyX,
-            "y" => Code::KeyY,
-            "z" => Code::KeyZ,
-            "1" => Code::Digit1,
-            "2" => Code::Digit2,
-            "3" => Code::Digit3,
-            "4" => Code::Digit4,
-            "5" => Code::Digit5,
-            "6" => Code::Digit6,
-            "7" => Code::Digit7,
-            "8" => Code::Digit8,
-            "9" => Code::Digit9,
-            "0" => Code::Digit0,
-            "space" => Code::Space,
-            "enter" => Code::Enter,
-            "escape" => Code::Escape,
-            "tab" => Code::Tab,
-            _ => continue,
+        // Parse key code using HashMap
+        let key_map = get_key_code_map();
+        let code = match key_map.get(&shortcut_config.key.to_lowercase()) {
+            Some(code) => *code,
+            None => {
+                log::warn!("Unknown key code: {}", shortcut_config.key);
+                continue;
+            }
         };
 
         let shortcut = Shortcut::new(Some(modifiers), code);

@@ -94,7 +94,7 @@ pub async fn get_calendar_events(
         .map_err(|e| format!("Invalid start_date format: {}", e))?;
     let end_filter = DateTime::parse_from_rfc3339(&filter.end_date)
         .map_err(|e| format!("Invalid end_date format: {}", e))?;
-    
+
     let filtered_events: Vec<CalendarEvent> = mock_events
         .into_iter()
         .filter(|event| {

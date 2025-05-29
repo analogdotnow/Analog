@@ -24,8 +24,8 @@ pub struct AuthCallbackData {
 
 #[command]
 pub async fn open_auth_url(app: AppHandle) -> Result<String, String> {
-    let base_url = std::env::var("AUTH_BASE_URL")
-        .unwrap_or_else(|_| "http://localhost:3000".to_string());
+    let base_url =
+        std::env::var("AUTH_BASE_URL").unwrap_or_else(|_| "https://localhost:3000".to_string());
     let auth_url = format!("{}/api/auth/signin/google", base_url);
 
     use tauri_plugin_opener::OpenerExt;
@@ -59,10 +59,10 @@ pub async fn handle_auth_callback(
     let state = state.ok_or("Missing state parameter")?;
 
     // Exchange authorization code for tokens
-    let base_url = std::env::var("AUTH_BASE_URL")
-        .unwrap_or_else(|_| "http://localhost:3000".to_string());
+    let base_url =
+        std::env::var("AUTH_BASE_URL").unwrap_or_else(|_| "https://localhost:3000".to_string());
     let callback_endpoint = format!("{}/api/auth/callback/google", base_url);
-    
+
     let client = reqwest::Client::new();
     let response = client
         .post(&callback_endpoint)
@@ -72,7 +72,9 @@ pub async fn handle_auth_callback(
         }))
         .send()
         .await
-        .map_err(|e| format!("Failed to exchange code for tokens: {}", e))?;
+        .map_err(|e| format!("Failed to exchange code for tokens: {}", e))?
+        .error_for_status()
+        .map_err(|e| format!("HTTP error: {}", e))?;
 
     let auth_response: AuthResponse = response
         .json()

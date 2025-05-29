@@ -15,6 +15,9 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
+        .plugin(tauri_plugin_http::init())
+        .plugin(tauri_plugin_notification::init())
+        .plugin(tauri_plugin_shell::init())
         .invoke_handler(tauri::generate_handler![
             auth::open_auth_url,
             auth::handle_auth_callback,
@@ -50,25 +53,24 @@ pub fn run() {
             // Set up system tray (placeholder)
             tray::create_system_tray(app.handle())?;
 
-            // Set up window properties
-            let window = app
-                .get_webview_window(constants::MAIN_WINDOW)
-                .ok_or_else(|| tauri::Error::WindowNotFound)?;
-
+            // Set up window properties for macOS
             #[cfg(target_os = "macos")]
             {
-                window.set_title_bar_style(tauri::TitleBarStyle::Overlay)?;
+                if let Some(window) = app.get_webview_window(constants::MAIN_WINDOW) {
+                    if let Err(e) = window.set_title_bar_style(tauri::TitleBarStyle::Overlay) {
+                        log::error!("Failed to set title bar style: {}", e);
+                    }
+                }
             }
 
-            // Listen for window events to update tray
-            let app_handle = app.handle().clone();
-            window.on_window_event(move |event| {
-                if let tauri::WindowEvent::Focused(focused) = event {
-                    tray::update_tray_menu_visibility(&app_handle, *focused);
-                }
-            });
-
             Ok(())
+        })
+        .on_window_event(|window, event| {
+            // Handle window events
+            if let tauri::WindowEvent::Focused(focused) = event {
+                let app_handle = window.app_handle();
+                tray::update_tray_menu_visibility(app_handle.clone(), *focused);
+            }
         })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
