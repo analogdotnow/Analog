@@ -13,8 +13,8 @@
     "db:migrate": "dotenv -- turbo run db:migrate",
     "db:push": "dotenv -- turbo run db:push",
     "db:studio": "dotenv -- turbo run db:studio",
-    "tauri:dev": "bunx tauri dev",
-    "tauri:build": "bunx tauri build",
+    "tauri:dev": "bun tauri dev",
+    "tauri:build": "bun tauri build",
     "tauri:check": "cd src-tauri && cargo check"
   },
   "devDependencies": {

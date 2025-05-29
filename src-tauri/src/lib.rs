@@ -54,8 +54,15 @@ pub fn run() {
             // Set up system tray (placeholder)
             tray::create_system_tray(app.handle())?;
 
+            // Debug: List all available windows
+            let windows: Vec<String> = app.webview_windows().keys().cloned().collect();
+            log::info!("Available windows: {:?}", windows);
+            log::info!("Looking for window with label: '{}'", constants::MAIN_WINDOW);
+
             // Set up window properties for macOS and restore window state
             if let Some(window) = app.get_webview_window(constants::MAIN_WINDOW) {
+                log::info!("Found main window, setting up...");
+                
                 #[cfg(target_os = "macos")]
                 {
                     if let Err(e) = window.set_title_bar_style(tauri::TitleBarStyle::Overlay) {
@@ -64,8 +71,21 @@ pub fn run() {
                 }
 
                 // Restore window state
+                log::info!("Attempting to restore window state...");
                 if let Err(e) = window_state::restore_window_state(&window) {
                     log::error!("Failed to restore window state: {}", e);
+                } else {
+                    log::info!("Window state restoration completed");
+                }
+            } else {
+                log::error!("Could not find window with label: '{}'", constants::MAIN_WINDOW);
+                
+                // Try to get the first available window as fallback
+                if let Some((label, window)) = app.webview_windows().iter().next() {
+                    log::info!("Using fallback window: '{}'", label);
+                    if let Err(e) = window_state::restore_window_state(window) {
+                        log::error!("Failed to restore window state on fallback window: {}", e);
+                    }
                 }
             }
 
@@ -75,16 +95,19 @@ pub fn run() {
             // Handle window events
             match event {
                 tauri::WindowEvent::Focused(focused) => {
+                    log::debug!("Window focused: {}", focused);
                     let app_handle = window.app_handle();
                     tray::update_tray_menu_visibility(app_handle.clone(), *focused);
                 }
                 tauri::WindowEvent::Resized(_) | tauri::WindowEvent::Moved(_) => {
+                    log::debug!("Window resized or moved, queuing save...");
                     // Save window state when window is resized or moved
                     if let Err(e) = window_state::save_window_state(window) {
                         log::error!("Failed to save window state: {}", e);
                     }
                 }
                 tauri::WindowEvent::CloseRequested { .. } => {
+                    log::info!("Window close requested, saving state immediately...");
                     // Save window state immediately when window is closed
                     if let Err(e) = window_state::save_window_state_immediate(window) {
                         log::error!("Failed to save window state on close: {}", e);
