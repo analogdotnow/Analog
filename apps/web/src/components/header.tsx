@@ -1,5 +1,5 @@
 import { Discord, GitHub, Logo, Twitter } from "@/components/icons";
-import { buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { ModeToggle } from "@/components/ui/theme-toggle";
 import { cn } from "@/lib/utils";
 
@@ -10,35 +10,38 @@ export function Header() {
         <Logo />
 
         <nav className="flex flex-row items-center justify-center gap-1.5">
-          <a
-            href="https://github.com/jeanmeijer/analog"
-            className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <GitHub className="fill-primary" />
-            <span className="sr-only">GitHub</span>
-          </a>
+          <Button asChild variant="ghost" size="sm">
+            <a
+              href="https://github.com/jeanmeijer/analog"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <GitHub className="fill-primary" />
+              <span className="sr-only">GitHub</span>
+            </a>
+          </Button>
 
-          <a
-            href="https://x.com/analogdotnow"
-            className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Twitter className="fill-primary" />
-            <span className="sr-only">Twitter</span>
-          </a>
+          <Button asChild variant="ghost" size="sm">
+            <a
+              href="https://x.com/analogdotnow"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Twitter className="fill-primary" />
+              <span className="sr-only">Twitter</span>
+            </a>
+          </Button>
 
-          <a
-            href="https://discord.gg/K3AsABDKUm"
-            className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Discord className="fill-primary" />
-            <span className="sr-only">Discord</span>
-          </a>
+          <Button asChild variant="ghost" size="sm">
+            <a
+              href="https://discord.gg/K3AsABDKUm"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Discord className="fill-primary" />
+              <span className="sr-only">Discord</span>
+            </a>
+          </Button>
 
           <ModeToggle />
         </nav>
