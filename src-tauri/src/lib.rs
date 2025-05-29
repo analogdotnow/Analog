@@ -9,6 +9,7 @@ mod navigation;
 mod notifications;
 mod shortcuts;
 mod tray;
+mod window_state;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -53,13 +54,18 @@ pub fn run() {
             // Set up system tray (placeholder)
             tray::create_system_tray(app.handle())?;
 
-            // Set up window properties for macOS
-            #[cfg(target_os = "macos")]
-            {
-                if let Some(window) = app.get_webview_window(constants::MAIN_WINDOW) {
+            // Set up window properties for macOS and restore window state
+            if let Some(window) = app.get_webview_window(constants::MAIN_WINDOW) {
+                #[cfg(target_os = "macos")]
+                {
                     if let Err(e) = window.set_title_bar_style(tauri::TitleBarStyle::Overlay) {
                         log::error!("Failed to set title bar style: {}", e);
                     }
+                }
+
+                // Restore window state
+                if let Err(e) = window_state::restore_window_state(&window) {
+                    log::error!("Failed to restore window state: {}", e);
                 }
             }
 
@@ -67,9 +73,24 @@ pub fn run() {
         })
         .on_window_event(|window, event| {
             // Handle window events
-            if let tauri::WindowEvent::Focused(focused) = event {
-                let app_handle = window.app_handle();
-                tray::update_tray_menu_visibility(app_handle.clone(), *focused);
+            match event {
+                tauri::WindowEvent::Focused(focused) => {
+                    let app_handle = window.app_handle();
+                    tray::update_tray_menu_visibility(app_handle.clone(), *focused);
+                }
+                tauri::WindowEvent::Resized(_) | tauri::WindowEvent::Moved(_) => {
+                    // Save window state when window is resized or moved
+                    if let Err(e) = window_state::save_window_state(window) {
+                        log::error!("Failed to save window state: {}", e);
+                    }
+                }
+                tauri::WindowEvent::CloseRequested { .. } => {
+                    // Save window state immediately when window is closed
+                    if let Err(e) = window_state::save_window_state_immediate(window) {
+                        log::error!("Failed to save window state on close: {}", e);
+                    }
+                }
+                _ => {}
             }
         })
         .run(tauri::generate_context!())
