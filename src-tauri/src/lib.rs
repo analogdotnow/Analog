@@ -9,11 +9,12 @@ mod navigation;
 mod notifications;
 mod shortcuts;
 mod tray;
-mod window_state;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_log::Builder::new().build())
+        .plugin(tauri_plugin_window_state::Builder::default().build())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_http::init())
@@ -54,37 +55,12 @@ pub fn run() {
             // Set up system tray (placeholder)
             tray::create_system_tray(app.handle())?;
 
-            // Debug: List all available windows
-            let windows: Vec<String> = app.webview_windows().keys().cloned().collect();
-            log::info!("Available windows: {:?}", windows);
-            log::info!("Looking for window with label: '{}'", constants::MAIN_WINDOW);
-
-            // Set up window properties for macOS and restore window state
-            if let Some(window) = app.get_webview_window(constants::MAIN_WINDOW) {
-                log::info!("Found main window, setting up...");
-                
-                #[cfg(target_os = "macos")]
-                {
+            // Set up window properties for macOS
+            #[cfg(target_os = "macos")]
+            {
+                if let Some(window) = app.get_webview_window(constants::MAIN_WINDOW) {
                     if let Err(e) = window.set_title_bar_style(tauri::TitleBarStyle::Overlay) {
                         log::error!("Failed to set title bar style: {}", e);
-                    }
-                }
-
-                // Restore window state
-                log::info!("Attempting to restore window state...");
-                if let Err(e) = window_state::restore_window_state(&window) {
-                    log::error!("Failed to restore window state: {}", e);
-                } else {
-                    log::info!("Window state restoration completed");
-                }
-            } else {
-                log::error!("Could not find window with label: '{}'", constants::MAIN_WINDOW);
-                
-                // Try to get the first available window as fallback
-                if let Some((label, window)) = app.webview_windows().iter().next() {
-                    log::info!("Using fallback window: '{}'", label);
-                    if let Err(e) = window_state::restore_window_state(window) {
-                        log::error!("Failed to restore window state on fallback window: {}", e);
                     }
                 }
             }
@@ -93,27 +69,9 @@ pub fn run() {
         })
         .on_window_event(|window, event| {
             // Handle window events
-            match event {
-                tauri::WindowEvent::Focused(focused) => {
-                    log::debug!("Window focused: {}", focused);
-                    let app_handle = window.app_handle();
-                    tray::update_tray_menu_visibility(app_handle.clone(), *focused);
-                }
-                tauri::WindowEvent::Resized(_) | tauri::WindowEvent::Moved(_) => {
-                    log::debug!("Window resized or moved, queuing save...");
-                    // Save window state when window is resized or moved
-                    if let Err(e) = window_state::save_window_state(window) {
-                        log::error!("Failed to save window state: {}", e);
-                    }
-                }
-                tauri::WindowEvent::CloseRequested { .. } => {
-                    log::info!("Window close requested, saving state immediately...");
-                    // Save window state immediately when window is closed
-                    if let Err(e) = window_state::save_window_state_immediate(window) {
-                        log::error!("Failed to save window state on close: {}", e);
-                    }
-                }
-                _ => {}
+            if let tauri::WindowEvent::Focused(focused) = event {
+                let app_handle = window.app_handle();
+                tray::update_tray_menu_visibility(app_handle.clone(), *focused);
             }
         })
         .run(tauri::generate_context!())
