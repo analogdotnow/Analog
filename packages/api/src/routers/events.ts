@@ -4,11 +4,15 @@ import { z } from "zod";
 import { auth } from "@repo/auth/server";
 
 import { GoogleCalendarProvider } from "../providers/google-calendar";
-import { createTRPCRouter, protectedProcedure } from "../trpc";
+import {
+  activeProviderProcedure,
+  createTRPCRouter,
+  protectedProcedure,
+} from "../trpc";
 import { dateHelpers } from "../utils/date-helpers";
 
 export const eventsRouter = createTRPCRouter({
-  list: protectedProcedure
+  list: activeProviderProcedure
     .input(
       z.object({
         calendarIds: z.array(z.string()).default([]),
@@ -17,31 +21,17 @@ export const eventsRouter = createTRPCRouter({
       }),
     )
     .query(async ({ ctx, input }) => {
-      const { accessToken } = await auth.api.getAccessToken({
-        body: {
-          providerId: "google",
-        },
-        headers: ctx.headers,
-      });
-
-      if (!accessToken) {
-        throw new TRPCError({ code: "UNAUTHORIZED" });
-      }
-
-      const client = new GoogleCalendarProvider({
-        accessToken,
-      });
-
       let calendarIds = input.calendarIds;
 
       if (calendarIds.length === 0) {
-        const calendars = await client.calendars();
+        const calendars = await ctx.calendarClient.calendars();
 
+        // @ts-expect-error fuck microsoft
         calendarIds = calendars
-          .filter(
-            (cal) =>
-              cal.primary || cal.id?.includes("@group.calendar.google.com"),
-          )
+          // .filter(
+          //   (cal) =>
+          //     cal.primary || cal.id?.includes("@group.calendar.google.com"),
+          // )
           .map((cal) => cal.id)
           .filter(Boolean);
       }
@@ -49,7 +39,7 @@ export const eventsRouter = createTRPCRouter({
       const allEvents = await Promise.all(
         calendarIds.map(async (calendarId) => {
           try {
-            const events = await client.events(
+            const events = await ctx.calendarClient.events(
               calendarId,
               input.timeMin,
               input.timeMax,
@@ -74,7 +64,7 @@ export const eventsRouter = createTRPCRouter({
       return { events };
     }),
 
-  create: protectedProcedure
+  create: activeProviderProcedure
     .input(
       z.object({
         calendarId: z.string(),
@@ -87,27 +77,16 @@ export const eventsRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const { accessToken } = await auth.api.getAccessToken({
-        body: {
-          providerId: "google",
-        },
-        headers: ctx.headers,
-      });
-
-      if (!accessToken) {
-        throw new TRPCError({ code: "UNAUTHORIZED" });
-      }
-
-      const client = new GoogleCalendarProvider({
-        accessToken,
-      });
-
-      const googleParams = dateHelpers.prepareGoogleParams(input);
-      const event = await client.createEvent(input.calendarId, googleParams);
+      const event = await ctx.calendarClient.createEvent(
+        input.calendarId,
+        dateHelpers.prepareGoogleParams(input),
+      );
+      // const googleParams = dateHelpers.prepareGoogleParams(input);
+      // const event = await client.createEvent(input.calendarId, googleParams);
       return { event };
     }),
 
-  update: protectedProcedure
+  update: activeProviderProcedure
     .input(
       z.object({
         calendarId: z.string(),
@@ -121,32 +100,18 @@ export const eventsRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const { accessToken } = await auth.api.getAccessToken({
-        body: {
-          providerId: "google",
-        },
-        headers: ctx.headers,
-      });
-
-      if (!accessToken) {
-        throw new TRPCError({ code: "UNAUTHORIZED" });
-      }
-
-      const client = new GoogleCalendarProvider({
-        accessToken,
-      });
-
-      const googleParams = dateHelpers.prepareGoogleParams(input);
-      const event = await client.updateEvent(
+      // const params = dateHelpers.prepareGoogleParams(input);
+      const params = dateHelpers.prepareMicrosoftParams(input);
+      const event = await ctx.calendarClient.updateEvent(
         input.calendarId,
         input.eventId,
-        googleParams,
+        params,
       );
 
       return { event };
     }),
 
-  delete: protectedProcedure
+  delete: activeProviderProcedure
     .input(
       z.object({
         calendarId: z.string(),
@@ -154,22 +119,7 @@ export const eventsRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const { accessToken } = await auth.api.getAccessToken({
-        body: {
-          providerId: "google",
-        },
-        headers: ctx.headers,
-      });
-
-      if (!accessToken) {
-        throw new TRPCError({ code: "UNAUTHORIZED" });
-      }
-
-      const client = new GoogleCalendarProvider({
-        accessToken,
-      });
-
-      await client.deleteEvent(input.calendarId, input.eventId);
+      await ctx.calendarClient.deleteEvent(input.calendarId, input.eventId);
       return { success: true };
     }),
 });

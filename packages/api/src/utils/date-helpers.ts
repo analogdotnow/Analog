@@ -51,6 +51,44 @@ export const dateHelpers = {
     }
   },
 
+  prepareDateParams(
+    start: string | { dateTime: string; timeZone: string },
+    end: string | { dateTime: string; timeZone: string },
+    allDay: boolean,
+  ) {
+    const startDateTime = typeof start === "string" ? start : start.dateTime;
+    const endDateTime = typeof end === "string" ? end : end.dateTime;
+    const timeZone = typeof start === "object" ? start.timeZone : "UTC";
+
+    if (allDay) {
+      const startDate = startDateTime.substring(0, 10);
+      let endDate = endDateTime.substring(0, 10);
+
+      const startDateObj = new Date(startDate);
+      const endDateObj = new Date(endDate);
+
+      // If same day, extend to next day for all-day events
+      if (startDateObj.getTime() === endDateObj.getTime()) {
+        const nextDay = addDays(endDateObj, 1);
+        endDate = `${nextDay.getFullYear()}-${String(nextDay.getMonth() + 1).padStart(2, "0")}-${String(nextDay.getDate()).padStart(2, "0")}`;
+      } else {
+        // For multi-day events, add one day to end date
+        const nextDay = addDays(endDateObj, 1);
+        endDate = `${nextDay.getFullYear()}-${String(nextDay.getMonth() + 1).padStart(2, "0")}-${String(nextDay.getDate()).padStart(2, "0")}`;
+      }
+
+      return {
+        start: { date: startDate },
+        end: { date: endDate },
+      };
+    } else {
+      return {
+        start: { dateTime: startDateTime, timeZone: timeZone },
+        end: { dateTime: endDateTime, timeZone: timeZone },
+      };
+    }
+  },
+
   prepareGoogleParams(input: {
     title?: string;
     description?: string;
@@ -66,27 +104,57 @@ export const dateHelpers = {
     if (input.location !== undefined) params.location = input.location;
 
     if (input.start && input.end) {
-      if (input.allDay) {
-        const startDate = input.start.substring(0, 10);
-        let endDate = input.end.substring(0, 10);
+      const dateParams = this.prepareDateParams(
+        input.start,
+        input.end,
+        input.allDay || false,
+      );
+      params.start = dateParams.start;
+      params.end = dateParams.end;
+    }
 
-        const startDateObj = new Date(startDate);
-        const endDateObj = new Date(endDate);
+    return params;
+  },
 
-        if (startDateObj.getTime() === endDateObj.getTime()) {
-          const nextDay = addDays(endDateObj, 1);
-          endDate = `${nextDay.getFullYear()}-${String(nextDay.getMonth() + 1).padStart(2, "0")}-${String(nextDay.getDate()).padStart(2, "0")}`;
-        } else {
-          const nextDay = addDays(endDateObj, 1);
-          endDate = `${nextDay.getFullYear()}-${String(nextDay.getMonth() + 1).padStart(2, "0")}-${String(nextDay.getDate()).padStart(2, "0")}`;
-        }
+  prepareMicrosoftParams(input: {
+    title?: string;
+    description?: string;
+    location?: string;
+    start?: string;
+    end?: string;
+    allDay?: boolean;
+  }) {
+    const params: any = {};
 
-        params.start = { date: startDate };
-        params.end = { date: endDate };
-      } else {
-        params.start = { dateTime: input.start, timeZone: "UTC" };
-        params.end = { dateTime: input.end, timeZone: "UTC" };
-      }
+    if (input.title !== undefined) params.subject = input.title;
+    if (input.description !== undefined) {
+      params.body = input.description
+        ? {
+            contentType: "text",
+            content: input.description,
+          }
+        : undefined;
+    }
+    if (input.location !== undefined) {
+      params.location = input.location
+        ? {
+            displayName: input.location,
+          }
+        : undefined;
+    }
+
+    if (input.start && input.end) {
+      const dateParams = this.prepareDateParams(
+        input.start,
+        input.end,
+        input.allDay || false,
+      );
+      params.start = dateParams.start;
+      params.end = dateParams.end;
+    }
+
+    if (input.allDay !== undefined) {
+      params.isAllDay = input.allDay;
     }
 
     return params;

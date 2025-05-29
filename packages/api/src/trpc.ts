@@ -6,6 +6,8 @@ import { ZodError } from "zod";
 import { auth } from "@repo/auth/server";
 import { db } from "@repo/db";
 
+import { MicrosoftCalendarProvider } from "./providers/microsoft-calendar";
+
 export const createTRPCContext = async (opts: { headers: Headers }) => {
   const session = await auth.api.getSession({
     headers: opts.headers,
@@ -52,3 +54,32 @@ export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
     },
   });
 });
+
+export const activeProviderProcedure = protectedProcedure.use(
+  async ({ ctx, next }) => {
+    const { accessToken } = await auth.api.getAccessToken({
+      body: {
+        providerId: "microsoft",
+      },
+      headers: ctx.headers,
+    });
+
+    if (!accessToken) {
+      throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
+
+    // const client = new GoogleCalendarProvider({
+    //   accessToken,
+    // });
+
+    const client = new MicrosoftCalendarProvider({
+      accessToken,
+    });
+
+    return next({
+      ctx: {
+        calendarClient: client,
+      },
+    });
+  },
+);

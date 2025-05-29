@@ -41,6 +41,23 @@ export function SignInForm({ redirectUrl = "/calendar" }: SignInFormProps) {
     );
   };
 
+  const signInWithMicrosoft = async () => {
+    await authClient.signIn.social(
+      {
+        provider: "microsoft",
+        callbackURL: redirectUrl,
+      },
+      {
+        onRequest: () => {
+          setLoading(true);
+        },
+        onResponse: () => {
+          setLoading(false);
+        },
+      },
+    );
+  };
+
   return (
     <Card className="max-w-md border-none shadow-none">
       <CardHeader>
@@ -67,6 +84,14 @@ export function SignInForm({ redirectUrl = "/calendar" }: SignInFormProps) {
             >
               <Google />
               Continue with Google
+            </Button>
+            <Button
+              variant="outline"
+              className={cn("w-full gap-2")}
+              disabled={loading}
+              onClick={signInWithMicrosoft}
+            >
+              Continue with Microsoft
             </Button>
           </div>
         </div>

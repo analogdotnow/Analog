@@ -8,6 +8,8 @@ import type {
 } from "@microsoft/microsoft-graph-types";
 
 import { CALENDAR_DEFAULTS } from "../constants/calendar";
+import { dateHelpers } from "../utils/date-helpers";
+import type { CreateEventInput, UpdateEventInput } from "./shared";
 
 /**
  * Configuration options for the Microsoft Calendar provider
@@ -117,13 +119,9 @@ export class MicrosoftCalendarProvider {
    * @param calendarId - The calendar identifier
    * @param timeMin - Optional start time filter (ISO 8601 string)
    * @param timeMax - Optional end time filter (ISO 8601 string)
-   * @returns Array of Microsoft Graph Event objects
+   * @returns Array of transformed Event objects
    */
-  async events(
-    calendarId: string,
-    timeMin?: string,
-    timeMax?: string,
-  ): Promise<Event[]> {
+  async events(calendarId: string, timeMin?: string, timeMax?: string) {
     const defaultTimeMin = new Date();
     const defaultTimeMax = new Date(
       Date.now() +
@@ -147,29 +145,54 @@ export class MicrosoftCalendarProvider {
       .top(CALENDAR_DEFAULTS.MAX_EVENTS_PER_CALENDAR)
       .get();
 
-    return response.value;
+    return (response.value as Event[]).map((event: Event) =>
+      this.transformMicrosoftEvent(event),
+    );
   }
 
   /**
    * Creates a new event in the specified calendar
    *
    * @param calendarId - The calendar identifier
-   * @param eventData - Event data using Microsoft Graph Event type
-   * @returns The created Microsoft Graph Event object
+   * @param event - Event data using CreateEventInput interface
+   * @returns The created transformed Event object
    */
-  async createEvent(
-    calendarId: string,
-    eventData: Omit<
+  async createEvent(calendarId: string, event: CreateEventInput) {
+    const microsoftEvent: Omit<
       Event,
       "id" | "changeKey" | "createdDateTime" | "lastModifiedDateTime"
-    >,
-  ): Promise<Event> {
+    > = {
+      subject: event.title,
+      body: event.description
+        ? {
+            contentType: "text",
+            content: event.description,
+          }
+        : undefined,
+      start: event.start,
+      end: event.end,
+      isAllDay: event.allDay || false,
+      location: event.location
+        ? {
+            displayName: event.location,
+          }
+        : undefined,
+    };
+
+    console.log("start", event.start);
+    console.log("end", event.end);
+    console.log({ event, microsoftEvent });
+
     const apiPath =
       calendarId === "primary"
         ? "/me/calendar/events"
         : `/me/calendars/${calendarId}/events`;
 
-    return (await this.graphClient.api(apiPath).post(eventData)) as Event;
+    const createdEvent = (await this.graphClient
+      .api(apiPath)
+      .post(microsoftEvent)) as Event;
+
+    return this.transformMicrosoftEvent(createdEvent);
   }
 
   /**
@@ -177,20 +200,53 @@ export class MicrosoftCalendarProvider {
    *
    * @param calendarId - The calendar identifier
    * @param eventId - The event identifier
-   * @param eventData - Partial event data for updates using Microsoft Graph Event type
-   * @returns The updated Microsoft Graph Event object
+   * @param event - Partial event data for updates using UpdateEventInput interface
+   * @returns The updated transformed Event object
    */
   async updateEvent(
     calendarId: string,
     eventId: string,
-    eventData: Partial<Event>,
-  ): Promise<Event> {
+    event: UpdateEventInput,
+  ) {
+    const microsoftEvent: Partial<Event> = {};
+
+    if (event.title !== undefined) {
+      microsoftEvent.subject = event.title;
+    }
+    if (event.description !== undefined) {
+      microsoftEvent.body = event.description
+        ? {
+            contentType: "text",
+            content: event.description,
+          }
+        : undefined;
+    }
+    if (event.start !== undefined) {
+      microsoftEvent.start = event.start;
+    }
+    if (event.end !== undefined) {
+      microsoftEvent.end = event.end;
+    }
+    if (event.allDay !== undefined) {
+      microsoftEvent.isAllDay = event.allDay;
+    }
+    if (event.location !== undefined) {
+      microsoftEvent.location = event.location
+        ? {
+            displayName: event.location,
+          }
+        : undefined;
+    }
+
     const apiPath =
       calendarId === "primary"
         ? `/me/calendar/events/${eventId}`
         : `/me/calendars/${calendarId}/events/${eventId}`;
 
-    return (await this.graphClient.api(apiPath).patch(eventData)) as Event;
+    const updatedEvent = (await this.graphClient
+      .api(apiPath)
+      .patch(microsoftEvent)) as Event;
+    return this.transformMicrosoftEvent(updatedEvent);
   }
 
   /**
@@ -243,9 +299,11 @@ export class MicrosoftCalendarProvider {
       }>;
     };
   }): Promise<MeetingTimeSuggestionsResult> {
+    const findMeetingTimesRequest: typeof requestData = requestData;
+
     return (await this.graphClient
       .api("/me/findMeetingTimes")
-      .post(requestData)) as MeetingTimeSuggestionsResult;
+      .post(findMeetingTimesRequest)) as MeetingTimeSuggestionsResult;
   }
 
   /**
@@ -260,9 +318,11 @@ export class MicrosoftCalendarProvider {
     endTime: { dateTime: string; timeZone: string };
     availabilityViewInterval?: number;
   }): Promise<ScheduleInformation[]> {
+    const getScheduleRequest: typeof requestData = requestData;
+
     const response = await this.graphClient
       .api("/me/calendar/getSchedule")
-      .post(requestData);
+      .post(getScheduleRequest);
 
     return response.value;
   }
@@ -273,13 +333,9 @@ export class MicrosoftCalendarProvider {
    * @param calendarId - The calendar identifier
    * @param startTime - Start time for the calendar view
    * @param endTime - End time for the calendar view
-   * @returns Array of Microsoft Graph Event objects including expanded recurring instances
+   * @returns Array of transformed Event objects including expanded recurring instances
    */
-  async calendarView(
-    calendarId: string,
-    startTime: string,
-    endTime: string,
-  ): Promise<Event[]> {
+  async calendarView(calendarId: string, startTime: string, endTime: string) {
     const apiPath =
       calendarId === "primary"
         ? "/me/calendar/calendarView"
@@ -290,7 +346,9 @@ export class MicrosoftCalendarProvider {
       .query({ startDateTime: startTime, endDateTime: endTime })
       .get();
 
-    return response.value;
+    return (response.value as Event[]).map((event: Event) =>
+      this.transformMicrosoftEvent(event),
+    );
   }
 
   /**
@@ -298,9 +356,9 @@ export class MicrosoftCalendarProvider {
    *
    * @param startTime - Start time for the reminder view
    * @param endTime - End time for the reminder view
-   * @returns Array of Microsoft Graph Event objects with reminder information
+   * @returns Array of transformed Event objects with reminder information
    */
-  async reminderView(startTime: string, endTime: string): Promise<Event[]> {
+  async reminderView(startTime: string, endTime: string) {
     const response = await this.graphClient
       .api("/me/calendar/events")
       .filter(
@@ -309,6 +367,52 @@ export class MicrosoftCalendarProvider {
       .select("id,subject,start,end,reminderMinutesBeforeStart,isReminderOn")
       .get();
 
-    return response.value.filter((event: Event) => event.isReminderOn);
+    return (response.value as Event[])
+      .filter((event: Event) => event.isReminderOn)
+      .map((event: Event) => this.transformMicrosoftEvent(event));
+  }
+
+  /**
+   * Transforms a Microsoft Graph Event object into a standardized format
+   *
+   * @param microsoftEvent - The Microsoft Graph Event object
+   * @returns Transformed event object with consistent property names
+   */
+  private transformMicrosoftEvent(microsoftEvent: Event) {
+    const isAllDay = microsoftEvent.isAllDay || false;
+
+    // Parse start and end times
+    const start = microsoftEvent.start?.dateTime
+      ? new Date(microsoftEvent.start.dateTime)
+      : new Date();
+
+    const end = microsoftEvent.end?.dateTime
+      ? new Date(microsoftEvent.end.dateTime)
+      : new Date();
+
+    return {
+      id: microsoftEvent.id || "",
+      title: microsoftEvent.subject || "Untitled Event",
+      description: microsoftEvent.body?.content || microsoftEvent.bodyPreview,
+      start,
+      end,
+      allDay: isAllDay,
+      location:
+        microsoftEvent.location?.displayName ||
+        microsoftEvent.location?.address?.street,
+      status: microsoftEvent.showAs,
+      webLink: microsoftEvent.webLink,
+      importance: microsoftEvent.importance,
+      sensitivity: microsoftEvent.sensitivity,
+      reminderMinutesBeforeStart: microsoftEvent.reminderMinutesBeforeStart,
+      isReminderOn: microsoftEvent.isReminderOn,
+      organizer: microsoftEvent.organizer?.emailAddress,
+      attendees: microsoftEvent.attendees?.map((attendee) => ({
+        name: attendee.emailAddress?.name,
+        email: attendee.emailAddress?.address,
+        status: attendee.status?.response,
+        type: attendee.type,
+      })),
+    };
   }
 }
