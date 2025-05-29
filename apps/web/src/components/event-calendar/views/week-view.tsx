@@ -284,6 +284,41 @@ function WeekViewTimeColumn() {
   );
 }
 
+interface PositionedEventProps {
+  positionedEvent: PositionedEvent;
+  onEventClick: (event: CalendarEvent, e: React.MouseEvent) => void;
+}
+
+function PositionedEvent({
+  positionedEvent,
+  onEventClick,
+}: PositionedEventProps) {
+  return (
+    <div
+      key={positionedEvent.event.id}
+      className="absolute z-10 px-0.5"
+      style={{
+        top: `${positionedEvent.top}px`,
+        height: `${positionedEvent.height}px`,
+        left: `${positionedEvent.left * 100}%`,
+        width: `${positionedEvent.width * 100}%`,
+        zIndex: positionedEvent.zIndex,
+      }}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div className="size-full">
+        <DraggableEvent
+          event={positionedEvent.event}
+          view="week"
+          onClick={(e) => onEventClick(positionedEvent.event, e)}
+          showTime
+          height={positionedEvent.height}
+        />
+      </div>
+    </div>
+  );
+}
+
 function WeekViewDayColumns() {
   const { allDays, visibleDays, eventCollection, currentDate, onEventClick } =
     useWeekViewContext();
@@ -311,35 +346,18 @@ function WeekViewDayColumns() {
           <div
             key={day.toString()}
             className={cn(
-              "relative grid auto-cols-fr overflow-hidden border-r border-border/70 last:border-r-0",
-              !isDayVisible && "w-0",
+              "relative grid auto-cols-fr border-r border-border/70 last:border-r-0",
+              !isDayVisible && "w-0 overflow-hidden",
             )}
             data-today={isToday(day) || undefined}
             style={{ visibility: isDayVisible ? "visible" : "hidden" }}
           >
             {positionedEvents.map((positionedEvent: PositionedEvent) => (
-              <div
+              <PositionedEvent
                 key={positionedEvent.event.id}
-                className="absolute z-10 px-0.5"
-                style={{
-                  top: `${positionedEvent.top}px`,
-                  height: `${positionedEvent.height}px`,
-                  left: `${positionedEvent.left * 100}%`,
-                  width: `${positionedEvent.width * 100}%`,
-                  zIndex: positionedEvent.zIndex,
-                }}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div className="size-full">
-                  <DraggableEvent
-                    event={positionedEvent.event}
-                    view="week"
-                    onClick={(e) => onEventClick(positionedEvent.event, e)}
-                    showTime
-                    height={positionedEvent.height}
-                  />
-                </div>
-              </div>
+                positionedEvent={positionedEvent}
+                onEventClick={onEventClick}
+              />
             ))}
 
             {currentTimeVisible && isToday(day) && (
