@@ -18,6 +18,8 @@
     "zod": "^3.24.4"
   },
   "dependencies": {
+    "@microsoft/microsoft-graph-client": "^3.0.7",
+    "@microsoft/microsoft-graph-types": "^2.40.0",
     "@repo/auth": "workspace:*",
     "@repo/db": "workspace:*",
     "@repo/env": "workspace:*",

@@ -13,7 +13,8 @@
         "VERCEL_URL",
         "NEXT_PUBLIC_VERCEL_URL",
         "UPSTASH_REDIS_REST_URL",
-        "UPSTASH_REDIS_REST_TOKEN"
+        "UPSTASH_REDIS_REST_TOKEN",
+        "MICROSOFT_GRAPH_TOKEN"
       ],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
@@ -40,18 +41,18 @@
     },
     "db:migrate": {
       "cache": false,
-      "env": [ "DATABASE_URL" ],
+      "env": ["DATABASE_URL"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"]
     },
     "db:push": {
       "cache": false,
-      "env": [ "DATABASE_URL" ],
+      "env": ["DATABASE_URL"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"]
     },
     "db:studio": {
       "persistent": true,
       "cache": false,
-      "env": [ "DATABASE_URL" ],
+      "env": ["DATABASE_URL"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"]
     }
   }
