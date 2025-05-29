@@ -1,0 +1,1 @@
+pub const MAIN_WINDOW: &str = "main";

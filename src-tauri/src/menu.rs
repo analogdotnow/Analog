@@ -1,11 +1,14 @@
 use tauri::{AppHandle, Emitter, Manager};
 
+use crate::constants::MAIN_WINDOW;
+
 pub fn create_app_menu(_app: &AppHandle) -> Result<(), tauri::Error> {
     // Menu creation will be implemented when menu API is stable
     log::info!("App menu setup placeholder");
     Ok(())
 }
 
+#[allow(dead_code)]
 pub fn handle_menu_event(app: &AppHandle, event: &str) {
     match event {
         "about" => {
@@ -15,7 +18,7 @@ pub fn handle_menu_event(app: &AppHandle, event: &str) {
             app.exit(0);
         }
         "hide" => {
-            if let Some(window) = app.get_webview_window("main") {
+            if let Some(window) = app.get_webview_window(MAIN_WINDOW) {
                 let _ = window.hide();
             }
         }
@@ -41,12 +44,12 @@ pub fn handle_menu_event(app: &AppHandle, event: &str) {
             let _ = app.emit("menu-action", "sync-calendars");
         }
         "minimize" => {
-            if let Some(window) = app.get_webview_window("main") {
+            if let Some(window) = app.get_webview_window(MAIN_WINDOW) {
                 let _ = window.minimize();
             }
         }
         "close" => {
-            if let Some(window) = app.get_webview_window("main") {
+            if let Some(window) = app.get_webview_window(MAIN_WINDOW) {
                 let _ = window.close();
             }
         }

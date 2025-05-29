@@ -22,7 +22,7 @@
       }
     ],
     "security": {
-      "csp": null
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' http://localhost:3000 https://api.github.com https://api.anthropic.com; img-src 'self' data:; font-src 'self' data:"
     },
     "macOSPrivateApi": true
   },
@@ -46,7 +46,7 @@
   },
   "plugins": {
     "http": {
-      "scope": ["https://**", "http://localhost:3000"]
+      "scope": ["https://api.github.com", "https://api.anthropic.com", "https://googleapis.com", "https://accounts.google.com", "http://localhost:3000"]
     },
     "shell": {
       "open": true,

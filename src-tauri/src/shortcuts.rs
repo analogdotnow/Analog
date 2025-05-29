@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
-use tauri::{AppHandle, Manager, command, Emitter};
-use tauri_plugin_global_shortcut::{Code, Modifiers, Shortcut, GlobalShortcutExt};
+use tauri::{command, AppHandle};
+use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ShortcutConfig {
@@ -17,47 +17,29 @@ pub struct ShortcutRegistration {
 
 pub fn setup_global_shortcuts(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
     // Register CMD+SHIFT+C to show/hide calendar
-    let shortcut = Shortcut::new(
-        Some(Modifiers::SUPER | Modifiers::SHIFT), 
-        Code::KeyC
-    );
+    let shortcut = Shortcut::new(Some(Modifiers::SUPER | Modifiers::SHIFT), Code::KeyC);
     app.global_shortcut().register(shortcut)?;
-    
+
     // Register CMD+SHIFT+N for new event
-    let shortcut_new = Shortcut::new(
-        Some(Modifiers::SUPER | Modifiers::SHIFT), 
-        Code::KeyN
-    );
+    let shortcut_new = Shortcut::new(Some(Modifiers::SUPER | Modifiers::SHIFT), Code::KeyN);
     app.global_shortcut().register(shortcut_new)?;
-    
+
     // Register CMD+SHIFT+T for today view
-    let shortcut_today = Shortcut::new(
-        Some(Modifiers::SUPER | Modifiers::SHIFT), 
-        Code::KeyT
-    );
+    let shortcut_today = Shortcut::new(Some(Modifiers::SUPER | Modifiers::SHIFT), Code::KeyT);
     app.global_shortcut().register(shortcut_today)?;
-    
+
     // Register CMD+SHIFT+W for week view
-    let shortcut_week = Shortcut::new(
-        Some(Modifiers::SUPER | Modifiers::SHIFT), 
-        Code::KeyW
-    );
+    let shortcut_week = Shortcut::new(Some(Modifiers::SUPER | Modifiers::SHIFT), Code::KeyW);
     app.global_shortcut().register(shortcut_week)?;
-    
+
     // Register CMD+SHIFT+M for month view
-    let shortcut_month = Shortcut::new(
-        Some(Modifiers::SUPER | Modifiers::SHIFT), 
-        Code::KeyM
-    );
+    let shortcut_month = Shortcut::new(Some(Modifiers::SUPER | Modifiers::SHIFT), Code::KeyM);
     app.global_shortcut().register(shortcut_month)?;
-    
+
     // Register CMD+SHIFT+D for day view
-    let shortcut_day = Shortcut::new(
-        Some(Modifiers::SUPER | Modifiers::SHIFT), 
-        Code::KeyD
-    );
+    let shortcut_day = Shortcut::new(Some(Modifiers::SUPER | Modifiers::SHIFT), Code::KeyD);
     app.global_shortcut().register(shortcut_day)?;
-    
+
     log::info!("Global shortcuts registered successfully");
     Ok(())
 }
@@ -80,7 +62,7 @@ pub async fn register_global_shortcuts(
                 _ => continue,
             }
         }
-        
+
         // Parse key code
         let code = match shortcut_config.key.to_lowercase().as_str() {
             "a" => Code::KeyA,
@@ -125,21 +107,23 @@ pub async fn register_global_shortcuts(
             "tab" => Code::Tab,
             _ => continue,
         };
-        
+
         let shortcut = Shortcut::new(Some(modifiers), code);
-        
-        app.global_shortcut().register(shortcut)
+
+        app.global_shortcut()
+            .register(shortcut)
             .map_err(|e| format!("Failed to register shortcut: {}", e))?;
     }
-    
+
     Ok("Shortcuts registered successfully".to_string())
 }
 
 #[command]
 pub async fn unregister_global_shortcuts(app: AppHandle) -> Result<String, String> {
-    app.global_shortcut().unregister_all()
+    app.global_shortcut()
+        .unregister_all()
         .map_err(|e| format!("Failed to unregister shortcuts: {}", e))?;
-    
+
     Ok("All shortcuts unregistered".to_string())
 }
 
@@ -184,6 +168,6 @@ pub async fn get_registered_shortcuts() -> Result<Vec<ShortcutConfig>, String> {
             description: "Switch to Day View".to_string(),
         },
     ];
-    
+
     Ok(shortcuts)
 }

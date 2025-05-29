@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use tauri::{AppHandle, command, Emitter};
+use tauri::{command, AppHandle, Emitter};
 use url::Url;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -24,11 +24,15 @@ pub struct AuthCallbackData {
 
 #[command]
 pub async fn open_auth_url(app: AppHandle) -> Result<String, String> {
-    let auth_url = "http://localhost:3000/api/auth/signin/google";
-    
+    let base_url = std::env::var("AUTH_BASE_URL")
+        .unwrap_or_else(|_| "http://localhost:3000".to_string());
+    let auth_url = format!("{}/api/auth/signin/google", base_url);
+
     use tauri_plugin_opener::OpenerExt;
-    app.opener().open_url(auth_url, None::<&str>).map_err(|e| e.to_string())?;
-    
+    app.opener()
+        .open_url(&auth_url, None::<&str>)
+        .map_err(|e| e.to_string())?;
+
     Ok("Auth URL opened successfully".to_string())
 }
 
@@ -39,10 +43,10 @@ pub async fn handle_auth_callback(
 ) -> Result<AuthResponse, String> {
     // Parse the callback URL to extract auth code and state
     let url = Url::parse(&callback_url).map_err(|e| format!("Invalid URL: {}", e))?;
-    
+
     let mut code = None;
     let mut state = None;
-    
+
     for (key, value) in url.query_pairs() {
         match key.as_ref() {
             "code" => code = Some(value.to_string()),
@@ -50,14 +54,18 @@ pub async fn handle_auth_callback(
             _ => {}
         }
     }
-    
+
     let code = code.ok_or("Missing authorization code")?;
     let state = state.ok_or("Missing state parameter")?;
-    
+
     // Exchange authorization code for tokens
+    let base_url = std::env::var("AUTH_BASE_URL")
+        .unwrap_or_else(|_| "http://localhost:3000".to_string());
+    let callback_endpoint = format!("{}/api/auth/callback/google", base_url);
+    
     let client = reqwest::Client::new();
     let response = client
-        .post("http://localhost:3000/api/auth/callback/google")
+        .post(&callback_endpoint)
         .json(&serde_json::json!({
             "code": code,
             "state": state
@@ -65,18 +73,18 @@ pub async fn handle_auth_callback(
         .send()
         .await
         .map_err(|e| format!("Failed to exchange code for tokens: {}", e))?;
-    
+
     let auth_response: AuthResponse = response
         .json()
         .await
         .map_err(|e| format!("Failed to parse auth response: {}", e))?;
-    
+
     if auth_response.success {
         // Notify the frontend that authentication is complete
         app.emit("auth-success", &auth_response)
             .map_err(|e| format!("Failed to emit auth success event: {}", e))?;
     }
-    
+
     Ok(auth_response)
 }
 
@@ -94,6 +102,6 @@ pub async fn logout(app: AppHandle) -> Result<String, String> {
     // Emit logout event to frontend
     app.emit("auth-logout", ())
         .map_err(|e| format!("Failed to emit logout event: {}", e))?;
-    
+
     Ok("Logout successful".to_string())
 }

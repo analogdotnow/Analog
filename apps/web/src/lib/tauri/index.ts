@@ -2,6 +2,7 @@
 
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
+import { getVersion } from "@tauri-apps/api/app";
 
 export interface CalendarEvent {
   id: string;
@@ -133,6 +134,6 @@ export const tauriUtils = {
   isDesktop: isTauri,
   getVersion: () => {
     if (!isTauri()) return Promise.resolve("web");
-    return invoke("tauri", { cmd: "getVersion" });
+    return getVersion();
   },
 };

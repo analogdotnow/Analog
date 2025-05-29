@@ -1,4 +1,4 @@
-use tauri::{AppHandle, Emitter, Manager};
+use tauri::AppHandle;
 
 pub fn create_system_tray(_app: &AppHandle) -> Result<(), tauri::Error> {
     // System tray setup will be implemented later when tray API is stable
@@ -6,6 +6,7 @@ pub fn create_system_tray(_app: &AppHandle) -> Result<(), tauri::Error> {
     Ok(())
 }
 
+#[allow(dead_code)]
 pub fn handle_tray_event(_app: &AppHandle, _event: &str) {
     // Tray event handling placeholder
 }
