@@ -72,6 +72,7 @@ const connectionHandlerHook = async (
         providerId: account.providerId as "google" | "microsoft",
         email: userInfo.email,
         userId: account.userId,
+        accountId: account.id,
         createdAt: new Date(),
         updatedAt: new Date(),
         ...updatingInfo,

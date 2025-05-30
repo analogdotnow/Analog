@@ -1,5 +1,7 @@
 import { addDays, endOfDay, subDays } from "date-fns";
 
+import type { DateInput } from "../providers/types";
+
 export const dateHelpers = {
   formatDateForAPI(date: Date | string, isAllDay: boolean): string {
     const dateObj = typeof date === "string" ? new Date(date) : date;
@@ -15,15 +17,24 @@ export const dateHelpers = {
   },
 
   parseGoogleDate(
-    googleDate: { date?: string; dateTime?: string },
+    googleDate: { date?: string; dateTime?: string; timeZone?: string },
     isAllDay: boolean,
-  ): string {
+  ): DateInput {
     if (isAllDay && googleDate.date) {
-      return `${googleDate.date}T00:00:00`;
+      return {
+        dateTime: `${googleDate.date}T00:00:00`,
+        timeZone: googleDate.timeZone || "UTC",
+      };
     } else if (googleDate.dateTime) {
-      return googleDate.dateTime;
+      return {
+        dateTime: googleDate.dateTime,
+        timeZone: googleDate.timeZone || "UTC",
+      };
     }
-    return new Date().toISOString();
+    return {
+      dateTime: new Date().toISOString(),
+      timeZone: "UTC",
+    };
   },
 
   parseMicrosoftDate(
@@ -32,18 +43,27 @@ export const dateHelpers = {
       | undefined
       | null,
     isAllDay: boolean,
-  ): string {
+  ): DateInput {
     if (!microsoftDate?.dateTime) {
-      return new Date().toISOString();
+      return {
+        dateTime: new Date().toISOString(),
+        timeZone: "UTC",
+      };
     }
 
     if (isAllDay) {
       // For all-day events, return date in ISO format with time set to midnight
       const date = new Date(microsoftDate.dateTime);
-      return `${date.toISOString().split("T")[0]}T00:00:00`;
+      return {
+        dateTime: `${date.toISOString().split("T")[0]}T00:00:00`,
+        timeZone: microsoftDate.timeZone || "UTC",
+      };
     }
 
-    return microsoftDate.dateTime;
+    return {
+      dateTime: microsoftDate.dateTime,
+      timeZone: microsoftDate.timeZone || "UTC",
+    };
   },
 
   adjustEndDateForDisplay(

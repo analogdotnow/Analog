@@ -1,7 +1,7 @@
 import { z } from "zod";
 
+import { dateInputSchema } from "../providers/validations";
 import { calendarProcedure, createTRPCRouter } from "../trpc";
-import { dateHelpers } from "../utils/date-helpers";
 
 export const eventsRouter = createTRPCRouter({
   list: calendarProcedure
@@ -44,12 +44,14 @@ export const eventsRouter = createTRPCRouter({
                   input.timeMin,
                   input.timeMax,
                 );
+
                 return events.map((event) => ({
                   ...event,
                   calendarId,
                   providerId: connection.providerId,
                   accountId: connection.id,
                   accountName: connection.email,
+                  connectionId: connection.id,
                 }));
               } catch (error) {
                 console.error(
@@ -68,8 +70,12 @@ export const eventsRouter = createTRPCRouter({
       const events = allEvents
         .flat()
         .sort(
-          (a, b) => new Date(a.start).getTime() - new Date(b.start).getTime(),
+          (a, b) =>
+            new Date(a.start.dateTime).getTime() -
+            new Date(b.start.dateTime).getTime(),
         );
+
+      console.log({ events });
 
       return { events };
     }),
@@ -79,11 +85,12 @@ export const eventsRouter = createTRPCRouter({
       z.object({
         calendarId: z.string(),
         title: z.string(),
-        start: z.string(),
-        end: z.string(),
+        start: dateInputSchema,
+        end: dateInputSchema,
         allDay: z.boolean().optional(),
         description: z.string().optional(),
         location: z.string().optional(),
+        colorId: z.string().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -101,26 +108,21 @@ export const eventsRouter = createTRPCRouter({
         calendarId: z.string(),
         eventId: z.string(),
         title: z.string().optional(),
-        start: z.string().optional(),
-        end: z.string().optional(),
+        start: dateInputSchema.optional(),
+        end: dateInputSchema.optional(),
         allDay: z.boolean().optional(),
         description: z.string().optional(),
         location: z.string().optional(),
+        colorId: z.string().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const paramsPreparers = {
-        google: dateHelpers.prepareGoogleParams,
-        microsoft: dateHelpers.prepareMicrosoftParams,
-      } as const;
+      const { calendarId, eventId, ...updateData } = input;
 
-      const prepareParams = paramsPreparers[ctx.calendarClient.providerId];
-
-      const params = prepareParams(input);
       const event = await ctx.calendarClient.updateEvent(
-        input.calendarId,
-        input.eventId,
-        params,
+        calendarId,
+        eventId,
+        updateData,
       );
 
       return { event };

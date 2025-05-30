@@ -17,10 +17,12 @@ interface EventCreateParams {
   start?: {
     date?: string;
     dateTime?: string;
+    timeZone?: string;
   };
   end?: {
     date?: string;
     dateTime?: string;
+    timeZone?: string;
   };
 }
 
@@ -78,11 +80,11 @@ export class GoogleCalendarProvider implements CalendarProvider {
       location: event.location,
       colorId: event.colorId,
       start: event.allDay
-        ? { date: new Date(event.start).toISOString().split("T")[0] }
-        : { dateTime: event.start },
+        ? { date: new Date(event.start.dateTime).toISOString().split("T")[0] }
+        : { dateTime: event.start.dateTime, timeZone: event.start.timeZone },
       end: event.allDay
-        ? { date: new Date(event.end).toISOString().split("T")[0] }
-        : { dateTime: event.end },
+        ? { date: new Date(event.end.dateTime).toISOString().split("T")[0] }
+        : { dateTime: event.end.dateTime, timeZone: event.end.timeZone },
     };
 
     const createdEvent = await this.client.calendars.events.create(
@@ -111,13 +113,13 @@ export class GoogleCalendarProvider implements CalendarProvider {
       colorId: event.colorId ?? existingEvent.colorId,
       start: event.start
         ? event.allDay
-          ? { date: new Date(event.start).toISOString().split("T")[0] }
-          : { dateTime: event.start }
+          ? { date: new Date(event.start.dateTime).toISOString().split("T")[0] }
+          : { dateTime: event.start.dateTime, timeZone: event.start.timeZone }
         : existingEvent.start,
       end: event.end
         ? event.allDay
-          ? { date: new Date(event.end).toISOString().split("T")[0] }
-          : { dateTime: event.end }
+          ? { date: new Date(event.end.dateTime).toISOString().split("T")[0] }
+          : { dateTime: event.end.dateTime, timeZone: event.end.timeZone }
         : existingEvent.end,
     };
 

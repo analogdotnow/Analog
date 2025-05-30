@@ -75,23 +75,25 @@ export function Calendars() {
                       <SidebarMenuItem key={item.id}>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <SidebarMenuButton>
-                              <Checkbox
-                                checked={
-                                  !calendarsVisibility.hiddenCalendars.includes(
-                                    item.id,
-                                  )
-                                }
-                                onCheckedChange={(checked: boolean) => {
-                                  handleCalendarVisibilityChange(
-                                    checked,
-                                    item.id,
-                                  );
-                                }}
-                              />
-                              <span className="line-clamp-1 block">
-                                {item.name}
-                              </span>
+                            <SidebarMenuButton asChild>
+                              <div>
+                                <Checkbox
+                                  checked={
+                                    !calendarsVisibility.hiddenCalendars.includes(
+                                      item.id,
+                                    )
+                                  }
+                                  onCheckedChange={(checked: boolean) => {
+                                    handleCalendarVisibilityChange(
+                                      checked,
+                                      item.id,
+                                    );
+                                  }}
+                                />
+                                <span className="line-clamp-1 block">
+                                  {item.name}
+                                </span>
+                              </div>
                             </SidebarMenuButton>
                           </TooltipTrigger>
                           <TooltipContent

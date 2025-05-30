@@ -70,10 +70,10 @@ function useCalendarActions() {
     if (!data?.events) return [];
 
     return data.events.map((event): CalendarEvent => {
-      const startDate = new Date(event.start);
+      const startDate = new Date(event.start.dateTime);
       const endDate = dateHelpers.adjustEndDateForDisplay(
         startDate,
-        new Date(event.end),
+        new Date(event.end.dateTime),
         event.allDay ?? false,
       );
 
@@ -113,14 +113,19 @@ function useCalendarActions() {
             colorId: "1",
             status: undefined,
             htmlLink: undefined,
-            calendarId: "primary",
+            calendarId: newEvent.calendarId,
+            providerId: "google",
+            accountId: "temp",
+            accountName: "temp",
+            connectionId: "temp",
           };
 
           return {
             ...old,
             events: [...(old.events || []), tempEvent].sort(
               (a, b) =>
-                new Date(a.start).getTime() - new Date(b.start).getTime(),
+                new Date(a.start.dateTime).getTime() -
+                new Date(b.start.dateTime).getTime(),
             ),
           };
         });
@@ -170,7 +175,8 @@ function useCalendarActions() {
               )
               .sort(
                 (a, b) =>
-                  new Date(a.start).getTime() - new Date(b.start).getTime(),
+                  new Date(a.start.dateTime).getTime() -
+                  new Date(b.start.dateTime).getTime(),
               ),
           };
         });
@@ -242,8 +248,20 @@ export function CalendarView({ className }: CalendarViewProps) {
     createEvent({
       calendarId: CALENDAR_CONFIG.DEFAULT_CALENDAR_ID,
       title: event.title,
-      start: dateHelpers.formatDateForAPI(event.start, event.allDay || false),
-      end: dateHelpers.formatDateForAPI(event.end, event.allDay || false),
+      start: {
+        dateTime: dateHelpers.formatDateForAPI(
+          event.start,
+          event.allDay || false,
+        ),
+        timeZone: "UTC",
+      },
+      end: {
+        dateTime: dateHelpers.formatDateForAPI(
+          event.end,
+          event.allDay || false,
+        ),
+        timeZone: "UTC",
+      },
       allDay: event.allDay,
       description: event.description,
       location: event.location,
@@ -255,14 +273,20 @@ export function CalendarView({ className }: CalendarViewProps) {
       calendarId: CALENDAR_CONFIG.DEFAULT_CALENDAR_ID,
       eventId: updatedEvent.id,
       title: updatedEvent.title,
-      start: dateHelpers.formatDateForAPI(
-        updatedEvent.start,
-        updatedEvent.allDay || false,
-      ),
-      end: dateHelpers.formatDateForAPI(
-        updatedEvent.end,
-        updatedEvent.allDay || false,
-      ),
+      start: {
+        dateTime: dateHelpers.formatDateForAPI(
+          updatedEvent.start,
+          updatedEvent.allDay || false,
+        ),
+        timeZone: "UTC",
+      },
+      end: {
+        dateTime: dateHelpers.formatDateForAPI(
+          updatedEvent.end,
+          updatedEvent.allDay || false,
+        ),
+        timeZone: "UTC",
+      },
       allDay: updatedEvent.allDay,
       description: updatedEvent.description,
       location: updatedEvent.location,

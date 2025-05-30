@@ -103,11 +103,11 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
           }
         : undefined,
       start: event.allDay
-        ? { date: new Date(event.start).toISOString().split("T")[0] }
-        : { dateTime: event.start },
+        ? { date: new Date(event.start.dateTime).toISOString().split("T")[0] }
+        : { dateTime: event.start.dateTime, timeZone: event.start.timeZone },
       end: event.allDay
-        ? { date: new Date(event.end).toISOString().split("T")[0] }
-        : { dateTime: event.end },
+        ? { date: new Date(event.end.dateTime).toISOString().split("T")[0] }
+        : { dateTime: event.end.dateTime, timeZone: event.end.timeZone },
       isAllDay: event.allDay || false,
       location: event.location
         ? {
@@ -156,13 +156,13 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
     }
     if (event.start !== undefined) {
       microsoftEvent.start = event.allDay
-        ? { date: new Date(event.start).toISOString().split("T")[0] }
-        : { dateTime: event.start };
+        ? { date: new Date(event.start.dateTime).toISOString().split("T")[0] }
+        : { dateTime: event.start.dateTime, timeZone: event.start.timeZone };
     }
     if (event.end !== undefined) {
       microsoftEvent.end = event.allDay
-        ? { date: new Date(event.end).toISOString().split("T")[0] }
-        : { dateTime: event.end };
+        ? { date: new Date(event.end.dateTime).toISOString().split("T")[0] }
+        : { dateTime: event.end.dateTime, timeZone: event.end.timeZone };
     }
     if (event.allDay !== undefined) {
       microsoftEvent.isAllDay = event.allDay;

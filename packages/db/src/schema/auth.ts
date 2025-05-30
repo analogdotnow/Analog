@@ -61,6 +61,10 @@ export const connection = pgTable(
       .text()
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
+    accountId: d
+      .text()
+      .notNull()
+      .references(() => account.id, { onDelete: "cascade" }),
     email: d.text().notNull(),
     name: d.text(),
     image: d.text(),

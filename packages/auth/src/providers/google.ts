@@ -17,6 +17,7 @@ export const GOOGLE_OAUTH_SCOPES = [
 
 export class GoogleProvider implements Provider {
   private auth;
+  private people;
 
   constructor(public config: ProviderConfig) {
     this.auth = new OAuth2Client({
@@ -31,6 +32,11 @@ export class GoogleProvider implements Provider {
         scope: GOOGLE_OAUTH_SCOPES.join(" "),
       });
     }
+
+    this.people = people({
+      version: "v1",
+      auth: this.auth,
+    });
   }
 
   public getScope(): string {
@@ -41,10 +47,7 @@ export class GoogleProvider implements Provider {
     console.log("getting user info");
 
     try {
-      const response = await people({
-        version: "v1",
-        auth: this.auth,
-      }).people.get({
+      const response = await this.people.people.get({
         resourceName: "people/me",
         personFields: "names,photos,emailAddresses",
       });
