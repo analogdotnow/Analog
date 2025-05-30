@@ -124,3 +124,40 @@
     @apply bg-background text-foreground;
   }
 }
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.animate-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(166, 160, 155, 0.2),
+    transparent
+  );
+  animation: shimmer 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.84) infinite;
+  will-change: transform;
+}
+
+.dark .animate-shimmer::after {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(115, 115, 115, 0.35),
+    transparent
+  );
+}
