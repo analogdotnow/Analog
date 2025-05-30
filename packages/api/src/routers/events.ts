@@ -38,10 +38,14 @@ export const eventsRouter = createTRPCRouter({
         const calendars = await client.calendars();
 
         calendarIds = calendars
-          .filter(
-            (cal) =>
-              cal.primary || cal.id?.includes("@group.calendar.google.com"),
-          )
+          .filter((cal) => {
+            const isPrimary = cal.primary;
+            const isGroupCalendar =
+              cal.id?.includes("@group.calendar.google.com") ||
+              cal.id?.includes("@group.v.calendar.google.com");
+
+            return isPrimary || isGroupCalendar;
+          })
           .map((cal) => cal.id)
           .filter(Boolean);
       }
