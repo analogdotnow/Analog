@@ -9,7 +9,7 @@ import { getActiveConnection, getAllConnections } from "../utils/connection";
 
 export const connectionsRouter = createTRPCRouter({
   list: protectedProcedure.query(async ({ ctx }) => {
-    const connections = await getAllConnections(ctx.headers);
+    const connections = await getAllConnections(ctx.user);
 
     return {
       connections,
@@ -37,7 +37,7 @@ export const connectionsRouter = createTRPCRouter({
     }),
 
   getDefault: protectedProcedure.query(async ({ ctx }) => {
-    const connection = await getActiveConnection(ctx.headers);
+    const connection = await getActiveConnection(ctx.user);
     return { connection };
   }),
 
@@ -53,7 +53,7 @@ export const connectionsRouter = createTRPCRouter({
           ),
         );
 
-      const activeConnection = await getActiveConnection(ctx.headers);
+      const activeConnection = await getActiveConnection(ctx.user);
       if (activeConnection.id === input.connectionId) {
         await ctx.db
           .update(user)

@@ -58,7 +58,7 @@ export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
 
 export const calendarProcedure = protectedProcedure.use(
   async ({ ctx, next }) => {
-    const allConnections = await getAllConnections(ctx.headers);
+    const allConnections = await getAllConnections(ctx.user);
 
     const activeConnection = allConnections.find(
       (connection) => connection.id === ctx.user.defaultConnectionId,
