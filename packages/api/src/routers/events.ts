@@ -1,3 +1,4 @@
+import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
 import { dateInputSchema } from "../providers/validations";
@@ -75,14 +76,13 @@ export const eventsRouter = createTRPCRouter({
             new Date(b.start.dateTime).getTime(),
         );
 
-      console.log({ events });
-
       return { events };
     }),
 
   create: calendarProcedure
     .input(
       z.object({
+        connectionId: z.string(),
         calendarId: z.string(),
         title: z.string(),
         start: dateInputSchema,
@@ -94,9 +94,22 @@ export const eventsRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const event = await ctx.calendarClient.createEvent(
-        input.calendarId,
-        input,
+      const calendarClient = ctx.allCalendarClients.find(
+        ({ connection }) => connection.id === input.connectionId,
+      );
+
+      if (!calendarClient) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: `Calendar client not found for connectionId: ${input.connectionId}`,
+        });
+      }
+
+      const { connectionId, ...eventData } = input;
+
+      const event = await calendarClient.client.createEvent(
+        eventData.calendarId,
+        eventData,
       );
 
       return { event };
@@ -105,6 +118,7 @@ export const eventsRouter = createTRPCRouter({
   update: calendarProcedure
     .input(
       z.object({
+        connectionId: z.string(),
         calendarId: z.string(),
         eventId: z.string(),
         title: z.string().optional(),
@@ -117,9 +131,22 @@ export const eventsRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const { calendarId, eventId, ...updateData } = input;
+      const calendarClient = ctx.allCalendarClients.find(
+        ({ connection }) => connection.id === input.connectionId,
+      );
 
-      const event = await ctx.calendarClient.updateEvent(
+      console.log({ connectionId: input.connectionId });
+
+      if (!calendarClient) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: `Calendar client not found for connectionId: ${input.connectionId}`,
+        });
+      }
+
+      const { connectionId, calendarId, eventId, ...updateData } = input;
+
+      const event = await calendarClient.client.updateEvent(
         calendarId,
         eventId,
         updateData,
@@ -131,12 +158,24 @@ export const eventsRouter = createTRPCRouter({
   delete: calendarProcedure
     .input(
       z.object({
+        connectionId: z.string(),
         calendarId: z.string(),
         eventId: z.string(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      await ctx.calendarClient.deleteEvent(input.calendarId, input.eventId);
+      const calendarClient = ctx.allCalendarClients.find(
+        ({ connection }) => connection.id === input.connectionId,
+      );
+
+      if (!calendarClient) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: `Calendar client not found for connectionId: ${input.connectionId}`,
+        });
+      }
+
+      await calendarClient.client.deleteEvent(input.calendarId, input.eventId);
       return { success: true };
     }),
 });

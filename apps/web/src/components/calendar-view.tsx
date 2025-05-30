@@ -245,7 +245,17 @@ export function CalendarView({ className }: CalendarViewProps) {
     useCalendarActions();
 
   const handleEventAdd = (event: CalendarEvent) => {
+    // Get the first available connectionId for creating new events
+    const defaultConnectionId =
+      events.length > 0 ? events[0]?.connectionId : null;
+
+    if (!defaultConnectionId) {
+      console.error("No connection available for creating events");
+      return;
+    }
+
     createEvent({
+      connectionId: defaultConnectionId,
       calendarId: CALENDAR_CONFIG.DEFAULT_CALENDAR_ID,
       title: event.title,
       start: {
@@ -270,6 +280,7 @@ export function CalendarView({ className }: CalendarViewProps) {
 
   const handleEventUpdate = (updatedEvent: CalendarEvent) => {
     updateEvent({
+      connectionId: updatedEvent.connectionId,
       calendarId: CALENDAR_CONFIG.DEFAULT_CALENDAR_ID,
       eventId: updatedEvent.id,
       title: updatedEvent.title,
@@ -294,7 +305,15 @@ export function CalendarView({ className }: CalendarViewProps) {
   };
 
   const handleEventDelete = (eventId: string) => {
+    // Find the event to get its connectionId
+    const eventToDelete = events.find((event) => event.id === eventId);
+    if (!eventToDelete) {
+      console.error(`Event with id ${eventId} not found`);
+      return;
+    }
+
     deleteEvent({
+      connectionId: eventToDelete.connectionId,
       calendarId: CALENDAR_CONFIG.DEFAULT_CALENDAR_ID,
       eventId: eventId,
     });
