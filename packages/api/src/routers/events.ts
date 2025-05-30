@@ -13,36 +13,55 @@ export const eventsRouter = createTRPCRouter({
       }),
     )
     .query(async ({ ctx, input }) => {
-      let calendarIds = input.calendarIds;
-
-      if (calendarIds.length === 0) {
-        const calendars = await ctx.calendarClient.calendars();
-
-        calendarIds = calendars
-          // .filter(
-          //   (cal) =>
-          //     cal.primary || cal.id?.includes("@group.calendar.google.com"),
-          // )
-          .map((cal) => cal.id)
-          .filter(Boolean);
-      }
-
       const allEvents = await Promise.all(
-        calendarIds.map(async (calendarId) => {
-          try {
-            const events = await ctx.calendarClient.events(
-              calendarId,
-              input.timeMin,
-              input.timeMax,
-            );
-            return events.map((event) => ({ ...event, calendarId }));
-          } catch (error) {
-            console.error(
-              `Failed to fetch events for calendar ${calendarId}:`,
-              error,
-            );
-            return [];
+        ctx.allCalendarClients.map(async ({ client, connection }) => {
+          let calendarIds = input.calendarIds;
+
+          if (calendarIds.length === 0) {
+            try {
+              const calendars = await client.calendars();
+              calendarIds = calendars
+                // .filter(
+                //   (cal) =>
+                //     cal.primary || cal.id?.includes("@group.calendar.google.com"),
+                // )
+                .map((cal) => cal.id)
+                .filter(Boolean);
+            } catch (error) {
+              console.error(
+                `Failed to fetch calendars for provider ${connection.providerId}:`,
+                error,
+              );
+              return [];
+            }
           }
+
+          const providerEvents = await Promise.all(
+            calendarIds.map(async (calendarId) => {
+              try {
+                const events = await client.events(
+                  calendarId,
+                  input.timeMin,
+                  input.timeMax,
+                );
+                return events.map((event) => ({
+                  ...event,
+                  calendarId,
+                  providerId: connection.providerId,
+                  accountId: connection.id,
+                  accountName: connection.email,
+                }));
+              } catch (error) {
+                console.error(
+                  `Failed to fetch events for calendar ${calendarId} from ${connection.providerId}:`,
+                  error,
+                );
+                return [];
+              }
+            }),
+          );
+
+          return providerEvents.flat();
         }),
       );
 

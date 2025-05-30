@@ -74,7 +74,7 @@ function useCalendarActions() {
       const endDate = dateHelpers.adjustEndDateForDisplay(
         startDate,
         new Date(event.end),
-        event.allDay,
+        event.allDay ?? false,
       );
 
       return {
@@ -87,6 +87,7 @@ function useCalendarActions() {
         color: event.colorId ? colorMap[event.colorId] || "sky" : "sky",
         location: event.location,
         calendarId: event.calendarId,
+        connectionId: event.connectionId,
       };
     });
   }, [data]);

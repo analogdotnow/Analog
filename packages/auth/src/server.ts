@@ -2,9 +2,10 @@ import "server-only";
 import { betterAuth, type Account } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { APIError } from "better-auth/api";
+import { eq } from "drizzle-orm";
 
 import { db } from "@repo/db";
-import { connection } from "@repo/db/schema";
+import { connection, user } from "@repo/db/schema";
 import { env } from "@repo/env/server";
 
 import { createdProvider } from "./providers";
@@ -53,23 +54,39 @@ const connectionHandlerHook = async (account: Account) => {
     ),
   };
 
-  await db
-    .insert(connection)
-    .values({
-      providerId: account.providerId as "google" | "microsoft",
-      email: userInfo.email,
-      userId: account.userId,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      ...updatingInfo,
-    })
-    .onConflictDoUpdate({
-      target: [connection.email, connection.userId],
-      set: {
-        ...updatingInfo,
+  await db.transaction(async (tx) => {
+    const [_connection] = await tx
+      .insert(connection)
+      .values({
+        providerId: account.providerId as "google" | "microsoft",
+        email: userInfo.email,
+        userId: account.userId,
+        createdAt: new Date(),
         updatedAt: new Date(),
-      },
-    });
+        ...updatingInfo,
+      })
+      .onConflictDoUpdate({
+        target: [connection.email, connection.userId],
+        set: {
+          ...updatingInfo,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+
+    if (!_connection) {
+      throw new APIError("INTERNAL_SERVER_ERROR", {
+        message: "Failed to create connection",
+      });
+    }
+
+    await tx
+      .update(user)
+      .set({
+        defaultConnectionId: _connection.id,
+      })
+      .where(eq(user.id, account.userId));
+  });
 };
 
 export const auth = betterAuth({

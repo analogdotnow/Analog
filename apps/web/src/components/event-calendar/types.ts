@@ -10,6 +10,7 @@ export interface CalendarEvent {
   color?: EventColor;
   location?: string;
   calendarId: string;
+  connectionId: string;
 }
 
 export type EventColor =

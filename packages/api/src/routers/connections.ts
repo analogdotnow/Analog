@@ -5,21 +5,14 @@ import { z } from "zod";
 import { connection, user } from "@repo/db/schema";
 
 import { createTRPCRouter, protectedProcedure } from "../trpc";
-import { getActiveConnection } from "../utils/connection";
+import { getActiveConnection, getAllConnections } from "../utils/connection";
 
 export const connectionsRouter = createTRPCRouter({
   list: protectedProcedure.query(async ({ ctx }) => {
-    const connections = await ctx.db.query.connection.findMany({
-      where: (table, { eq }) => eq(table.userId, ctx.user.id),
-    });
-
-    const disconnectedIds = connections
-      .filter((c) => !c.accessToken || !c.refreshToken)
-      .map((c) => c.id);
+    const connections = await getAllConnections(ctx.headers);
 
     return {
       connections,
-      disconnectedIds,
     };
   }),
 
