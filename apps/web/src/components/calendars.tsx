@@ -58,10 +58,7 @@ export function Calendars() {
       {data.accounts.map((account, index) => (
         <React.Fragment key={account.name}>
           <SidebarGroup key={account.name} className="py-0">
-            <Collapsible
-              defaultOpen={index === 0}
-              className="group/collapsible"
-            >
+            <Collapsible defaultOpen className="group/collapsible">
               <SidebarGroupLabel
                 asChild
                 className="group/label w-full text-sm hover:bg-sidebar-accent"

@@ -7,7 +7,7 @@ import { auth } from "@repo/auth/server";
 import { db } from "@repo/db";
 
 import { connectionToProvider } from "./providers";
-import { getActiveConnection } from "./utils/connection";
+import { getAllConnections } from "./utils/connection";
 
 export const createTRPCContext = async (opts: { headers: Headers }) => {
   const session = await auth.api.getSession({
@@ -56,14 +56,36 @@ export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
   });
 });
 
-export const activeProviderProcedure = protectedProcedure.use(
+export const calendarProcedure = protectedProcedure.use(
   async ({ ctx, next }) => {
-    const activeConnection = await getActiveConnection(ctx.headers);
+    const allConnections = await getAllConnections(ctx.headers);
+
+    const activeConnection = allConnections.find(
+      (connection) => connection.id === ctx.user.defaultConnectionId,
+    );
+
+    if (!activeConnection) {
+      throw new TRPCError({
+        code: "PRECONDITION_FAILED",
+        message: "No active connection set",
+      });
+    }
+
     const calendarClient = connectionToProvider(activeConnection);
+    const allCalendarClients = allConnections.map((connection) => ({
+      connection,
+      client: connectionToProvider(connection),
+    }));
 
     return next({
       ctx: {
+        // Single provider access (for creating events, etc.)
         calendarClient,
+        activeConnection,
+
+        // Multiple provider access (for listing all calendars/events)
+        allCalendarClients,
+        allConnections,
       },
     });
   },

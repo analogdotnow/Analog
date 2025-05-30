@@ -1,10 +1,10 @@
 import { z } from "zod";
 
-import { activeProviderProcedure, createTRPCRouter } from "../trpc";
+import { calendarProcedure, createTRPCRouter } from "../trpc";
 import { dateHelpers } from "../utils/date-helpers";
 
 export const eventsRouter = createTRPCRouter({
-  list: activeProviderProcedure
+  list: calendarProcedure
     .input(
       z.object({
         calendarIds: z.array(z.string()).default([]),
@@ -55,7 +55,7 @@ export const eventsRouter = createTRPCRouter({
       return { events };
     }),
 
-  create: activeProviderProcedure
+  create: calendarProcedure
     .input(
       z.object({
         calendarId: z.string(),
@@ -76,7 +76,7 @@ export const eventsRouter = createTRPCRouter({
       return { event };
     }),
 
-  update: activeProviderProcedure
+  update: calendarProcedure
     .input(
       z.object({
         calendarId: z.string(),
@@ -96,7 +96,7 @@ export const eventsRouter = createTRPCRouter({
       } as const;
 
       const prepareParams = paramsPreparers[ctx.calendarClient.providerId];
-      
+
       const params = prepareParams(input);
       const event = await ctx.calendarClient.updateEvent(
         input.calendarId,
@@ -107,7 +107,7 @@ export const eventsRouter = createTRPCRouter({
       return { event };
     }),
 
-  delete: activeProviderProcedure
+  delete: calendarProcedure
     .input(
       z.object({
         calendarId: z.string(),

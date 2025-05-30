@@ -1,44 +1,19 @@
-import { connectionToProvider } from "../providers";
-import {
-  activeProviderProcedure,
-  createTRPCRouter,
-  protectedProcedure,
-} from "../trpc";
+import { calendarProcedure, createTRPCRouter } from "../trpc";
 
 export const calendarsRouter = createTRPCRouter({
-  list: protectedProcedure.query(async ({ ctx }) => {
-    const connections = await ctx.db.query.connection.findMany({
-      where: (table, { eq }) => eq(table.userId, ctx.user.id),
-    });
-
-    const activeConnections = connections.filter(
-      (connection) => connection.accessToken && connection.refreshToken,
-    );
-
+  list: calendarProcedure.query(async ({ ctx }) => {
     const accounts = await Promise.all(
-      activeConnections.map(async (connection) => {
-        try {
-          const calendarClient = connectionToProvider(connection);
-          const calendars = await calendarClient.calendars();
+      ctx.allCalendarClients.map(async ({ client, connection }) => {
+        const calendars = await client.calendars();
 
-          return {
-            id: connection.id,
-            provider: connection.providerId,
-            name: connection.email,
-            calendars,
-          };
-        } catch {
-          return {
-            id: connection.id,
-            provider: connection.providerId,
-            name: connection.email,
-            calendars: [],
-          };
-        }
+        return {
+          id: connection.id,
+          provider: connection.providerId,
+          name: connection.email,
+          calendars,
+        };
       }),
     );
-
-    console.log({ accounts });
 
     return {
       accounts,
