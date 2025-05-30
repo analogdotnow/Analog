@@ -72,5 +72,5 @@ export const connection = pgTable(
     createdAt: d.timestamp().notNull(),
     updatedAt: d.timestamp().notNull(),
   }),
-  (t) => [unique().on(t.userId, t.email)],
+  (t) => [unique().on(t.userId, t.email, t.providerId)],
 );

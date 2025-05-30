@@ -1,5 +1,9 @@
 import "server-only";
-import { betterAuth, type Account } from "better-auth";
+import {
+  betterAuth,
+  type Account,
+  type GenericEndpointContext,
+} from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { APIError } from "better-auth/api";
 import { eq } from "drizzle-orm";
@@ -12,9 +16,10 @@ import { createdProvider } from "./providers";
 import { GOOGLE_OAUTH_SCOPES } from "./providers/google";
 import { MICROSOFT_OAUTH_SCOPES } from "./providers/microsoft";
 
-const connectionHandlerHook = async (account: Account) => {
-  console.log({ account });
-
+const connectionHandlerHook = async (
+  account: Account,
+  // ctx?: GenericEndpointContext,
+) => {
   if (!account.accessToken || !account.refreshToken) {
     throw new APIError("UNAUTHORIZED", {
       message: "Missing access or refresh token",
@@ -33,8 +38,14 @@ const connectionHandlerHook = async (account: Account) => {
     },
   );
 
-  const userInfo = await provider.getUserInfo().catch(() => {
-    throw new APIError("UNAUTHORIZED", { message: "Failed to get user info" });
+  const userInfo = await provider.getUserInfo().catch((error) => {
+    console.error(
+      `Failed to get user info for provider ${account.providerId}:`,
+      error,
+    );
+    throw new APIError("UNAUTHORIZED", {
+      message: "Failed to get user info - token may be invalid",
+    });
   });
 
   if (!userInfo?.email) {
@@ -66,7 +77,7 @@ const connectionHandlerHook = async (account: Account) => {
         ...updatingInfo,
       })
       .onConflictDoUpdate({
-        target: [connection.email, connection.userId],
+        target: [connection.email, connection.userId, connection.providerId],
         set: {
           ...updatingInfo,
           updatedAt: new Date(),
@@ -93,6 +104,12 @@ export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "pg",
   }),
+  account: {
+    accountLinking: {
+      allowDifferentEmails: true,
+      trustedProviders: ["google", "microsoft"],
+    },
+  },
   user: {
     additionalFields: {
       defaultConnectionId: {
