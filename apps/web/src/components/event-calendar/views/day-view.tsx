@@ -67,7 +67,7 @@ export function DayView({
         );
       })
       .sort(
-          (a, b) =>
+        (a, b) =>
           new Date(a.start.dateTime).getTime() -
           new Date(b.start.dateTime).getTime(),
       );
