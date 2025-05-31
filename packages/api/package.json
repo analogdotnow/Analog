@@ -19,7 +19,6 @@
   },
   "dependencies": {
     "@microsoft/microsoft-graph-client": "^3.0.7",
-    "@microsoft/microsoft-graph-types": "^2.40.0",
     "@repo/auth": "workspace:*",
     "@repo/db": "workspace:*",
     "@repo/env": "workspace:*",
@@ -28,6 +27,7 @@
     "@upstash/redis": "^1.34.9"
   },
   "devDependencies": {
+    "@microsoft/microsoft-graph-types": "^2.40.0",
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@types/node": "^20",
