@@ -82,13 +82,22 @@ function useCalendarActions() {
         id: event.id,
         title: event.title,
         description: event.description,
-        start: startDate,
-        end: endDate,
+        start: {
+          dateTime: startDate.toISOString(),
+          timeZone: "UTC",
+        },
+        end: {
+          dateTime: endDate.toISOString(),
+          timeZone: "UTC",
+        },
         allDay: event.allDay,
-        color: event.colorId ? colorMap[event.colorId] || "sky" : "sky",
+        colorId: event.colorId ? colorMap[event.colorId] || "sky" : "sky",
         location: event.location,
         calendarId: event.calendarId,
         connectionId: event.connectionId,
+        accountId: event.accountId,
+        accountName: event.accountName,
+        providerId: event.providerId,
       };
     });
   }, [data]);
@@ -267,14 +276,14 @@ export function CalendarView({ className }: CalendarViewProps) {
       title: event.title,
       start: {
         dateTime: dateHelpers.formatDateForAPI(
-          event.start,
+          event.start.dateTime,
           event.allDay || false,
         ),
         timeZone: "UTC",
       },
       end: {
         dateTime: dateHelpers.formatDateForAPI(
-          event.end,
+          event.end.dateTime,
           event.allDay || false,
         ),
         timeZone: "UTC",
@@ -293,14 +302,14 @@ export function CalendarView({ className }: CalendarViewProps) {
       title: updatedEvent.title,
       start: {
         dateTime: dateHelpers.formatDateForAPI(
-          updatedEvent.start,
+          updatedEvent.start.dateTime,
           updatedEvent.allDay || false,
         ),
         timeZone: "UTC",
       },
       end: {
         dateTime: dateHelpers.formatDateForAPI(
-          updatedEvent.end,
+          updatedEvent.end.dateTime,
           updatedEvent.allDay || false,
         ),
         timeZone: "UTC",
