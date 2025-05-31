@@ -20,7 +20,7 @@ export interface CalendarEvent {
   location?: string;
   status?: string;
   htmlLink?: string;
-  colorId?: string;
+  color?: string;
 }
 
 export interface CalendarProvider {

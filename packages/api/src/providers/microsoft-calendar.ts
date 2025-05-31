@@ -234,7 +234,7 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
         undefined,
       status: microsoftEvent.showAs || undefined,
       htmlLink: microsoftEvent.webLink || undefined,
-      colorId: undefined, // Microsoft doesn't have colorId equivalent
+      color: undefined, // Microsoft doesn't have colorId equivalent
     };
   }
 }

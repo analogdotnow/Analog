@@ -44,6 +44,10 @@ function useCalendarActions() {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
+  const { data: defaultConnectionData } = useQuery(
+    trpc.connections.getDefault.queryOptions(),
+  );
+
   const timeMin = useMemo(
     () =>
       subDays(new Date(), CALENDAR_CONFIG.TIME_RANGE_DAYS_PAST).toISOString(),
@@ -91,7 +95,7 @@ function useCalendarActions() {
           timeZone: "UTC",
         },
         allDay: event.allDay,
-        colorId: event.colorId ? colorMap[event.colorId] || "sky" : "sky",
+        color: event.color ? colorMap[event.color] || "sky" : "sky",
         location: event.location,
         calendarId: event.calendarId,
         connectionId: event.connectionId,
@@ -105,6 +109,11 @@ function useCalendarActions() {
   const { mutate: createEvent, isPending: isCreating } = useMutation(
     trpc.events.create.mutationOptions({
       onMutate: async (newEvent) => {
+        if (!defaultConnectionData) {
+          toast.error("No default connection available, sign in again.");
+          return;
+        }
+
         await queryClient.cancelQueries({ queryKey: eventsQueryKey });
 
         const previousEvents = queryClient.getQueryData(eventsQueryKey);
@@ -120,14 +129,14 @@ function useCalendarActions() {
             end: newEvent.end,
             allDay: newEvent.allDay || false,
             location: newEvent.location,
-            colorId: "1",
+            color: newEvent.color,
             status: undefined,
             htmlLink: undefined,
             calendarId: newEvent.calendarId,
-            providerId: "google",
-            accountId: "temp",
-            accountName: "temp",
-            connectionId: "temp",
+            connectionId: newEvent.connectionId,
+            providerId: defaultConnectionData.connection.providerId,
+            accountId: defaultConnectionData.connection.accountId,
+            accountName: defaultConnectionData.connection.email,
           };
 
           return {

@@ -78,7 +78,7 @@ export class GoogleCalendarProvider implements CalendarProvider {
       summary: event.title,
       description: event.description,
       location: event.location,
-      colorId: event.colorId,
+      colorId: event.color,
       start: event.allDay
         ? { date: new Date(event.start.dateTime).toISOString().split("T")[0] }
         : { dateTime: event.start.dateTime, timeZone: event.start.timeZone },
@@ -110,7 +110,7 @@ export class GoogleCalendarProvider implements CalendarProvider {
       summary: event.title ?? existingEvent.summary,
       description: event.description ?? existingEvent.description,
       location: event.location ?? existingEvent.location,
-      colorId: event.colorId ?? existingEvent.colorId,
+      colorId: event.color ?? existingEvent.colorId,
       start: event.start
         ? event.allDay
           ? { date: new Date(event.start.dateTime).toISOString().split("T")[0] }
@@ -156,7 +156,7 @@ export class GoogleCalendarProvider implements CalendarProvider {
       location: googleEvent.location,
       status: googleEvent.status,
       htmlLink: googleEvent.htmlLink,
-      colorId: googleEvent.colorId,
+      color: googleEvent.colorId,
     };
   }
 }

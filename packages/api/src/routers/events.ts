@@ -90,7 +90,7 @@ export const eventsRouter = createTRPCRouter({
         allDay: z.boolean().optional(),
         description: z.string().optional(),
         location: z.string().optional(),
-        colorId: z.string().optional(),
+        color: z.string().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -127,7 +127,7 @@ export const eventsRouter = createTRPCRouter({
         allDay: z.boolean().optional(),
         description: z.string().optional(),
         location: z.string().optional(),
-        colorId: z.string().optional(),
+        color: z.string().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
