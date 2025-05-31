@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import localFont from "next/font/local";
+import { SimpleAnalytics } from "@simpleanalytics/next";
 
 import ogImage from "@/assets/og-image.png";
 import { Toaster } from "@/components/ui/sonner";
@@ -72,6 +73,7 @@ export default function RootLayout({
           <Toaster richColors closeButton position="bottom-right" />
           {children}
         </Providers>
+        <SimpleAnalytics collectDnt />
       </body>
     </html>
   );
