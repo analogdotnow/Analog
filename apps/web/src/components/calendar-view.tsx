@@ -189,6 +189,11 @@ function useCalendarActions() {
                       end: updatedEvent.end ?? event.end,
                       allDay: updatedEvent.allDay ?? event.allDay,
                       location: updatedEvent.location ?? event.location,
+                      accountId: event.accountId,
+                      accountName: event.accountName,
+                      providerId: event.providerId,
+                      calendarId: event.calendarId,
+                      connectionId: event.connectionId,
                     }
                   : event,
               )
@@ -306,7 +311,7 @@ export function CalendarView({ className }: CalendarViewProps) {
   const handleEventUpdate = (updatedEvent: CalendarEvent) => {
     updateEvent({
       connectionId: updatedEvent.connectionId,
-      calendarId: CALENDAR_CONFIG.DEFAULT_CALENDAR_ID,
+      calendarId: updatedEvent.calendarId,
       eventId: updatedEvent.id,
       title: updatedEvent.title,
       start: {
@@ -339,7 +344,7 @@ export function CalendarView({ className }: CalendarViewProps) {
 
     deleteEvent({
       connectionId: eventToDelete.connectionId,
-      calendarId: CALENDAR_CONFIG.DEFAULT_CALENDAR_ID,
+      calendarId: eventToDelete.calendarId,
       eventId: eventId,
     });
   };
