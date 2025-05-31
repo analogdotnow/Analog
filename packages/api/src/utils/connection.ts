@@ -1,8 +1,10 @@
 import "server-only";
+import { cache } from "react";
+
 import { auth, type Session } from "@repo/auth/server";
 import { db } from "@repo/db";
 
-export async function getActiveConnection(user: Session["user"]) {
+export const getActiveConnection = cache(async (user: Session["user"]) => {
   if (user?.defaultConnectionId) {
     const activeConnection = await db.query.connection.findFirst({
       where: (table, { eq, and }) =>
@@ -37,9 +39,9 @@ export async function getActiveConnection(user: Session["user"]) {
   }
 
   return firstConnection;
-}
+});
 
-export async function getAllConnections(user: Session["user"]) {
+export const getAllConnections = cache(async (user: Session["user"]) => {
   const _connections = await db.query.connection.findMany({
     where: (table, { eq }) => eq(table.userId, user.id),
   });
@@ -64,4 +66,4 @@ export async function getAllConnections(user: Session["user"]) {
   return connections.filter(
     (connection) => connection.accessToken && connection.refreshToken,
   );
-}
+});
