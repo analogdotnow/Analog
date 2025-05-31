@@ -2,9 +2,6 @@ import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
 import { Hero } from "@/components/sections/home/hero";
 
-// Required for tRPC prefetching
-export const dynamic = "force-dynamic";
-
 export default function Home() {
   return (
     <div className="mx-auto w-full">

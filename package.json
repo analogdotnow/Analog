@@ -12,15 +12,23 @@
     "db:generate": "turbo run db:generate",
     "db:migrate": "dotenv -- turbo run db:migrate",
     "db:push": "dotenv -- turbo run db:push",
-    "db:studio": "dotenv -- turbo run db:studio"
+    "db:studio": "dotenv -- turbo run db:studio",
+    "tauri:dev": "bun tauri dev",
+    "tauri:build": "bun tauri build",
+    "tauri:check": "cd src-tauri && cargo check"
   },
   "devDependencies": {
     "@ianvs/prettier-plugin-sort-imports": "^3.7.2",
+    "@tauri-apps/cli": "^2.5.0",
     "dotenv-cli": "^8.0.0",
     "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.11",
     "turbo": "^2.5.3"
   },
   "packageManager": "bun@1.2.13",
-  "workspaces": ["apps/*", "packages/*", "tooling/*"]
+  "workspaces": ["apps/*", "packages/*", "tooling/*"],
+  "dependencies": {
+    "@tauri-apps/plugin-updater": "~2",
+    "tauri": "^0.15.0"
+  }
 }

@@ -1,0 +1,57 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "Analog",
+  "version": "0.1.0",
+  "identifier": "com.analog.calendar",
+  "build": {
+    "frontendDist": "../apps/web/out",
+    "devUrl": "http://localhost:3000/calendar",
+    "beforeDevCommand": "bun dev"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "",
+        "width": 1400,
+        "height": 900,
+        "minWidth": 800,
+        "minHeight": 600,
+        "resizable": true,
+        "fullscreen": false,
+        "center": true,
+        "titleBarStyle": "Overlay"
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' http://localhost:3000 https://api.github.com https://api.anthropic.com; img-src 'self' data:; font-src 'self' data:"
+    },
+    "macOSPrivateApi": true
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "createUpdaterArtifacts": true,
+    "icon": [
+      "icons/mac-icon.icns"
+    ],
+    "macOS": {
+      "entitlements": null,
+      "exceptionDomain": "",
+      "frameworks": [],
+      "providerShortName": null,
+      "signingIdentity": null
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEIyQ0VCMDhERjg0Njg5RjMKUldUemlVYjRqYkRPc3VOb1V3RExyK3NVYmJOREo2Sm5VWEFMVUR5TGtHZ0xZcnlpVmovWFhFNVQK",
+      "endpoints": [
+        "https://github.com/analogdotnow/Analog/releases/latest/download/latest.json"
+      ]
+    },
+    "shell": {
+      "open": "^https?://.*"
+    }
+  }
+}
