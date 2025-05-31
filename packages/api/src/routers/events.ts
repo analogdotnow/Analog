@@ -136,7 +136,7 @@ export const eventsRouter = createTRPCRouter({
       );
 
       if (!calendarClient?.client) {
-          throw new TRPCError({
+        throw new TRPCError({
           code: "NOT_FOUND",
           message: `Calendar client not found for connectionId: ${input.connectionId}`,
         });
