@@ -37,7 +37,7 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
       }));
     } catch (error) {
       console.error("Error fetching Microsoft calendars:", error);
-      throw error;
+      return [];
     }
   }
 
