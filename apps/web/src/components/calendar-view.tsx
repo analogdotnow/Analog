@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { addDays, subDays } from "date-fns";
+import { toast } from "sonner";
 
 import {
   EventCalendar,
@@ -240,22 +241,28 @@ function useCalendarActions() {
   };
 }
 
+function useDefaultConnection() {
+  const trpc = useTRPC();
+
+  const { data } = useQuery(trpc.connections.getDefault.queryOptions());
+
+  return data?.connection;
+}
+
 export function CalendarView({ className }: CalendarViewProps) {
+  const defaultConnection = useDefaultConnection();
+
   const { events, createEvent, updateEvent, deleteEvent } =
     useCalendarActions();
 
   const handleEventAdd = (event: CalendarEvent) => {
-    // Get the first available connectionId for creating new events
-    const defaultConnectionId =
-      events.length > 0 ? events[0]?.connectionId : null;
-
-    if (!defaultConnectionId) {
-      console.error("No connection available for creating events");
+    if (!defaultConnection) {
+      toast.error("No default connection available, sign in again.");
       return;
     }
 
     createEvent({
-      connectionId: defaultConnectionId,
+      connectionId: defaultConnection?.id,
       calendarId: CALENDAR_CONFIG.DEFAULT_CALENDAR_ID,
       title: event.title,
       start: {
