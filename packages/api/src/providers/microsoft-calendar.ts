@@ -25,15 +25,20 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
   }
 
   async calendars(): Promise<Calendar[]> {
-    const response = await this.graphClient.api("/me/calendars").get();
-    const data = response.value as MicrosoftCalendar[];
+    try {
+      const response = await this.graphClient.api("/me/calendars").get();
+      const data = response.value as MicrosoftCalendar[];
 
-    return data.map((calendar) => ({
-      id: calendar.id as string,
-      provider: "microsoft",
-      name: calendar.name as string,
-      primary: calendar.isDefaultCalendar as boolean,
-    }));
+      return data.map((calendar) => ({
+        id: calendar.id as string,
+        provider: "microsoft",
+        name: calendar.name as string,
+        primary: calendar.isDefaultCalendar as boolean,
+      }));
+    } catch (error) {
+      console.error("Error fetching Microsoft calendars:", error);
+      throw error;
+    }
   }
 
   // async createCalendar(

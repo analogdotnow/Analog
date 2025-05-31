@@ -1,5 +1,5 @@
 import "server-only";
-import type { Session } from "@repo/auth/server";
+import { auth, type Session } from "@repo/auth/server";
 import { db } from "@repo/db";
 
 export async function getActiveConnection(user: Session["user"]) {
@@ -12,7 +12,20 @@ export async function getActiveConnection(user: Session["user"]) {
         ),
     });
 
-    if (activeConnection) return activeConnection;
+    if (activeConnection) {
+      const { accessToken } = await auth.api.getAccessToken({
+        body: {
+          providerId: activeConnection?.providerId,
+          accountId: activeConnection?.accountId,
+          userId: activeConnection?.userId,
+        },
+      });
+
+      return {
+        ...activeConnection,
+        accessToken: accessToken ?? activeConnection.accessToken,
+      };
+    }
   }
 
   const firstConnection = await db.query.connection.findFirst({
@@ -27,9 +40,26 @@ export async function getActiveConnection(user: Session["user"]) {
 }
 
 export async function getAllConnections(user: Session["user"]) {
-  const connections = await db.query.connection.findMany({
+  const _connections = await db.query.connection.findMany({
     where: (table, { eq }) => eq(table.userId, user.id),
   });
+
+  const connections = await Promise.all(
+    _connections.map(async (connection) => {
+      const { accessToken } = await auth.api.getAccessToken({
+        body: {
+          providerId: connection.providerId,
+          accountId: connection.accountId,
+          userId: connection.userId,
+        },
+      });
+
+      return {
+        ...connection,
+        accessToken: accessToken ?? connection.accessToken,
+      };
+    }),
+  );
 
   return connections.filter(
     (connection) => connection.accessToken && connection.refreshToken,

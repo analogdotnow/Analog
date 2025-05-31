@@ -142,7 +142,7 @@ export const auth = betterAuth({
       clientId: env.MICROSOFT_CLIENT_ID,
       clientSecret: env.MICROSOFT_CLIENT_SECRET,
       scope: MICROSOFT_OAUTH_SCOPES,
-    },
+    },  
   },
 });
 

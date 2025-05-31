@@ -44,8 +44,6 @@ export class GoogleProvider implements Provider {
   }
 
   async getUserInfo() {
-    console.log("getting user info");
-
     try {
       const response = await this.people.people.get({
         resourceName: "people/me",
