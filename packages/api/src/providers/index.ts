@@ -1,4 +1,4 @@
-import { connection } from "@repo/db/schema";
+import { account } from "@repo/db/schema";
 
 import { GoogleCalendarProvider } from "./google-calendar";
 import { MicrosoftCalendarProvider } from "./microsoft-calendar";
@@ -9,18 +9,18 @@ const supportedProviders = {
   microsoft: MicrosoftCalendarProvider,
 } as const;
 
-export function connectionToProvider(
-  activeConnection: typeof connection.$inferSelect,
+export function accountToProvider(
+  activeAccount: typeof account.$inferSelect,
 ): CalendarProvider {
-  if (!activeConnection.accessToken || !activeConnection.refreshToken) {
-    throw new Error("Invalid connection");
+  if (!activeAccount.accessToken || !activeAccount.refreshToken) {
+    throw new Error("Invalid account");
   }
 
-  const Provider = supportedProviders[activeConnection.providerId];
+  const Provider = supportedProviders[activeAccount.providerId];
 
   if (!Provider) {
     throw new Error("Provider not supported");
   }
 
-  return new Provider({ accessToken: activeConnection.accessToken });
+  return new Provider({ accessToken: activeAccount.accessToken });
 }

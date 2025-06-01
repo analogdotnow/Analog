@@ -1,8 +1,8 @@
-import { boolean, pgTable, text, timestamp, unique } from "drizzle-orm/pg-core";
+import { boolean, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
   id: text().primaryKey(),
-  defaultConnectionId: text(),
+  defaultAccountId: text(),
   name: text().notNull(),
   email: text().notNull().unique(),
   emailVerified: boolean()
@@ -29,7 +29,10 @@ export const session = pgTable("session", {
 export const account = pgTable("account", {
   id: text().primaryKey(),
   accountId: text().notNull(),
-  providerId: text().notNull(),
+  providerId: text().$type<"google" | "microsoft">().notNull(),
+  name: text().$type<string>().notNull().default(""),
+  email: text().$type<string>().notNull().default(""),
+  image: text(),
   userId: text()
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
@@ -52,29 +55,3 @@ export const verification = pgTable("verification", {
   createdAt: timestamp().defaultNow(),
   updatedAt: timestamp().defaultNow(),
 });
-
-export const connection = pgTable(
-  "connection",
-  (d) => ({
-    id: d.uuid().primaryKey().defaultRandom(),
-    userId: d
-      .text()
-      .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
-    accountId: d
-      .text()
-      .notNull()
-      .references(() => account.id, { onDelete: "cascade" }),
-    email: d.text().notNull(),
-    name: d.text(),
-    image: d.text(),
-    accessToken: d.text(),
-    refreshToken: d.text(),
-    scope: d.text().notNull(),
-    providerId: d.text().$type<"google" | "microsoft">().notNull(),
-    expiresAt: d.timestamp().notNull(),
-    createdAt: d.timestamp().notNull(),
-    updatedAt: d.timestamp().notNull(),
-  }),
-  (t) => [unique().on(t.userId, t.email, t.providerId)],
-);

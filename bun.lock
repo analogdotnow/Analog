@@ -43,7 +43,7 @@
         "@trpc/client": "^11.1.2",
         "@trpc/server": "^11.1.2",
         "@trpc/tanstack-react-query": "^11.1.2",
-        "better-auth": "^1.2.8",
+        "better-auth": "^1.2.9-beta.8",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
         "date-fns": "^4.1.0",
@@ -80,7 +80,6 @@
       "version": "0.1.0",
       "dependencies": {
         "@microsoft/microsoft-graph-client": "^3.0.7",
-        "@microsoft/microsoft-graph-types": "^2.40.0",
         "@repo/auth": "workspace:*",
         "@repo/db": "workspace:*",
         "@repo/env": "workspace:*",
@@ -89,6 +88,7 @@
         "@upstash/redis": "^1.34.9",
       },
       "devDependencies": {
+        "@microsoft/microsoft-graph-types": "^2.40.0",
         "@repo/eslint-config": "workspace:*",
         "@repo/typescript-config": "workspace:*",
         "@types/node": "^20",
@@ -97,7 +97,7 @@
       },
       "peerDependencies": {
         "@trpc/server": "^11.1.2",
-        "better-auth": "^1.2.8",
+        "better-auth": "1.2.9-beta.8",
         "next": "^15",
         "server-only": "^0.0.1",
         "superjson": "^2.2.2",
@@ -110,12 +110,12 @@
       "dependencies": {
         "@googleapis/people": "^3.0.9",
         "@microsoft/microsoft-graph-client": "^3.0.7",
-        "@microsoft/microsoft-graph-types": "^2.40.0",
         "@repo/db": "workspace:*",
         "@repo/env": "workspace:*",
         "google-auth-library": "^9.15.1",
       },
       "devDependencies": {
+        "@microsoft/microsoft-graph-types": "^2.40.0",
         "@repo/eslint-config": "workspace:*",
         "@repo/typescript-config": "workspace:*",
         "@types/node": "^20",
@@ -123,7 +123,7 @@
         "typescript": "^5",
       },
       "peerDependencies": {
-        "better-auth": "^1.2.8",
+        "better-auth": "1.2.9-beta.8",
         "server-only": "^0.0.1",
       },
     },
@@ -740,7 +740,7 @@
 
     "base64-js": ["base64-js@1.5.1", "", {}, "sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA=="],
 
-    "better-auth": ["better-auth@1.2.8", "", { "dependencies": { "@better-auth/utils": "0.2.5", "@better-fetch/fetch": "^1.1.18", "@noble/ciphers": "^0.6.0", "@noble/hashes": "^1.6.1", "@simplewebauthn/browser": "^13.0.0", "@simplewebauthn/server": "^13.0.0", "better-call": "^1.0.8", "defu": "^6.1.4", "jose": "^5.9.6", "kysely": "^0.28.1", "nanostores": "^0.11.3", "zod": "^3.24.1" } }, "sha512-y8ry7ZW3/3ZIr82Eo1zUDtMzdoQlFnwNuZ0+b0RxoNZgqmvgTIc/0tCDC7NDJerqSu4UCzer0dvYxBsv3WMIGg=="],
+    "better-auth": ["better-auth@1.2.9-beta.8", "", { "dependencies": { "@better-auth/utils": "0.2.5", "@better-fetch/fetch": "^1.1.18", "@noble/ciphers": "^0.6.0", "@noble/hashes": "^1.6.1", "@simplewebauthn/browser": "^13.0.0", "@simplewebauthn/server": "^13.0.0", "better-call": "^1.0.8", "defu": "^6.1.4", "jose": "^5.9.6", "kysely": "^0.28.2", "nanostores": "^0.11.3", "zod": "^3.24.1" } }, "sha512-QWtFQ4+2eETgxptQmOxTfyPlLxSL5/IqAoL4oFpl5V8ZdTQvSb/deQlXGmUlSiHCF23NzEb9dITQwTTyTPDoQQ=="],
 
     "better-call": ["better-call@1.0.9", "", { "dependencies": { "@better-fetch/fetch": "^1.1.4", "rou3": "^0.5.1", "set-cookie-parser": "^2.7.1", "uncrypto": "^0.1.3" } }, "sha512-Qfm0gjk0XQz0oI7qvTK1hbqTsBY4xV2hsHAxF8LZfUYl3RaECCIifXuVqtPpZJWvlCCMlQSvkvhhyuApGUba6g=="],
 

@@ -1,6 +1,6 @@
 {
-  "id": "c171e1e1-2aa4-4e14-8b47-84691964eeb6",
-  "prevId": "7c5688c1-6999-438f-a23a-32c77d2a1c3f",
+  "id": "5573376f-5176-4883-800f-215b6dd09840",
+  "prevId": "c171e1e1-2aa4-4e14-8b47-84691964eeb6",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -37,7 +37,8 @@
           "name": "email",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": "''"
         },
         "image": {
           "name": "image",

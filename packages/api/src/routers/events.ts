@@ -15,7 +15,7 @@ export const eventsRouter = createTRPCRouter({
     )
     .query(async ({ ctx, input }) => {
       const allEvents = await Promise.all(
-        ctx.allCalendarClients.map(async ({ client, connection }) => {
+        ctx.allCalendarClients.map(async ({ client, account }) => {
           let calendarIds = input.calendarIds;
 
           if (calendarIds.length === 0) {
@@ -30,7 +30,7 @@ export const eventsRouter = createTRPCRouter({
                 .filter(Boolean);
             } catch (error) {
               console.error(
-                `Failed to fetch calendars for provider ${connection.providerId}:`,
+                `Failed to fetch calendars for provider ${account.providerId}:`,
                 error,
               );
               return [];
@@ -49,14 +49,13 @@ export const eventsRouter = createTRPCRouter({
                 return events.map((event) => ({
                   ...event,
                   calendarId,
-                  providerId: connection.providerId,
-                  accountId: connection.id,
-                  accountName: connection.email,
-                  connectionId: connection.id,
+                  providerId: account.providerId,
+                  accountId: account.accountId,
+                  accountName: account.email,
                 }));
               } catch (error) {
                 console.error(
-                  `Failed to fetch events for calendar ${calendarId} from ${connection.providerId}:`,
+                  `Failed to fetch events for calendar ${calendarId} from ${account.providerId}:`,
                   error,
                 );
                 return [];
@@ -82,7 +81,7 @@ export const eventsRouter = createTRPCRouter({
   create: calendarProcedure
     .input(
       z.object({
-        connectionId: z.string(),
+        accountId: z.string(),
         calendarId: z.string(),
         title: z.string(),
         start: dateInputSchema,
@@ -95,17 +94,17 @@ export const eventsRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       const calendarClient = ctx.allCalendarClients.find(
-        ({ connection }) => connection.id === input.connectionId,
+        ({ account }) => account.accountId === input.accountId,
       );
 
       if (!calendarClient) {
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: `Calendar client not found for connectionId: ${input.connectionId}`,
+          message: `Calendar client not found for accountId: ${input.accountId}`,
         });
       }
 
-      const { connectionId, ...eventData } = input;
+      const { accountId, ...eventData } = input;
 
       const event = await calendarClient.client.createEvent(
         eventData.calendarId,
@@ -118,7 +117,7 @@ export const eventsRouter = createTRPCRouter({
   update: calendarProcedure
     .input(
       z.object({
-        connectionId: z.string(),
+        accountId: z.string(),
         calendarId: z.string(),
         eventId: z.string(),
         title: z.string().optional(),
@@ -132,17 +131,17 @@ export const eventsRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       const calendarClient = ctx.allCalendarClients.find(
-        ({ connection }) => connection.id === input.connectionId,
+        ({ account }) => account.accountId === input.accountId,
       );
 
       if (!calendarClient?.client) {
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: `Calendar client not found for connectionId: ${input.connectionId}`,
+          message: `Calendar client not found for accountId: ${input.accountId}`,
         });
       }
 
-      const { connectionId, calendarId, eventId, ...updateData } = input;
+      const { accountId, calendarId, eventId, ...updateData } = input;
 
       const event = await calendarClient.client.updateEvent(
         calendarId,
@@ -156,20 +155,20 @@ export const eventsRouter = createTRPCRouter({
   delete: calendarProcedure
     .input(
       z.object({
-        connectionId: z.string(),
+        accountId: z.string(),
         calendarId: z.string(),
         eventId: z.string(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
       const calendarClient = ctx.allCalendarClients.find(
-        ({ connection }) => connection.id === input.connectionId,
+        ({ account }) => account.accountId === input.accountId,
       );
 
       if (!calendarClient?.client) {
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: `Calendar client not found for connectionId: ${input.connectionId}`,
+          message: `Calendar client not found for accountId: ${input.accountId}`,
         });
       }
 

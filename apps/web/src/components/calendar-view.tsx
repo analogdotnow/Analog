@@ -44,8 +44,8 @@ function useCalendarActions() {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
-  const { data: defaultConnectionData } = useQuery(
-    trpc.connections.getDefault.queryOptions(),
+  const { data: defaultAccountData } = useQuery(
+    trpc.accounts.getDefault.queryOptions(),
   );
 
   const timeMin = useMemo(
@@ -98,7 +98,6 @@ function useCalendarActions() {
         color: event.color ? colorMap[event.color] || "sky" : "sky",
         location: event.location,
         calendarId: event.calendarId,
-        connectionId: event.connectionId,
         accountId: event.accountId,
         accountName: event.accountName,
         providerId: event.providerId,
@@ -109,8 +108,8 @@ function useCalendarActions() {
   const { mutate: createEvent, isPending: isCreating } = useMutation(
     trpc.events.create.mutationOptions({
       onMutate: async (newEvent) => {
-        if (!defaultConnectionData) {
-          toast.error("No default connection available, sign in again.");
+        if (!defaultAccountData) {
+          toast.error("No default account available, sign in again.");
           return;
         }
 
@@ -133,10 +132,9 @@ function useCalendarActions() {
             status: undefined,
             htmlLink: undefined,
             calendarId: newEvent.calendarId,
-            connectionId: newEvent.connectionId,
-            providerId: defaultConnectionData.connection.providerId,
-            accountId: defaultConnectionData.connection.accountId,
-            accountName: defaultConnectionData.connection.email,
+            providerId: defaultAccountData.account.providerId,
+            accountId: defaultAccountData.account.accountId,
+            accountName: defaultAccountData.account.email,
           };
 
           return {
@@ -193,7 +191,6 @@ function useCalendarActions() {
                       accountName: event.accountName,
                       providerId: event.providerId,
                       calendarId: event.calendarId,
-                      connectionId: event.connectionId,
                     }
                   : event,
               )
@@ -264,28 +261,28 @@ function useCalendarActions() {
   };
 }
 
-function useDefaultConnection() {
+function useDefaultAccount() {
   const trpc = useTRPC();
 
-  const { data } = useQuery(trpc.connections.getDefault.queryOptions());
+  const { data } = useQuery(trpc.accounts.getDefault.queryOptions());
 
-  return data?.connection;
+  return data?.account;
 }
 
 export function CalendarView({ className }: CalendarViewProps) {
-  const defaultConnection = useDefaultConnection();
+  const defaultAccount = useDefaultAccount();
 
   const { events, createEvent, updateEvent, deleteEvent } =
     useCalendarActions();
 
   const handleEventAdd = (event: CalendarEvent) => {
-    if (!defaultConnection) {
-      toast.error("No default connection available, sign in again.");
+    if (!defaultAccount) {
+      toast.error("No default account available, sign in again.");
       return;
     }
 
     createEvent({
-      connectionId: defaultConnection?.id,
+      accountId: defaultAccount?.accountId,
       calendarId: CALENDAR_CONFIG.DEFAULT_CALENDAR_ID,
       title: event.title,
       start: {
@@ -310,7 +307,7 @@ export function CalendarView({ className }: CalendarViewProps) {
 
   const handleEventUpdate = (updatedEvent: CalendarEvent) => {
     updateEvent({
-      connectionId: updatedEvent.connectionId,
+      accountId: updatedEvent.accountId,
       calendarId: updatedEvent.calendarId,
       eventId: updatedEvent.id,
       title: updatedEvent.title,
@@ -335,7 +332,6 @@ export function CalendarView({ className }: CalendarViewProps) {
   };
 
   const handleEventDelete = (eventId: string) => {
-    // Find the event to get its connectionId
     const eventToDelete = events.find((event) => event.id === eventId);
     if (!eventToDelete) {
       console.error(`Event with id ${eventId} not found`);
@@ -343,7 +339,7 @@ export function CalendarView({ className }: CalendarViewProps) {
     }
 
     deleteEvent({
-      connectionId: eventToDelete.connectionId,
+      accountId: eventToDelete.accountId,
       calendarId: eventToDelete.calendarId,
       eventId: eventId,
     });

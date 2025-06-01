@@ -6,8 +6,8 @@ import { ZodError } from "zod";
 import { auth } from "@repo/auth/server";
 import { db } from "@repo/db";
 
-import { connectionToProvider } from "./providers";
-import { getAllConnections } from "./utils/connection";
+import { accountToProvider } from "./providers";
+import { getAllAccounts } from "./utils/accounts";
 
 export const createTRPCContext = async (opts: { headers: Headers }) => {
   const session = await auth.api.getSession({
@@ -58,34 +58,34 @@ export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
 
 export const calendarProcedure = protectedProcedure.use(
   async ({ ctx, next }) => {
-    const allConnections = await getAllConnections(ctx.user);
+    const allAccounts = await getAllAccounts(ctx.user, ctx.headers);
 
-    const activeConnection = allConnections.find(
-      (connection) => connection.id === ctx.user.defaultConnectionId,
+    const activeAccount = allAccounts.find(
+      (account) => account.id === ctx.user.defaultAccountId,
     );
 
-    if (!activeConnection) {
+    if (!activeAccount) {
       throw new TRPCError({
         code: "PRECONDITION_FAILED",
-        message: "No active connection set",
+        message: "No active account set",
       });
     }
 
-    const calendarClient = connectionToProvider(activeConnection);
-    const allCalendarClients = allConnections.map((connection) => ({
-      connection,
-      client: connectionToProvider(connection),
+    const calendarClient = accountToProvider(activeAccount);
+    const allCalendarClients = allAccounts.map((account) => ({
+      account,
+      client: accountToProvider(account),
     }));
 
     return next({
       ctx: {
         // Single provider access (for creating events, etc.)
         calendarClient,
-        activeConnection,
+        activeAccount,
 
         // Multiple provider access (for listing all calendars/events)
         allCalendarClients,
-        allConnections,
+        allAccounts,
       },
     });
   },
