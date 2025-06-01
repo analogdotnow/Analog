@@ -109,11 +109,13 @@ export const auth = betterAuth({
       scope: GOOGLE_OAUTH_SCOPES,
       accessType: "offline",
       prompt: "consent",
+      overrideUserInfoOnSignIn: true,
     },
     microsoft: {
       clientId: env.MICROSOFT_CLIENT_ID,
       clientSecret: env.MICROSOFT_CLIENT_SECRET,
       scope: MICROSOFT_OAUTH_SCOPES,
+      overrideUserInfoOnSignIn: true,
     },
   },
 });

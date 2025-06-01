@@ -23,7 +23,7 @@ interface GridLayoutOptions {
  * @returns CSS grid-template-columns string
  */
 export function useGridLayout(days: Date[], options: GridLayoutOptions = {}) {
-  const { includeTimeColumn = false, timeColumnWidth = "6rem" } = options;
+  const { includeTimeColumn = false, timeColumnWidth = "5rem" } = options;
 
   const viewPreferences = useViewPreferences();
 

@@ -29,6 +29,7 @@ export function CalendarNavigation({
               aria-label="Previous"
               aria-labelledby="previous-button"
               aria-description="Go previous"
+              className="size-8"
             >
               <ChevronLeftIcon size={16} aria-hidden="true" />
             </Button>
@@ -50,6 +51,7 @@ export function CalendarNavigation({
               aria-description="Go next"
               onClick={onNext}
               aria-label="Next"
+              className="size-8"
             >
               <ChevronRightIcon size={16} aria-hidden="true" />
             </Button>
@@ -66,7 +68,7 @@ export function CalendarNavigation({
 
       <Button
         variant="outline"
-        className="aspect-square max-[479px]:p-0!"
+        className="aspect-square h-8 max-[479px]:p-0!"
         onClick={onToday}
       >
         <RiCalendarCheckLine

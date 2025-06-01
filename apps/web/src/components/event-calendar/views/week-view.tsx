@@ -133,13 +133,15 @@ function WeekViewHeader() {
   const { allDays, gridTemplateColumns } = useWeekViewContext();
   const viewPreferences = useViewPreferences();
 
+  const timeZone = "CEST";
+
   return (
     <div
       className="grid border-b border-border/70 transition-[grid-template-columns] duration-200 ease-linear"
       style={{ gridTemplateColumns }}
     >
-      <div className="py-2 text-center text-sm text-muted-foreground/70">
-        <span className="max-[479px]:sr-only">{format(new Date(), "O")}</span>
+      <div className="flex flex-col items-end justify-end py-2 pe-2 pb-2.5 text-center text-sm text-[10px] font-medium text-muted-foreground/70 sm:pe-4 sm:text-xs">
+        <span className="max-[479px]:sr-only">{timeZone}</span>
       </div>
       {allDays.map((day) => {
         const isDayVisible = viewPreferences.showWeekends || !isWeekend(day);
@@ -148,7 +150,7 @@ function WeekViewHeader() {
           <div
             key={day.toString()}
             className={cn(
-              "overflow-hidden py-2 text-center text-sm text-muted-foreground/70 data-today:font-medium data-today:text-foreground",
+              "overflow-hidden py-2 text-center text-base font-medium text-muted-foreground/70 data-today:text-foreground",
               !isDayVisible && "w-0",
             )}
             data-today={isToday(day) || undefined}
@@ -158,7 +160,7 @@ function WeekViewHeader() {
               {format(day, "E")[0]} {format(day, "d")}
             </span>
             <span className="truncate max-sm:hidden">
-              {format(day, "EEE dd")}
+              {format(day, "EEE d")}
             </span>
           </div>
         );
@@ -281,6 +283,8 @@ function WeekViewAllDaySection() {
 function WeekViewTimeColumn() {
   const { hours } = useWeekViewContext();
 
+  const timeFormat = "24";
+
   return (
     <div className="grid auto-cols-fr border-r border-border/70">
       {hours.map((hour, index) => (
@@ -289,8 +293,10 @@ function WeekViewTimeColumn() {
           className="relative min-h-[var(--week-cells-height)] border-b border-border/70 last:border-b-0"
         >
           {index > 0 && (
-            <span className="absolute -top-3 left-0 flex h-6 w-16 max-w-full items-center justify-end bg-background pe-1 text-[10px] text-muted-foreground/70 sm:pe-2 sm:text-xs">
-              {format(hour, "h a")}
+            <span className="absolute -top-3 left-0 flex h-6 w-20 max-w-full items-center justify-end bg-background pe-2 text-[10px] font-medium text-muted-foreground/70 sm:pe-4 sm:text-xs">
+              {timeFormat === "24"
+                ? format(hour, "HH:mm")
+                : format(hour, "h aa")}
             </span>
           )}
         </div>
