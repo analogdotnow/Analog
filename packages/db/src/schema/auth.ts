@@ -30,6 +30,8 @@ export const account = pgTable("account", {
   id: text().primaryKey(),
   accountId: text().notNull(),
   providerId: text().$type<"google" | "microsoft">().notNull(),
+  // we are using $type<string> because during account creation
+  // better-auth does not pass additional fields
   name: text().$type<string>().notNull().default(""),
   email: text().$type<string>().notNull().default(""),
   image: text(),

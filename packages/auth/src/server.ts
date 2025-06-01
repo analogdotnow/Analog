@@ -48,6 +48,8 @@ export const auth = betterAuth({
   },
   databaseHooks: {
     account: {
+      // we are using the after hook because better-auth does not
+      // pass additional fields before account creation
       create: {
         after: async (_account, ctx) => {
           if (!_account.accessToken || !_account.refreshToken) {
