@@ -4,126 +4,158 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: var(--color-white);
-  --foreground: var(--color-neutral-950);
-  --card: var(--color-white);
-  --card-foreground: var(--color-neutral-950);
-  --popover: var(--color-white);
-  --popover-foreground: var(--color-neutral-950);
-  --primary: var(--color-neutral-900);
-  --primary-foreground: var(--color-neutral-50);
-  --secondary: var(--color-neutral-100);
-  --secondary-foreground: var(--color-neutral-900);
-  --muted: var(--color-neutral-100);
-  --muted-foreground: var(--color-neutral-500);
-  --accent: var(--color-neutral-100);
-  --accent-foreground: var(--color-neutral-900);
-  --destructive: var(--color-red-600);
-  --border: var(--color-neutral-200);
-  --input: var(--color-neutral-200);
-  --ring: var(--color-neutral-400);
-  --chart-1: var(--color-orange-600);
-  --chart-2: var(--color-teal-600);
-  --chart-3: var(--color-cyan-900);
-  --chart-4: var(--color-amber-400);
-  --chart-5: var(--color-amber-500);
+  /* Surface colors */
+  --background-color-neutral: var(--color-white);
+  --background-color-neutral-hover: var(--color-neutral-100);
+  --background-color-neutral-weak: var(--color-neutral-50);
+  --background-color-neutral-subtle: var(--color-neutral-100);
+  --background-color-neutral-strong: var(--color-neutral-200);
+  --background-color-neutral-inverse: var(--color-neutral-900);
+  --background-color-neutral-inverse-hover: var(--color-neutral-700);
+
+  /* Content colors */
+  --text-color-neutral: var(--color-neutral-800);
+  --text-color-neutral-onsurface: var(--color-neutral-50);
+  --text-color-neutral-subtle: var(--color-neutral-500);
+  --text-color-neutral-weak: var(--color-neutral-400);
+  --text-color-neutral-inverse: var(--color-white);
+  --text-color-neutral-inverse-subtle: var(--color-neutral-300);
+
+  /* Stroke colors */
+  --border-color-neutral: var(--color-neutral-200);
+  --border-color-neutral-subtle: var(--color-neutral-100);
+  --border-color-neutral-strong: var(--color-neutral-950);
+
+  /* Ring colors */
+  --ring-color-neutral: var(--color-neutral-400);
+  --ring-color-neutral-subtle: var(--color-neutral-300);
+  --ring-color-neutral-strong: var(--color-neutral-600);
+
+  /* Danger colors */
+  --background-color-danger: var(--color-red-600);
+  --background-color-danger-subtle: var(--color-red-50);
+  --background-color-danger-strong: var(--color-red-700);
+  --background-color-danger-inverse: var(--color-white);
+  --background-color-danger-hover: var(--color-red-700);
+
+  --text-color-danger: var(--color-red-600);
+  --text-color-danger-onsurface: var(--color-white);
+  --text-color-danger-subtle: var(--color-red-400);
+  --text-color-danger-muted: var(--color-red-300);
+  --text-color-danger-inverse: var(--color-white);
+
+  --border-color-danger: var(--color-red-200);
+  --border-color-danger-subtle: var(--color-red-100);
+  --border-color-danger-strong: var(--color-red-500);
+  --border-color-danger-hover: var(--color-red-300);
+
   --radius: 0.625rem;
-  --sidebar: var(--color-neutral-50);
-  --sidebar-foreground: var(--color-neutral-950);
-  --sidebar-primary: var(--color-neutral-900);
-  --sidebar-primary-foreground: var(--color-neutral-50);
-  --sidebar-accent: var(--color-neutral-100);
-  --sidebar-accent-foreground: var(--color-neutral-900);
-  --sidebar-border: var(--color-neutral-200);
-  --sidebar-ring: var(--color-neutral-400);
-}
 
 .dark {
-  --background: var(--color-neutral-900);
-  --foreground: var(--color-neutral-50);
-  --card: var(--color-neutral-900);
-  --card-foreground: var(--color-neutral-50);
-  --popover: var(--color-neutral-800);
-  --popover-foreground: var(--color-neutral-50);
-  --primary: var(--color-neutral-200);
-  --primary-foreground: var(--color-neutral-900);
-  --secondary: var(--color-neutral-800);
-  --secondary-foreground: var(--color-neutral-50);
-  --muted: var(--color-neutral-800);
-  --muted-foreground: var(--color-neutral-400);
-  --accent: var(--color-neutral-700);
-  --accent-foreground: var(--color-neutral-50);
-  --destructive: var(--color-red-400);
-  --border: rgba(255, 255, 255, 0.1);
-  --input: rgba(255, 255, 255, 0.15);
-  --ring: var(--color-neutral-500);
-  --chart-1: var(--color-blue-700);
-  --chart-2: var(--color-emerald-500);
-  --chart-3: var(--color-amber-500);
-  --chart-4: var(--color-purple-500);
-  --chart-5: var(--color-rose-500);
-  --sidebar: color-mix(
-    in oklch,
-    var(--color-neutral-900) 50%,
-    var(--color-neutral-800)
-  );
-  --sidebar-foreground: var(--color-neutral-50);
-  --sidebar-primary: var(--color-blue-500);
-  --sidebar-primary-foreground: var(--color-neutral-50);
-  --sidebar-accent: var(--color-neutral-800);
-  --sidebar-accent-foreground: var(--color-neutral-50);
-  --sidebar-border: rgba(255, 255, 255, 0.1);
-  --sidebar-ring: var(--color-neutral-600);
+  /* Surface colors */
+  --background-color-neutral: var(--color-neutral-950);
+  --background-color-neutral-hover: var(--color-neutral-900);
+  --background-color-neutral-weak: var(--color-black);
+  --background-color-neutral-subtle: var(--color-neutral-900);
+  --background-color-neutral-strong: var(--color-neutral-800);
+  --background-color-neutral-inverse: var(--color-neutral-200);
+  --background-color-neutral-inverse-hover: var(--color-neutral-200);
+
+  /* Content colors */
+  --text-color-neutral: var(--color-neutral-300);
+  --text-color-neutral-subtle: var(--color-neutral-400);
+  --text-color-neutral-onsurface: var(--color-neutral-900);
+  --text-color-neutral-weak: var(--color-neutral-600);
+  --text-color-neutral-inverse: var(--color-black);
+  --text-color-neutral-inverse-subtle: var(--color-neutral-700);
+
+  /* Stroke colors */
+  --border-color-neutral: var(--color-neutral-800);
+  --border-color-neutral-subtle: var(--color-neutral-900);
+  --border-color-neutral-strong: var(--color-neutral-50);
+
+  /* Ring colors */
+  --ring-color-neutral: var(--color-neutral-500);
+  --ring-color-neutral-subtle: var(--color-neutral-600);
+  --ring-color-neutral-strong: var(--color-neutral-400);
+
+  /* Danger colors */
+  --background-color-danger: var(--color-red-500);
+  --background-color-danger-subtle: var(--color-red-900);
+  --background-color-danger-strong: var(--color-red-400);
+  --background-color-danger-inverse: var(--color-neutral-900);
+  --background-color-danger-hover: var(--color-red-400);
+
+  --text-color-danger: var(--color-red-300);
+  --text-color-danger-onsurface: var(--color-white);
+  --text-color-danger-subtle: var(--color-red-200);
+  --text-color-danger-muted: var(--color-red-200);
+  --text-color-danger-inverse: var(--color-white);
+
+  --border-color-danger: var(--color-red-700);
+  --border-color-danger-subtle: var(--color-red-800);
+  --border-color-danger-strong: var(--color-red-600);
+  --border-color-danger-hover: var(--color-red-600);
 }
 
 @theme inline {
   --font-satoshi: var(--font-satoshi);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Surface colors */
+  --background-color-neutral: var(--background-color-neutral);
+  --background-color-neutral-hover: var(--background-color-neutral-hover);
+  --background-color-neutral-weak: var(--background-color-neutral-weak);
+  --background-color-neutral-subtle: var(--background-color-neutral-subtle);
+  --background-color-neutral-strong: var(--background-color-neutral-strong);
+  --background-color-neutral-inverse: var(--background-color-neutral-inverse);
+  --background-color-neutral-inverse-hover: var(
+    --background-color-neutral-inverse-hover
+  );
+
+  /* Content colors */
+  --text-color-neutral: var(--text-color-neutral);
+  --text-color-neutral-subtle: var(--text-color-neutral-subtle);
+  --text-color-neutral-weak: var(--text-color-neutral-weak);
+  --text-color-neutral-inverse: var(--text-color-neutral-inverse);
+  --text-color-neutral-inverse-subtle: var(--text-color-neutral-inverse-subtle);
+
+  /* Stroke colors */
+  --border-color-neutral: var(--border-color-neutral);
+  --border-color-neutral-subtle: var(--border-color-neutral-subtle);
+  --border-color-neutral-strong: var(--border-color-neutral-strong);
+
+  /* Ring colors */
+  --ring-color-neutral: var(--ring-color-neutral);
+  --ring-color-neutral-subtle: var(--ring-color-neutral-subtle);
+  --ring-color-neutral-strong: var(--ring-color-neutral-strong);
+
+  /* Danger colors */
+  --background-color-danger: var(--background-color-danger);
+  --background-color-danger-subtle: var(--background-color-danger-subtle);
+  --background-color-danger-strong: var(--background-color-danger-strong);
+  --background-color-danger-inverse: var(--background-color-danger-inverse);
+  --background-color-danger-hover: var(--background-color-danger-hover);
+
+  --text-color-danger: var(--text-color-danger);
+  --text-color-danger-onsurface: var(--text-color-danger-onsurface);
+  --text-color-danger-subtle: var(--text-color-danger-subtle);
+  --text-color-danger-muted: var(--text-color-danger-muted);
+  --text-color-danger-inverse: var(--text-color-danger-inverse);
+
+  --border-color-danger: var(--border-color-danger);
+  --border-color-danger-subtle: var(--border-color-danger-subtle);
+  --border-color-danger-strong: var(--border-color-danger-strong);
+  --border-color-danger-hover: var(--border-color-danger-hover);
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-neutral-subtle;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-neutral text-neutral;
   }
 }
 
