@@ -7,7 +7,7 @@ import { format, isBefore } from "date-fns";
 import { toast } from "sonner";
 import { Temporal } from "temporal-polyfill";
 
-import type { CalendarEvent, EventColor } from "@/components/event-calendar";
+import type { CalendarEvent } from "@/components/event-calendar";
 import {
   DefaultEndHour,
   DefaultStartHour,
@@ -77,7 +77,6 @@ export function EventDialog({
   const [endTime, setEndTime] = useState(`${DefaultEndHour}:00`);
   const [allDay, setAllDay] = useState(false);
   const [location, setLocation] = useState("");
-  const [color, setColor] = useState<EventColor>("sky");
   const [error, setError] = useState<string | null>(null);
   const [startDateOpen, setStartDateOpen] = useState(false);
   const [endDateOpen, setEndDateOpen] = useState(false);
@@ -105,7 +104,6 @@ export function EventDialog({
       setEndTime(formatTimeForInput(end));
       setAllDay(event.allDay || false);
       setLocation(event.location || "");
-      setColor((event.color as EventColor) || "sky");
       setError(null); // Reset error when opening dialog
     } else {
       resetForm();
@@ -121,7 +119,6 @@ export function EventDialog({
     setEndTime(`${DefaultEndHour}:00`);
     setAllDay(false);
     setLocation("");
-    setColor("sky");
     setError(null);
   };
 
@@ -207,10 +204,10 @@ export function EventDialog({
           ),
       allDay,
       location,
-      color,
-      calendarId: "primary",
-      providerId: defaultAccount.providerId,
-      accountId: defaultAccount.id,
+      color: event?.color,
+      calendarId: event?.calendarId ?? "primary",
+      providerId: event?.providerId ?? defaultAccount.providerId,
+      accountId: event?.accountId ?? defaultAccount.id,
     });
   };
 
@@ -219,51 +216,6 @@ export function EventDialog({
       onDelete(event.id);
     }
   };
-
-  // Updated color options to match types.ts
-  const colorOptions: Array<{
-    value: EventColor;
-    label: string;
-    bgClass: string;
-    borderClass: string;
-  }> = [
-    {
-      value: "sky",
-      label: "Sky",
-      bgClass: "bg-sky-400 data-[state=checked]:bg-sky-400",
-      borderClass: "border-sky-400 data-[state=checked]:border-sky-400",
-    },
-    {
-      value: "amber",
-      label: "Amber",
-      bgClass: "bg-amber-400 data-[state=checked]:bg-amber-400",
-      borderClass: "border-amber-400 data-[state=checked]:border-amber-400",
-    },
-    {
-      value: "violet",
-      label: "Violet",
-      bgClass: "bg-violet-400 data-[state=checked]:bg-violet-400",
-      borderClass: "border-violet-400 data-[state=checked]:border-violet-400",
-    },
-    {
-      value: "rose",
-      label: "Rose",
-      bgClass: "bg-rose-400 data-[state=checked]:bg-rose-400",
-      borderClass: "border-rose-400 data-[state=checked]:border-rose-400",
-    },
-    {
-      value: "emerald",
-      label: "Emerald",
-      bgClass: "bg-emerald-400 data-[state=checked]:bg-emerald-400",
-      borderClass: "border-emerald-400 data-[state=checked]:border-emerald-400",
-    },
-    {
-      value: "orange",
-      label: "Orange",
-      bgClass: "bg-orange-400 data-[state=checked]:bg-orange-400",
-      borderClass: "border-orange-400 data-[state=checked]:border-orange-400",
-    },
-  ];
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -451,31 +403,6 @@ export function EventDialog({
               onChange={(e) => setLocation(e.target.value)}
             />
           </div>
-          <fieldset className="space-y-4">
-            <legend className="text-sm leading-none font-medium text-foreground">
-              Etiquette
-            </legend>
-            <RadioGroup
-              className="flex gap-1.5"
-              defaultValue={colorOptions[0]?.value}
-              value={color}
-              onValueChange={(value: EventColor) => setColor(value)}
-            >
-              {colorOptions.map((colorOption) => (
-                <RadioGroupItem
-                  key={colorOption.value}
-                  id={`color-${colorOption.value}`}
-                  value={colorOption.value}
-                  aria-label={colorOption.label}
-                  className={cn(
-                    "size-6 shadow-none",
-                    colorOption.bgClass,
-                    colorOption.borderClass,
-                  )}
-                />
-              ))}
-            </RadioGroup>
-          </fieldset>
         </div>
         <DialogFooter className="flex-row sm:justify-between">
           {event?.id && (

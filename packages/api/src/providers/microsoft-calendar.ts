@@ -8,6 +8,7 @@ import { Temporal } from "temporal-polyfill";
 import { CALENDAR_DEFAULTS } from "../constants/calendar";
 import { CreateCalendarInput, UpdateCalendarInput } from "../schemas/calendars";
 import { CreateEventInput, UpdateEventInput } from "../schemas/events";
+import { assignColor } from "./google-calendar/colors";
 import type { Calendar, CalendarEvent, CalendarProvider } from "./interfaces";
 import {
   calendarPath,
@@ -41,7 +42,10 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
         .get();
       const data = response.value as MicrosoftCalendar[];
 
-      return data.map((calendar) => parseMicrosoftCalendar(calendar));
+      return data.map((calendar, idx) => ({
+        ...parseMicrosoftCalendar(calendar),
+        color: assignColor(idx),
+      }));
     });
   }
 

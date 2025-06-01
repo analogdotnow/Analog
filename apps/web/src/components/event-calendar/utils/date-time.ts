@@ -160,15 +160,6 @@ export function getViewTitleData(currentDate: Date, view: CalendarView) {
   }
 }
 
-export function getViewTitleDirection(
-  currentDate: Date,
-  prevDate: Date | undefined,
-): "top" | "bottom" {
-  if (!prevDate) return "top";
-  if (isBefore(currentDate, prevDate)) return "top";
-  return "bottom"; // Default case if they are the same
-}
-
 export function isWeekend(date: Date): boolean {
   const day = getDay(date);
   return day === 0 || day === 6;

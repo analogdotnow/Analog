@@ -37,6 +37,7 @@ function createEvent({
     start: snappedTime,
     end: snappedTime.add({ minutes: defaultDuration }),
     allDay: false,
+    color: undefined,
     ...calendar,
   };
 

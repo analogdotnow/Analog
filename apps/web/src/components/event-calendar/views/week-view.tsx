@@ -11,6 +11,7 @@ import {
   isToday,
   startOfDay,
   startOfWeek,
+  subDays,
 } from "date-fns";
 
 import {
@@ -132,14 +133,24 @@ export function WeekView({
 function WeekViewHeader() {
   const { allDays, gridTemplateColumns } = useWeekViewContext();
   const viewPreferences = useViewPreferences();
+  const settings = useCalendarSettings();
+
+  const timeZone = useMemo(() => {
+    const parts = new Intl.DateTimeFormat(settings.locale, {
+      timeZoneName: "short",
+      timeZone: settings.defaultTimeZone,
+    }).formatToParts(allDays[0]!);
+
+    return parts.find((part) => part.type === "timeZoneName")?.value ?? " ";
+  }, [allDays]);
 
   return (
     <div
       className="grid border-b border-border/70 transition-[grid-template-columns] duration-200 ease-linear"
       style={{ gridTemplateColumns }}
     >
-      <div className="py-2 text-center text-sm text-muted-foreground/70">
-        <span className="max-[479px]:sr-only">{format(new Date(), "O")}</span>
+      <div className="flex flex-col items-end justify-end py-2 pe-2 pb-2.5 text-center text-sm text-[10px] font-medium text-muted-foreground/70 sm:pe-4 sm:text-xs">
+        <span className="max-[479px]:sr-only">{timeZone}</span>
       </div>
       {allDays.map((day) => {
         const isDayVisible = viewPreferences.showWeekends || !isWeekend(day);
@@ -148,7 +159,7 @@ function WeekViewHeader() {
           <div
             key={day.toString()}
             className={cn(
-              "overflow-hidden py-2 text-center text-sm text-muted-foreground/70 data-today:font-medium data-today:text-foreground",
+              "overflow-hidden py-2 text-center text-base font-medium text-muted-foreground/70 data-today:text-foreground",
               !isDayVisible && "w-0",
             )}
             data-today={isToday(day) || undefined}
@@ -158,7 +169,7 @@ function WeekViewHeader() {
               {format(day, "E")[0]} {format(day, "d")}
             </span>
             <span className="truncate max-sm:hidden">
-              {format(day, "EEE dd")}
+              {format(day, "EEE d")}
             </span>
           </div>
         );
@@ -185,9 +196,9 @@ function WeekViewAllDaySection() {
   const allDayEvents =
     eventCollection.type === "week" ? eventCollection.allDayEvents : [];
 
-  if (allDayEvents.length === 0) {
-    return null;
-  }
+  // if (allDayEvents.length === 0) {
+  //   return null;
+  // }
 
   return (
     <div className="border-b border-border/70">
@@ -195,7 +206,7 @@ function WeekViewAllDaySection() {
         className="grid transition-[grid-template-columns] duration-200 ease-linear"
         style={{ gridTemplateColumns }}
       >
-        <div className="relative flex flex-col justify-center border-r border-border/70">
+        <div className="relative flex min-h-7 flex-col justify-center border-r border-border/70">
           <span className="w-16 max-w-full ps-2 text-right text-[10px] text-muted-foreground/70 sm:ps-4 sm:text-xs">
             All day
           </span>
@@ -211,6 +222,11 @@ function WeekViewAllDaySection() {
               value: event.end,
               timeZone: settings.defaultTimeZone,
             });
+
+            // if (event.allDay && !isSameDay(day, eventEnd)) {
+            //   return false;
+            // }
+
             return (
               isSameDay(day, eventStart) ||
               (day > eventStart && day < eventEnd) ||
@@ -222,8 +238,8 @@ function WeekViewAllDaySection() {
             <div
               key={day.toString()}
               className={cn(
-                "relative overflow-hidden border-r border-border/70 last:border-r-0",
-                isDayVisible ? "p-1" : "w-0",
+                "relative space-y-[1px] overflow-hidden border-r border-border/70 last:border-r-0",
+                isDayVisible ? "px-0.5 py-[1px]" : "w-0",
               )}
               data-today={isToday(day) || undefined}
               style={{ visibility: isDayVisible ? "visible" : "hidden" }}
@@ -242,7 +258,13 @@ function WeekViewAllDaySection() {
                 const isFirstVisibleDay =
                   dayIndex === 0 && isBefore(eventStart, weekStart);
                 const shouldShowTitle = isFirstDay || isFirstVisibleDay;
-                const isSingleDay = isSameDay(eventStart, eventEnd);
+                const isSingleDay = event.allDay
+                  ? isSameDay(eventStart, subDays(eventEnd, 1))
+                  : isSameDay(eventStart, eventEnd);
+
+                if (event.allDay && isLastDay) {
+                  return null;
+                }
 
                 return (
                   <div
@@ -255,7 +277,11 @@ function WeekViewAllDaySection() {
                       event={event}
                       view="month"
                       isFirstDay={isFirstDay}
-                      isLastDay={!isSingleDay || isLastDay}
+                      isLastDay={
+                        event.allDay
+                          ? isSameDay(day, subDays(eventEnd, 1))
+                          : isLastDay
+                      }
                     >
                       <div
                         className={cn(
@@ -281,6 +307,8 @@ function WeekViewAllDaySection() {
 function WeekViewTimeColumn() {
   const { hours } = useWeekViewContext();
 
+  const timeFormat = "24";
+
   return (
     <div className="grid auto-cols-fr border-r border-border/70">
       {hours.map((hour, index) => (
@@ -289,8 +317,10 @@ function WeekViewTimeColumn() {
           className="relative min-h-[var(--week-cells-height)] border-b border-border/70 last:border-b-0"
         >
           {index > 0 && (
-            <span className="absolute -top-3 left-0 flex h-6 w-16 max-w-full items-center justify-end bg-background pe-1 text-[10px] text-muted-foreground/70 sm:pe-2 sm:text-xs">
-              {format(hour, "h a")}
+            <span className="absolute -top-3 left-0 flex h-6 w-20 max-w-full items-center justify-end bg-background pe-2 text-[10px] font-medium text-muted-foreground/70 sm:pe-4 sm:text-xs">
+              {timeFormat === "24"
+                ? format(hour, "HH:mm")
+                : format(hour, "h aa")}
             </span>
           )}
         </div>

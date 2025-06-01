@@ -116,5 +116,6 @@ export function parseGoogleCalendarCalendarListEntry({
 
     providerId: "google",
     accountId,
+    color: entry.backgroundColor,
   };
 }

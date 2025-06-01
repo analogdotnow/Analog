@@ -1,26 +1,24 @@
 import * as React from "react";
 
-import { Calendars } from "@/components/calendars";
 import { DatePicker } from "@/components/date-picker";
 import { NavUser } from "@/components/nav-user";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
-  SidebarRail,
-  SidebarSeparator,
+  SidebarGroup,
+  SidebarGroupContent,
 } from "@/components/ui/sidebar";
-import { TooltipProvider } from "@/components/ui/tooltip";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar {...props}>
       <SidebarContent className="relative overflow-hidden">
-        <DatePicker />
-        <SidebarSeparator className="mx-0" />
-        <TooltipProvider>
-          <Calendars />
-        </TooltipProvider>
+        <SidebarGroup className="sticky top-0 px-0">
+          <SidebarGroupContent>
+            <DatePicker />
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
         <NavUser />

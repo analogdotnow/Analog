@@ -48,7 +48,7 @@ export function parseMicrosoftEvent(event: MicrosoftEvent): CalendarEvent {
   return {
     id: event.id!,
     title: event.subject!,
-    description: (event.body?.content as string) ?? event.bodyPreview,
+    description: event.bodyPreview ?? undefined,
     start: isAllDay
       ? parseDate(start.dateTime!)
       : parseDateTime(start.dateTime!, start.timeZone!),
@@ -86,6 +86,7 @@ export function parseMicrosoftCalendar(calendar: MicrosoftCalendar): Calendar {
     name: calendar.name as string,
     primary: calendar.isDefaultCalendar as boolean,
     accountId: "",
+    color: calendar.hexColor as string,
   };
 }
 

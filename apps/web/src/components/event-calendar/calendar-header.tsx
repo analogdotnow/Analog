@@ -6,10 +6,10 @@ import { useCalendarNavigation } from "@/components/event-calendar";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useCalendarContext } from "@/contexts/calendar-context";
 import { cn } from "@/lib/utils";
+import { CalendarPicker } from "../calendar-picker";
 import { CalendarNavigation } from "./calendar-navigation";
-import { CalendarViewSelector } from "./calendar-view-selector";
+import { CalendarViewMenu } from "./calendar-view-menu";
 import { CalendarViewTitle } from "./calendar-view-title";
-import { ViewPreferencesPopover } from "./view-preferences-popover";
 
 interface CalendarHeaderProps {
   className?: string;
@@ -27,7 +27,7 @@ export function CalendarHeader({ className }: CalendarHeaderProps) {
   return (
     <header
       className={cn(
-        "flex h-16 items-center justify-between gap-2 border-b p-2 px-4 sm:p-4",
+        "flex h-12 items-center justify-between gap-2 p-2 ps-4",
         className,
       )}
     >
@@ -37,20 +37,20 @@ export function CalendarHeader({ className }: CalendarHeaderProps) {
           prevDate={prevDate}
           currentDate={currentDate}
           view={view}
-          className="text-sm font-semibold sm:text-lg md:text-xl"
+          className="text-sm font-medium sm:text-lg md:text-xl"
         />
       </div>
 
       <div className="flex items-center gap-2">
+        <CalendarPicker />
+
         <CalendarNavigation
           onPrevious={handlePrevious}
           onNext={handleNext}
           onToday={handleToday}
         />
 
-        <CalendarViewSelector currentView={view} onViewChange={setView} />
-
-        <ViewPreferencesPopover />
+        <CalendarViewMenu currentView={view} onViewChange={setView} />
       </div>
     </header>
   );

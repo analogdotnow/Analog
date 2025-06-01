@@ -65,11 +65,11 @@ export function useEventCollection(
         }
       >();
 
-      days.forEach((day) => {
+      for (const day of days) {
         const dayKey = getDayKey(day);
         const dayEvents = getEventCollectionsForDays(events, [day]);
         eventsByDay.set(dayKey, dayEvents);
-      });
+      }
 
       return {
         type: "month" as const,
