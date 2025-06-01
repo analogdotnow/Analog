@@ -1,6 +1,6 @@
 import "server-only";
-import { calendarsRouter } from "./routers/calendars";
 import { accountsRouter } from "./routers/accounts";
+import { calendarsRouter } from "./routers/calendars";
 import { earlyAccessRouter } from "./routers/early-access";
 import { eventsRouter } from "./routers/events";
 import { userRouter } from "./routers/user";
