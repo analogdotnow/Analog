@@ -1,5 +1,5 @@
 {
-  "id": "88006e75-780e-4645-9b0e-d0c6a01a7edc",
+  "id": "398fcf50-83b7-4f30-8379-acdb5a6276ca",
   "prevId": "883a72f0-e457-4139-86ef-6d494d0a879c",
   "version": "7",
   "dialect": "postgresql",
@@ -25,6 +25,26 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "''"
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "''"
+        },
+        "image": {
+          "name": "image",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         },
         "user_id": {
           "name": "user_id",

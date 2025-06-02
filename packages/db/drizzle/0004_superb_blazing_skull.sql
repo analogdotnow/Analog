@@ -1,1 +1,0 @@
-ALTER TABLE "account" ALTER COLUMN "name" SET DEFAULT '';
