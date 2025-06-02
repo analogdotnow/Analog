@@ -5,7 +5,6 @@ import Link from "next/link";
 
 import { authClient } from "@repo/auth/client";
 
-import { Google, Microsoft } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -15,31 +14,17 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { providers, type ProviderId } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 interface SignInFormProps {
   redirectUrl?: string;
 }
 
-const providers = [
-  {
-    id: "google" as const,
-    name: "Google",
-    Icon: Google,
-  },
-  {
-    id: "microsoft" as const,
-    name: "Microsoft",
-    Icon: Microsoft,
-  },
-] as const;
-
 export function SignInForm({ redirectUrl = "/calendar" }: SignInFormProps) {
   const [loading, setLoading] = useState(false);
 
-  const signInWithProvider = async (
-    providerId: (typeof providers)[number]["id"],
-  ) => {
+  const signInWithProvider = async (providerId: ProviderId) => {
     await authClient.signIn.social(
       {
         provider: providerId,
@@ -77,13 +62,13 @@ export function SignInForm({ redirectUrl = "/calendar" }: SignInFormProps) {
             {providers.map((provider) => {
               return (
                 <Button
-                  key={provider.id}
+                  key={provider.providerId}
                   variant="outline"
                   className={cn("w-full gap-2")}
                   disabled={loading}
-                  onClick={() => signInWithProvider(provider.id)}
+                  onClick={() => signInWithProvider(provider.providerId)}
                 >
-                  <provider.Icon />
+                  <provider.icon />
                   Continue with {provider.name}
                 </Button>
               );

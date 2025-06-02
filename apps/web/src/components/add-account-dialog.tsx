@@ -14,7 +14,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { emailProviders } from "@/lib/constants";
+import { providers } from "@/lib/constants";
 
 interface AddAccountDialogProps {
   children: React.ReactNode;
@@ -51,18 +51,18 @@ export function AddAccountDialog({ children }: AddAccountDialogProps) {
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-2">
-          {emailProviders.map((emailProvider) => (
+          {providers.map((provider) => (
             <Button
-              key={emailProvider.provider}
+              key={provider.providerId}
               variant="outline"
               className="w-full justify-start"
-              onClick={() => handleLinkAccount(emailProvider.provider)}
-              disabled={isLoading === emailProvider.provider}
+              onClick={() => handleLinkAccount(provider.providerId)}
+              disabled={isLoading === provider.providerId}
             >
               <Plus className="mr-2 h-4 w-4" />
-              {isLoading === emailProvider.provider
+              {isLoading === provider.providerId
                 ? "Connecting..."
-                : `Add ${emailProvider.name}`}
+                : `Add ${provider.name}`}
             </Button>
           ))}
         </div>

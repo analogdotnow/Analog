@@ -1,12 +1,16 @@
-export const emailProviders = [
+import { Google, Microsoft } from "@/components/icons";
+
+export const providers = [
   {
     name: "Gmail",
-    // icon: "gmail",
-    provider: "google",
+    icon: Google,
+    providerId: "google",
   },
   {
     name: "Outlook",
-    // icon: "outlook",
-    provider: "microsoft",
+    icon: Microsoft,
+    providerId: "microsoft",
   },
 ];
+
+export type ProviderId = (typeof providers)[number]["providerId"];
