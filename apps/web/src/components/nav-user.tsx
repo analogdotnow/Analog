@@ -23,8 +23,8 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useTRPC } from "@/lib/trpc/client";
-import { Skeleton } from "./ui/skeleton";
 
 function useUser() {
   const trpc = useTRPC();
