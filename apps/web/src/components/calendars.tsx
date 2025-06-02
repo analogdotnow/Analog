@@ -179,7 +179,7 @@ function ItemWithToggle({ item }: { item: CalendarItem }) {
               handleCalendarVisibilityChange(checked, item.id);
             }}
           />
-          <span ref={textRef} className="line-clamp-1 block">
+          <span ref={textRef} className="line-clamp-1 block cursor-default">
             {item.name}
           </span>
         </div>
