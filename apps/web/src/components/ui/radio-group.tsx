@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import * as RadioGroupPrimitive from "@radix-ui/react-radio-group";
+import { AnimatePresence, motion } from "motion/react";
 
 import { cn } from "@/lib/utils";
 
@@ -32,15 +33,27 @@ function RadioGroupItem({
       {...props}
     >
       <RadioGroupPrimitive.Indicator className="flex items-center justify-center text-current">
-        <svg
-          width="6"
-          height="6"
-          viewBox="0 0 6 6"
+        <motion.svg
+          initial={{
+            scale: 0,
+            opacity: 0,
+          }}
+          animate={{
+            scale: 1,
+            opacity: 1,
+            transition: {
+              duration: 0.2,
+              ease: [0.4, 0, 0.2, 1],
+            },
+          }}
+          width="8"
+          height="8"
+          viewBox="0 0 8 8"
           fill="currentcolor"
           xmlns="http://www.w3.org/2000/svg"
         >
-          <circle cx="3" cy="3" r="3" />
-        </svg>
+          <circle cx="4" cy="4" r="4" />
+        </motion.svg>
       </RadioGroupPrimitive.Indicator>
     </RadioGroupPrimitive.Item>
   );
