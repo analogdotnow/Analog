@@ -99,7 +99,6 @@ function useCalendarActions() {
         location: event.location,
         calendarId: event.calendarId,
         accountId: event.accountId,
-        accountName: event.accountName,
         providerId: event.providerId,
       };
     });
@@ -134,7 +133,6 @@ function useCalendarActions() {
             calendarId: newEvent.calendarId,
             providerId: defaultAccountData.account.providerId,
             accountId: defaultAccountData.account.accountId,
-            accountName: defaultAccountData.account.email,
           };
 
           return {
@@ -188,7 +186,6 @@ function useCalendarActions() {
                       allDay: updatedEvent.allDay ?? event.allDay,
                       location: updatedEvent.location ?? event.location,
                       accountId: event.accountId,
-                      accountName: event.accountName,
                       providerId: event.providerId,
                       calendarId: event.calendarId,
                     }

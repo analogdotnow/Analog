@@ -15,28 +15,28 @@ import { CalendarEvent } from "../types";
 
 export function showEventAddedToast(event: CalendarEvent): void {
   toast(`Event "${event.title}" added`, {
-    description: format(new Date(event.start), "MMM d, yyyy"),
+    description: format(new Date(event.start.dateTime), "MMM d, yyyy"),
     position: TOAST_CONFIG.POSITION,
   });
 }
 
 export function showEventUpdatedToast(event: CalendarEvent): void {
   toast(`Event "${event.title}" updated`, {
-    description: format(new Date(event.start), "MMM d, yyyy"),
+    description: format(new Date(event.start.dateTime), "MMM d, yyyy"),
     position: TOAST_CONFIG.POSITION,
   });
 }
 
 export function showEventMovedToast(event: CalendarEvent): void {
   toast(`Event "${event.title}" moved`, {
-    description: format(new Date(event.start), "MMM d, yyyy"),
+    description: format(new Date(event.start.dateTime), "MMM d, yyyy"),
     position: TOAST_CONFIG.POSITION,
   });
 }
 
 export function showEventDeletedToast(event: CalendarEvent): void {
   toast(`Event "${event.title}" deleted`, {
-    description: format(new Date(event.start), "MMM d, yyyy"),
+    description: format(new Date(event.start.dateTime), "MMM d, yyyy"),
     position: TOAST_CONFIG.POSITION,
   });
 }

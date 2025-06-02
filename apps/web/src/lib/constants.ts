@@ -4,12 +4,12 @@ export const providers = [
   {
     name: "Gmail",
     icon: Google,
-    providerId: "google",
+    providerId: "google" as const,
   },
   {
     name: "Outlook",
     icon: Microsoft,
-    providerId: "microsoft",
+    providerId: "microsoft" as const,
   },
 ];
 

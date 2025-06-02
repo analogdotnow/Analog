@@ -4,7 +4,8 @@
   "private": true,
   "exports": {
     ".": "./src/root.ts",
-    "./trpc": "./src/trpc.ts"
+    "./trpc": "./src/trpc.ts",
+    "./providers/types": "./src/providers/types.ts"
   },
   "scripts": {
     "lint": "eslint ."

@@ -53,7 +53,6 @@ export const eventsRouter = createTRPCRouter({
                   calendarId,
                   providerId: account.providerId,
                   accountId: account.accountId,
-                  accountName: account.email,
                 }));
               } catch (error) {
                 console.error(
