@@ -1,3 +1,5 @@
+"use client";
+
 import { Fragment, useCallback, useMemo, useRef, useState } from "react";
 import { useResizeObserver } from "@react-hookz/web";
 import { useQuery } from "@tanstack/react-query";
