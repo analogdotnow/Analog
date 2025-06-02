@@ -29,11 +29,9 @@ export const session = pgTable("session", {
 export const account = pgTable("account", {
   id: text().primaryKey(),
   accountId: text().notNull(),
-  providerId: text().$type<"google" | "microsoft">().notNull(),
-  // we are using $type<string> because during account creation
-  // better-auth does not pass additional fields
-  name: text().$type<string>().notNull().default(""),
-  email: text().$type<string>().notNull().default(""),
+  providerId: text({ enum: ["google", "microsoft"] }).notNull(),
+  name: text().notNull().default(""),
+  email: text().notNull().default(""),
   image: text(),
   userId: text()
     .notNull()
