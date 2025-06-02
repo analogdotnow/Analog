@@ -21,6 +21,8 @@ export const eventsRouter = createTRPCRouter({
           if (calendarIds.length === 0) {
             try {
               const calendars = await client.calendars();
+              // we will filter out calendars in future with custom filters
+              // for all of the providers
               calendarIds = calendars
                 // .filter(
                 //   (cal) =>
