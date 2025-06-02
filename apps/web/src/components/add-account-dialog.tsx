@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { Plus } from "lucide-react";
+import { toast } from "sonner";
 
 import { authClient } from "@repo/auth/client";
 
@@ -32,8 +33,8 @@ export function AddAccountDialog({ children }: AddAccountDialogProps) {
         callbackURL: "/calendar",
       });
       setOpen(false);
-    } catch (error) {
-      console.error("Failed to link account:", error);
+    } catch {
+      toast.error("Failed to link account");
     } finally {
       setIsLoading(null);
     }
