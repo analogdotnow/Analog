@@ -1,8 +1,9 @@
 import { TRPCError } from "@trpc/server";
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { z } from "zod";
 
-import { account, user } from "@repo/db/schema";
+import { auth } from "@repo/auth/server";
+import { user } from "@repo/db/schema";
 
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { getActiveAccount, getAllAccounts } from "../utils/accounts";
@@ -42,16 +43,20 @@ export const accountsRouter = createTRPCRouter({
   }),
 
   delete: protectedProcedure
-    .input(z.object({ accountId: z.string() }))
+    .input(
+      z.object({
+        accountId: z.string(),
+        providerId: z.string(),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
-      await ctx.db
-        .delete(account)
-        .where(
-          and(
-            eq(account.accountId, input.accountId),
-            eq(account.userId, ctx.user.id),
-          ),
-        );
+      await auth.api.unlinkAccount({
+        body: {
+          accountId: input.accountId,
+          providerId: input.providerId,
+        },
+        headers: ctx.headers,
+      });
 
       const activeAccount = await getActiveAccount(ctx.user, ctx.headers);
       if (activeAccount.accountId === input.accountId) {
