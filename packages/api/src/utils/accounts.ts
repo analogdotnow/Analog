@@ -53,19 +53,23 @@ export const getAllAccounts = async (
 
   const accounts = await Promise.all(
     _accounts.map(async (account) => {
-      const { accessToken } = await auth.api.getAccessToken({
-        body: {
-          providerId: account.providerId,
-          accountId: account.id,
-          userId: account.userId,
-        },
-        headers,
-      });
+      try {
+        const { accessToken } = await auth.api.getAccessToken({
+          body: {
+            providerId: account.providerId,
+            accountId: account.id,
+            userId: account.userId,
+          },
+          headers,
+        });
 
-      return {
-        ...account,
-        accessToken: accessToken ?? account.accessToken,
-      };
+        return {
+          ...account,
+          accessToken: accessToken ?? account.accessToken,
+        };
+      } catch {
+        throw new Error(`Failed to get access token for account ${account.id}`);
+      }
     }),
   );
 

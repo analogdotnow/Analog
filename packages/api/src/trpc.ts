@@ -58,35 +58,42 @@ export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
 
 export const calendarProcedure = protectedProcedure.use(
   async ({ ctx, next }) => {
-    const allAccounts = await getAllAccounts(ctx.user, ctx.headers);
+    try {
+      const allAccounts = await getAllAccounts(ctx.user, ctx.headers);
 
-    const activeAccount = allAccounts.find(
-      (account) => account.id === ctx.user.defaultAccountId,
-    );
+      const activeAccount = allAccounts.find(
+        (account) => account.id === ctx.user.defaultAccountId,
+      );
 
-    if (!activeAccount) {
+      if (!activeAccount) {
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: "No active account set",
+        });
+      }
+
+      const calendarClient = accountToProvider(activeAccount);
+      const allCalendarClients = allAccounts.map((account) => ({
+        account,
+        client: accountToProvider(account),
+      }));
+
+      return next({
+        ctx: {
+          // Single provider access (for creating events, etc.)
+          calendarClient,
+          activeAccount,
+
+          // Multiple provider access (for listing all calendars/events)
+          allCalendarClients,
+          allAccounts,
+        },
+      });
+    } catch (error) {
       throw new TRPCError({
         code: "PRECONDITION_FAILED",
-        message: "No active account set",
+        message: error instanceof Error ? error.message : "Unknown error",
       });
     }
-
-    const calendarClient = accountToProvider(activeAccount);
-    const allCalendarClients = allAccounts.map((account) => ({
-      account,
-      client: accountToProvider(account),
-    }));
-
-    return next({
-      ctx: {
-        // Single provider access (for creating events, etc.)
-        calendarClient,
-        activeAccount,
-
-        // Multiple provider access (for listing all calendars/events)
-        allCalendarClients,
-        allAccounts,
-      },
-    });
   },
 );
