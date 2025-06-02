@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { addDays, subDays } from "date-fns";
+import { toast } from "sonner";
 
 import {
   EventCalendar,
@@ -43,6 +44,10 @@ function useCalendarActions() {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
+  const { data: defaultAccountData } = useQuery(
+    trpc.accounts.getDefault.queryOptions(),
+  );
+
   const timeMin = useMemo(
     () =>
       subDays(new Date(), CALENDAR_CONFIG.TIME_RANGE_DAYS_PAST).toISOString(),
@@ -70,23 +75,31 @@ function useCalendarActions() {
     if (!data?.events) return [];
 
     return data.events.map((event): CalendarEvent => {
-      const startDate = new Date(event.start);
+      const startDate = new Date(event.start.dateTime);
       const endDate = dateHelpers.adjustEndDateForDisplay(
         startDate,
-        new Date(event.end),
-        event.allDay,
+        new Date(event.end.dateTime),
+        event.allDay ?? false,
       );
 
       return {
         id: event.id,
         title: event.title,
         description: event.description,
-        start: startDate,
-        end: endDate,
+        start: {
+          dateTime: startDate.toISOString(),
+          timeZone: "UTC",
+        },
+        end: {
+          dateTime: endDate.toISOString(),
+          timeZone: "UTC",
+        },
         allDay: event.allDay,
-        color: event.colorId ? colorMap[event.colorId] || "sky" : "sky",
+        color: event.color ? colorMap[event.color] || "sky" : "sky",
         location: event.location,
         calendarId: event.calendarId,
+        accountId: event.accountId,
+        providerId: event.providerId,
       };
     });
   }, [data]);
@@ -94,6 +107,11 @@ function useCalendarActions() {
   const { mutate: createEvent, isPending: isCreating } = useMutation(
     trpc.events.create.mutationOptions({
       onMutate: async (newEvent) => {
+        if (!defaultAccountData) {
+          toast.error("No default account available, sign in again.");
+          return;
+        }
+
         await queryClient.cancelQueries({ queryKey: eventsQueryKey });
 
         const previousEvents = queryClient.getQueryData(eventsQueryKey);
@@ -109,17 +127,20 @@ function useCalendarActions() {
             end: newEvent.end,
             allDay: newEvent.allDay || false,
             location: newEvent.location,
-            colorId: "1",
+            color: newEvent.color,
             status: undefined,
             htmlLink: undefined,
-            calendarId: "primary",
+            calendarId: newEvent.calendarId,
+            providerId: defaultAccountData.account.providerId,
+            accountId: defaultAccountData.account.accountId,
           };
 
           return {
             ...old,
             events: [...(old.events || []), tempEvent].sort(
               (a, b) =>
-                new Date(a.start).getTime() - new Date(b.start).getTime(),
+                new Date(a.start.dateTime).getTime() -
+                new Date(b.start.dateTime).getTime(),
             ),
           };
         });
@@ -164,12 +185,16 @@ function useCalendarActions() {
                       end: updatedEvent.end ?? event.end,
                       allDay: updatedEvent.allDay ?? event.allDay,
                       location: updatedEvent.location ?? event.location,
+                      accountId: event.accountId,
+                      providerId: event.providerId,
+                      calendarId: event.calendarId,
                     }
                   : event,
               )
               .sort(
                 (a, b) =>
-                  new Date(a.start).getTime() - new Date(b.start).getTime(),
+                  new Date(a.start.dateTime).getTime() -
+                  new Date(b.start.dateTime).getTime(),
               ),
           };
         });
@@ -233,16 +258,44 @@ function useCalendarActions() {
   };
 }
 
+function useDefaultAccount() {
+  const trpc = useTRPC();
+
+  const { data } = useQuery(trpc.accounts.getDefault.queryOptions());
+
+  return data?.account;
+}
+
 export function CalendarView({ className }: CalendarViewProps) {
+  const defaultAccount = useDefaultAccount();
+
   const { events, createEvent, updateEvent, deleteEvent } =
     useCalendarActions();
 
   const handleEventAdd = (event: CalendarEvent) => {
+    if (!defaultAccount) {
+      toast.error("No default account available, sign in again.");
+      return;
+    }
+
     createEvent({
+      accountId: defaultAccount?.accountId,
       calendarId: CALENDAR_CONFIG.DEFAULT_CALENDAR_ID,
       title: event.title,
-      start: dateHelpers.formatDateForAPI(event.start, event.allDay || false),
-      end: dateHelpers.formatDateForAPI(event.end, event.allDay || false),
+      start: {
+        dateTime: dateHelpers.formatDateForAPI(
+          event.start.dateTime,
+          event.allDay || false,
+        ),
+        timeZone: "UTC",
+      },
+      end: {
+        dateTime: dateHelpers.formatDateForAPI(
+          event.end.dateTime,
+          event.allDay || false,
+        ),
+        timeZone: "UTC",
+      },
       allDay: event.allDay,
       description: event.description,
       location: event.location,
@@ -251,17 +304,24 @@ export function CalendarView({ className }: CalendarViewProps) {
 
   const handleEventUpdate = (updatedEvent: CalendarEvent) => {
     updateEvent({
-      calendarId: CALENDAR_CONFIG.DEFAULT_CALENDAR_ID,
+      accountId: updatedEvent.accountId,
+      calendarId: updatedEvent.calendarId,
       eventId: updatedEvent.id,
       title: updatedEvent.title,
-      start: dateHelpers.formatDateForAPI(
-        updatedEvent.start,
-        updatedEvent.allDay || false,
-      ),
-      end: dateHelpers.formatDateForAPI(
-        updatedEvent.end,
-        updatedEvent.allDay || false,
-      ),
+      start: {
+        dateTime: dateHelpers.formatDateForAPI(
+          updatedEvent.start.dateTime,
+          updatedEvent.allDay || false,
+        ),
+        timeZone: "UTC",
+      },
+      end: {
+        dateTime: dateHelpers.formatDateForAPI(
+          updatedEvent.end.dateTime,
+          updatedEvent.allDay || false,
+        ),
+        timeZone: "UTC",
+      },
       allDay: updatedEvent.allDay,
       description: updatedEvent.description,
       location: updatedEvent.location,
@@ -269,8 +329,15 @@ export function CalendarView({ className }: CalendarViewProps) {
   };
 
   const handleEventDelete = (eventId: string) => {
+    const eventToDelete = events.find((event) => event.id === eventId);
+    if (!eventToDelete) {
+      console.error(`Event with id ${eventId} not found`);
+      return;
+    }
+
     deleteEvent({
-      calendarId: CALENDAR_CONFIG.DEFAULT_CALENDAR_ID,
+      accountId: eventToDelete.accountId,
+      calendarId: eventToDelete.calendarId,
       eventId: eventId,
     });
   };

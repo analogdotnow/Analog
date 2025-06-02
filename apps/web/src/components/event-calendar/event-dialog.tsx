@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { RiCalendarLine, RiDeleteBinLine } from "@remixicon/react";
+import { useQuery } from "@tanstack/react-query";
 import { format, isBefore } from "date-fns";
 
 import type { CalendarEvent, EventColor } from "@/components/event-calendar";
@@ -38,6 +39,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import type { ProviderId } from "@/lib/constants";
+import { useTRPC } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
 
 interface EventDialogProps {
@@ -46,6 +49,14 @@ interface EventDialogProps {
   onClose: () => void;
   onSave: (event: CalendarEvent) => void;
   onDelete: (eventId: string) => void;
+}
+
+function useDefaultAccount() {
+  const trpc = useTRPC();
+
+  const { data } = useQuery(trpc.accounts.getDefault.queryOptions());
+
+  return data?.account;
 }
 
 export function EventDialog({
@@ -68,13 +79,15 @@ export function EventDialog({
   const [startDateOpen, setStartDateOpen] = useState(false);
   const [endDateOpen, setEndDateOpen] = useState(false);
 
+  const defaultAccount = useDefaultAccount();
+
   useEffect(() => {
     if (event) {
       setTitle(event.title || "");
       setDescription(event.description || "");
 
-      const start = new Date(event.start);
-      const end = new Date(event.end);
+      const start = new Date(event.start.dateTime);
+      const end = new Date(event.end.dateTime);
 
       setStartDate(start);
       setEndDate(end);
@@ -167,12 +180,14 @@ export function EventDialog({
       id: event?.id || "",
       title: eventTitle,
       description,
-      start,
-      end,
+      start: { dateTime: start.toISOString(), timeZone: "UTC" },
+      end: { dateTime: end.toISOString(), timeZone: "UTC" },
       allDay,
       location,
       color,
       calendarId: "primary",
+      providerId: defaultAccount?.providerId as ProviderId,
+      accountId: defaultAccount?.id ?? "",
     });
   };
 

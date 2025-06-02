@@ -10,14 +10,16 @@
     "lint": "eslint ."
   },
   "peerDependencies": {
-    "better-auth": "^1.2.8",
+    "better-auth": "1.2.9-beta.8",
     "server-only": "^0.0.1"
   },
   "dependencies": {
+    "@microsoft/microsoft-graph-client": "^3.0.7",
     "@repo/db": "workspace:*",
     "@repo/env": "workspace:*"
   },
   "devDependencies": {
+    "@microsoft/microsoft-graph-types": "^2.40.0",
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@types/node": "^20",

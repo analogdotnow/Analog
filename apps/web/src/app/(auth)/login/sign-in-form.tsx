@@ -5,7 +5,6 @@ import Link from "next/link";
 
 import { authClient } from "@repo/auth/client";
 
-import { Google } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -15,6 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { providers, type ProviderId } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 interface SignInFormProps {
@@ -24,10 +24,10 @@ interface SignInFormProps {
 export function SignInForm({ redirectUrl = "/calendar" }: SignInFormProps) {
   const [loading, setLoading] = useState(false);
 
-  const signInWithGoogle = async () => {
+  const signInWithProvider = async (providerId: ProviderId) => {
     await authClient.signIn.social(
       {
-        provider: "google",
+        provider: providerId,
         callbackURL: redirectUrl,
       },
       {
@@ -59,15 +59,20 @@ export function SignInForm({ redirectUrl = "/calendar" }: SignInFormProps) {
               "flex-col justify-between",
             )}
           >
-            <Button
-              variant="outline"
-              className={cn("w-full gap-2")}
-              disabled={loading}
-              onClick={signInWithGoogle}
-            >
-              <Google />
-              Continue with Google
-            </Button>
+            {providers.map((provider) => {
+              return (
+                <Button
+                  key={provider.providerId}
+                  variant="outline"
+                  className={cn("w-full gap-2")}
+                  disabled={loading}
+                  onClick={() => signInWithProvider(provider.providerId)}
+                >
+                  <provider.icon />
+                  Continue with {provider.name}
+                </Button>
+              );
+            })}
           </div>
         </div>
       </CardContent>

@@ -4,20 +4,22 @@
   "private": true,
   "exports": {
     ".": "./src/root.ts",
-    "./trpc": "./src/trpc.ts"
+    "./trpc": "./src/trpc.ts",
+    "./providers/types": "./src/providers/types.ts"
   },
   "scripts": {
     "lint": "eslint ."
   },
   "peerDependencies": {
     "@trpc/server": "^11.1.2",
-    "better-auth": "^1.2.8",
+    "better-auth": "1.2.9-beta.8",
     "next": "^15",
     "server-only": "^0.0.1",
     "superjson": "^2.2.2",
     "zod": "^3.24.4"
   },
   "dependencies": {
+    "@microsoft/microsoft-graph-client": "^3.0.7",
     "@repo/auth": "workspace:*",
     "@repo/db": "workspace:*",
     "@repo/env": "workspace:*",
@@ -26,6 +28,7 @@
     "@upstash/redis": "^1.34.9"
   },
   "devDependencies": {
+    "@microsoft/microsoft-graph-types": "^2.40.0",
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@types/node": "^20",
