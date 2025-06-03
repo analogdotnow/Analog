@@ -2,7 +2,7 @@ import { GoogleCalendar } from "@repo/google-calendar";
 
 import { CALENDAR_DEFAULTS } from "../constants/calendar";
 import { dateHelpers } from "../utils/date-helpers";
-import type { CalendarEvent, CalendarProvider } from "./types";
+import type { Calendar, CalendarEvent, CalendarProvider } from "./types";
 
 interface GoogleCalendarProviderOptions {
   accessToken: string;
@@ -53,6 +53,31 @@ export class GoogleCalendarProvider implements CalendarProvider {
         name: calendar.summary!,
         primary: calendar.primary || false,
       }));
+  }
+
+  async createCalendar(
+    calendar: Omit<Calendar, "id" | "provider">,
+  ): Promise<Calendar> {
+    const createdCalendar = await this.client.calendars.create({
+      summary: calendar.name,
+    });
+
+    return this.transformCalendar(createdCalendar);
+  }
+
+  async updateCalendar(
+    calendarId: string,
+    calendar: Partial<Calendar>,
+  ): Promise<Calendar> {
+    const updatedCalendar = await this.client.calendars.update(calendarId, {
+      summary: calendar.name,
+    });
+
+    return this.transformCalendar(updatedCalendar);
+  }
+
+  async deleteCalendar(calendarId: string): Promise<void> {
+    await this.client.calendars.delete(calendarId);
   }
 
   async events(calendarId: string, timeMin?: string, timeMax?: string) {
@@ -133,6 +158,17 @@ export class GoogleCalendarProvider implements CalendarProvider {
 
   async deleteEvent(calendarId: string, eventId: string): Promise<void> {
     await this.client.calendars.events.delete(eventId, { calendarId });
+  }
+
+  private transformCalendar(
+    googleCalendar: GoogleCalendar.Calendars.Calendar,
+  ): Calendar {
+    return {
+      id: googleCalendar.id ?? "",
+      name: googleCalendar.summary ?? "",
+      primary: false, // new calendars are not primary
+      provider: "google",
+    };
   }
 
   private transformEvent(

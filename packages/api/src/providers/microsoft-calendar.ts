@@ -41,26 +41,28 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
     }
   }
 
-  // async createCalendar(
-  //   calendarData: Omit<Calendar, "id" | "changeKey" | "isDefaultCalendar">,
-  // ): Promise<Calendar> {
-  //   return (await this.graphClient
-  //     .api("/me/calendars")
-  //     .post(calendarData)) as Calendar;
-  // }
+  async createCalendar(calendarData: Omit<Calendar, "id">): Promise<Calendar> {
+    const createdCalendar = (await this.graphClient
+      .api("/me/calendars")
+      .post(calendarData)) as MicrosoftCalendar;
 
-  // async calendarGroups(): Promise<CalendarGroup[]> {
-  //   const response = await this.graphClient.api("/me/calendarGroups").get();
-  //   return response.value;
-  // }
+    return this.transformCalendar(createdCalendar);
+  }
 
-  // async createCalendarGroup(
-  //   groupData: Omit<CalendarGroup, "id" | "changeKey">,
-  // ): Promise<CalendarGroup> {
-  //   return (await this.graphClient
-  //     .api("/me/calendarGroups")
-  //     .post(groupData)) as CalendarGroup;
-  // }
+  async updateCalendar(
+    calendarId: string,
+    calendar: Partial<Calendar>,
+  ): Promise<Calendar> {
+    const updatedCalendar = (await this.graphClient
+      .api(`/me/calendars/${calendarId}`)
+      .patch(calendar)) as MicrosoftCalendar;
+
+    return this.transformCalendar(updatedCalendar);
+  }
+
+  async deleteCalendar(calendarId: string): Promise<void> {
+    await this.graphClient.api(`/me/calendars/${calendarId}`).delete();
+  }
 
   async events(
     calendarId: string,
@@ -205,6 +207,15 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
         : `/me/calendars/${calendarId}/events/${eventId}`;
 
     await this.graphClient.api(apiPath).delete();
+  }
+
+  private transformCalendar(microsoftCalendar: MicrosoftCalendar): Calendar {
+    return {
+      id: microsoftCalendar.id as string,
+      name: microsoftCalendar.name as string,
+      primary: microsoftCalendar.isDefaultCalendar as boolean,
+      provider: "microsoft",
+    };
   }
 
   private transformEvent(microsoftEvent: MicrosoftEvent): CalendarEvent {

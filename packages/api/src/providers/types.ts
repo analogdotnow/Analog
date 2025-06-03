@@ -26,6 +26,14 @@ export interface CalendarEvent {
 export interface CalendarProvider {
   providerId: "google" | "microsoft";
   calendars(): Promise<Calendar[]>;
+  createCalendar(
+    calendar: Omit<Calendar, "id" | "provider">,
+  ): Promise<Calendar>;
+  updateCalendar(
+    calendarId: string,
+    calendar: Partial<Calendar>,
+  ): Promise<Calendar>;
+  deleteCalendar(calendarId: string): Promise<void>;
   events(
     calendarId: string,
     timeMin?: string,
