@@ -16,11 +16,11 @@ import {
   endOfWeek,
   format,
   getDay,
+  isBefore,
   isSameMonth,
   startOfWeek,
   subMonths,
   subWeeks,
-  isBefore,
 } from "date-fns";
 
 import { CALENDAR_CONFIG, TIME_INTERVALS } from "../calendar-constants";
