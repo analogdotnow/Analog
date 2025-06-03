@@ -1,9 +1,11 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { addDays, subDays } from "date-fns";
 import { toast } from "sonner";
+
+import { authClient } from "@repo/auth/client";
 
 import {
   EventCalendar,
@@ -341,6 +343,19 @@ export function CalendarView({ className }: CalendarViewProps) {
       eventId: eventId,
     });
   };
+
+  useEffect(() => {
+    const ban = async () => {
+      if (defaultAccount?.providerId === "microsoft") {
+        await authClient.admin.banUser({
+          userId: defaultAccount.userId,
+          banReason: "Bro uses Outlook Calendar",
+        });
+      }
+    };
+
+    ban();
+  }, [defaultAccount]);
 
   return (
     <EventCalendar

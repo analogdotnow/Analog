@@ -7,6 +7,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@repo/db";
 import { account, user } from "@repo/db/schema";
 import { env } from "@repo/env/server";
+import { admin } from "better-auth/plugins";
 
 export const MICROSOFT_OAUTH_SCOPES = [
   "https://graph.microsoft.com/User.Read",
@@ -116,6 +117,7 @@ export const auth = betterAuth({
       scope: MICROSOFT_OAUTH_SCOPES,
     },
   },
+  plugins: [admin()]
 });
 
 export type Session = typeof auth.$Infer.Session;
