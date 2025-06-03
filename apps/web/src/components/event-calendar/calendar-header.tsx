@@ -1,5 +1,7 @@
 "use client";
 
+import { usePrevious } from "@react-hookz/web";
+
 import { useCalendarNavigation } from "@/components/event-calendar";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useCalendarContext } from "@/contexts/calendar-context";
@@ -20,6 +22,7 @@ export function CalendarHeader({ className }: CalendarHeaderProps) {
     setCurrentDate,
     view,
   });
+  const prevDate = usePrevious(currentDate);
 
   return (
     <header
@@ -28,9 +31,10 @@ export function CalendarHeader({ className }: CalendarHeaderProps) {
         className,
       )}
     >
-      <div className="flex items-center gap-1 sm:gap-4">
+      <div className="flex flex-1 items-center gap-1 sm:gap-4">
         <SidebarTrigger className="-ml-1" />
         <CalendarViewTitle
+          prevDate={prevDate}
           currentDate={currentDate}
           view={view}
           className="text-sm font-semibold sm:text-lg md:text-xl"
