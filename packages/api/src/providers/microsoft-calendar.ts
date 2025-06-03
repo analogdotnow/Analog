@@ -10,25 +10,28 @@ import type { Calendar, CalendarEvent, CalendarProvider } from "./types";
 
 interface MicrosoftCalendarProviderOptions {
   accessToken: string;
+  email: string;
 }
 
 export class MicrosoftCalendarProvider implements CalendarProvider {
   public providerId = "microsoft" as const;
   private graphClient: Client;
+  private email: string;
 
-  constructor({ accessToken }: MicrosoftCalendarProviderOptions) {
+  constructor({ accessToken, email }: MicrosoftCalendarProviderOptions) {
     this.graphClient = Client.initWithMiddleware({
       authProvider: {
         getAccessToken: async () => accessToken,
       },
     });
+    this.email = email;
   }
 
   async calendars(): Promise<Calendar[]> {
     try {
       // microsoft api does not work without $select temprorarily
       const response = await this.graphClient
-        .api("/me/calendars?$select=id,name,isDefaultCalendar")
+        .api("/me/calendars?$select=id,name,isDefaultCalendar,owner")
         .get();
       const data = response.value as MicrosoftCalendar[];
 
@@ -37,6 +40,7 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
         provider: "microsoft",
         name: calendar.name as string,
         primary: calendar.isDefaultCalendar as boolean,
+        isOwner: calendar.owner?.address === this.email,
       }));
     } catch (error) {
       console.error("Error fetching Microsoft calendars:", error);

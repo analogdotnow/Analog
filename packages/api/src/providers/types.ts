@@ -8,6 +8,7 @@ export interface Calendar {
   provider: string;
   name: string;
   primary: boolean;
+  isOwner: boolean;
 }
 
 export interface CalendarEvent {

@@ -22,3 +22,8 @@ export const colorMap = {
 
 export type EventColorId = keyof typeof colorMap;
 export type EventColor = (typeof colorMap)[EventColorId];
+
+export const GOOGLE_CALENDAR_PROVIDER_CONSTANTS = {
+  owner: "owner",
+} as const;
+

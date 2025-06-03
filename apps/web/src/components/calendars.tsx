@@ -29,6 +29,7 @@ export type CalendarItem = {
   provider: string;
   name: string;
   primary: boolean | undefined;
+  isOwner: boolean;
 };
 
 function useCalendarList() {
@@ -50,28 +51,64 @@ export function Calendars() {
 
   return (
     <div className="relative flex scrollbar-hidden flex-1 flex-col gap-2 overflow-auto">
-      {data.accounts.map((account, index) => (
-        <Fragment key={account.name}>
-          <SidebarGroup key={account.name} className="py-0">
-            <Collapsible
-              defaultOpen={index === 0}
-              className="group/collapsible"
-            >
-              <CalendarName name={account.name} />
-              <CollapsibleContent>
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    {account.calendars.map((item: CalendarItem) => (
-                      <ItemWithToggle key={item.id} item={item} />
-                    ))}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </CollapsibleContent>
-            </Collapsible>
-          </SidebarGroup>
-          <SidebarSeparator className="mx-0" />
-        </Fragment>
-      ))}
+      {data.accounts.map((account, index) => {
+        // Split calendars into owned and not owned
+        const myCalendars = account.calendars.filter((item: CalendarItem) => item.isOwner);
+        const otherCalendars = account.calendars.filter((item: CalendarItem) => !item.isOwner);
+        
+        return (
+          <Fragment key={account.name}>
+            <SidebarGroup key={account.name} className="py-0">
+              <Collapsible
+                defaultOpen={index === 0}
+                className="group/collapsible"
+              >
+                <CalendarName name={account.name} />
+                <CollapsibleContent>
+                  <SidebarGroupContent>
+                    {myCalendars.length > 0 && (
+                      <Collapsible defaultOpen={true} className="group/my-calendars">
+                        <SidebarGroupLabel asChild className="text-sm hover:bg-sidebar-accent">
+                          <CollapsibleTrigger className="flex w-full items-center justify-between px-2 py-1">
+                            <span>My calendars</span>
+                            <ChevronRight className="transition-transform group-data-[state=open]/my-calendars:rotate-90" />
+                          </CollapsibleTrigger>
+                        </SidebarGroupLabel>
+                        <CollapsibleContent>
+                          <SidebarMenu>
+                            {myCalendars.map((item: CalendarItem) => (
+                              <ItemWithToggle key={item.id} item={item} />
+                            ))}
+                          </SidebarMenu>
+                        </CollapsibleContent>
+                      </Collapsible>
+                    )}
+                    
+                    {otherCalendars.length > 0 && (
+                      <Collapsible defaultOpen={true} className="group/other-calendars">
+                        <SidebarGroupLabel asChild className="text-sm hover:bg-sidebar-accent">
+                          <CollapsibleTrigger className="flex w-full items-center justify-between px-2 py-1">
+                            <span>Other calendars</span>
+                            <ChevronRight className="transition-transform group-data-[state=open]/other-calendars:rotate-90" />
+                          </CollapsibleTrigger>
+                        </SidebarGroupLabel>
+                        <CollapsibleContent>
+                          <SidebarMenu>
+                            {otherCalendars.map((item: CalendarItem) => (
+                              <ItemWithToggle key={item.id} item={item} />
+                            ))}
+                          </SidebarMenu>
+                        </CollapsibleContent>
+                      </Collapsible>
+                    )}
+                  </SidebarGroupContent>
+                </CollapsibleContent>
+              </Collapsible>
+            </SidebarGroup>
+            <SidebarSeparator className="mx-0" />
+          </Fragment>
+        );
+      })}
     </div>
   );
 }

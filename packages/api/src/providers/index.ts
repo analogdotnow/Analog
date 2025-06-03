@@ -22,5 +22,5 @@ export function accountToProvider(
     throw new Error("Provider not supported");
   }
 
-  return new Provider({ accessToken: activeAccount.accessToken });
+  return new Provider({ accessToken: activeAccount.accessToken, email: activeAccount.email });
 }

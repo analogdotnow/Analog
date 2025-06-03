@@ -1,11 +1,12 @@
 import { GoogleCalendar } from "@repo/google-calendar";
 
-import { CALENDAR_DEFAULTS } from "../constants/calendar";
+import { CALENDAR_DEFAULTS, GOOGLE_CALENDAR_PROVIDER_CONSTANTS } from "../constants/calendar";
 import { dateHelpers } from "../utils/date-helpers";
 import type { CalendarEvent, CalendarProvider } from "./types";
 
 interface GoogleCalendarProviderOptions {
   accessToken: string;
+  email: string;
 }
 
 // Type definitions for Google Calendar API
@@ -52,6 +53,7 @@ export class GoogleCalendarProvider implements CalendarProvider {
         provider: "google",
         name: calendar.summary!,
         primary: calendar.primary || false,
+        isOwner: calendar.accessRole === GOOGLE_CALENDAR_PROVIDER_CONSTANTS.owner,
       }));
   }
 
