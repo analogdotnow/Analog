@@ -12,6 +12,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 
 export function ViewPreferencesPopover() {
   const [preferences, setPreferences] = useAtom(viewPreferencesAtom);
@@ -28,15 +29,24 @@ export function ViewPreferencesPopover() {
 
   return (
     <Popover>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          aria-label="View preferences"
-          className="gap-1.5 max-[479px]:h-8"
-        >
-          <RiFilter3Line size={16} aria-hidden="true" />
-        </Button>
-      </PopoverTrigger>
+      <Tooltip delayDuration={1000}>
+        <TooltipTrigger asChild>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              aria-labelledby="view-preferences-button"
+              aria-description="View current preferences"
+              aria-label="View preferences"
+              className="gap-1.5 max-[479px]:h-8"
+            >
+              <RiFilter3Line size={16} aria-hidden="true" />
+            </Button>
+          </PopoverTrigger>
+        </TooltipTrigger>
+        <TooltipContent side="bottom" className="max-w-[200px]" sideOffset={4}>
+          View preferences
+        </TooltipContent>
+      </Tooltip>
       <PopoverContent align="end" className="w-64">
         <div className="space-y-4">
           <h4 className="text-sm font-medium">View Preferences</h4>
