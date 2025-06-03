@@ -20,6 +20,8 @@ import {
   startOfWeek,
   subMonths,
   subWeeks,
+  isBefore,
+  isAfter,
 } from "date-fns";
 
 import { CALENDAR_CONFIG, TIME_INTERVALS } from "../calendar-constants";
@@ -157,6 +159,15 @@ export function getViewTitleData(currentDate: Date, view: CalendarView) {
     default:
       return getMonthTitle(currentDate);
   }
+}
+
+export function getViewTitleDirection(
+  currentDate: Date,
+  prevDate: Date | undefined,
+): "top" | "bottom" {
+  if (!prevDate) return "top";
+  if (isBefore(currentDate, prevDate)) return "top";
+  return "bottom"; // Default case if they are the same
 }
 
 export function isWeekend(date: Date): boolean {
