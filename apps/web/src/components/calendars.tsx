@@ -32,6 +32,8 @@ export type CalendarItem = {
 function useCalendarList() {
   const trpc = useTRPC();
 
+  const { data: accounts } = useQuery(trpc.tasks.list.queryOptions());
+
   return useQuery(trpc.calendars.list.queryOptions());
 }
 
