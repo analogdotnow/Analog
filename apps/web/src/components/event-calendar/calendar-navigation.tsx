@@ -4,6 +4,7 @@ import { RiCalendarCheckLine } from "@remixicon/react";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 
 interface CalendarNavigationProps {
   onPrevious: () => void;
@@ -19,17 +20,48 @@ export function CalendarNavigation({
   return (
     <div className="flex items-center gap-2">
       <div className="flex items-center sm:gap-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onPrevious}
-          aria-label="Previous"
-        >
-          <ChevronLeftIcon size={16} aria-hidden="true" />
-        </Button>
-        <Button variant="ghost" size="icon" onClick={onNext} aria-label="Next">
-          <ChevronRightIcon size={16} aria-hidden="true" />
-        </Button>
+        <Tooltip delayDuration={1000}>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onPrevious}
+              aria-label="Previous"
+              aria-labelledby="previous-button"
+              aria-description="Go previous"
+            >
+              <ChevronLeftIcon size={16} aria-hidden="true" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent
+            side="bottom"
+            className="max-w-[200px]"
+            sideOffset={4}
+          >
+            Go previous
+          </TooltipContent>
+        </Tooltip>
+        <Tooltip delayDuration={1000}>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-labelledby="next-button"
+              aria-description="Go next"
+              onClick={onNext}
+              aria-label="Next"
+            >
+              <ChevronRightIcon size={16} aria-hidden="true" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent
+            side="bottom"
+            className="max-w-[200px]"
+            sideOffset={4}
+          >
+            Go next
+          </TooltipContent>
+        </Tooltip>
       </div>
 
       <Button
