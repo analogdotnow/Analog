@@ -439,7 +439,11 @@ function SidebarTrigger({
       }}
       {...props}
     >
-      <PanelLeftIcon />
+      <PanelLeftIcon
+        className={cn({
+          "rotate-180": targetSide === "right",
+        })}
+      />
       <span className="sr-only">Toggle Sidebar</span>
     </Button>
   );
