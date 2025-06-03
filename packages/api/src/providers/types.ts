@@ -10,6 +10,15 @@ export interface Calendar {
   primary: boolean;
 }
 
+export interface Task {
+  id: string;
+  provider: string;
+  title: string;
+  description?: string;
+  due?: string;
+  completed?: string;
+}
+
 export interface CalendarEvent {
   id: string;
   title: string;
@@ -21,6 +30,10 @@ export interface CalendarEvent {
   status?: string;
   htmlLink?: string;
   color?: string;
+}
+
+export interface ProviderOptions {
+  accessToken: string;
 }
 
 export interface CalendarProvider {
@@ -49,4 +62,13 @@ export interface CalendarProvider {
     event: Partial<CalendarEvent>,
   ): Promise<CalendarEvent>;
   deleteEvent(calendarId: string, eventId: string): Promise<void>;
+}
+
+
+export interface TaskProvider {
+  providerId: "google" | "microsoft";
+  tasks(): Promise<Task[]>;
+  createTask(task: Omit<Task, "id">): Promise<Task>;
+  updateTask(taskId: string, task: Partial<Task>): Promise<Task>;
+  deleteTask(taskId: string): Promise<void>;
 }

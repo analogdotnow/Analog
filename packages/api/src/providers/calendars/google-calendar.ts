@@ -1,8 +1,9 @@
 import { GoogleCalendar } from "@repo/google-calendar";
 
-import { CALENDAR_DEFAULTS } from "../constants/calendar";
-import { dateHelpers } from "../utils/date-helpers";
-import type { Calendar, CalendarEvent, CalendarProvider } from "./types";
+import { CALENDAR_DEFAULTS } from "../../constants/calendar";
+import { dateHelpers } from "../../utils/date-helpers";
+import type { CalendarEvent, CalendarProvider } from "../types";
+import type { Calendar } from "../../providers/types";
 
 interface GoogleCalendarProviderOptions {
   accessToken: string;

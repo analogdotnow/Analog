@@ -4,9 +4,9 @@ import type {
   Event as MicrosoftEvent,
 } from "@microsoft/microsoft-graph-types";
 
-import { CALENDAR_DEFAULTS } from "../constants/calendar";
-import { dateHelpers } from "../utils/date-helpers";
-import type { Calendar, CalendarEvent, CalendarProvider } from "./types";
+import { CALENDAR_DEFAULTS } from "../../constants/calendar";
+import { dateHelpers } from "../../utils/date-helpers";
+import type { Calendar, CalendarEvent, CalendarProvider } from "../types";
 
 interface MicrosoftCalendarProviderOptions {
   accessToken: string;
