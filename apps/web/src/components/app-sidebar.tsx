@@ -15,7 +15,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar {...props}>
-      {/* <SidebarHeader className="border-sidebar-border h-16 border-b" /> */}
       <SidebarContent className="relative overflow-hidden">
         <DatePicker />
         <SidebarSeparator className="mx-0" />
@@ -26,7 +25,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarFooter>
         <NavUser />
       </SidebarFooter>
-      <SidebarRail />
+      {/* <SidebarRail enableDrag={false} /> */}
     </Sidebar>
   );
 }
