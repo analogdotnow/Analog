@@ -26,7 +26,10 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
 
   async calendars(): Promise<Calendar[]> {
     try {
-      const response = await this.graphClient.api("/me/calendars").get();
+      // microsoft api does not work without $select temprorarily
+      const response = await this.graphClient
+        .api("/me/calendars?$select=id,name,isDefaultCalendar")
+        .get();
       const data = response.value as MicrosoftCalendar[];
 
       return data.map((calendar) => ({
