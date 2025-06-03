@@ -21,7 +21,6 @@ import {
   subMonths,
   subWeeks,
   isBefore,
-  isAfter,
 } from "date-fns";
 
 import { CALENDAR_CONFIG, TIME_INTERVALS } from "../calendar-constants";
