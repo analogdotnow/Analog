@@ -13,6 +13,7 @@ export function RightSidebar({
 }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar {...props}>
+      <SidebarRail />
       <SidebarHeader>
         <Input placeholder="Event name" />
       </SidebarHeader>

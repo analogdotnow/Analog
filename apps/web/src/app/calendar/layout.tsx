@@ -19,7 +19,7 @@ export default function Layout({
           <SidebarInset className="h-full overflow-hidden">
             {children}
           </SidebarInset>
-          <RightSidebar variant="inset" side="right" />
+          {/* <RightSidebar variant="inset" side="right" /> */}
         </AppHotkeyProvider>
       </SidebarProvider>
     </CalendarProvider>
