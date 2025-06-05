@@ -84,6 +84,7 @@
         "@repo/db": "workspace:*",
         "@repo/env": "workspace:*",
         "@repo/google-calendar": "workspace:*",
+        "@repo/google-tasks": "workspace:*",
         "@upstash/ratelimit": "^2.0.5",
         "@upstash/redis": "^1.34.9",
       },
@@ -160,6 +161,15 @@
     },
     "packages/google-calendar": {
       "name": "@repo/google-calendar",
+      "version": "0.0.1-alpha.0",
+      "devDependencies": {
+        "@repo/typescript-config": "workspace:*",
+        "@types/node": "^20",
+        "typescript": "^5",
+      },
+    },
+    "packages/google-tasks": {
+      "name": "@repo/google-tasks",
       "version": "0.0.1-alpha.0",
       "devDependencies": {
         "@repo/typescript-config": "workspace:*",
@@ -549,6 +559,8 @@
     "@repo/eslint-config": ["@repo/eslint-config@workspace:tooling/eslint-config"],
 
     "@repo/google-calendar": ["@repo/google-calendar@workspace:packages/google-calendar"],
+
+    "@repo/google-tasks": ["@repo/google-tasks@workspace:packages/google-tasks"],
 
     "@repo/typescript-config": ["@repo/typescript-config@workspace:tooling/typescript-config"],
 

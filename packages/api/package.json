@@ -24,6 +24,7 @@
     "@repo/db": "workspace:*",
     "@repo/env": "workspace:*",
     "@repo/google-calendar": "workspace:*",
+    "@repo/google-tasks": "workspace:*",
     "@upstash/ratelimit": "^2.0.5",
     "@upstash/redis": "^1.34.9"
   },
