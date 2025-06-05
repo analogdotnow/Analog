@@ -1,5 +1,5 @@
 import { GoogleTasks} from "@repo/google-tasks";
-import type { ProviderOptions, TaskProvider, Task, TaskList } from "../types";
+import type { ProviderOptions, TaskProvider, Task, Category } from "../types";
 
 
 export class GoogleTasksProvider implements TaskProvider {
@@ -13,28 +13,28 @@ export class GoogleTasksProvider implements TaskProvider {
     });
   }
 
-  async taskLists() {
+  async categories() {
     const { items } = await this.client.tasks.v1.users.me.lists.list();
     console.log(items);
 
     if (!items) return [];
 
     return items
-      .filter((taskList) => taskList.id && taskList.title)
-      .map((taskList) => ({
-        id: taskList.id!,
+      .filter((category) => category.id && category.title)
+      .map((category) => ({
+        id: category.id!,
         provider: "google",
-        title: taskList.title,
-        updated: taskList.updated,
+        title: category.title,
+        updated: category.updated,
       }));
   }
 
   async tasks(): Promise<Task[]> {
-    const { items: taskLists } = await this.client.tasks.v1.users.me.lists.list();
+    const { items: categories } = await this.client.tasks.v1.users.me.lists.list();
   
     const results = await Promise.all(
-      taskLists?.map(async (taskList) => {
-        return await this.client.tasks.v1.lists.tasks.list(taskList.id!);
+      categories?.map(async (category) => {
+        return await this.client.tasks.v1.lists.tasks.list(category.id!);
       }) ?? []
     );
   
@@ -44,7 +44,7 @@ export class GoogleTasksProvider implements TaskProvider {
       .filter((task) => task.id && task.title)
       .map((task) => ({
         id: task.id!,
-        taskListId: GoogleTasksProvider.TASK_LIST_ID_REGEX.exec(task.selfLink ?? "")?.[1],
+        categoryId: GoogleTasksProvider.TASK_LIST_ID_REGEX.exec(task.selfLink ?? "")?.[1],
         title: task.title,
         status: task.status,
         completed: task.completed,
@@ -53,8 +53,8 @@ export class GoogleTasksProvider implements TaskProvider {
       }));
   }
 
-  async tasksForList(taskList: TaskList): Promise<Task[]> {
-    const { items } = await this.client.tasks.v1.lists.tasks.list(taskList.id!);
+  async tasksForCategory(category: Category): Promise<Task[]> {
+    const { items } = await this.client.tasks.v1.lists.tasks.list(category.id!);
 
     if (!items) return [];
 
@@ -62,6 +62,7 @@ export class GoogleTasksProvider implements TaskProvider {
       .filter((task) => task.id && task.title)
       .map((task) => ({
         id: task.id!,
+        categoryId: category.id!,
         title: task.title,
         status: task.status,
         completed: task.completed,
@@ -70,31 +71,26 @@ export class GoogleTasksProvider implements TaskProvider {
       }));
   }
 
-  async createTask(taskList: TaskList, task: Omit<Task, "id">): Promise<Task> {
-    const { id } = await this.client.tasks.v1.lists.tasks.create(taskList.id!, task);
+  async createTask(category: Category, task: Omit<Task, "id">): Promise<Task> {
+    const { id } = await this.client.tasks.v1.lists.tasks.create(category.id!, task);
     return {
       id: id!,
+      categoryId: category.id!,
       ...task,
     };
   }
 
-  async updateTask(taskList: TaskList, task: Partial<Task>): Promise<Task> {
-    const params = {
-      tasklist: taskList.id!,
-      ...task,
-    };
-    const { id } = await this.client.tasks.v1.lists.tasks.update(task.id!, params);
+  async updateTask(category: Category, task: Partial<Task>): Promise<Task> {
+    const { id } = await this.client.tasks.v1.lists.tasks.update(task.id!, {tasklist: category.id!, ...task});
     return {
       id: id!,
+      categoryId: category.id!,
       ...task,
     };
   }
 
-  async deleteTask(taskList: TaskList, taskId: string): Promise<void> {
-    const params = {
-      tasklist: taskList.id!,
-    };
-    await this.client.tasks.v1.lists.tasks.delete(taskId, params);
+  async deleteTask(category: Category, taskId: string): Promise<void> {
+    await this.client.tasks.v1.lists.tasks.delete(taskId, {tasklist: category.id!});
     return;
   }
 

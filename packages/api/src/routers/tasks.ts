@@ -23,16 +23,16 @@ export const tasksRouter = createTRPCRouter({
     };
   }),
 
-  listTaskLists: taskProcedure.query(async ({ ctx }) => {
+  listCategories: taskProcedure.query(async ({ ctx }) => {
     const accounts = await Promise.all(
       ctx.allTaskClients.map(async ({ client, account }) => {
-        const taskLists = await client.taskLists();
+        const categories = await client.categories();
 
         return {
           id: account.accountId,
           provider: account.providerId,
           name: account.email,
-          taskLists,
+          categories,
         };
       }),
     );
@@ -42,15 +42,15 @@ export const tasksRouter = createTRPCRouter({
     };
   }),
 
-  listTasksForList: taskProcedure
+  getTasksForCategory: taskProcedure
     .input(
       z.object({
         accountId: z.string(),
-        taskListId: z.string(),
+        categoryId: z.string(),
       }),
     )
     .query(async ({ ctx, input }) => {
-      const { accountId, taskListId } = input;
+      const { accountId, categoryId } = input;
 
       const taskClient = ctx.allTaskClients.find(
         ({ account }) => account.accountId === accountId,
@@ -63,7 +63,7 @@ export const tasksRouter = createTRPCRouter({
         });
       }
 
-      const tasks = await taskClient.client.tasksForList({ id: taskListId });
+      const tasks = await taskClient.client.tasksForCategory({ id: categoryId });
 
       return { tasks };
     }),
@@ -72,7 +72,7 @@ export const tasksRouter = createTRPCRouter({
     .input(
       z.object({
         accountId: z.string(),
-        taskListId: z.string(),
+        categoryId: z.string(),
         task: z.object({
           title: z.string(),
           notes: z.string().optional(),
@@ -83,7 +83,7 @@ export const tasksRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const { accountId, taskListId, task } = input;
+      const { accountId, categoryId, task } = input;
 
       const taskClient = ctx.allTaskClients.find(
         ({ account }) => account.accountId === accountId,
@@ -96,7 +96,7 @@ export const tasksRouter = createTRPCRouter({
         });
       }
 
-      const createdTask = await taskClient.client.createTask({ id: taskListId }, task);
+      const createdTask = await taskClient.client.createTask({ id: categoryId }, task);
 
       return { task: createdTask };
     }),
