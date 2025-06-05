@@ -1,6 +1,5 @@
 import "server-only";
 import { TRPCError, initTRPC } from "@trpc/server";
-import superjson from "superjson";
 import { ZodError } from "zod";
 
 import { auth } from "@repo/auth/server";
@@ -8,6 +7,7 @@ import { db } from "@repo/db";
 
 import { accountToProvider } from "./providers";
 import { getAllAccounts } from "./utils/accounts";
+import { superjson } from "./utils/superjson";
 
 export const createTRPCContext = async (opts: { headers: Headers }) => {
   const session = await auth.api.getSession({
