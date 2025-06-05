@@ -1,7 +1,7 @@
-import { and, eq, isNotNull } from "drizzle-orm";
+import { and, eq, isNotNull, isNull } from "drizzle-orm";
 
 import { db } from "@repo/db";
-import { notification } from "@repo/db/schema";
+import { notification, notificationSourceEvent } from "@repo/db/schema";
 
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import {
@@ -24,18 +24,23 @@ export const notificationRouter = createTRPCRouter({
         .from(notification)
         .where(and(...queries.filter(Boolean)))
         .limit(input.limit)
-        .offset((input.page - 1) * input.limit);
+        .offset((input.page - 1) * input.limit)
+        .leftJoin(
+          notificationSourceEvent,
+          eq(notification.sourceEvent, notificationSourceEvent.id),
+        )
+        .orderBy(notification.createdAt);
 
       return { data };
     }),
   unreadCount: protectedProcedure.query(async ({ ctx }) => {
     const userId = ctx.user.id;
     const count = await db
-      .select({ count: db.$count(notification.id) })
+      .select({
+        count: db.$count(notification),
+      })
       .from(notification)
-      .where(
-        and(eq(notification.userId, userId), isNotNull(notification.readAt)),
-      );
+      .where(and(eq(notification.userId, userId), isNull(notification.readAt)));
 
     return {
       count: count[0]?.count ?? 0,
