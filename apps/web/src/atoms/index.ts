@@ -5,4 +5,4 @@ export { viewPreferencesAtom, type ViewPreferences } from "./view-preferences";
 export {
   calendarsVisibilityAtom,
   type CalendarsVisibility,
-} from "./calendars-visbility";
+} from "./calendars-visibility";
