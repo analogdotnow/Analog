@@ -40,7 +40,19 @@ export const getActiveAccount = async (
     throw new Error("No account found");
   }
 
-  return firstAccount;
+  const { accessToken } = await auth.api.getAccessToken({
+    body: {
+      providerId: firstAccount.providerId,
+      accountId: firstAccount.id,
+      userId: firstAccount.userId,
+    },
+    headers,
+  });
+
+  return {
+    ...firstAccount,
+    accessToken: accessToken ?? firstAccount.accessToken,
+  };
 };
 
 export const getAllAccounts = async (
