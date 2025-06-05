@@ -1,19 +1,5 @@
 {
   "name": "analog",
-  "private": true,
-  "scripts": {
-    "build": "dotenv -- turbo run build",
-    "dev": "dotenv -- turbo run dev",
-    "lint": "turbo run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,css,md}\"",
-    "docker:up": "docker-compose up -d",
-    "docker:down": "docker-compose down",
-    "docker:clean": "docker-compose down -v",
-    "db:generate": "turbo run db:generate",
-    "db:migrate": "dotenv -- turbo run db:migrate",
-    "db:push": "dotenv -- turbo run db:push",
-    "db:studio": "dotenv -- turbo run db:studio"
-  },
   "devDependencies": {
     "@ianvs/prettier-plugin-sort-imports": "^3.7.2",
     "dotenv-cli": "^8.0.0",
@@ -22,5 +8,28 @@
     "turbo": "^2.5.3"
   },
   "packageManager": "bun@1.2.13",
-  "workspaces": ["apps/*", "packages/*", "tooling/*"]
+  "private": true,
+  "scripts": {
+    "build": "dotenv -- turbo run build",
+    "dev": "dotenv -- turbo run dev",
+    "lint": "turbo run lint",
+    "start": "dotenv -- turbo run start",
+    "format": "prettier --write \"**/*.{ts,tsx,css,md}\"",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:clean": "docker-compose down -v",
+    "db:generate": "turbo run db:generate",
+    "db:migrate": "dotenv -- turbo run db:migrate",
+    "db:push": "dotenv -- turbo run db:push",
+    "db:studio": "dotenv -- turbo run db:studio",
+    "db:seed": "dotenv -- turbo run db:seed"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "tooling/*"
+  ],
+  "dependencies": {
+    "@ngneat/falso": "^7.4.0"
+  }
 }
