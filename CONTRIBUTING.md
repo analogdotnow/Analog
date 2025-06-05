@@ -34,9 +34,10 @@ Thank you for your interest in contributing to Analog! We aim to make the contri
 3. **Configure environment variables**
 
    - Generate `BETTER_AUTH_SECRET`: Run `openssl rand -hex 32`
-   - Set up Google OAuth:
-     1. Create a Google project in cloud console. Follow [step 1 in better auth docs](https://www.better-auth.com/docs/authentication/google)
-     2. Set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`
+   - `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`:
+     1. Create a Google project in the [Google Cloud Console](https://console.cloud.google.com/).
+     2. Follow [step 1 in the Better Auth documentation](https://www.better-auth.com/docs/authentication/google) to set up Google OAuth credentials.
+     3. Enable the Google Calendar API by visiting [Google Cloud Console APIs](https://console.cloud.google.com/apis/library/calendar-json.googleapis.com) and enabling it for your project.
 
 4. **Initialize the application**
 
@@ -45,7 +46,7 @@ Thank you for your interest in contributing to Analog! We aim to make the contri
    bun run db:migrate
 
    # Start development server
-   bun dev
+   bun run dev
    ```
 
 ## Making Changes
