@@ -6,7 +6,7 @@ import { ZodError } from "zod";
 import { auth } from "@repo/auth/server";
 import { db } from "@repo/db";
 
-import { accountToProvider } from "./providers";
+import { accountToCalendarProvider, accountToTasksProvider } from "./providers";
 import { getAllAccounts } from "./utils/accounts";
 
 export const createTRPCContext = async (opts: { headers: Headers }) => {
@@ -63,13 +63,40 @@ export const calendarProcedure = protectedProcedure.use(
 
       const allCalendarClients = allAccounts.map((account) => ({
         account,
-        client: accountToProvider(account),
+        client: accountToCalendarProvider(account),
       }));
 
       return next({
         ctx: {
           // Multiple provider access (for listing all calendars/events)
           allCalendarClients,
+          allAccounts,
+        },
+      });
+    } catch (error) {
+      throw new TRPCError({
+        code: "PRECONDITION_FAILED",
+        message: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  },
+);
+
+
+
+export const taskProcedure = protectedProcedure.use(
+  async ({ ctx, next }) => {
+    try {
+      const allAccounts = await getAllAccounts(ctx.user, ctx.headers);
+
+      const allTaskClients = allAccounts.map((account) => ({
+        account,
+        client: accountToTasksProvider(account),
+      }));
+
+      return next({
+        ctx: {
+          allTaskClients,
           allAccounts,
         },
       });

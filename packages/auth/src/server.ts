@@ -24,6 +24,7 @@ export const GOOGLE_OAUTH_SCOPES = [
   "openid",
   "https://mail.google.com/",
   "https://www.googleapis.com/auth/calendar",
+  "https://www.googleapis.com/auth/tasks",
 ];
 
 export const auth = betterAuth({
