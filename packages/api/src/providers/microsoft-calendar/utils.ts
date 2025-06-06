@@ -4,8 +4,8 @@ import type {
 } from "@microsoft/microsoft-graph-types";
 import { Temporal } from "temporal-polyfill";
 
-import type { Calendar, CalendarEvent } from "../interfaces";
 import { CreateEventInput, UpdateEventInput } from "../../schemas/events";
+import type { Calendar, CalendarEvent } from "../interfaces";
 
 export function toMicrosoftDate(
   value: Temporal.PlainDate | Temporal.Instant | Temporal.ZonedDateTime,

@@ -5,6 +5,8 @@ import type {
 } from "@microsoft/microsoft-graph-types";
 
 import { CALENDAR_DEFAULTS } from "../constants/calendar";
+import { CreateCalendarInput, UpdateCalendarInput } from "../schemas/calendars";
+import { CreateEventInput, UpdateEventInput } from "../schemas/events";
 import type { Calendar, CalendarEvent, CalendarProvider } from "./interfaces";
 import {
   calendarPath,
@@ -12,8 +14,6 @@ import {
   parseMicrosoftEvent,
   toMicrosoftEvent,
 } from "./microsoft-calendar/utils";
-import { CreateCalendarInput, UpdateCalendarInput } from "../schemas/calendars";
-import { CreateEventInput, UpdateEventInput } from "../schemas/events";
 
 interface MicrosoftCalendarProviderOptions {
   accessToken: string;

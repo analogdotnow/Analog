@@ -13,7 +13,15 @@ export const accountsRouter = createTRPCRouter({
     const accounts = await getAccounts(ctx.user, ctx.headers);
 
     return {
-      accounts,
+      accounts: accounts.map((account) => ({
+        id: account.id,
+        providerId: account.providerId,
+        name: account.name,
+        email: account.email,
+        image: account.image,
+        createdAt: account.createdAt,
+        updatedAt: account.updatedAt,
+      })),
     };
   }),
   setDefault: protectedProcedure
@@ -38,7 +46,17 @@ export const accountsRouter = createTRPCRouter({
   getDefault: protectedProcedure.query(async ({ ctx }) => {
     const account = await getActiveAccount(ctx.user, ctx.headers);
 
-    return { account };
+    return {
+      account: {
+        id: account.id,
+        providerId: account.providerId,
+        name: account.name,
+        email: account.email,
+        image: account.image,
+        createdAt: account.createdAt,
+        updatedAt: account.updatedAt,
+      },
+    };
   }),
   delete: protectedProcedure
     .input(

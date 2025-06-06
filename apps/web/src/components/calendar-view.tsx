@@ -147,7 +147,6 @@ function useCalendarActions() {
     trpc.events.update.mutationOptions({
       onMutate: async (updatedEvent) => {
         await queryClient.cancelQueries({ queryKey: eventsQueryKey });
-        console.log(updatedEvent);
 
         const previousEvents = queryClient.getQueryData(eventsQueryKey);
 
@@ -158,7 +157,7 @@ function useCalendarActions() {
             ...old,
             events: old.events
               .map((event) =>
-                event.id === updatedEvent.eventId
+                event.id === updatedEvent.id
                   ? {
                       ...event,
                       title: updatedEvent.title ?? event.title,
@@ -258,7 +257,7 @@ export function CalendarView({ className }: CalendarViewProps) {
     }
 
     createEvent({
-      accountId: defaultAccount?.accountId,
+      accountId: defaultAccount.id,
       calendarId: CALENDAR_CONFIG.DEFAULT_CALENDAR_ID,
       title: event.title,
       start: event.start,
@@ -273,7 +272,7 @@ export function CalendarView({ className }: CalendarViewProps) {
     updateEvent({
       accountId: updatedEvent.accountId,
       calendarId: updatedEvent.calendarId,
-      eventId: updatedEvent.id,
+      id: updatedEvent.id,
       title: updatedEvent.title,
       start: updatedEvent.start,
       end: updatedEvent.end,
@@ -285,6 +284,7 @@ export function CalendarView({ className }: CalendarViewProps) {
 
   const handleEventDelete = (eventId: string) => {
     const eventToDelete = events.find((event) => event.id === eventId);
+
     if (!eventToDelete) {
       console.error(`Event with id ${eventId} not found`);
       return;
@@ -293,7 +293,7 @@ export function CalendarView({ className }: CalendarViewProps) {
     deleteEvent({
       accountId: eventToDelete.accountId,
       calendarId: eventToDelete.calendarId,
-      eventId: eventId,
+      eventId,
     });
   };
 
