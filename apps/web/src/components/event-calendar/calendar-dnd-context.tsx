@@ -22,8 +22,10 @@ import {
   type UniqueIdentifier,
 } from "@dnd-kit/core";
 import { addMinutes, differenceInMinutes } from "date-fns";
+import { Temporal } from "temporal-polyfill";
 
 import { EventItem, type CalendarEvent } from "@/components/event-calendar";
+import { compareTemporal, toDate, toInstant } from "@/lib/temporal";
 
 // Define the context type
 type CalendarDndContextType = {
@@ -59,7 +61,7 @@ const CalendarDndContext = createContext<CalendarDndContextType>({
 // Hook to use the context
 export const useCalendarDnd = () => useContext(CalendarDndContext);
 
-// Props for the provider
+// Props for the providerId
 interface CalendarDndProviderProps {
   children: ReactNode;
   onEventUpdate: (event: CalendarEvent) => void;
@@ -151,7 +153,7 @@ export function CalendarDndProvider({
     setActiveEvent(calendarEvent);
     setActiveId(active.id);
     setActiveView(view);
-    setCurrentTime(new Date(calendarEvent.start.dateTime));
+    setCurrentTime(toDate({ value: calendarEvent.start, timeZone: "UTC" }));
     setIsMultiDay(eventIsMultiDay || false);
     setMultiDayWidth(eventMultiDayWidth || null);
     setDragHandlePosition(eventDragHandlePosition || null);
@@ -287,31 +289,31 @@ export function CalendarDndProvider({
       }
 
       // Calculate new end time based on the original duration
-      const originalStart = new Date(calendarEvent.start.dateTime);
-      const originalEnd = new Date(calendarEvent.end.dateTime);
-      const durationMinutes = differenceInMinutes(originalEnd, originalStart);
+      const originalStart = calendarEvent.start;
+      const originalEnd = calendarEvent.end;
+      const durationMinutes = differenceInMinutes(
+        toDate({ value: originalEnd, timeZone: "UTC" }),
+        toDate({ value: originalStart, timeZone: "UTC" }),
+      );
       const newEnd = addMinutes(newStart, durationMinutes);
 
       // Only update if the start time has actually changed
       const hasStartTimeChanged =
-        originalStart.getFullYear() !== newStart.getFullYear() ||
-        originalStart.getMonth() !== newStart.getMonth() ||
-        originalStart.getDate() !== newStart.getDate() ||
-        originalStart.getHours() !== newStart.getHours() ||
-        originalStart.getMinutes() !== newStart.getMinutes();
+        compareTemporal(
+          originalStart,
+          Temporal.Instant.fromEpochMilliseconds(newStart.getTime()),
+        ) !== 0;
 
       if (hasStartTimeChanged) {
         // Update the event only if the time has changed
         onEventUpdate({
           ...calendarEvent,
-          start: {
-            dateTime: newStart.toISOString(),
-            timeZone: "UTC",
-          },
-          end: {
-            dateTime: newEnd.toISOString(),
-            timeZone: "UTC",
-          },
+          start: Temporal.Instant.fromEpochMilliseconds(
+            newStart.getTime(),
+          ).toZonedDateTimeISO("UTC"),
+          end: Temporal.Instant.fromEpochMilliseconds(
+            newEnd.getTime(),
+          ).toZonedDateTimeISO("UTC"),
         });
       }
     } catch (error) {
@@ -332,6 +334,7 @@ export function CalendarDndProvider({
   // Handle drag cancel (e.g., when ESC key is pressed)
   const handleDragCancel = () => {
     try {
+      /* empty */
     } catch (error) {
       console.error("Error in drag cancel handler:", error);
     } finally {

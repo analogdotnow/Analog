@@ -55,10 +55,7 @@ export const getActiveAccount = async (
   };
 };
 
-export const getAllAccounts = async (
-  user: Session["user"],
-  headers: Headers,
-) => {
+export const getAccounts = async (user: Session["user"], headers: Headers) => {
   const _accounts = await db.query.account.findMany({
     where: (table, { eq }) => eq(table.userId, user.id),
   });

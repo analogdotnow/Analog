@@ -1,6 +1,6 @@
 import { addDays, endOfDay, subDays } from "date-fns";
 
-import type { DateInput } from "../providers/types";
+import type { TemporalDate } from "../providers/interfaces";
 
 export const dateHelpers = {
   formatDateForAPI(date: Date | string, isAllDay: boolean): string {
@@ -19,22 +19,19 @@ export const dateHelpers = {
   parseGoogleDate(
     googleDate: { date?: string; dateTime?: string; timeZone?: string },
     isAllDay: boolean,
-  ): DateInput {
+  ): TemporalDate {
     if (isAllDay && googleDate.date) {
-      return {
-        dateTime: `${googleDate.date}T00:00:00`,
-        timeZone: googleDate.timeZone || "UTC",
-      };
-    } else if (googleDate.dateTime) {
-      return {
-        dateTime: googleDate.dateTime,
-        timeZone: googleDate.timeZone || "UTC",
-      };
+      return Temporal.PlainDate.from(googleDate.date);
     }
-    return {
-      dateTime: new Date().toISOString(),
-      timeZone: "UTC",
-    };
+
+    if (googleDate.dateTime) {
+      const instant = Temporal.Instant.from(googleDate.dateTime);
+      return googleDate.timeZone
+        ? instant.toZonedDateTimeISO(googleDate.timeZone)
+        : instant;
+    }
+
+    return Temporal.Instant.from(new Date().toISOString());
   },
 
   parseMicrosoftDate(
@@ -43,27 +40,21 @@ export const dateHelpers = {
       | undefined
       | null,
     isAllDay: boolean,
-  ): DateInput {
-    if (!microsoftDate?.dateTime) {
-      return {
-        dateTime: new Date().toISOString(),
-        timeZone: "UTC",
-      };
+  ): TemporalDate {
+    const dateTime = microsoftDate?.dateTime;
+
+    if (!dateTime) {
+      return Temporal.Instant.from(new Date().toISOString());
     }
 
     if (isAllDay) {
-      // For all-day events, return date in ISO format with time set to midnight
-      const date = new Date(microsoftDate.dateTime);
-      return {
-        dateTime: `${date.toISOString().split("T")[0]}T00:00:00`,
-        timeZone: microsoftDate.timeZone || "UTC",
-      };
+      return Temporal.PlainDate.from(dateTime.split("T")[0]);
     }
 
-    return {
-      dateTime: microsoftDate.dateTime,
-      timeZone: microsoftDate.timeZone || "UTC",
-    };
+    const instant = Temporal.Instant.from(dateTime);
+    return microsoftDate?.timeZone
+      ? instant.toZonedDateTimeISO(microsoftDate.timeZone)
+      : instant;
   },
 
   adjustEndDateForDisplay(

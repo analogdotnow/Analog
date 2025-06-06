@@ -1,8 +1,47 @@
 import { useCallback, useState } from "react";
+import { Temporal } from "temporal-polyfill";
 
-import { TIME_INTERVALS } from "../calendar-constants";
 import { CalendarEvent } from "../types";
-import { addHoursToDate, snapTimeToInterval } from "../utils";
+import { snapTimeToInterval } from "../utils";
+import { useCalendarSettings } from "./use-calendar-settings";
+
+interface CreateEventParams {
+  startTime: Date;
+  defaultTimeZone: string;
+  defaultDuration: number;
+  calendar: {
+    calendarId: string;
+    accountId: string;
+    providerId: "google" | "microsoft";
+    timeZone: string;
+  };
+}
+
+function createEvent({
+  startTime,
+  defaultTimeZone,
+  defaultDuration,
+  calendar,
+}: CreateEventParams) {
+  const instant = Temporal.Instant.fromEpochMilliseconds(
+    snapTimeToInterval(startTime).getTime(),
+  );
+
+  const snappedTime = instant.toZonedDateTimeISO(
+    calendar.timeZone ?? defaultTimeZone,
+  );
+
+  const newEvent: CalendarEvent = {
+    id: "",
+    title: "",
+    start: snappedTime,
+    end: snappedTime.add({ minutes: defaultDuration }),
+    allDay: false,
+    ...calendar,
+  };
+
+  return newEvent;
+}
 
 export function useEventDialog(): {
   isEventDialogOpen: boolean;
@@ -11,6 +50,7 @@ export function useEventDialog(): {
   handleEventCreate: (startTime: Date) => void;
   handleDialogClose: () => void;
 } {
+  const settings = useCalendarSettings();
   const [isEventDialogOpen, setIsEventDialogOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(
     null,
@@ -21,32 +61,20 @@ export function useEventDialog(): {
     setIsEventDialogOpen(true);
   }, []);
 
-  const handleEventCreate = useCallback((startTime: Date) => {
-    const snappedTime = snapTimeToInterval(startTime);
+  const handleEventCreate = useCallback(
+    (startTime: Date) => {
+      const newEvent = createEvent({
+        startTime,
+        defaultTimeZone: settings.defaultTimeZone,
+        defaultDuration: settings.defaultEventDuration,
+        calendar: settings.defaultCalendar,
+      });
 
-    const newEvent: CalendarEvent = {
-      id: "",
-      title: "",
-      start: {
-        dateTime: snappedTime.toISOString(),
-        timeZone: "UTC",
-      },
-      end: {
-        dateTime: addHoursToDate(
-          snappedTime,
-          TIME_INTERVALS.DEFAULT_EVENT_DURATION_HOURS,
-        ).toISOString(),
-        timeZone: "UTC",
-      },
-      allDay: false,
-      calendarId: "primary", // the primary calendar of the logged in user
-      accountId: "", // will be set when saved
-      providerId: "google", // will be set when saved
-    };
-
-    setSelectedEvent(newEvent);
-    setIsEventDialogOpen(true);
-  }, []);
+      setSelectedEvent(newEvent);
+      setIsEventDialogOpen(true);
+    },
+    [settings],
+  );
 
   const handleDialogClose = useCallback(() => {
     setIsEventDialogOpen(false);

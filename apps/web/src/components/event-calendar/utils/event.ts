@@ -8,6 +8,7 @@ import {
   startOfDay,
 } from "date-fns";
 
+import { toDate } from "@/lib/temporal";
 import type { CalendarEvent } from "../types";
 
 // ============================================================================
@@ -16,8 +17,8 @@ import type { CalendarEvent } from "../types";
 
 export function getEventDates(event: CalendarEvent) {
   return {
-    start: new Date(event.start.dateTime),
-    end: new Date(event.end.dateTime),
+    start: toDate({ value: event.start, timeZone: "UTC" }),
+    end: toDate({ value: event.end, timeZone: "UTC" }),
   };
 }
 
@@ -72,13 +73,13 @@ export function getEventsStartingOnDay(
 ): CalendarEvent[] {
   return events
     .filter((event) => {
-      const eventStart = new Date(event.start.dateTime);
+      const eventStart = toDate({ value: event.start, timeZone: "UTC" });
       return isSameDay(day, eventStart);
     })
     .sort(
       (a, b) =>
-        new Date(a.start.dateTime).getTime() -
-        new Date(b.start.dateTime).getTime(),
+        toDate({ value: a.start, timeZone: "UTC" }).getTime() -
+        toDate({ value: b.start, timeZone: "UTC" }).getTime(),
     );
 }
 
@@ -89,8 +90,8 @@ export function getSpanningEventsForDay(
   return events.filter((event) => {
     if (!isMultiDayEvent(event)) return false;
 
-    const eventStart = new Date(event.start.dateTime);
-    const eventEnd = new Date(event.end.dateTime);
+    const eventStart = toDate({ value: event.start, timeZone: "UTC" });
+    const eventEnd = toDate({ value: event.end, timeZone: "UTC" });
 
     return (
       !isSameDay(day, eventStart) &&

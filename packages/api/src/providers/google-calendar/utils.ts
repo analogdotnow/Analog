@@ -1,8 +1,18 @@
 import { Temporal } from "temporal-polyfill";
-import { GoogleCalendarCalendarListEntry, GoogleCalendarDate, GoogleCalendarDateTime, GoogleCalendarEvent, GoogleCalendarEventCreateParams } from "./interfaces";
-import { Calendar, CalendarEvent } from "../interfaces";
 
-function toGoogleCalendarDate(value: Temporal.PlainDate | Temporal.Instant | Temporal.ZonedDateTime): GoogleCalendarDate | GoogleCalendarDateTime {
+import { CreateEventInput, UpdateEventInput } from "../../schemas/events";
+import { Calendar, CalendarEvent } from "../interfaces";
+import {
+  GoogleCalendarCalendarListEntry,
+  GoogleCalendarDate,
+  GoogleCalendarDateTime,
+  GoogleCalendarEvent,
+  GoogleCalendarEventCreateParams,
+} from "./interfaces";
+
+export function toGoogleCalendarDate(
+  value: Temporal.PlainDate | Temporal.Instant | Temporal.ZonedDateTime,
+): GoogleCalendarDate | GoogleCalendarDateTime {
   if (value instanceof Temporal.PlainDate) {
     return {
       date: value.toString(),
@@ -27,21 +37,25 @@ function parseDate({ date }: GoogleCalendarDate) {
 
 function parseDateTime({ dateTime, timeZone }: GoogleCalendarDateTime) {
   const instant = Temporal.Instant.from(dateTime);
-  
+
   if (!timeZone) {
     return instant;
   }
-    
+
   return instant.toZonedDateTimeISO(timeZone);
 }
 
 interface ParsedGoogleCalendarEventOptions {
   calendarId: string;
-  connectionId: string;
+  accountId: string;
   event: GoogleCalendarEvent;
 }
 
-export function parseGoogleCalendarEvent({ calendarId, connectionId, event }: ParsedGoogleCalendarEventOptions): CalendarEvent {
+export function parseGoogleCalendarEvent({
+  calendarId,
+  accountId,
+  event,
+}: ParsedGoogleCalendarEventOptions): CalendarEvent {
   const isAllDay = !event.start?.dateTime;
 
   return {
@@ -49,22 +63,27 @@ export function parseGoogleCalendarEvent({ calendarId, connectionId, event }: Pa
     id: event.id!,
     title: event.summary!,
     description: event.description,
-    start: isAllDay ? parseDate(event.start as GoogleCalendarDate) : parseDateTime(event.start as GoogleCalendarDateTime),
-    end: isAllDay ? parseDate(event.end as GoogleCalendarDate) : parseDateTime(event.end as GoogleCalendarDateTime),
+    start: isAllDay
+      ? parseDate(event.start as GoogleCalendarDate)
+      : parseDateTime(event.start as GoogleCalendarDateTime),
+    end: isAllDay
+      ? parseDate(event.end as GoogleCalendarDate)
+      : parseDateTime(event.end as GoogleCalendarDateTime),
     allDay: isAllDay,
     location: event.location,
     status: event.status,
     url: event.htmlLink,
-
-    provider: "google",
-    connectionId,
+    providerId: "google",
+    accountId,
     calendarId,
   };
 }
 
-export function toGoogleCalendarEvent(event: CalendarEvent): GoogleCalendarEventCreateParams {
+export function toGoogleCalendarEvent(
+  event: CreateEventInput | UpdateEventInput,
+): GoogleCalendarEventCreateParams {
   return {
-    id: event.id,
+    ...("id" in event ? { id: event.id } : {}),
     summary: event.title,
     description: event.description,
     location: event.location,
@@ -74,21 +93,28 @@ export function toGoogleCalendarEvent(event: CalendarEvent): GoogleCalendarEvent
 }
 
 interface ParsedGoogleCalendarCalendarListEntryOptions {
-  connectionId: string;
+  accountId: string;
   entry: GoogleCalendarCalendarListEntry;
 }
 
-export function parseGoogleCalendarCalendarListEntry({ connectionId, entry }: ParsedGoogleCalendarCalendarListEntryOptions): Calendar {
+export function parseGoogleCalendarCalendarListEntry({
+  accountId,
+  entry,
+}: ParsedGoogleCalendarCalendarListEntryOptions): Calendar {
+  if (!entry.id) {
+    throw new Error("Calendar ID is missing");
+  }
+
   return {
-    id: entry.id!,
+    id: entry.id,
     name: entry.summaryOverride ?? entry.summary!,
     description: entry.description,
-    location: entry.location,
+    // location: entry.location,
     timeZone: entry.timeZone,
     primary: entry.primary!,
-    readOnly: entry.accessRole === "reader",
+    // readOnly: entry.accessRole === "reader",
 
-    provider: "google",
-    connectionId,
+    providerId: "google",
+    accountId,
   };
 }

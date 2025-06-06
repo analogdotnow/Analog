@@ -1,8 +1,13 @@
 import { TRPCError } from "@trpc/server";
+import { Temporal } from "temporal-polyfill";
 import { z } from "zod";
 
-import { dateInputSchema } from "../providers/validations";
+import {
+  createEventInputSchema,
+  updateEventInputSchema,
+} from "../schemas/events";
 import { calendarProcedure, createTRPCRouter } from "../trpc";
+import { toInstant } from "../utils/temporal";
 
 export const eventsRouter = createTRPCRouter({
   list: calendarProcedure
@@ -15,7 +20,7 @@ export const eventsRouter = createTRPCRouter({
     )
     .query(async ({ ctx, input }) => {
       const allEvents = await Promise.all(
-        ctx.allCalendarClients.map(async ({ client, account }) => {
+        ctx.providers.map(async ({ client, account }) => {
           let calendarIds = input.calendarIds;
 
           if (calendarIds.length === 0) {
@@ -70,89 +75,57 @@ export const eventsRouter = createTRPCRouter({
 
       const events = allEvents
         .flat()
-        .sort(
-          (a, b) =>
-            new Date(a.start.dateTime).getTime() -
-            new Date(b.start.dateTime).getTime(),
-        );
+        .map(
+          (v) => [v, toInstant({ value: v.start, timeZone: "UTC" })] as const,
+        )
+        .sort(([, i1], [, i2]) => Temporal.Instant.compare(i1, i2))
+        .map(([v]) => v);
 
       return { events };
     }),
 
   create: calendarProcedure
-    .input(
-      z.object({
-        accountId: z.string(),
-        calendarId: z.string(),
-        title: z.string(),
-        start: dateInputSchema,
-        end: dateInputSchema,
-        allDay: z.boolean().optional(),
-        description: z.string().optional(),
-        location: z.string().optional(),
-        color: z.string().optional(),
-      }),
-    )
+    .input(createEventInputSchema)
     .mutation(async ({ ctx, input }) => {
-      const calendarClient = ctx.allCalendarClients.find(
-        ({ account }) => account.accountId === input.accountId,
+      const provider = ctx.providers.find(
+        ({ account }) => account.id === input.accountId,
       );
 
-      if (!calendarClient) {
+      if (!provider?.client) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: `Calendar client not found for accountId: ${input.accountId}`,
         });
       }
 
-      const { accountId, ...eventData } = input;
-
-      const event = await calendarClient.client.createEvent(
-        eventData.calendarId,
-        eventData,
-      );
+      const event = await provider.client.createEvent(input.calendarId, {
+        ...input,
+      });
 
       return { event };
     }),
-
   update: calendarProcedure
-    .input(
-      z.object({
-        accountId: z.string(),
-        calendarId: z.string(),
-        eventId: z.string(),
-        title: z.string().optional(),
-        start: dateInputSchema.optional(),
-        end: dateInputSchema.optional(),
-        allDay: z.boolean().optional(),
-        description: z.string().optional(),
-        location: z.string().optional(),
-        color: z.string().optional(),
-      }),
-    )
+    .input(updateEventInputSchema)
     .mutation(async ({ ctx, input }) => {
-      const calendarClient = ctx.allCalendarClients.find(
-        ({ account }) => account.accountId === input.accountId,
+      const provider = ctx.providers.find(
+        ({ account }) => account.id === input.accountId,
       );
 
-      if (!calendarClient?.client) {
+      if (!provider?.client) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: `Calendar client not found for accountId: ${input.accountId}`,
         });
       }
 
-      const { accountId, calendarId, eventId, ...updateData } = input;
-
-      const event = await calendarClient.client.updateEvent(
-        calendarId,
-        eventId,
-        updateData,
+      const event = await provider.client.updateEvent(
+        input.calendarId,
+        input.id,
+        input,
       );
 
       return { event };
     }),
-
   delete: calendarProcedure
     .input(
       z.object({
@@ -162,18 +135,19 @@ export const eventsRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const calendarClient = ctx.allCalendarClients.find(
-        ({ account }) => account.accountId === input.accountId,
+      const provider = ctx.providers.find(
+        ({ account }) => account.id === input.accountId,
       );
 
-      if (!calendarClient?.client) {
+      if (!provider?.client) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: `Calendar client not found for accountId: ${input.accountId}`,
         });
       }
 
-      await calendarClient.client.deleteEvent(input.calendarId, input.eventId);
+      await provider.client.deleteEvent(input.calendarId, input.eventId);
+
       return { success: true };
     }),
 });

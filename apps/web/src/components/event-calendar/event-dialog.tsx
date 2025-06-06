@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { RiCalendarLine, RiDeleteBinLine } from "@remixicon/react";
 import { useQuery } from "@tanstack/react-query";
 import { format, isBefore } from "date-fns";
+import { toast } from "sonner";
+import { Temporal } from "temporal-polyfill";
 
 import type { CalendarEvent, EventColor } from "@/components/event-calendar";
 import {
@@ -40,6 +42,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import type { ProviderId } from "@/lib/constants";
+import { toDate } from "@/lib/temporal";
 import { useTRPC } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
 
@@ -86,8 +89,8 @@ export function EventDialog({
       setTitle(event.title || "");
       setDescription(event.description || "");
 
-      const start = new Date(event.start.dateTime);
-      const end = new Date(event.end.dateTime);
+      const start = toDate({ value: event.start, timeZone: "UTC" });
+      const end = toDate({ value: event.end, timeZone: "UTC" });
 
       setStartDate(start);
       setEndDate(end);
@@ -176,18 +179,31 @@ export function EventDialog({
     // Use generic title if empty
     const eventTitle = title.trim() ? title : "(no title)";
 
+    if (!defaultAccount) {
+      toast.error("No default account available, sign in again.");
+      return;
+    }
+
     onSave({
       id: event?.id || "",
       title: eventTitle,
       description,
-      start: { dateTime: start.toISOString(), timeZone: "UTC" },
-      end: { dateTime: end.toISOString(), timeZone: "UTC" },
+      start: allDay
+        ? Temporal.PlainDate.from(start.toISOString().split("T")[0]!)
+        : Temporal.Instant.from(start.toISOString()).toZonedDateTimeISO(
+            event?.start.timeZone ?? "UTC",
+          ),
+      end: allDay
+        ? Temporal.PlainDate.from(end.toISOString().split("T")[0]!)
+        : Temporal.Instant.from(end.toISOString()).toZonedDateTimeISO(
+            event?.end.timeZone ?? "UTC",
+          ),
       allDay,
       location,
       color,
       calendarId: "primary",
-      providerId: defaultAccount?.providerId as ProviderId,
-      accountId: defaultAccount?.id ?? "",
+      providerId: defaultAccount.providerId,
+      accountId: defaultAccount.id,
     });
   };
 

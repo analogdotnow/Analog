@@ -33,6 +33,7 @@ import {
   isWeekend,
   type PositionedEvent,
 } from "@/components/event-calendar/utils";
+import { toDate } from "@/lib/temporal";
 import { cn } from "@/lib/utils";
 
 interface WeekViewContextType {
@@ -200,8 +201,8 @@ function WeekViewAllDaySection() {
         {allDays.map((day, dayIndex) => {
           const isDayVisible = viewPreferences.showWeekends || !isWeekend(day);
           const dayAllDayEvents = allDayEvents.filter((event) => {
-            const eventStart = new Date(event.start.dateTime);
-            const eventEnd = new Date(event.end.dateTime);
+            const eventStart = toDate({ value: event.start, timeZone: "UTC" });
+            const eventEnd = toDate({ value: event.end, timeZone: "UTC" });
             return (
               isSameDay(day, eventStart) ||
               (day > eventStart && day < eventEnd) ||
@@ -220,8 +221,11 @@ function WeekViewAllDaySection() {
               style={{ visibility: isDayVisible ? "visible" : "hidden" }}
             >
               {dayAllDayEvents.map((event) => {
-                const eventStart = new Date(event.start.dateTime);
-                const eventEnd = new Date(event.end.dateTime);
+                const eventStart = toDate({
+                  value: event.start,
+                  timeZone: "UTC",
+                });
+                const eventEnd = toDate({ value: event.end, timeZone: "UTC" });
                 const isFirstDay = isSameDay(day, eventStart);
                 const isLastDay = isSameDay(day, eventEnd);
                 const isFirstVisibleDay =

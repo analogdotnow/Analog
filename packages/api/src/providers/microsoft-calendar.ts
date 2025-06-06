@@ -5,8 +5,15 @@ import type {
 } from "@microsoft/microsoft-graph-types";
 
 import { CALENDAR_DEFAULTS } from "../constants/calendar";
-import { dateHelpers } from "../utils/date-helpers";
-import type { Calendar, CalendarEvent, CalendarProvider } from "./types";
+import type { Calendar, CalendarEvent, CalendarProvider } from "./interfaces";
+import {
+  calendarPath,
+  parseMicrosoftCalendar,
+  parseMicrosoftEvent,
+  toMicrosoftEvent,
+} from "./microsoft-calendar/utils";
+import { CreateCalendarInput, UpdateCalendarInput } from "../schemas/calendars";
+import { CreateEventInput, UpdateEventInput } from "../schemas/events";
 
 interface MicrosoftCalendarProviderOptions {
   accessToken: string;
@@ -25,46 +32,40 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
   }
 
   async calendars(): Promise<Calendar[]> {
-    try {
-      // microsoft api does not work without $select temprorarily
-      const response = await this.graphClient
-        .api("/me/calendars?$select=id,name,isDefaultCalendar")
-        .get();
-      const data = response.value as MicrosoftCalendar[];
+    // Microsoft Graph API does not work without $select due to a bug
+    const response = await this.graphClient
+      .api("/me/calendars?$select=id,name,isDefaultCalendar")
+      .get();
+    const data = response.value as MicrosoftCalendar[];
 
-      return data.map((calendar) => ({
-        id: calendar.id as string,
-        provider: "microsoft",
-        name: calendar.name as string,
-        primary: calendar.isDefaultCalendar as boolean,
-      }));
-    } catch (error) {
-      console.error("Error fetching Microsoft calendars:", error);
-      return [];
-    }
+    return data.map((calendar) => parseMicrosoftCalendar(calendar));
   }
 
-  async createCalendar(calendarData: Omit<Calendar, "id">): Promise<Calendar> {
+  async createCalendar(calendarData: CreateCalendarInput): Promise<Calendar> {
     const createdCalendar = (await this.graphClient
       .api("/me/calendars")
       .post(calendarData)) as MicrosoftCalendar;
 
-    return this.transformCalendar(createdCalendar);
+    return parseMicrosoftCalendar(createdCalendar);
   }
 
   async updateCalendar(
     calendarId: string,
-    calendar: Partial<Calendar>,
+    calendar: UpdateCalendarInput,
   ): Promise<Calendar> {
     const updatedCalendar = (await this.graphClient
-      .api(`/me/calendars/${calendarId}`)
+      .api(calendarPath(calendarId))
       .patch(calendar)) as MicrosoftCalendar;
 
-    return this.transformCalendar(updatedCalendar);
+    return parseMicrosoftCalendar(updatedCalendar);
   }
 
   async deleteCalendar(calendarId: string): Promise<void> {
-    await this.graphClient.api(`/me/calendars/${calendarId}`).delete();
+    if (calendarId === "primary") {
+      throw new Error("Cannot delete primary calendar");
+    }
+
+    await this.graphClient.api(calendarPath(calendarId)).delete();
   }
 
   async events(
@@ -81,13 +82,8 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
     const startTime = timeMin || defaultTimeMin.toISOString();
     const endTime = timeMax || defaultTimeMax.toISOString();
 
-    const apiPath =
-      calendarId === "primary"
-        ? "/me/calendar/events"
-        : `/me/calendars/${calendarId}/events`;
-
     const response = await this.graphClient
-      .api(apiPath)
+      .api(calendarPath(calendarId))
       .filter(
         `start/dateTime ge '${startTime}' and end/dateTime le '${endTime}'`,
       )
@@ -96,46 +92,19 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
       .get();
 
     return (response.value as MicrosoftEvent[]).map((event: MicrosoftEvent) =>
-      this.transformEvent(event),
+      parseMicrosoftEvent(event),
     );
   }
 
   async createEvent(
     calendarId: string,
-    event: Omit<CalendarEvent, "id">,
+    event: CreateEventInput,
   ): Promise<CalendarEvent> {
-    const microsoftEvent = {
-      subject: event.title,
-      body: event.description
-        ? {
-            contentType: "text",
-            content: event.description,
-          }
-        : undefined,
-      start: event.allDay
-        ? { date: new Date(event.start.dateTime).toISOString().split("T")[0] }
-        : { dateTime: event.start.dateTime, timeZone: event.start.timeZone },
-      end: event.allDay
-        ? { date: new Date(event.end.dateTime).toISOString().split("T")[0] }
-        : { dateTime: event.end.dateTime, timeZone: event.end.timeZone },
-      isAllDay: event.allDay || false,
-      location: event.location
-        ? {
-            displayName: event.location,
-          }
-        : undefined,
-    };
-
-    const apiPath =
-      calendarId === "primary"
-        ? "/me/calendar/events"
-        : `/me/calendars/${calendarId}/events`;
-
     const createdEvent = (await this.graphClient
-      .api(apiPath)
-      .post(microsoftEvent)) as MicrosoftEvent;
+      .api(calendarPath(calendarId))
+      .post(toMicrosoftEvent(event))) as MicrosoftEvent;
 
-    return this.transformEvent(createdEvent);
+    return parseMicrosoftEvent(createdEvent);
   }
 
   /**
@@ -149,52 +118,13 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
   async updateEvent(
     calendarId: string,
     eventId: string,
-    event: Partial<CalendarEvent>,
+    event: UpdateEventInput,
   ): Promise<CalendarEvent> {
-    const microsoftEvent: any = {};
-
-    if (event.title !== undefined) {
-      microsoftEvent.subject = event.title;
-    }
-    if (event.description !== undefined) {
-      microsoftEvent.body = event.description
-        ? {
-            contentType: "text",
-            content: event.description,
-          }
-        : undefined;
-    }
-    if (event.start !== undefined) {
-      microsoftEvent.start = event.allDay
-        ? { date: new Date(event.start.dateTime).toISOString().split("T")[0] }
-        : { dateTime: event.start.dateTime, timeZone: event.start.timeZone };
-    }
-    if (event.end !== undefined) {
-      microsoftEvent.end = event.allDay
-        ? { date: new Date(event.end.dateTime).toISOString().split("T")[0] }
-        : { dateTime: event.end.dateTime, timeZone: event.end.timeZone };
-    }
-    if (event.allDay !== undefined) {
-      microsoftEvent.isAllDay = event.allDay;
-    }
-    if (event.location !== undefined) {
-      microsoftEvent.location = event.location
-        ? {
-            displayName: event.location,
-          }
-        : undefined;
-    }
-
-    const apiPath =
-      calendarId === "primary"
-        ? `/me/calendar/events/${eventId}`
-        : `/me/calendars/${calendarId}/events/${eventId}`;
-
     const updatedEvent = (await this.graphClient
-      .api(apiPath)
-      .patch(microsoftEvent)) as MicrosoftEvent;
+      .api(`${calendarPath(calendarId)}/events/${eventId}`)
+      .patch(toMicrosoftEvent(event))) as MicrosoftEvent;
 
-    return this.transformEvent(updatedEvent);
+    return parseMicrosoftEvent(updatedEvent);
   }
 
   /**
@@ -204,51 +134,8 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
    * @param eventId - The event identifier
    */
   async deleteEvent(calendarId: string, eventId: string): Promise<void> {
-    const apiPath =
-      calendarId === "primary"
-        ? `/me/calendar/events/${eventId}`
-        : `/me/calendars/${calendarId}/events/${eventId}`;
-
-    await this.graphClient.api(apiPath).delete();
-  }
-
-  private transformCalendar(microsoftCalendar: MicrosoftCalendar): Calendar {
-    return {
-      id: microsoftCalendar.id as string,
-      name: microsoftCalendar.name as string,
-      primary: microsoftCalendar.isDefaultCalendar as boolean,
-      provider: "microsoft",
-    };
-  }
-
-  private transformEvent(microsoftEvent: MicrosoftEvent): CalendarEvent {
-    const isAllDay = microsoftEvent.isAllDay || false;
-
-    const start = dateHelpers.parseMicrosoftDate(
-      microsoftEvent.start || undefined,
-      isAllDay,
-    );
-
-    const end = dateHelpers.parseMicrosoftDate(
-      microsoftEvent.end || undefined,
-      isAllDay,
-    );
-
-    return {
-      id: microsoftEvent.id ?? "",
-      title: microsoftEvent.subject ?? "Untitled Event",
-      description:
-        (microsoftEvent.body?.content as string) ?? microsoftEvent.bodyPreview,
-      start,
-      end,
-      allDay: isAllDay,
-      location:
-        microsoftEvent.location?.displayName ||
-        microsoftEvent.location?.address?.street ||
-        undefined,
-      status: microsoftEvent.showAs || undefined,
-      htmlLink: microsoftEvent.webLink || undefined,
-      color: undefined, // Microsoft doesn't have colorId equivalent
-    };
+    await this.graphClient
+      .api(`${calendarPath(calendarId)}/events/${eventId}`)
+      .delete();
   }
 }
