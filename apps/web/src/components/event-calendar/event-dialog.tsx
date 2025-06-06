@@ -41,7 +41,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import type { ProviderId } from "@/lib/constants";
 import { toDate } from "@/lib/temporal";
 import { useTRPC } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
@@ -191,7 +190,7 @@ export function EventDialog({
       start: allDay
         ? Temporal.PlainDate.from(start.toISOString().split("T")[0]!)
         : Temporal.Instant.from(start.toISOString()).toZonedDateTimeISO(
-          (event?.start as Temporal.ZonedDateTime).timeZoneId,
+            (event?.start as Temporal.ZonedDateTime).timeZoneId,
           ),
       end: allDay
         ? Temporal.PlainDate.from(end.toISOString().split("T")[0]!)

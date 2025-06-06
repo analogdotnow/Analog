@@ -205,7 +205,9 @@ export function EventItem({
           </div>
         ) : (
           <>
-            <div className="truncate font-medium">{event.title ?? "(untitled)"}</div>
+            <div className="truncate font-medium">
+              {event.title ?? "(untitled)"}
+            </div>
             {showTime && (
               <div className="truncate font-normal opacity-70 sm:text-[11px]">
                 {getEventTime()}
