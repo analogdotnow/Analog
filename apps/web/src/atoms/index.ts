@@ -1,8 +1,11 @@
-// View preferences
 export { viewPreferencesAtom, type ViewPreferences } from "./view-preferences";
 
-// Visible calendars
 export {
   calendarsVisibilityAtom,
   type CalendarsVisibility,
 } from "./calendars-visibility";
+
+export {
+  calendarSettingsAtom,
+  type CalendarSettings,
+} from "./calendar-settings";

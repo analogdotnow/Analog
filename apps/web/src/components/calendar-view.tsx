@@ -10,7 +10,7 @@ import {
   type CalendarEvent,
   type EventColor,
 } from "@/components/event-calendar";
-import { dateHelpers } from "@/lib/date-helpers";
+import { compareTemporal, toInstant } from "@/lib/temporal";
 import { RouterOutputs } from "@/lib/trpc";
 import { useTRPC } from "@/lib/trpc/client";
 
@@ -75,31 +75,11 @@ function useCalendarActions() {
     if (!data?.events) return [];
 
     return data.events.map((event): CalendarEvent => {
-      const startDate = new Date(event.start.dateTime);
-      const endDate = dateHelpers.adjustEndDateForDisplay(
-        startDate,
-        new Date(event.end.dateTime),
-        event.allDay ?? false,
-      );
-
       return {
-        id: event.id,
-        title: event.title,
-        description: event.description,
-        start: {
-          dateTime: startDate.toISOString(),
-          timeZone: "UTC",
-        },
-        end: {
-          dateTime: endDate.toISOString(),
-          timeZone: "UTC",
-        },
-        allDay: event.allDay,
+        ...event,
+        start: event.start,
+        end: event.end,
         color: event.color ? colorMap[event.color] || "sky" : "sky",
-        location: event.location,
-        calendarId: event.calendarId,
-        accountId: event.accountId,
-        providerId: event.providerId,
       };
     });
   }, [data]);
@@ -121,7 +101,7 @@ function useCalendarActions() {
 
           const tempEvent: Event = {
             id: `temp-${Date.now()}`,
-            title: newEvent.title,
+            title: newEvent.title!,
             description: newEvent.description,
             start: newEvent.start,
             end: newEvent.end,
@@ -129,18 +109,20 @@ function useCalendarActions() {
             location: newEvent.location,
             color: newEvent.color,
             status: undefined,
-            htmlLink: undefined,
+            url: undefined,
             calendarId: newEvent.calendarId,
             providerId: defaultAccountData.account.providerId,
-            accountId: defaultAccountData.account.accountId,
+            accountId: defaultAccountData.account.id,
           };
 
           return {
             ...old,
             events: [...(old.events || []), tempEvent].sort(
               (a, b) =>
-                new Date(a.start.dateTime).getTime() -
-                new Date(b.start.dateTime).getTime(),
+                toInstant({ value: a.start, timeZone: "UTC" })
+                  .epochMilliseconds -
+                toInstant({ value: b.start, timeZone: "UTC" })
+                  .epochMilliseconds,
             ),
           };
         });
@@ -175,7 +157,7 @@ function useCalendarActions() {
             ...old,
             events: old.events
               .map((event) =>
-                event.id === updatedEvent.eventId
+                event.id === updatedEvent.id
                   ? {
                       ...event,
                       title: updatedEvent.title ?? event.title,
@@ -191,11 +173,7 @@ function useCalendarActions() {
                     }
                   : event,
               )
-              .sort(
-                (a, b) =>
-                  new Date(a.start.dateTime).getTime() -
-                  new Date(b.start.dateTime).getTime(),
-              ),
+              .sort((a, b) => compareTemporal(a.start, b.start)),
           };
         });
 
@@ -279,23 +257,11 @@ export function CalendarView({ className }: CalendarViewProps) {
     }
 
     createEvent({
-      accountId: defaultAccount?.accountId,
+      accountId: defaultAccount.id,
       calendarId: CALENDAR_CONFIG.DEFAULT_CALENDAR_ID,
       title: event.title,
-      start: {
-        dateTime: dateHelpers.formatDateForAPI(
-          event.start.dateTime,
-          event.allDay || false,
-        ),
-        timeZone: "UTC",
-      },
-      end: {
-        dateTime: dateHelpers.formatDateForAPI(
-          event.end.dateTime,
-          event.allDay || false,
-        ),
-        timeZone: "UTC",
-      },
+      start: event.start,
+      end: event.end,
       allDay: event.allDay,
       description: event.description,
       location: event.location,
@@ -306,22 +272,10 @@ export function CalendarView({ className }: CalendarViewProps) {
     updateEvent({
       accountId: updatedEvent.accountId,
       calendarId: updatedEvent.calendarId,
-      eventId: updatedEvent.id,
+      id: updatedEvent.id,
       title: updatedEvent.title,
-      start: {
-        dateTime: dateHelpers.formatDateForAPI(
-          updatedEvent.start.dateTime,
-          updatedEvent.allDay || false,
-        ),
-        timeZone: "UTC",
-      },
-      end: {
-        dateTime: dateHelpers.formatDateForAPI(
-          updatedEvent.end.dateTime,
-          updatedEvent.allDay || false,
-        ),
-        timeZone: "UTC",
-      },
+      start: updatedEvent.start,
+      end: updatedEvent.end,
       allDay: updatedEvent.allDay,
       description: updatedEvent.description,
       location: updatedEvent.location,
@@ -330,6 +284,7 @@ export function CalendarView({ className }: CalendarViewProps) {
 
   const handleEventDelete = (eventId: string) => {
     const eventToDelete = events.find((event) => event.id === eventId);
+
     if (!eventToDelete) {
       console.error(`Event with id ${eventId} not found`);
       return;
@@ -338,7 +293,7 @@ export function CalendarView({ className }: CalendarViewProps) {
     deleteEvent({
       accountId: eventToDelete.accountId,
       calendarId: eventToDelete.calendarId,
-      eventId: eventId,
+      eventId,
     });
   };
 

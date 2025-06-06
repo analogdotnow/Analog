@@ -10,6 +10,7 @@ import {
   getBorderRadiusClasses,
   getEventColorClasses,
 } from "@/components/event-calendar/utils";
+import { toDate } from "@/lib/temporal";
 import { cn } from "@/lib/utils";
 
 // Using date-fns format with custom formatting:
@@ -28,7 +29,7 @@ interface EventWrapperProps {
   onClick?: (e: React.MouseEvent) => void;
   className?: string;
   children: React.ReactNode;
-  currentTime?: Date;
+  displayEnd: Date;
   dndListeners?: SyntheticListenerMap;
   dndAttributes?: DraggableAttributes;
   onMouseDown?: (e: React.MouseEvent) => void;
@@ -44,21 +45,13 @@ function EventWrapper({
   onClick,
   className,
   children,
-  currentTime,
+  displayEnd,
   dndListeners,
   dndAttributes,
   onMouseDown,
   onTouchStart,
 }: EventWrapperProps) {
   // Always use the currentTime (if provided) to determine if the event is in the past
-  const displayEnd = currentTime
-    ? new Date(
-        new Date(currentTime).getTime() +
-          (new Date(event.end.dateTime).getTime() -
-            new Date(event.start.dateTime).getTime()),
-      )
-    : new Date(event.end.dateTime);
-
   const isEventInPast = isPast(displayEnd);
 
   return (
@@ -119,17 +112,17 @@ export function EventItem({
 
   // Use the provided currentTime (for dragging) or the event's actual time
   const displayStart = useMemo(() => {
-    return currentTime || new Date(event.start.dateTime);
+    return currentTime || toDate({ value: event.start, timeZone: "UTC" });
   }, [currentTime, event.start]);
 
   const displayEnd = useMemo(() => {
     return currentTime
       ? new Date(
           new Date(currentTime).getTime() +
-            (new Date(event.end.dateTime).getTime() -
-              new Date(event.start.dateTime).getTime()),
+            (toDate({ value: event.end, timeZone: "UTC" }).getTime() -
+              toDate({ value: event.start, timeZone: "UTC" }).getTime()),
         )
-      : new Date(event.end.dateTime);
+      : toDate({ value: event.end, timeZone: "UTC" });
   }, [currentTime, event.start, event.end]);
 
   // Calculate event duration in minutes
@@ -161,7 +154,7 @@ export function EventItem({
           "mt-[var(--event-gap)] h-[var(--event-height)] items-center text-[10px] sm:text-xs",
           className,
         )}
-        currentTime={currentTime}
+        displayEnd={displayEnd}
         dndListeners={dndListeners}
         dndAttributes={dndAttributes}
         onMouseDown={onMouseDown}
@@ -195,7 +188,7 @@ export function EventItem({
           view === "week" ? "text-[10px] sm:text-xs" : "text-xs",
           className,
         )}
-        currentTime={currentTime}
+        displayEnd={displayEnd}
         dndListeners={dndListeners}
         dndAttributes={dndAttributes}
         onMouseDown={onMouseDown}
@@ -203,7 +196,7 @@ export function EventItem({
       >
         {durationMinutes < 45 ? (
           <div className="truncate">
-            {event.title}{" "}
+            {event.title ?? "(untitled)"}{" "}
             {showTime && (
               <span className="opacity-70">
                 {formatTimeWithOptionalMinutes(displayStart)}
@@ -212,7 +205,9 @@ export function EventItem({
           </div>
         ) : (
           <>
-            <div className="truncate font-medium">{event.title}</div>
+            <div className="truncate font-medium">
+              {event.title ?? "(untitled)"}
+            </div>
             {showTime && (
               <div className="truncate font-normal opacity-70 sm:text-[11px]">
                 {getEventTime()}
@@ -232,14 +227,16 @@ export function EventItem({
         getEventColorClasses(eventColor),
         className,
       )}
-      data-past-event={isPast(new Date(event.end.dateTime)) || undefined}
+      data-past-event={
+        isPast(toDate({ value: event.end, timeZone: "UTC" })) || undefined
+      }
       onClick={onClick}
       onMouseDown={onMouseDown}
       onTouchStart={onTouchStart}
       {...dndListeners}
       {...dndAttributes}
     >
-      <div className="text-sm font-medium">{event.title}</div>
+      <div className="text-sm font-medium">{event.title ?? "(untitled)"}</div>
       <div className="text-xs opacity-70">
         {event.allDay ? (
           <span>All day</span>

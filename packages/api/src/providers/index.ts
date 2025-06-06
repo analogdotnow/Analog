@@ -1,8 +1,8 @@
 import { account } from "@repo/db/schema";
 
 import { GoogleCalendarProvider } from "./google-calendar";
+import type { CalendarProvider } from "./interfaces";
 import { MicrosoftCalendarProvider } from "./microsoft-calendar";
-import type { CalendarProvider } from "./types";
 
 const supportedProviders = {
   google: GoogleCalendarProvider,

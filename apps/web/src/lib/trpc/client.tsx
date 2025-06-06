@@ -8,12 +8,12 @@ import {
   loggerLink,
 } from "@trpc/client";
 import { createTRPCContext } from "@trpc/tanstack-react-query";
-import superjson from "superjson";
 
 import type { AppRouter } from "@repo/api";
 import { env } from "@repo/env/client";
 
 import { getQueryClient } from "./query-client";
+import { superjson } from "./superjson";
 
 export const { TRPCProvider, useTRPC } = createTRPCContext<AppRouter>();
 

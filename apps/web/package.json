@@ -53,6 +53,7 @@
     "sonner": "^2.0.3",
     "superjson": "^2.2.2",
     "tailwind-merge": "^3.3.0",
+    "temporal-polyfill": "^0.3.0",
     "tw-animate-css": "^1.3.0"
   },
   "devDependencies": {

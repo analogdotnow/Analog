@@ -23,6 +23,7 @@ import {
 import { EndHour, StartHour } from "@/components/event-calendar/constants";
 import { useCurrentTimeIndicator } from "@/components/event-calendar/hooks";
 import { isMultiDayEvent } from "@/components/event-calendar/utils";
+import { toDate } from "@/lib/temporal";
 import { cn } from "@/lib/utils";
 
 interface DayViewProps {
@@ -58,19 +59,15 @@ export function DayView({
   const dayEvents = useMemo(() => {
     return events
       .filter((event) => {
-        const eventStart = new Date(event.start.dateTime);
-        const eventEnd = new Date(event.end.dateTime);
+        const eventStart = toDate({ value: event.start, timeZone: "UTC" });
+        const eventEnd = toDate({ value: event.end, timeZone: "UTC" });
         return (
           isSameDay(currentDate, eventStart) ||
           isSameDay(currentDate, eventEnd) ||
           (currentDate > eventStart && currentDate < eventEnd)
         );
       })
-      .sort(
-        (a, b) =>
-          new Date(a.start.dateTime).getTime() -
-          new Date(b.start.dateTime).getTime(),
-      );
+      .sort((a, b) => toDate(a.start).getTime() - toDate(b.start).getTime());
   }, [currentDate, events]);
 
   // Filter all-day events
@@ -96,10 +93,10 @@ export function DayView({
 
     // Sort events by start time and duration
     const sortedEvents = [...timeEvents].sort((a, b) => {
-      const aStart = new Date(a.start.dateTime);
-      const bStart = new Date(b.start.dateTime);
-      const aEnd = new Date(a.end.dateTime);
-      const bEnd = new Date(b.end.dateTime);
+      const aStart = toDate(a.start);
+      const bStart = toDate(b.start);
+      const aEnd = toDate(a.end);
+      const bEnd = toDate(b.end);
 
       // First sort by start time
       if (aStart < bStart) return -1;
@@ -115,8 +112,8 @@ export function DayView({
     const columns: { event: CalendarEvent; end: Date }[][] = [];
 
     sortedEvents.forEach((event) => {
-      const eventStart = new Date(event.start.dateTime);
-      const eventEnd = new Date(event.end.dateTime);
+      const eventStart = toDate({ value: event.start, timeZone: "UTC" });
+      const eventEnd = toDate({ value: event.end, timeZone: "UTC" });
 
       // Adjust start and end times if they're outside this day
       const adjustedStart = isSameDay(currentDate, eventStart)
@@ -147,8 +144,8 @@ export function DayView({
             areIntervalsOverlapping(
               { start: adjustedStart, end: adjustedEnd },
               {
-                start: new Date(c.event.start.dateTime),
-                end: new Date(c.event.end.dateTime),
+                start: toDate(c.event.start),
+                end: toDate(c.event.end),
               },
             ),
           );
@@ -205,8 +202,11 @@ export function DayView({
             </div>
             <div className="relative border-r border-border/70 p-1 last:border-r-0">
               {allDayEvents.map((event) => {
-                const eventStart = new Date(event.start.dateTime);
-                const eventEnd = new Date(event.end.dateTime);
+                const eventStart = toDate({
+                  value: event.start,
+                  timeZone: "UTC",
+                });
+                const eventEnd = toDate({ value: event.end, timeZone: "UTC" });
                 const isFirstDay = isSameDay(currentDate, eventStart);
                 const isLastDay = isSameDay(currentDate, eventEnd);
 

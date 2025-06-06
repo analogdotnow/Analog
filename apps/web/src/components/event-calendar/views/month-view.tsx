@@ -41,6 +41,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { toDate } from "@/lib/temporal";
 import { cn, groupArrayIntoChunks } from "@/lib/utils";
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -316,7 +317,7 @@ function MonthViewEvent({
         >
           <div className="invisible" aria-hidden={true}>
             {!event.allDay && (
-              <span>{format(new Date(event.start.dateTime), "h:mm")} </span>
+              <span>{format(toDate(event.start), "h:mm")} </span>
             )}
             {event.title}
           </div>
