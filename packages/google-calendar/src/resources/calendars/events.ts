@@ -804,7 +804,7 @@ export namespace Event {
      * - eventNamedHangout: ID is the name of the Hangout. (This conference type is
      *   deprecated.)
      * - hangoutsMeet: ID is the 10-letter meeting code, for example aaa-bbbb-ccc.
-     * - addOn: ID is defined by the third-party providerId. Optional.
+     * - addOn: ID is defined by the third-party provider. Optional.
      */
     conferenceId?: string;
 
@@ -964,7 +964,7 @@ export namespace Event {
        * The access code to access the conference. The maximum length is 128 characters.
        * When creating new conference data, populate only the subset of {meetingCode,
        * accessCode, passcode, password, pin} fields that match the terminology that the
-       * conference providerId uses. Only the populated fields should be displayed.
+       * conference provider uses. Only the populated fields should be displayed.
        * Optional.
        */
       accessCode?: string;
@@ -1007,7 +1007,7 @@ export namespace Event {
        * The meeting code to access the conference. The maximum length is 128 characters.
        * When creating new conference data, populate only the subset of {meetingCode,
        * accessCode, passcode, password, pin} fields that match the terminology that the
-       * conference providerId uses. Only the populated fields should be displayed.
+       * conference provider uses. Only the populated fields should be displayed.
        * Optional.
        */
       meetingCode?: string;
@@ -1016,7 +1016,7 @@ export namespace Event {
        * The passcode to access the conference. The maximum length is 128 characters.
        * When creating new conference data, populate only the subset of {meetingCode,
        * accessCode, passcode, password, pin} fields that match the terminology that the
-       * conference providerId uses. Only the populated fields should be displayed.
+       * conference provider uses. Only the populated fields should be displayed.
        */
       passcode?: string;
 
@@ -1024,7 +1024,7 @@ export namespace Event {
        * The password to access the conference. The maximum length is 128 characters.
        * When creating new conference data, populate only the subset of {meetingCode,
        * accessCode, passcode, password, pin} fields that match the terminology that the
-       * conference providerId uses. Only the populated fields should be displayed.
+       * conference provider uses. Only the populated fields should be displayed.
        * Optional.
        */
       password?: string;
@@ -1033,7 +1033,7 @@ export namespace Event {
        * The PIN to access the conference. The maximum length is 128 characters. When
        * creating new conference data, populate only the subset of {meetingCode,
        * accessCode, passcode, password, pin} fields that match the terminology that the
-       * conference providerId uses. Only the populated fields should be displayed.
+       * conference provider uses. Only the populated fields should be displayed.
        * Optional.
        */
       pin?: string;
@@ -2070,7 +2070,7 @@ export namespace EventCreateParams {
      * - eventNamedHangout: ID is the name of the Hangout. (This conference type is
      *   deprecated.)
      * - hangoutsMeet: ID is the 10-letter meeting code, for example aaa-bbbb-ccc.
-     * - addOn: ID is defined by the third-party providerId. Optional.
+     * - addOn: ID is defined by the third-party provider. Optional.
      */
     conferenceId?: string;
 
@@ -2230,7 +2230,7 @@ export namespace EventCreateParams {
        * The access code to access the conference. The maximum length is 128 characters.
        * When creating new conference data, populate only the subset of {meetingCode,
        * accessCode, passcode, password, pin} fields that match the terminology that the
-       * conference providerId uses. Only the populated fields should be displayed.
+       * conference provider uses. Only the populated fields should be displayed.
        * Optional.
        */
       accessCode?: string;
@@ -2273,7 +2273,7 @@ export namespace EventCreateParams {
        * The meeting code to access the conference. The maximum length is 128 characters.
        * When creating new conference data, populate only the subset of {meetingCode,
        * accessCode, passcode, password, pin} fields that match the terminology that the
-       * conference providerId uses. Only the populated fields should be displayed.
+       * conference provider uses. Only the populated fields should be displayed.
        * Optional.
        */
       meetingCode?: string;
@@ -2282,7 +2282,7 @@ export namespace EventCreateParams {
        * The passcode to access the conference. The maximum length is 128 characters.
        * When creating new conference data, populate only the subset of {meetingCode,
        * accessCode, passcode, password, pin} fields that match the terminology that the
-       * conference providerId uses. Only the populated fields should be displayed.
+       * conference provider uses. Only the populated fields should be displayed.
        */
       passcode?: string;
 
@@ -2290,7 +2290,7 @@ export namespace EventCreateParams {
        * The password to access the conference. The maximum length is 128 characters.
        * When creating new conference data, populate only the subset of {meetingCode,
        * accessCode, passcode, password, pin} fields that match the terminology that the
-       * conference providerId uses. Only the populated fields should be displayed.
+       * conference provider uses. Only the populated fields should be displayed.
        * Optional.
        */
       password?: string;
@@ -2299,7 +2299,7 @@ export namespace EventCreateParams {
        * The PIN to access the conference. The maximum length is 128 characters. When
        * creating new conference data, populate only the subset of {meetingCode,
        * accessCode, passcode, password, pin} fields that match the terminology that the
-       * conference providerId uses. Only the populated fields should be displayed.
+       * conference provider uses. Only the populated fields should be displayed.
        * Optional.
        */
       pin?: string;
@@ -3324,7 +3324,7 @@ export namespace EventUpdateParams {
      * - eventNamedHangout: ID is the name of the Hangout. (This conference type is
      *   deprecated.)
      * - hangoutsMeet: ID is the 10-letter meeting code, for example aaa-bbbb-ccc.
-     * - addOn: ID is defined by the third-party providerId. Optional.
+     * - addOn: ID is defined by the third-party provider. Optional.
      */
     conferenceId?: string;
 
@@ -3484,7 +3484,7 @@ export namespace EventUpdateParams {
        * The access code to access the conference. The maximum length is 128 characters.
        * When creating new conference data, populate only the subset of {meetingCode,
        * accessCode, passcode, password, pin} fields that match the terminology that the
-       * conference providerId uses. Only the populated fields should be displayed.
+       * conference provider uses. Only the populated fields should be displayed.
        * Optional.
        */
       accessCode?: string;
@@ -3527,7 +3527,7 @@ export namespace EventUpdateParams {
        * The meeting code to access the conference. The maximum length is 128 characters.
        * When creating new conference data, populate only the subset of {meetingCode,
        * accessCode, passcode, password, pin} fields that match the terminology that the
-       * conference providerId uses. Only the populated fields should be displayed.
+       * conference provider uses. Only the populated fields should be displayed.
        * Optional.
        */
       meetingCode?: string;
@@ -3536,7 +3536,7 @@ export namespace EventUpdateParams {
        * The passcode to access the conference. The maximum length is 128 characters.
        * When creating new conference data, populate only the subset of {meetingCode,
        * accessCode, passcode, password, pin} fields that match the terminology that the
-       * conference providerId uses. Only the populated fields should be displayed.
+       * conference provider uses. Only the populated fields should be displayed.
        */
       passcode?: string;
 
@@ -3544,7 +3544,7 @@ export namespace EventUpdateParams {
        * The password to access the conference. The maximum length is 128 characters.
        * When creating new conference data, populate only the subset of {meetingCode,
        * accessCode, passcode, password, pin} fields that match the terminology that the
-       * conference providerId uses. Only the populated fields should be displayed.
+       * conference provider uses. Only the populated fields should be displayed.
        * Optional.
        */
       password?: string;
@@ -3553,7 +3553,7 @@ export namespace EventUpdateParams {
        * The PIN to access the conference. The maximum length is 128 characters. When
        * creating new conference data, populate only the subset of {meetingCode,
        * accessCode, passcode, password, pin} fields that match the terminology that the
-       * conference providerId uses. Only the populated fields should be displayed.
+       * conference provider uses. Only the populated fields should be displayed.
        * Optional.
        */
       pin?: string;
@@ -4741,7 +4741,7 @@ export namespace EventImportParams {
      * - eventNamedHangout: ID is the name of the Hangout. (This conference type is
      *   deprecated.)
      * - hangoutsMeet: ID is the 10-letter meeting code, for example aaa-bbbb-ccc.
-     * - addOn: ID is defined by the third-party providerId. Optional.
+     * - addOn: ID is defined by the third-party provider. Optional.
      */
     conferenceId?: string;
 
@@ -4901,7 +4901,7 @@ export namespace EventImportParams {
        * The access code to access the conference. The maximum length is 128 characters.
        * When creating new conference data, populate only the subset of {meetingCode,
        * accessCode, passcode, password, pin} fields that match the terminology that the
-       * conference providerId uses. Only the populated fields should be displayed.
+       * conference provider uses. Only the populated fields should be displayed.
        * Optional.
        */
       accessCode?: string;
@@ -4944,7 +4944,7 @@ export namespace EventImportParams {
        * The meeting code to access the conference. The maximum length is 128 characters.
        * When creating new conference data, populate only the subset of {meetingCode,
        * accessCode, passcode, password, pin} fields that match the terminology that the
-       * conference providerId uses. Only the populated fields should be displayed.
+       * conference provider uses. Only the populated fields should be displayed.
        * Optional.
        */
       meetingCode?: string;
@@ -4953,7 +4953,7 @@ export namespace EventImportParams {
        * The passcode to access the conference. The maximum length is 128 characters.
        * When creating new conference data, populate only the subset of {meetingCode,
        * accessCode, passcode, password, pin} fields that match the terminology that the
-       * conference providerId uses. Only the populated fields should be displayed.
+       * conference provider uses. Only the populated fields should be displayed.
        */
       passcode?: string;
 
@@ -4961,7 +4961,7 @@ export namespace EventImportParams {
        * The password to access the conference. The maximum length is 128 characters.
        * When creating new conference data, populate only the subset of {meetingCode,
        * accessCode, passcode, password, pin} fields that match the terminology that the
-       * conference providerId uses. Only the populated fields should be displayed.
+       * conference provider uses. Only the populated fields should be displayed.
        * Optional.
        */
       password?: string;
@@ -4970,7 +4970,7 @@ export namespace EventImportParams {
        * The PIN to access the conference. The maximum length is 128 characters. When
        * creating new conference data, populate only the subset of {meetingCode,
        * accessCode, passcode, password, pin} fields that match the terminology that the
-       * conference providerId uses. Only the populated fields should be displayed.
+       * conference provider uses. Only the populated fields should be displayed.
        * Optional.
        */
       pin?: string;

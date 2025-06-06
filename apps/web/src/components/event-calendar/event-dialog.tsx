@@ -177,7 +177,7 @@ export function EventDialog({
     }
 
     // Use generic title if empty
-    const eventTitle = title.trim() ? title : "(no title)";
+    const eventTitle = title.trim() ? title : undefined;
 
     if (!defaultAccount) {
       toast.error("No default account available, sign in again.");
@@ -191,12 +191,12 @@ export function EventDialog({
       start: allDay
         ? Temporal.PlainDate.from(start.toISOString().split("T")[0]!)
         : Temporal.Instant.from(start.toISOString()).toZonedDateTimeISO(
-            event?.start.timeZone ?? "UTC",
+          (event?.start as Temporal.ZonedDateTime).timeZoneId,
           ),
       end: allDay
         ? Temporal.PlainDate.from(end.toISOString().split("T")[0]!)
         : Temporal.Instant.from(end.toISOString()).toZonedDateTimeISO(
-            event?.end.timeZone ?? "UTC",
+            (event?.end as Temporal.ZonedDateTime).timeZoneId,
           ),
       allDay,
       location,

@@ -101,7 +101,7 @@ function useCalendarActions() {
 
           const tempEvent: Event = {
             id: `temp-${Date.now()}`,
-            title: newEvent.title,
+            title: newEvent.title!,
             description: newEvent.description,
             start: newEvent.start,
             end: newEvent.end,
@@ -112,7 +112,7 @@ function useCalendarActions() {
             url: undefined,
             calendarId: newEvent.calendarId,
             providerId: defaultAccountData.account.providerId,
-            accountId: defaultAccountData.account.accountId,
+            accountId: defaultAccountData.account.id,
           };
 
           return {
