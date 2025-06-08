@@ -15,7 +15,7 @@ export const notificationMarkAsReadRequest = z.object({
 
 export const notificationSubcribeRequest = z.object({
   endpoint: z.string(), // Push subscription endpoint
-  expirationTime: z.number().nullable(), // Optional expiration time
+  expirationTime: z.number().nullish(), // Optional expiration time
   keys: z.object({
     p256dh: z.string(),
     auth: z.string(),

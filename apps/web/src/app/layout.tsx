@@ -73,7 +73,7 @@ export default function RootLayout({
           <Toaster richColors closeButton position="bottom-right" />
           {children}
         </Providers>
-        <SimpleAnalytics collectDnt />
+        {/* <SimpleAnalytics collectDnt /> */}
       </body>
     </html>
   );

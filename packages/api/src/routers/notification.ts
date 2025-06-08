@@ -14,7 +14,6 @@ import {
   notificationSubcribeRequest,
 } from "../schemas/notification";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
-import { sendPushNotification } from "../utils/push-notification";
 
 export const notificationRouter = createTRPCRouter({
   list: protectedProcedure
@@ -113,35 +112,4 @@ export const notificationRouter = createTRPCRouter({
 
     return { success: result.count > 0 };
   }),
-  create: protectedProcedure
-    .input(
-      z.object({
-        endpoint: z.string(),
-        title: z.string(),
-        body: z.string(),
-        keys: z.object({
-          p256dh: z.string(),
-          auth: z.string(),
-        }),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      const result = await sendPushNotification(
-        {
-          endpoint: input.endpoint,
-          keys: input.keys,
-        },
-        {
-          title: input.title,
-          body: input.body,
-          data: {
-            type: "custom",
-            sourceId: null,
-            eventId: null,
-          },
-        },
-      );
-
-      return { success: result.statusCode === 201, data: result };
-    }),
 });
