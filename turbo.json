@@ -17,7 +17,9 @@
         "SIMPLE_ANALYTICS_HOSTNAME",
         "NEXT_PUBLIC_SIMPLE_ANALYTICS_HOSTNAME",
         "MICROSOFT_CLIENT_ID",
-        "MICROSOFT_CLIENT_SECRET"
+        "MICROSOFT_CLIENT_SECRET",
+        "NEXT_PUBLIC_VAPID_PUBLIC_KEY",
+        "VAPID_PRIVATE_KEY"
       ],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
@@ -35,7 +37,9 @@
         "UPSTASH_REDIS_REST_URL",
         "UPSTASH_REDIS_REST_TOKEN",
         "MICROSOFT_CLIENT_ID",
-        "MICROSOFT_CLIENT_SECRET"
+        "MICROSOFT_CLIENT_SECRET",
+        "NEXT_PUBLIC_VAPID_PUBLIC_KEY",
+        "VAPID_PRIVATE_KEY"
       ]
     },
     "start": {
@@ -50,7 +54,9 @@
         "UPSTASH_REDIS_REST_URL",
         "UPSTASH_REDIS_REST_TOKEN",
         "MICROSOFT_CLIENT_ID",
-        "MICROSOFT_CLIENT_SECRET"
+        "MICROSOFT_CLIENT_SECRET",
+        "NEXT_PUBLIC_VAPID_PUBLIC_KEY",
+        "VAPID_PRIVATE_KEY"
       ],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
@@ -80,6 +86,10 @@
     "db:seed": {
       "cache": false,
       "env": ["DATABASE_URL"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"]
+    },
+    "generate:vapid": {
+      "cache": false,
       "inputs": ["$TURBO_DEFAULT$", ".env*"]
     }
   }

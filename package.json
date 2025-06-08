@@ -22,14 +22,12 @@
     "db:migrate": "dotenv -- turbo run db:migrate",
     "db:push": "dotenv -- turbo run db:push",
     "db:studio": "dotenv -- turbo run db:studio",
-    "db:seed": "dotenv -- turbo run db:seed"
+    "db:seed": "dotenv -- turbo run db:seed",
+    "generate:vapid": "turbo run generate:vapid"
   },
   "workspaces": [
     "apps/*",
     "packages/*",
     "tooling/*"
-  ],
-  "dependencies": {
-    "@ngneat/falso": "^7.4.0"
-  }
+  ]
 }

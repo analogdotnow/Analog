@@ -1,4 +1,5 @@
 import { pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { type PushSubscription } from "web-push";
 
 import { user } from "./auth";
 
@@ -65,7 +66,7 @@ export const notificationSourceEvent = pgTable("notification_source_event", {
   sourceId: uuid()
     .notNull()
     .references(() => notificationSource.id, { onDelete: "cascade" }),
-  eventId: text().notNull(), // ID of the event in the external source
+  eventId: text(), // ID of the event in the external source
   createdAt: timestamp({
     mode: "date",
     withTimezone: true,
@@ -73,3 +74,26 @@ export const notificationSourceEvent = pgTable("notification_source_event", {
     .notNull()
     .defaultNow(),
 });
+
+export const notificationPushSubscription = pgTable(
+  "notification_push_subscription",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    userId: text()
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    endpoint: text().notNull(), // URL to send the push notification to
+    keyAuth: text().notNull(), // Authentication key for the push subscription
+    keyP256dh: text().notNull(), // P256DH public key for the push subscription
+    expirationTime: timestamp({
+      mode: "date",
+      withTimezone: true,
+    }), // Optional expiration time for the subscription
+    createdAt: timestamp({
+      mode: "date",
+      withTimezone: true,
+    })
+      .notNull()
+      .defaultNow(),
+  },
+);
