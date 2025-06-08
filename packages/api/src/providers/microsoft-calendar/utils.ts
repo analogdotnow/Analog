@@ -24,10 +24,8 @@ export function toMicrosoftDate(
   };
 }
 
-function parseDate(dateTime: string, timeZone: string) {
-  const instant = Temporal.Instant.from(dateTime);
-
-  return instant.toZonedDateTimeISO(timeZone).toPlainDate();
+function parseDate(date: string) {
+  return Temporal.PlainDate.from(date);
 }
 
 function parseDateTime(dateTime: string, timeZone: string) {
@@ -48,10 +46,10 @@ export function parseMicrosoftEvent(event: MicrosoftEvent): CalendarEvent {
     title: event.subject!,
     description: (event.body?.content as string) ?? event.bodyPreview,
     start: isAllDay
-      ? parseDate(start.dateTime!, start.timeZone!)
+      ? parseDate(start.dateTime!)
       : parseDateTime(start.dateTime!, start.timeZone!),
     end: isAllDay
-      ? parseDate(end.dateTime!, end.timeZone!)
+      ? parseDate(end.dateTime!)
       : parseDateTime(end.dateTime!, end.timeZone!),
     allDay: isAllDay,
     location: event.location?.displayName ?? undefined,

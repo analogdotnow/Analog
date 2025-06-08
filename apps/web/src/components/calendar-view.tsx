@@ -2,8 +2,8 @@
 
 import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { addDays, subDays } from "date-fns";
 import { toast } from "sonner";
+import { Temporal } from "temporal-polyfill";
 
 import {
   EventCalendar,
@@ -13,6 +13,7 @@ import {
 import { compareTemporal, toInstant } from "@/lib/temporal";
 import { RouterOutputs } from "@/lib/trpc";
 import { useTRPC } from "@/lib/trpc/client";
+import { useCalendarSettings } from "./event-calendar/hooks/use-calendar-settings";
 
 interface CalendarViewProps {
   className?: string;
@@ -48,15 +49,29 @@ function useCalendarActions() {
     trpc.accounts.getDefault.queryOptions(),
   );
 
+  const { defaultTimeZone } = useCalendarSettings();
+
   const timeMin = useMemo(
     () =>
-      subDays(new Date(), CALENDAR_CONFIG.TIME_RANGE_DAYS_PAST).toISOString(),
-    [],
+      Temporal.Now.plainDateISO()
+        .subtract({
+          days: CALENDAR_CONFIG.TIME_RANGE_DAYS_PAST,
+        })
+        .toZonedDateTime({
+          timeZone: defaultTimeZone,
+        }),
+    [defaultTimeZone],
   );
   const timeMax = useMemo(
     () =>
-      addDays(new Date(), CALENDAR_CONFIG.TIME_RANGE_DAYS_FUTURE).toISOString(),
-    [],
+      Temporal.Now.plainDateISO()
+        .add({
+          days: CALENDAR_CONFIG.TIME_RANGE_DAYS_FUTURE,
+        })
+        .toZonedDateTime({
+          timeZone: defaultTimeZone,
+        }),
+    [defaultTimeZone],
   );
 
   const eventsQueryKey = useMemo(

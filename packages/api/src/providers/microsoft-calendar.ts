@@ -3,6 +3,7 @@ import type {
   Calendar as MicrosoftCalendar,
   Event as MicrosoftEvent,
 } from "@microsoft/microsoft-graph-types";
+import { Temporal } from "temporal-polyfill";
 
 import { CALENDAR_DEFAULTS } from "../constants/calendar";
 import { CreateCalendarInput, UpdateCalendarInput } from "../schemas/calendars";
@@ -70,20 +71,14 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
 
   async events(
     calendarId: string,
-    timeMin?: string,
-    timeMax?: string,
+    timeMin: Temporal.ZonedDateTime,
+    timeMax: Temporal.ZonedDateTime,
   ): Promise<CalendarEvent[]> {
-    const defaultTimeMin = new Date();
-    const defaultTimeMax = new Date(
-      Date.now() +
-        CALENDAR_DEFAULTS.TIME_RANGE_DAYS_FUTURE * 24 * 60 * 60 * 1000,
-    );
-
-    const startTime = timeMin || defaultTimeMin.toISOString();
-    const endTime = timeMax || defaultTimeMax.toISOString();
+    const startTime = timeMin.withTimeZone("UTC").toInstant().toString();
+    const endTime = timeMax.withTimeZone("UTC").toInstant().toString();
 
     const response = await this.graphClient
-      .api(calendarPath(calendarId))
+      .api(`${calendarPath(calendarId)}/events`)
       .filter(
         `start/dateTime ge '${startTime}' and end/dateTime le '${endTime}'`,
       )

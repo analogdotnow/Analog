@@ -1,3 +1,5 @@
+import { Temporal } from "temporal-polyfill";
+
 import { GoogleCalendar } from "@repo/google-calendar";
 
 import { CALENDAR_DEFAULTS } from "../constants/calendar";
@@ -5,7 +7,6 @@ import { CreateEventInput, UpdateEventInput } from "../schemas/events";
 import {
   parseGoogleCalendarCalendarListEntry,
   parseGoogleCalendarEvent,
-  toGoogleCalendarDate,
   toGoogleCalendarEvent,
 } from "./google-calendar/utils";
 import type { Calendar, CalendarEvent, CalendarProvider } from "./interfaces";
@@ -70,18 +71,12 @@ export class GoogleCalendarProvider implements CalendarProvider {
 
   async events(
     calendarId: string,
-    timeMin?: string,
-    timeMax?: string,
+    timeMin: Temporal.ZonedDateTime,
+    timeMax: Temporal.ZonedDateTime,
   ): Promise<CalendarEvent[]> {
-    const defaultTimeMin = new Date();
-    const defaultTimeMax = new Date(
-      Date.now() +
-        CALENDAR_DEFAULTS.TIME_RANGE_DAYS_FUTURE * 24 * 60 * 60 * 1000,
-    );
-
     const { items } = await this.client.calendars.events.list(calendarId, {
-      timeMin: timeMin || defaultTimeMin.toISOString(),
-      timeMax: timeMax || defaultTimeMax.toISOString(),
+      timeMin: timeMin.withTimeZone("UTC").toInstant().toString(),
+      timeMax: timeMax.withTimeZone("UTC").toInstant().toString(),
       singleEvents: CALENDAR_DEFAULTS.SINGLE_EVENTS,
       orderBy: CALENDAR_DEFAULTS.ORDER_BY,
       maxResults: CALENDAR_DEFAULTS.MAX_EVENTS_PER_CALENDAR,

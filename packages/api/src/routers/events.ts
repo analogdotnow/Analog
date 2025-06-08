@@ -8,14 +8,15 @@ import {
 } from "../schemas/events";
 import { calendarProcedure, createTRPCRouter } from "../trpc";
 import { toInstant } from "../utils/temporal";
+import { zZonedDateTimeInstance } from "temporal-zod";
 
 export const eventsRouter = createTRPCRouter({
   list: calendarProcedure
     .input(
       z.object({
         calendarIds: z.array(z.string()).default([]),
-        timeMin: z.string().optional(),
-        timeMax: z.string().optional(),
+        timeMin: zZonedDateTimeInstance,
+        timeMax: zZonedDateTimeInstance,
       }),
     )
     .query(async ({ ctx, input }) => {

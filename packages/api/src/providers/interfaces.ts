@@ -46,8 +46,8 @@ export interface CalendarProvider {
   deleteCalendar(calendarId: string): Promise<void>;
   events(
     calendarId: string,
-    timeMin?: string,
-    timeMax?: string,
+    timeMin: Temporal.ZonedDateTime,
+    timeMax: Temporal.ZonedDateTime,
   ): Promise<CalendarEvent[]>;
   createEvent(
     calendarId: string,
