@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 import PreviewDark from "@/assets/dark-preview.png";
 import PreviewLight from "@/assets/preview.png";

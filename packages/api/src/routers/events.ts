@@ -2,7 +2,9 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
 import { dateInputSchema } from "../providers/validations";
+import { notificationCreateRequest } from "../schemas/notification";
 import { calendarProcedure, createTRPCRouter } from "../trpc";
+import { createAndSendNotification } from "../utils/notification";
 
 export const eventsRouter = createTRPCRouter({
   list: calendarProcedure
@@ -111,6 +113,23 @@ export const eventsRouter = createTRPCRouter({
         eventData.calendarId,
         eventData,
       );
+
+      if (event) {
+        const notificationPayload: z.infer<typeof notificationCreateRequest> = {
+          body: `Event "${event.title}" created successfully.`,
+          title: "Event Created",
+          type: "custom",
+          sourceId: calendarClient.account.providerId,
+          eventId: event.id,
+        };
+        console.log(
+          "Creating notification payload:",
+          notificationPayload,
+          accountId,
+          event,
+        );
+        createAndSendNotification(notificationPayload, ctx.user.id);
+      }
 
       return { event };
     }),

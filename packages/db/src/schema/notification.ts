@@ -82,9 +82,10 @@ export const notificationPushSubscription = pgTable(
     userId: text()
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
-    endpoint: text().notNull(), // URL to send the push notification to
-    keyAuth: text().notNull(), // Authentication key for the push subscription
-    keyP256dh: text().notNull(), // P256DH public key for the push subscription
+    endpoint: text().notNull().unique(), // URL to send the push notification to
+    // Add p256dh and auth keys from the PushSubscription
+    p256dh: text().notNull(), // p256dh key from subscription.keys
+    auth: text().notNull(), // auth key from subscription.keys
     expirationTime: timestamp({
       mode: "date",
       withTimezone: true,

@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 
+import { PushNotificationEffect } from "@/components/push-notification/push-notification-effect";
 import { ThemeProvider } from "@/components/ui/theme-provider";
 import { TRPCReactProvider } from "@/lib/trpc/client";
 
@@ -13,7 +14,10 @@ export function Providers(props: Readonly<{ children: ReactNode }>) {
       enableSystem
       disableTransitionOnChange
     >
-      <TRPCReactProvider>{props.children}</TRPCReactProvider>
+      <TRPCReactProvider>
+        <PushNotificationEffect />
+        {props.children}
+      </TRPCReactProvider>
     </ThemeProvider>
   );
 }

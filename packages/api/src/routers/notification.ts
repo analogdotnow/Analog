@@ -1,20 +1,19 @@
 import { and, eq, isNotNull, isNull } from "drizzle-orm";
+import z from "zod";
 
 import { db } from "@repo/db";
 import {
   notification,
   notificationPushSubscription,
-  notificationSource,
   notificationSourceEvent,
 } from "@repo/db/schema";
 
-import { createTRPCRouter, protectedProcedure } from "../trpc";
 import {
-  notificationCreateRequest,
   notificationMarkAsReadRequest,
   notificationPaginationRequest,
   notificationSubcribeRequest,
-} from "../utils/notification";
+} from "../schemas/notification";
+import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { sendPushNotification } from "../utils/push-notification";
 
 export const notificationRouter = createTRPCRouter({
@@ -80,17 +79,31 @@ export const notificationRouter = createTRPCRouter({
     .input(notificationSubcribeRequest)
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.user.id;
-      const result = await db.insert(notificationPushSubscription).values({
-        userId,
-        endpoint: input.endpoint,
-        keyAuth: input.keys.auth,
-        expirationTime: input.expirationTime
-          ? new Date(input.expirationTime)
-          : null,
-        keyP256dh: input.keys.p256dh,
-      });
+      const result = await db
+        .insert(notificationPushSubscription)
+        .values({
+          userId,
+          endpoint: input.endpoint,
+          p256dh: input.keys.p256dh, // Add p256dh key
+          auth: input.keys.auth, // Add auth key
+          expirationTime: input.expirationTime
+            ? new Date(input.expirationTime)
+            : null,
+        })
+        .onConflictDoUpdate({
+          target: notificationPushSubscription.endpoint, // Specify the conflict target
+          set: {
+            // Define what to update on conflict
+            p256dh: input.keys.p256dh,
+            auth: input.keys.auth,
+            expirationTime: input.expirationTime
+              ? new Date(input.expirationTime)
+              : null,
+          },
+        })
+        .returning();
 
-      return { success: result.count > 0, data: result[0] || null };
+      return { success: !!result, data: result[0] || null };
     }),
   unsubscribe: protectedProcedure.mutation(async ({ ctx }) => {
     const userId = ctx.user.id;
@@ -101,69 +114,34 @@ export const notificationRouter = createTRPCRouter({
     return { success: result.count > 0 };
   }),
   create: protectedProcedure
-    .input(notificationCreateRequest)
+    .input(
+      z.object({
+        endpoint: z.string(),
+        title: z.string(),
+        body: z.string(),
+        keys: z.object({
+          p256dh: z.string(),
+          auth: z.string(),
+        }),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
-      const userId = ctx.user.id;
+      const result = await sendPushNotification(
+        {
+          endpoint: input.endpoint,
+          keys: input.keys,
+        },
+        {
+          title: input.title,
+          body: input.body,
+          data: {
+            type: "custom",
+            sourceId: null,
+            eventId: null,
+          },
+        },
+      );
 
-      const sourceQuery = await db
-        .select()
-        .from(notificationSource)
-        .where(eq(notificationSource.slug, input.sourceId || "local"));
-
-      if (sourceQuery.length <= 0) {
-        throw new Error(
-          "Invalid source ID, please provide a valid source slug.",
-        );
-      }
-
-      const sourceEvent = await db
-        .insert(notificationSourceEvent)
-        .values({
-          sourceId: sourceQuery[0]!.id,
-          eventId: input.eventId,
-        })
-        .returning();
-
-      const result = await db.insert(notification).values({
-        userId,
-        message: input.body,
-        type: input.type,
-        sourceEvent: sourceEvent[0]!.id,
-      });
-
-      // Send the notification to the push subscription if it exists
-      const pushSubscription = await db
-        .select()
-        .from(notificationPushSubscription)
-        .where(eq(notificationPushSubscription.userId, userId));
-
-      if (pushSubscription.length > 0) {
-        // Send the notification to the push subscription
-        const sendNotifications = pushSubscription.map((subscription) => {
-          const payload = {
-            title: input.title,
-            body: input.body,
-            data: {
-              type: input.type,
-              sourceId: input.sourceId,
-              eventId: input.eventId,
-            },
-          };
-          const source = {
-            endpoint: subscription.endpoint,
-            keys: {
-              p256dh: subscription.keyP256dh,
-              auth: subscription.keyAuth,
-            },
-          };
-          return sendPushNotification(source, payload);
-        });
-        const results = await Promise.all(sendNotifications);
-        if (results.some((res) => res.statusCode !== 201)) {
-          console.error("Failed to send some push notifications:", results);
-        }
-      }
-
-      return { success: result.count > 0, data: result[0] || null };
+      return { success: result.statusCode === 201, data: result };
     }),
 });
