@@ -59,20 +59,28 @@ const CalendarDndContext = createContext<CalendarDndContextType>({
 });
 
 interface CalculateDateTimeOptions {
+  displayTimeZone: string;
   original: Temporal.Instant | Temporal.ZonedDateTime;
   date: Temporal.PlainDate;
   time: Temporal.PlainTime;
 }
 
-function calculateDateTime({ original, date, time }: CalculateDateTimeOptions) {
+function calculateDateTime({
+  original,
+  date,
+  time,
+  displayTimeZone,
+}: CalculateDateTimeOptions) {
   if (original instanceof Temporal.Instant) {
     throw new Error("Not implemented");
   }
 
-  return date.toZonedDateTime({
-    plainTime: time,
-    timeZone: original.timeZoneId,
-  });
+  return date
+    .toZonedDateTime({
+      plainTime: time,
+      timeZone: displayTimeZone,
+    })
+    .withTimeZone(original.timeZoneId);
 }
 
 // Hook to use the context
@@ -339,6 +347,7 @@ export function CalendarDndProvider({
       const duration = originalEnd.since(originalStart);
 
       const newStart = calculateDateTime({
+        displayTimeZone: settings.defaultTimeZone,
         original: originalStart,
         date: datePart,
         time: timePart,
