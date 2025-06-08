@@ -1,5 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import { Temporal } from "temporal-polyfill";
+import { zZonedDateTimeInstance } from "temporal-zod";
 import { z } from "zod";
 
 import {
@@ -8,7 +9,6 @@ import {
 } from "../schemas/events";
 import { calendarProcedure, createTRPCRouter } from "../trpc";
 import { toInstant } from "../utils/temporal";
-import { zZonedDateTimeInstance } from "temporal-zod";
 
 export const eventsRouter = createTRPCRouter({
   list: calendarProcedure
