@@ -11,11 +11,15 @@ export function toMicrosoftDate(
   value: Temporal.PlainDate | Temporal.Instant | Temporal.ZonedDateTime,
 ) {
   if (value instanceof Temporal.PlainDate) {
-    return { date: value.toString() };
+    return {
+      dateTime: value.toString(),
+      timeZone: "UTC",
+    };
   }
 
   if (value instanceof Temporal.Instant) {
-    return { dateTime: value.toString() };
+    // TODO: might cause issues copying events from other providers
+    throw new Error("Temporal.Instant is not supported");
   }
 
   return {
