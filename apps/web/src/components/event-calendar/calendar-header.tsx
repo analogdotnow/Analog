@@ -27,7 +27,7 @@ export function CalendarHeader({ className }: CalendarHeaderProps) {
   return (
     <header
       className={cn(
-        "flex h-16 items-center justify-between gap-2 border-b p-2 px-4 sm:p-4",
+        "flex h-12 items-center justify-between gap-2 p-2 ps-4",
         className,
       )}
     >
@@ -37,7 +37,7 @@ export function CalendarHeader({ className }: CalendarHeaderProps) {
           prevDate={prevDate}
           currentDate={currentDate}
           view={view}
-          className="text-sm font-semibold sm:text-lg md:text-xl"
+          className="text-sm font-medium sm:text-lg md:text-xl"
         />
       </div>
 
@@ -50,7 +50,7 @@ export function CalendarHeader({ className }: CalendarHeaderProps) {
 
         <CalendarViewSelector currentView={view} onViewChange={setView} />
 
-        <ViewPreferencesPopover />
+        {/*<ViewPreferencesPopover />*/}
       </div>
     </header>
   );

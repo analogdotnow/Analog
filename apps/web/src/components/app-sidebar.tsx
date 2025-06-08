@@ -7,8 +7,6 @@ import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
-  SidebarRail,
-  SidebarSeparator,
 } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
@@ -17,7 +15,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     <Sidebar {...props}>
       <SidebarContent className="relative overflow-hidden">
         <DatePicker />
-        <SidebarSeparator className="mx-0" />
         <TooltipProvider>
           <Calendars />
         </TooltipProvider>

@@ -42,7 +42,7 @@ export function CalendarViewSelector({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="gap-1.5 max-[479px]:h-8">
+        <Button variant="outline" className="h-8 gap-1.5">
           <span>
             <span className="min-[480px]:hidden" aria-hidden="true">
               {currentView.charAt(0).toUpperCase()}
