@@ -44,6 +44,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toDate } from "@/lib/temporal";
 import { useTRPC } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
+import { useCalendarSettings } from "./hooks/use-calendar-settings";
 
 interface EventDialogProps {
   event: CalendarEvent | null;
@@ -82,14 +83,21 @@ export function EventDialog({
   const [endDateOpen, setEndDateOpen] = useState(false);
 
   const defaultAccount = useDefaultAccount();
+  const settings = useCalendarSettings();
 
   useEffect(() => {
     if (event) {
       setTitle(event.title || "");
       setDescription(event.description || "");
 
-      const start = toDate({ value: event.start, timeZone: "UTC" });
-      const end = toDate({ value: event.end, timeZone: "UTC" });
+      const start = toDate({
+        value: event.start,
+        timeZone: settings.defaultTimeZone,
+      });
+      const end = toDate({
+        value: event.end,
+        timeZone: settings.defaultTimeZone,
+      });
 
       setStartDate(start);
       setEndDate(end);
@@ -102,7 +110,7 @@ export function EventDialog({
     } else {
       resetForm();
     }
-  }, [event]);
+  }, [event, settings.defaultTimeZone]);
 
   const resetForm = () => {
     setTitle("");
@@ -185,7 +193,7 @@ export function EventDialog({
 
     onSave({
       id: event?.id || "",
-      title: eventTitle,
+      title: eventTitle || "",
       description,
       start: allDay
         ? Temporal.PlainDate.from(start.toISOString().split("T")[0]!)
