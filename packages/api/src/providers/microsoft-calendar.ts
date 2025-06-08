@@ -15,6 +15,7 @@ import {
   parseMicrosoftEvent,
   toMicrosoftEvent,
 } from "./microsoft-calendar/utils";
+import { ProviderError } from "./utils";
 
 interface MicrosoftCalendarProviderOptions {
   accessToken: string;
@@ -33,40 +34,44 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
   }
 
   async calendars(): Promise<Calendar[]> {
-    // Microsoft Graph API does not work without $select due to a bug
-    const response = await this.graphClient
-      .api("/me/calendars?$select=id,name,isDefaultCalendar")
-      .get();
-    const data = response.value as MicrosoftCalendar[];
+    return this.withErrorHandler("calendars", async () => {
+      // Microsoft Graph API does not work without $select due to a bug
+      const response = await this.graphClient
+        .api("/me/calendars?$select=id,name,isDefaultCalendar")
+        .get();
+      const data = response.value as MicrosoftCalendar[];
 
-    return data.map((calendar) => parseMicrosoftCalendar(calendar));
+      return data.map((calendar) => parseMicrosoftCalendar(calendar));
+    });
   }
 
   async createCalendar(calendarData: CreateCalendarInput): Promise<Calendar> {
-    const createdCalendar = (await this.graphClient
-      .api("/me/calendars")
-      .post(calendarData)) as MicrosoftCalendar;
+    return this.withErrorHandler("createCalendar", async () => {
+      const createdCalendar = (await this.graphClient
+        .api("/me/calendars")
+        .post(calendarData)) as MicrosoftCalendar;
 
-    return parseMicrosoftCalendar(createdCalendar);
+      return parseMicrosoftCalendar(createdCalendar);
+    });
   }
 
   async updateCalendar(
     calendarId: string,
     calendar: UpdateCalendarInput,
   ): Promise<Calendar> {
-    const updatedCalendar = (await this.graphClient
-      .api(calendarPath(calendarId))
-      .patch(calendar)) as MicrosoftCalendar;
+    return this.withErrorHandler("updateCalendar", async () => {
+      const updatedCalendar = (await this.graphClient
+        .api(calendarPath(calendarId))
+        .patch(calendar)) as MicrosoftCalendar;
 
-    return parseMicrosoftCalendar(updatedCalendar);
+      return parseMicrosoftCalendar(updatedCalendar);
+    });
   }
 
   async deleteCalendar(calendarId: string): Promise<void> {
-    if (calendarId === "primary") {
-      throw new Error("Cannot delete primary calendar");
-    }
-
-    await this.graphClient.api(calendarPath(calendarId)).delete();
+    return this.withErrorHandler("deleteCalendar", async () => {
+      await this.graphClient.api(calendarPath(calendarId)).delete();
+    });
   }
 
   async events(
@@ -74,32 +79,36 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
     timeMin: Temporal.ZonedDateTime,
     timeMax: Temporal.ZonedDateTime,
   ): Promise<CalendarEvent[]> {
-    const startTime = timeMin.withTimeZone("UTC").toInstant().toString();
-    const endTime = timeMax.withTimeZone("UTC").toInstant().toString();
+    return this.withErrorHandler("events", async () => {
+      const startTime = timeMin.withTimeZone("UTC").toInstant().toString();
+      const endTime = timeMax.withTimeZone("UTC").toInstant().toString();
 
-    const response = await this.graphClient
-      .api(`${calendarPath(calendarId)}/events`)
-      .filter(
-        `start/dateTime ge '${startTime}' and end/dateTime le '${endTime}'`,
-      )
-      .orderby("start/dateTime")
-      .top(CALENDAR_DEFAULTS.MAX_EVENTS_PER_CALENDAR)
-      .get();
+      const response = await this.graphClient
+        .api(`${calendarPath(calendarId)}/events`)
+        .filter(
+          `start/dateTime ge '${startTime}' and end/dateTime le '${endTime}'`,
+        )
+        .orderby("start/dateTime")
+        .top(CALENDAR_DEFAULTS.MAX_EVENTS_PER_CALENDAR)
+        .get();
 
-    return (response.value as MicrosoftEvent[]).map((event: MicrosoftEvent) =>
-      parseMicrosoftEvent(event),
-    );
+      return (response.value as MicrosoftEvent[]).map((event: MicrosoftEvent) =>
+        parseMicrosoftEvent(event),
+      );
+    });
   }
 
   async createEvent(
     calendarId: string,
     event: CreateEventInput,
   ): Promise<CalendarEvent> {
-    const createdEvent = (await this.graphClient
-      .api(calendarPath(calendarId))
-      .post(toMicrosoftEvent(event))) as MicrosoftEvent;
+    return this.withErrorHandler("createEvent", async () => {
+      const createdEvent = (await this.graphClient
+        .api(calendarPath(calendarId))
+        .post(toMicrosoftEvent(event))) as MicrosoftEvent;
 
-    return parseMicrosoftEvent(createdEvent);
+      return parseMicrosoftEvent(createdEvent);
+    });
   }
 
   /**
@@ -115,11 +124,13 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
     eventId: string,
     event: UpdateEventInput,
   ): Promise<CalendarEvent> {
-    const updatedEvent = (await this.graphClient
-      .api(`${calendarPath(calendarId)}/events/${eventId}`)
-      .patch(toMicrosoftEvent(event))) as MicrosoftEvent;
+    return this.withErrorHandler("updateEvent", async () => {
+      const updatedEvent = (await this.graphClient
+        .api(`${calendarPath(calendarId)}/events/${eventId}`)
+        .patch(toMicrosoftEvent(event))) as MicrosoftEvent;
 
-    return parseMicrosoftEvent(updatedEvent);
+      return parseMicrosoftEvent(updatedEvent);
+    });
   }
 
   /**
@@ -129,8 +140,24 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
    * @param eventId - The event identifier
    */
   async deleteEvent(calendarId: string, eventId: string): Promise<void> {
-    await this.graphClient
-      .api(`${calendarPath(calendarId)}/events/${eventId}`)
-      .delete();
+    await this.withErrorHandler("deleteEvent", async () => {
+      await this.graphClient
+        .api(`${calendarPath(calendarId)}/events/${eventId}`)
+        .delete();
+    });
+  }
+
+  private async withErrorHandler<T>(
+    operation: string,
+    fn: () => Promise<T> | T,
+    context?: Record<string, unknown>,
+  ): Promise<T> {
+    try {
+      return await Promise.resolve(fn());
+    } catch (error: unknown) {
+      console.error(`Failed to ${operation}:`, error);
+
+      throw new ProviderError(error as Error, operation, context);
+    }
   }
 }
