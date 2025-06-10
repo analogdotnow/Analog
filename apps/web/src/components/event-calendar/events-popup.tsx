@@ -5,6 +5,7 @@ import { format, isSameDay } from "date-fns";
 import { XIcon } from "lucide-react";
 
 import { EventItem, type CalendarEvent } from "@/components/event-calendar";
+import { toDate } from "@/lib/temporal";
 
 interface EventsPopupProps {
   date: Date;
@@ -108,8 +109,8 @@ export function EventsPopup({
           <div className="py-2 text-sm text-muted-foreground">No events</div>
         ) : (
           events.map((event) => {
-            const eventStart = new Date(event.start.dateTime);
-            const eventEnd = new Date(event.end.dateTime);
+            const eventStart = toDate({ value: event.start, timeZone: "UTC" });
+            const eventEnd = toDate({ value: event.end, timeZone: "UTC" });
             const isFirstDay = isSameDay(date, eventStart);
             const isLastDay = isSameDay(date, eventEnd);
 

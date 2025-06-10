@@ -1,6 +1,12 @@
+import {
+  zInstantInstance,
+  zPlainDateInstance,
+  zZonedDateTimeInstance,
+} from "temporal-zod";
 import { z } from "zod";
 
-export const dateInputSchema = z.object({
-  dateTime: z.string(),
-  timeZone: z.string(),
-});
+export const dateInputSchema = z.union([
+  zPlainDateInstance,
+  zInstantInstance,
+  zZonedDateTimeInstance,
+]);

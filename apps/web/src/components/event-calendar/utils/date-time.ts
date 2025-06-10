@@ -16,6 +16,7 @@ import {
   endOfWeek,
   format,
   getDay,
+  isBefore,
   isSameMonth,
   startOfWeek,
   subMonths,
@@ -157,6 +158,15 @@ export function getViewTitleData(currentDate: Date, view: CalendarView) {
     default:
       return getMonthTitle(currentDate);
   }
+}
+
+export function getViewTitleDirection(
+  currentDate: Date,
+  prevDate: Date | undefined,
+): "top" | "bottom" {
+  if (!prevDate) return "top";
+  if (isBefore(currentDate, prevDate)) return "top";
+  return "bottom"; // Default case if they are the same
 }
 
 export function isWeekend(date: Date): boolean {

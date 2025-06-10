@@ -1,33 +1,19 @@
+import { Temporal } from "temporal-polyfill";
+
 import { GoogleCalendar } from "@repo/google-calendar";
 
 import { CALENDAR_DEFAULTS } from "../constants/calendar";
-import { dateHelpers } from "../utils/date-helpers";
-import type { Calendar, CalendarEvent, CalendarProvider } from "./types";
+import { CreateEventInput, UpdateEventInput } from "../schemas/events";
+import {
+  parseGoogleCalendarCalendarListEntry,
+  parseGoogleCalendarEvent,
+  toGoogleCalendarEvent,
+} from "./google-calendar/utils";
+import type { Calendar, CalendarEvent, CalendarProvider } from "./interfaces";
+import { ProviderError } from "./utils";
 
 interface GoogleCalendarProviderOptions {
   accessToken: string;
-}
-
-// Type definitions for Google Calendar API
-interface EventCreateParams {
-  summary?: string;
-  description?: string;
-  location?: string;
-  colorId?: string;
-  start?: {
-    date?: string;
-    dateTime?: string;
-    timeZone?: string;
-  };
-  end?: {
-    date?: string;
-    dateTime?: string;
-    timeZone?: string;
-  };
-}
-
-interface EventUpdateParams extends EventCreateParams {
-  calendarId: string;
 }
 
 export class GoogleCalendarProvider implements CalendarProvider {
@@ -40,160 +26,147 @@ export class GoogleCalendarProvider implements CalendarProvider {
     });
   }
 
-  async calendars() {
-    const { items } = await this.client.users.me.calendarList.list();
+  async calendars(): Promise<Calendar[]> {
+    return this.withErrorHandler("calendars", async () => {
+      const { items } = await this.client.users.me.calendarList.list();
 
-    if (!items) return [];
+      if (!items) return [];
 
-    return items
-      .filter((calendar) => calendar.id && calendar.summary)
-      .map((calendar) => ({
-        id: calendar.id!,
-        provider: "google",
-        name: calendar.summary!,
-        primary: calendar.primary || false,
-      }));
+      return items.map((calendar) =>
+        parseGoogleCalendarCalendarListEntry({
+          accountId: "",
+          entry: calendar,
+        }),
+      );
+    });
   }
 
   async createCalendar(
-    calendar: Omit<Calendar, "id" | "provider">,
+    calendar: Omit<Calendar, "id" | "providerId">,
   ): Promise<Calendar> {
-    const createdCalendar = await this.client.calendars.create({
-      summary: calendar.name,
-    });
+    return this.withErrorHandler("createCalendar", async () => {
+      const createdCalendar = await this.client.calendars.create({
+        summary: calendar.name,
+      });
 
-    return this.transformCalendar(createdCalendar);
+      return parseGoogleCalendarCalendarListEntry({
+        accountId: "",
+        entry: createdCalendar,
+      });
+    });
   }
 
   async updateCalendar(
     calendarId: string,
     calendar: Partial<Calendar>,
   ): Promise<Calendar> {
-    const updatedCalendar = await this.client.calendars.update(calendarId, {
-      summary: calendar.name,
-    });
+    return this.withErrorHandler("updateCalendar", async () => {
+      const updatedCalendar = await this.client.calendars.update(calendarId, {
+        summary: calendar.name,
+      });
 
-    return this.transformCalendar(updatedCalendar);
+      return parseGoogleCalendarCalendarListEntry({
+        accountId: "",
+        entry: updatedCalendar,
+      });
+    });
   }
 
   async deleteCalendar(calendarId: string): Promise<void> {
-    await this.client.calendars.delete(calendarId);
-  }
-
-  async events(calendarId: string, timeMin?: string, timeMax?: string) {
-    const defaultTimeMin = new Date();
-    const defaultTimeMax = new Date(
-      Date.now() +
-        CALENDAR_DEFAULTS.TIME_RANGE_DAYS_FUTURE * 24 * 60 * 60 * 1000,
-    );
-
-    const { items } = await this.client.calendars.events.list(calendarId, {
-      timeMin: timeMin || defaultTimeMin.toISOString(),
-      timeMax: timeMax || defaultTimeMax.toISOString(),
-      singleEvents: CALENDAR_DEFAULTS.SINGLE_EVENTS,
-      orderBy: CALENDAR_DEFAULTS.ORDER_BY,
-      maxResults: CALENDAR_DEFAULTS.MAX_EVENTS_PER_CALENDAR,
+    return this.withErrorHandler("deleteCalendar", async () => {
+      await this.client.calendars.delete(calendarId);
     });
-
-    return items?.map((event) => this.transformEvent(event)) ?? [];
   }
 
-  async createEvent(calendarId: string, event: Omit<CalendarEvent, "id">) {
-    const eventData: EventCreateParams = {
-      summary: event.title,
-      description: event.description,
-      location: event.location,
-      colorId: event.color,
-      start: event.allDay
-        ? { date: new Date(event.start.dateTime).toISOString().split("T")[0] }
-        : { dateTime: event.start.dateTime, timeZone: event.start.timeZone },
-      end: event.allDay
-        ? { date: new Date(event.end.dateTime).toISOString().split("T")[0] }
-        : { dateTime: event.end.dateTime, timeZone: event.end.timeZone },
-    };
+  async events(
+    calendarId: string,
+    timeMin: Temporal.ZonedDateTime,
+    timeMax: Temporal.ZonedDateTime,
+  ): Promise<CalendarEvent[]> {
+    return this.withErrorHandler("events", async () => {
+      const { items } = await this.client.calendars.events.list(calendarId, {
+        timeMin: timeMin.withTimeZone("UTC").toInstant().toString(),
+        timeMax: timeMax.withTimeZone("UTC").toInstant().toString(),
+        singleEvents: CALENDAR_DEFAULTS.SINGLE_EVENTS,
+        orderBy: CALENDAR_DEFAULTS.ORDER_BY,
+        maxResults: CALENDAR_DEFAULTS.MAX_EVENTS_PER_CALENDAR,
+      });
 
-    const createdEvent = await this.client.calendars.events.create(
-      calendarId,
-      eventData,
-    );
+      return (
+        items?.map((event) =>
+          parseGoogleCalendarEvent({
+            calendarId,
+            accountId: "",
+            event,
+          }),
+        ) ?? []
+      );
+    });
+  }
 
-    return this.transformEvent(createdEvent);
+  async createEvent(
+    calendarId: string,
+    event: CreateEventInput,
+  ): Promise<CalendarEvent> {
+    return this.withErrorHandler("createEvent", async () => {
+      const createdEvent = await this.client.calendars.events.create(
+        calendarId,
+        toGoogleCalendarEvent(event),
+      );
+
+      return parseGoogleCalendarEvent({
+        calendarId,
+        accountId: "",
+        event: createdEvent,
+      });
+    });
   }
 
   async updateEvent(
     calendarId: string,
     eventId: string,
-    event: Partial<CalendarEvent>,
-  ) {
-    // First get the existing event to merge with updates
-    const existingEvent = await this.client.calendars.events.retrieve(eventId, {
-      calendarId,
+    event: UpdateEventInput,
+  ): Promise<CalendarEvent> {
+    return this.withErrorHandler("updateEvent", async () => {
+      const existingEvent = await this.client.calendars.events.retrieve(
+        eventId,
+        {
+          calendarId,
+        },
+      );
+
+      const updatedEvent = await this.client.calendars.events.update(eventId, {
+        ...existingEvent,
+        calendarId,
+        ...toGoogleCalendarEvent(event),
+      });
+
+      return parseGoogleCalendarEvent({
+        calendarId,
+        accountId: "",
+        event: updatedEvent,
+      });
     });
-
-    const eventData: EventUpdateParams = {
-      calendarId,
-      summary: event.title ?? existingEvent.summary,
-      description: event.description ?? existingEvent.description,
-      location: event.location ?? existingEvent.location,
-      colorId: event.color ?? existingEvent.colorId,
-      start: event.start
-        ? event.allDay
-          ? { date: new Date(event.start.dateTime).toISOString().split("T")[0] }
-          : { dateTime: event.start.dateTime, timeZone: event.start.timeZone }
-        : existingEvent.start,
-      end: event.end
-        ? event.allDay
-          ? { date: new Date(event.end.dateTime).toISOString().split("T")[0] }
-          : { dateTime: event.end.dateTime, timeZone: event.end.timeZone }
-        : existingEvent.end,
-    };
-
-    const updatedEvent = await this.client.calendars.events.update(
-      eventId,
-      eventData,
-    );
-
-    return this.transformEvent(updatedEvent);
   }
 
   async deleteEvent(calendarId: string, eventId: string): Promise<void> {
-    await this.client.calendars.events.delete(eventId, { calendarId });
+    return this.withErrorHandler("deleteEvent", async () => {
+      await this.client.calendars.events.delete(eventId, { calendarId });
+    });
   }
 
-  private transformCalendar(
-    googleCalendar: GoogleCalendar.Calendars.Calendar,
-  ): Calendar {
-    return {
-      id: googleCalendar.id ?? "",
-      name: googleCalendar.summary ?? "",
-      primary: false, // new calendars are not primary
-      provider: "google",
-    };
-  }
+  private async withErrorHandler<T>(
+    operation: string,
+    fn: () => Promise<T> | T,
+    context?: Record<string, unknown>,
+  ): Promise<T> {
+    try {
+      return await Promise.resolve(fn());
+    } catch (error: unknown) {
+      console.error(`Failed to ${operation}:`, error);
 
-  private transformEvent(
-    googleEvent: GoogleCalendar.Calendars.Events.Event,
-  ): CalendarEvent {
-    const isAllDay = !googleEvent.start?.dateTime;
-
-    const start = dateHelpers.parseGoogleDate(
-      googleEvent.start || {},
-      isAllDay,
-    );
-    const end = dateHelpers.parseGoogleDate(googleEvent.end || {}, isAllDay);
-
-    return {
-      id: googleEvent.id || "",
-      title: googleEvent.summary || "Untitled Event",
-      description: googleEvent.description,
-      start,
-      end,
-      allDay: isAllDay,
-      location: googleEvent.location,
-      status: googleEvent.status,
-      htmlLink: googleEvent.htmlLink,
-      color: googleEvent.colorId,
-    };
+      throw new ProviderError(error as Error, operation, context);
+    }
   }
 
   async event(calendarId: string, eventId: string): Promise<CalendarEvent> {

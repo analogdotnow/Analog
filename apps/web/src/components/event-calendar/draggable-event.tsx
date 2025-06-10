@@ -3,13 +3,14 @@
 import { useRef, useState } from "react";
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
-import { differenceInDays } from "date-fns";
+import { Temporal } from "temporal-polyfill";
 
 import {
   CalendarEvent,
   EventItem,
   useCalendarDnd,
 } from "@/components/event-calendar";
+import { useCalendarSettings } from "./hooks/use-calendar-settings";
 
 interface DraggableEventProps {
   event: CalendarEvent;
@@ -24,13 +25,33 @@ interface DraggableEventProps {
   "aria-hidden"?: boolean | "true" | "false";
 }
 
+interface IsMultiDayEventOptions {
+  event: Pick<CalendarEvent, "start" | "end" | "allDay">;
+  defaultTimeZone: string;
+}
+
+function isMultiDayEvent({ event, defaultTimeZone }: IsMultiDayEventOptions) {
+  if (event.allDay) {
+    return true;
+  }
+
+  const eventStart = event.start as Temporal.ZonedDateTime;
+  const eventEnd = event.end as Temporal.ZonedDateTime;
+
+  return (
+    Temporal.PlainDate.compare(
+      eventStart.withTimeZone(defaultTimeZone).toPlainDate(),
+      eventEnd.withTimeZone(defaultTimeZone).toPlainDate(),
+    ) !== 0
+  );
+}
+
 export function DraggableEvent({
   event,
   view,
   showTime,
   onClick,
   height,
-  isMultiDay,
   multiDayWidth,
   isFirstDay = true,
   isLastDay = true,
@@ -43,12 +64,12 @@ export function DraggableEvent({
     y: number;
   } | null>(null);
 
-  // Check if this is a multi-day event
-  const eventStart = new Date(event.start.dateTime);
-  const eventEnd = new Date(event.end.dateTime);
+  const { defaultTimeZone } = useCalendarSettings();
 
-  const isMultiDayEvent =
-    isMultiDay || event.allDay || differenceInDays(eventEnd, eventStart) >= 1;
+  const isMultiDay = isMultiDayEvent({
+    event,
+    defaultTimeZone,
+  });
 
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({
@@ -57,7 +78,7 @@ export function DraggableEvent({
         event,
         view,
         height: height || elementRef.current?.offsetHeight || null,
-        isMultiDay: isMultiDayEvent,
+        isMultiDay,
         multiDayWidth: multiDayWidth,
         dragHandlePosition,
         isFirstDay,
@@ -91,13 +112,11 @@ export function DraggableEvent({
     ? {
         transform: CSS.Translate.toString(transform),
         height: height || "auto",
-        width:
-          isMultiDayEvent && multiDayWidth ? `${multiDayWidth}%` : undefined,
+        width: isMultiDay && multiDayWidth ? `${multiDayWidth}%` : undefined,
       }
     : {
         height: height || "auto",
-        width:
-          isMultiDayEvent && multiDayWidth ? `${multiDayWidth}%` : undefined,
+        width: isMultiDay && multiDayWidth ? `${multiDayWidth}%` : undefined,
       };
 
   // Handle touch start to track where on the event the user touched

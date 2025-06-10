@@ -1,35 +1,43 @@
-import z from "zod";
+import { Temporal } from "temporal-polyfill";
 
-export interface DateInput {
-  dateTime: string;
-  timeZone: string;
-}
+import type { CreateEventInput, UpdateEventInput } from "../schemas/events";
+
+export type TemporalDate =
+  | Temporal.PlainDate
+  | Temporal.Instant
+  | Temporal.ZonedDateTime;
 
 export interface Calendar {
   id: string;
-  provider: string;
+  providerId: string;
   name: string;
+  description?: string;
+  timeZone?: string;
   primary: boolean;
+  accountId: string;
 }
 
 export interface CalendarEvent {
   id: string;
   title: string;
   description?: string;
-  start: DateInput;
-  end: DateInput;
+  start: Temporal.PlainDate | Temporal.Instant | Temporal.ZonedDateTime;
+  end: Temporal.PlainDate | Temporal.Instant | Temporal.ZonedDateTime;
   allDay?: boolean;
   location?: string;
   status?: string;
-  htmlLink?: string;
+  url?: string;
   color?: string;
+  providerId: string;
+  accountId: string;
+  calendarId: string;
 }
 
 export interface CalendarProvider {
   providerId: "google" | "microsoft";
   calendars(): Promise<Calendar[]>;
   createCalendar(
-    calendar: Omit<Calendar, "id" | "provider">,
+    calendar: Omit<Calendar, "id" | "providerId">,
   ): Promise<Calendar>;
   updateCalendar(
     calendarId: string,
@@ -38,18 +46,18 @@ export interface CalendarProvider {
   deleteCalendar(calendarId: string): Promise<void>;
   events(
     calendarId: string,
-    timeMin?: string,
-    timeMax?: string,
+    timeMin: Temporal.ZonedDateTime,
+    timeMax: Temporal.ZonedDateTime,
   ): Promise<CalendarEvent[]>;
   event(calendarId: string, eventId: string): Promise<CalendarEvent>;
   createEvent(
     calendarId: string,
-    event: Omit<CalendarEvent, "id">,
+    event: CreateEventInput,
   ): Promise<CalendarEvent>;
   updateEvent(
     calendarId: string,
     eventId: string,
-    event: Partial<CalendarEvent>,
+    event: UpdateEventInput,
   ): Promise<CalendarEvent>;
   deleteEvent(calendarId: string, eventId: string): Promise<void>;
 }

@@ -1,10 +1,3 @@
-/**
- * Event Calendar Hooks
- *
- * Centralized exports for all custom hooks used throughout the event calendar.
- * Organized by functionality for better maintainability.
- */
-
 // Focused logic hooks
 export { useCalendarNavigation } from "./use-calendar-navigation";
 export { useEventDialog } from "./use-event-dialog";

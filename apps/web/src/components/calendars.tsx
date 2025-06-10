@@ -26,7 +26,7 @@ import { useTRPC } from "@/lib/trpc/client";
 
 export type CalendarItem = {
   id: string;
-  provider: string;
+  providerId: string;
   name: string;
   primary: boolean | undefined;
 };

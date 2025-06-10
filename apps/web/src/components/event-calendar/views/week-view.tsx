@@ -33,7 +33,9 @@ import {
   isWeekend,
   type PositionedEvent,
 } from "@/components/event-calendar/utils";
+import { toDate } from "@/lib/temporal";
 import { cn } from "@/lib/utils";
+import { useCalendarSettings } from "../hooks/use-calendar-settings";
 
 interface WeekViewContextType {
   allDays: Date[];
@@ -174,6 +176,7 @@ function WeekViewAllDaySection() {
     currentDate,
   } = useWeekViewContext();
   const viewPreferences = useViewPreferences();
+  const settings = useCalendarSettings();
 
   const weekStart = useMemo(
     () => startOfWeek(currentDate, { weekStartsOn: 0 }),
@@ -200,8 +203,14 @@ function WeekViewAllDaySection() {
         {allDays.map((day, dayIndex) => {
           const isDayVisible = viewPreferences.showWeekends || !isWeekend(day);
           const dayAllDayEvents = allDayEvents.filter((event) => {
-            const eventStart = new Date(event.start.dateTime);
-            const eventEnd = new Date(event.end.dateTime);
+            const eventStart = toDate({
+              value: event.start,
+              timeZone: settings.defaultTimeZone,
+            });
+            const eventEnd = toDate({
+              value: event.end,
+              timeZone: settings.defaultTimeZone,
+            });
             return (
               isSameDay(day, eventStart) ||
               (day > eventStart && day < eventEnd) ||
@@ -220,8 +229,14 @@ function WeekViewAllDaySection() {
               style={{ visibility: isDayVisible ? "visible" : "hidden" }}
             >
               {dayAllDayEvents.map((event) => {
-                const eventStart = new Date(event.start.dateTime);
-                const eventEnd = new Date(event.end.dateTime);
+                const eventStart = toDate({
+                  value: event.start,
+                  timeZone: settings.defaultTimeZone,
+                });
+                const eventEnd = toDate({
+                  value: event.end,
+                  timeZone: settings.defaultTimeZone,
+                });
                 const isFirstDay = isSameDay(day, eventStart);
                 const isLastDay = isSameDay(day, eventEnd);
                 const isFirstVisibleDay =

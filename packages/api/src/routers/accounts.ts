@@ -6,22 +6,29 @@ import { auth } from "@repo/auth/server";
 import { user } from "@repo/db/schema";
 
 import { createTRPCRouter, protectedProcedure } from "../trpc";
-import { getActiveAccount, getAllAccounts } from "../utils/accounts";
+import { getAccounts, getActiveAccount } from "../utils/accounts";
 
 export const accountsRouter = createTRPCRouter({
   list: protectedProcedure.query(async ({ ctx }) => {
-    const accounts = await getAllAccounts(ctx.user, ctx.headers);
+    const accounts = await getAccounts(ctx.user, ctx.headers);
 
     return {
-      accounts,
+      accounts: accounts.map((account) => ({
+        id: account.id,
+        providerId: account.providerId,
+        name: account.name,
+        email: account.email,
+        image: account.image,
+        createdAt: account.createdAt,
+        updatedAt: account.updatedAt,
+      })),
     };
   }),
-
   setDefault: protectedProcedure
-    .input(z.object({ accountId: z.string() }))
+    .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const foundAccount = await ctx.db.query.account.findFirst({
-        where: (table, { eq }) => eq(table.accountId, input.accountId),
+        where: (table, { eq }) => eq(table.id, input.id),
       });
 
       if (!foundAccount) {
@@ -33,33 +40,43 @@ export const accountsRouter = createTRPCRouter({
 
       await ctx.db
         .update(user)
-        .set({ defaultAccountId: input.accountId })
+        .set({ defaultAccountId: input.id })
         .where(eq(user.id, ctx.user.id));
     }),
-
   getDefault: protectedProcedure.query(async ({ ctx }) => {
     const account = await getActiveAccount(ctx.user, ctx.headers);
-    return { account };
-  }),
 
+    return {
+      account: {
+        id: account.id,
+        providerId: account.providerId,
+        name: account.name,
+        email: account.email,
+        image: account.image,
+        createdAt: account.createdAt,
+        updatedAt: account.updatedAt,
+      },
+    };
+  }),
   delete: protectedProcedure
     .input(
       z.object({
-        accountId: z.string(),
+        id: z.string(),
         providerId: z.string(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
       await auth.api.unlinkAccount({
         body: {
-          accountId: input.accountId,
+          accountId: input.id,
           providerId: input.providerId,
         },
         headers: ctx.headers,
       });
 
       const activeAccount = await getActiveAccount(ctx.user, ctx.headers);
-      if (activeAccount.accountId === input.accountId) {
+
+      if (activeAccount.id === input.id) {
         await ctx.db
           .update(user)
           .set({ defaultAccountId: null })

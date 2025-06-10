@@ -5,7 +5,7 @@
   "exports": {
     ".": "./src/root.ts",
     "./trpc": "./src/trpc.ts",
-    "./providers/types": "./src/providers/types.ts"
+    "./providers/interfaces": "./src/providers/interfaces.ts"
   },
   "scripts": {
     "lint": "eslint ."
@@ -24,8 +24,11 @@
     "@repo/db": "workspace:*",
     "@repo/env": "workspace:*",
     "@repo/google-calendar": "workspace:*",
+    "@repo/google-tasks": "workspace:*",
     "@upstash/ratelimit": "^2.0.5",
-    "@upstash/redis": "^1.34.9"
+    "@upstash/redis": "^1.34.9",
+    "superjson-temporal": "^0.3.1",
+    "temporal-zod": "^0.3.1"
   },
   "devDependencies": {
     "@microsoft/microsoft-graph-types": "^2.40.0",

@@ -1,24 +1,30 @@
 import { TRPCError } from "@trpc/server";
+import { Temporal } from "temporal-polyfill";
+import { zZonedDateTimeInstance } from "temporal-zod";
 import { z } from "zod";
 
 import { notificationProvider } from "../providers/notification";
-import { dateInputSchema } from "../providers/validations";
+import {
+  createEventInputSchema,
+  updateEventInputSchema,
+} from "../schemas/events";
 import { notificationCreateRequest } from "../schemas/notification";
 import { calendarProcedure, createTRPCRouter } from "../trpc";
 import { dateHelpers } from "../utils/date-helpers";
+import { toInstant } from "../utils/temporal";
 
 export const eventsRouter = createTRPCRouter({
   list: calendarProcedure
     .input(
       z.object({
         calendarIds: z.array(z.string()).default([]),
-        timeMin: z.string().optional(),
-        timeMax: z.string().optional(),
+        timeMin: zZonedDateTimeInstance,
+        timeMax: zZonedDateTimeInstance,
       }),
     )
     .query(async ({ ctx, input }) => {
       const allEvents = await Promise.all(
-        ctx.allCalendarClients.map(async ({ client, account }) => {
+        ctx.providers.map(async ({ client, account }) => {
           let calendarIds = input.calendarIds;
 
           if (calendarIds.length === 0) {
@@ -55,7 +61,7 @@ export const eventsRouter = createTRPCRouter({
                   ...event,
                   calendarId,
                   providerId: account.providerId,
-                  accountId: account.accountId,
+                  accountId: account.id,
                 }));
               } catch (error) {
                 console.error(
@@ -73,47 +79,32 @@ export const eventsRouter = createTRPCRouter({
 
       const events = allEvents
         .flat()
-        .sort(
-          (a, b) =>
-            new Date(a.start.dateTime).getTime() -
-            new Date(b.start.dateTime).getTime(),
-        );
+        .map(
+          (v) => [v, toInstant({ value: v.start, timeZone: "UTC" })] as const,
+        )
+        .sort(([, i1], [, i2]) => Temporal.Instant.compare(i1, i2))
+        .map(([v]) => v);
 
       return { events };
     }),
 
   create: calendarProcedure
-    .input(
-      z.object({
-        accountId: z.string(),
-        calendarId: z.string(),
-        title: z.string(),
-        start: dateInputSchema,
-        end: dateInputSchema,
-        allDay: z.boolean().optional(),
-        description: z.string().optional(),
-        location: z.string().optional(),
-        color: z.string().optional(),
-      }),
-    )
+    .input(createEventInputSchema)
     .mutation(async ({ ctx, input }) => {
-      const calendarClient = ctx.allCalendarClients.find(
-        ({ account }) => account.accountId === input.accountId,
+      const provider = ctx.providers.find(
+        ({ account }) => account.id === input.accountId,
       );
 
-      if (!calendarClient) {
+      if (!provider?.client) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: `Calendar client not found for accountId: ${input.accountId}`,
         });
       }
 
-      const { ...eventData } = input;
-
-      const event = await calendarClient.client.createEvent(
-        eventData.calendarId,
-        eventData,
-      );
+      const event = await provider.client.createEvent(input.calendarId, {
+        ...input,
+      });
 
       if (event) {
         const date = dateHelpers.prepareCreateNotificationParams({
@@ -125,7 +116,7 @@ export const eventsRouter = createTRPCRouter({
           body: `Event "${event.title}" is scheduled at ${date}.${event.location ? ` Location: ${event.location}` : ""}`,
           title: "New event added",
           type: "event_creation",
-          sourceId: calendarClient.account.providerId,
+          sourceId: event.providerId,
           eventId: event.id,
         };
         notificationProvider.createAndSendNotification(
@@ -136,35 +127,21 @@ export const eventsRouter = createTRPCRouter({
 
       return { event };
     }),
-
   update: calendarProcedure
-    .input(
-      z.object({
-        accountId: z.string(),
-        calendarId: z.string(),
-        eventId: z.string(),
-        title: z.string().optional(),
-        start: dateInputSchema.optional(),
-        end: dateInputSchema.optional(),
-        allDay: z.boolean().optional(),
-        description: z.string().optional(),
-        location: z.string().optional(),
-        color: z.string().optional(),
-      }),
-    )
+    .input(updateEventInputSchema)
     .mutation(async ({ ctx, input }) => {
-      const calendarClient = ctx.allCalendarClients.find(
-        ({ account }) => account.accountId === input.accountId,
+      const provider = ctx.providers.find(
+        ({ account }) => account.id === input.accountId,
       );
 
-      if (!calendarClient?.client) {
+      if (!provider?.client) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: `Calendar client not found for accountId: ${input.accountId}`,
         });
       }
 
-      const oldEvent = await calendarClient.client.event(
+      const oldEvent = await provider.client.event(
         input.calendarId,
         input.eventId,
       );
@@ -216,7 +193,6 @@ export const eventsRouter = createTRPCRouter({
 
       return { event };
     }),
-
   delete: calendarProcedure
     .input(
       z.object({
@@ -226,37 +202,35 @@ export const eventsRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const calendarClient = ctx.allCalendarClients.find(
-        ({ account }) => account.accountId === input.accountId,
+      const provider = ctx.providers.find(
+        ({ account }) => account.id === input.accountId,
       );
 
-      if (!calendarClient?.client) {
+      if (!provider?.client) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: `Calendar client not found for accountId: ${input.accountId}`,
         });
       }
-      calendarClient.client
-        .event(input.calendarId, input.eventId)
-        .then((event) => {
-          if (event) {
-            const notificationPayload: z.infer<
-              typeof notificationCreateRequest
-            > = {
+      provider.client.event(input.calendarId, input.eventId).then((event) => {
+        if (event) {
+          const notificationPayload: z.infer<typeof notificationCreateRequest> =
+            {
               body: `Event "${event.title}" has been cancelled`,
               title: "Event has been cancelled",
               type: "event_cancellation",
-              sourceId: calendarClient.account.providerId,
+              sourceId: event.providerId,
               eventId: event.id,
             };
-            notificationProvider.createAndSendNotification(
-              notificationPayload,
-              ctx.user.id,
-            );
-          }
-        });
+          notificationProvider.createAndSendNotification(
+            notificationPayload,
+            ctx.user.id,
+          );
+        }
+      });
 
-      await calendarClient.client.deleteEvent(input.calendarId, input.eventId);
+      await provider.client.deleteEvent(input.calendarId, input.eventId);
+
       return { success: true };
     }),
 });

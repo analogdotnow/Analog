@@ -1,13 +1,13 @@
 import "server-only";
 import { TRPCError, initTRPC } from "@trpc/server";
-import superjson from "superjson";
 import { ZodError } from "zod";
 
 import { auth } from "@repo/auth/server";
 import { db } from "@repo/db";
 
 import { accountToProvider } from "./providers";
-import { getAllAccounts } from "./utils/accounts";
+import { getAccounts } from "./utils/accounts";
+import { superjson } from "./utils/superjson";
 
 export const createTRPCContext = async (opts: { headers: Headers }) => {
   const session = await auth.api.getSession({
@@ -59,18 +59,18 @@ export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
 export const calendarProcedure = protectedProcedure.use(
   async ({ ctx, next }) => {
     try {
-      const allAccounts = await getAllAccounts(ctx.user, ctx.headers);
+      const accounts = await getAccounts(ctx.user, ctx.headers);
 
-      const allCalendarClients = allAccounts.map((account) => ({
+      const providers = accounts.map((account) => ({
         account,
         client: accountToProvider(account),
       }));
 
       return next({
         ctx: {
-          // Multiple provider access (for listing all calendars/events)
-          allCalendarClients,
-          allAccounts,
+          ...ctx,
+          providers,
+          accounts,
         },
       });
     } catch (error) {
