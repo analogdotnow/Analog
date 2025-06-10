@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTRPC } from "@/lib/trpc/client";
+import { NavUserNotification } from "./nav-user-notification";
 
 function useUser() {
   const trpc = useTRPC();
@@ -106,6 +107,9 @@ export function NavUser() {
               </AddAccountDialog>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <NavUserNotification />
+            </DropdownMenuItem>
             <DropdownMenuItem
               onClick={async () =>
                 await authClient.signOut({

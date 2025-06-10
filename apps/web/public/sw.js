@@ -3,7 +3,6 @@ self.addEventListener("push", function (event) {
   if (event.data) {
     try {
       const pushData = event.data.json();
-      console.log("[Service Worker] Push data:", pushData);
 
       const title = pushData.title || "New Notification";
       const options = {
@@ -54,7 +53,12 @@ self.addEventListener("notificationclick", function (event) {
   );
   event.notification.close();
 
-  let urlToOpen = "/"; // Default URL
+  const type = event.notification.data?.type;
+  const eventId = event.notification.data?.eventId;
+  let urlToOpen =
+    type === "event_cancellation"
+      ? "/calendar"
+      : `calendar?eventId=${eventId || ""}`;
 
   // Example: Customize URL based on notification data
   // if (event.notification.data && event.notification.data.eventId) {

@@ -6,7 +6,7 @@ export default function manifest(): MetadataRoute.Manifest {
     short_name: "Analog",
     description:
       "Analog is a modern, open-source calendar designed to help you stay organized and productive.",
-    start_url: "/",
+    start_url: "/calendar",
     display: "standalone",
     background_color: "#ffffff",
     theme_color: "#000000",

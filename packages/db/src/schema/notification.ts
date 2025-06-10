@@ -1,5 +1,4 @@
 import { pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
-import { type PushSubscription } from "web-push";
 
 import { user } from "./auth";
 
@@ -7,6 +6,11 @@ export const notificationTypeEnum = pgEnum("notification_type", [
   "reminder",
   "event_update",
   "event_cancellation",
+  "event_invitation",
+  "event_confirmation",
+  "event_rejection",
+  "event_reschedule",
+  "event_creation",
   "custom",
   "system_alert",
   "user_message",

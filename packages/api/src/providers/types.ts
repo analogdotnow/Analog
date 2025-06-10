@@ -1,7 +1,5 @@
 import z from "zod";
 
-import { notificationSubcribeRequest } from "../utils/notification";
-
 export interface DateInput {
   dateTime: string;
   timeZone: string;
@@ -43,6 +41,7 @@ export interface CalendarProvider {
     timeMin?: string,
     timeMax?: string,
   ): Promise<CalendarEvent[]>;
+  event(calendarId: string, eventId: string): Promise<CalendarEvent>;
   createEvent(
     calendarId: string,
     event: Omit<CalendarEvent, "id">,

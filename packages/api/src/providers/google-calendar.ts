@@ -195,4 +195,11 @@ export class GoogleCalendarProvider implements CalendarProvider {
       color: googleEvent.colorId,
     };
   }
+
+  async event(calendarId: string, eventId: string): Promise<CalendarEvent> {
+    const event = await this.client.calendars.events.retrieve(eventId, {
+      calendarId,
+    });
+    return this.transformEvent(event);
+  }
 }

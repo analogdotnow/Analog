@@ -35,3 +35,12 @@ export const toUint8Array = (base64String: string): Uint8Array => {
   }
   return outputArray;
 };
+
+export const isIOSWithNotificationSupport = () => {
+  const ua = navigator.userAgent;
+  const isIOS = /iPhone|iPad|iPod/.test(ua);
+  // iOS 16.4+ has push notification support
+  return isIOS
+    ? parseFloat((ua.match(/OS (\d+)_(\d+)/) || [])[1] ?? "") >= 16.4
+    : false;
+};

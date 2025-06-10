@@ -3,13 +3,15 @@
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
-import { toUint8Array } from "@/lib/utils";
-import { Button } from "../ui/button";
+import { isIOSWithNotificationSupport, toUint8Array } from "@/lib/utils";
 import { useCreatePushSubscription } from "./hooks/use-create-push-subscription";
+import { IOSNotificationRequest } from "./ios-notification-request";
 
 export function PushNotificationEffect() {
   const { subscribeAsync } = useCreatePushSubscription();
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const isIOS = isIOSWithNotificationSupport();
+  const [isIOSWithPermission, setIsIOSWithPermission] = useState(false);
 
   const registerServiceWorker = useCallback(async () => {
     const registration = await navigator.serviceWorker.register("sw.js", {
@@ -28,42 +30,38 @@ export function PushNotificationEffect() {
       userVisibleOnly: true,
     });
     const serializedSub = JSON.parse(JSON.stringify(sub));
-    await subscribeAsync(serializedSub).then(() => {
-      toast.success("Subscribed to push notifications");
-    });
+    await subscribeAsync(serializedSub);
   }, [subscribeAsync]);
 
+  // subscribe to push notifications
   useEffect(() => {
-    if ("serviceWorker" in navigator && "PushManager" in window) {
+    if (
+      "serviceWorker" in navigator &&
+      "PushManager" in window &&
+      isSubscribed
+    ) {
       console.group("Subcribe push notification");
       const subcribe = async () => {
-        const permission = await Notification.requestPermission();
-        if (permission === "granted") {
-          const register = await registerServiceWorker();
-          console.debug("Service Worker registered:", register);
+        const register = await registerServiceWorker();
+        console.debug("Service Worker registered:", register);
 
-          const sub = await register.pushManager.getSubscription();
-          console.debug("Current Push Subscription:", sub);
-          if (sub === null) {
-            console.debug("No existing subscription found, subscribing new...");
-            await subscribeToPush()
-              .then((res) => {
-                console.debug("Subscribed to push notifications:", res);
-                setIsSubscribed(true);
-              })
-              .catch((err) => {
-                console.error(
-                  "[PushNotificationEffect] Error subscribing to push notifications:",
-                  err,
-                );
-              });
-          }
-        } else if (permission === "denied") {
-          console.warn(
-            "Push notifications permission denied. User will not receive notifications.",
-          );
-          setIsSubscribed(false);
+        const sub = await register.pushManager.getSubscription();
+        console.debug("Current Push Subscription:", sub);
+        if (sub === null) {
+          console.debug("No existing subscription found, subscribing new...");
+          await subscribeToPush()
+            .then((res) => {
+              console.debug("Subscribed to push notifications:", res);
+              setIsSubscribed(true);
+            })
+            .catch((err) => {
+              console.error(
+                "[PushNotificationEffect] Error subscribing to push notifications:",
+                err,
+              );
+            });
         }
+
         return;
       };
 
@@ -71,24 +69,44 @@ export function PushNotificationEffect() {
     } else {
       console.warn("Push notifications are not supported in this browser.");
     }
-    // run one time only
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-  if (!isSubscribed) {
-    return (
-      <Button
-        onClick={async () => {
-          const permission = await Notification.requestPermission();
-          if (permission === "granted") {
-            await subscribeToPush();
+  }, [isSubscribed]);
+
+  // Request permission for everytimes the component mounts
+  useEffect(() => {
+    setTimeout(() => {
+      if ("Notification" in window) {
+        Notification.requestPermission().then((newPermission) => {
+          if (newPermission === "granted") {
+            setIsSubscribed(true);
           } else {
-            toast.error("Permission denied for push notifications");
+            setIsSubscribed(false);
           }
-        }}
-      >
-        Request Permission
-      </Button>
-    );
-  }
-  return null;
+        });
+      }
+    }, 1000);
+  }, []);
+
+  // Register service worker for iOS
+  useEffect(() => {
+    if (
+      isIOS &&
+      "Notification" in window &&
+      Notification.permission !== "granted"
+    ) {
+      setIsIOSWithPermission(true);
+    }
+  }, [isIOS]);
+
+  return (
+    <IOSNotificationRequest
+      isOpen={isIOSWithPermission}
+      onOpenChange={setIsIOSWithPermission}
+      onSuccess={() => {
+        setIsIOSWithPermission(false);
+        setIsSubscribed(true);
+        toast.success("Push notifications enabled successfully!");
+      }}
+    />
+  );
 }

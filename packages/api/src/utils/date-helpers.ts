@@ -1,4 +1,4 @@
-import { addDays, endOfDay, subDays } from "date-fns";
+import { addDays, endOfDay, format, subDays } from "date-fns";
 
 import type { DateInput } from "../providers/types";
 
@@ -216,6 +216,28 @@ export const dateHelpers = {
     }
 
     return params;
+  },
+  prepareCreateNotificationParams(input: {
+    start: string | { dateTime: string; timeZone: string };
+    end: string | { dateTime: string; timeZone: string };
+    isAllDay?: boolean;
+  }) {
+    if (input.isAllDay) {
+      return format(new Date(input.start as string), "yyyy-MM-dd");
+    }
+
+    const startDateTime =
+      typeof input.start === "string" ? input.start : input.start.dateTime;
+    const endDateTime =
+      typeof input.end === "string" ? input.end : input.end.dateTime;
+
+    const formattedStart = format(
+      new Date(startDateTime),
+      "yyyy-MM-dd HH:mm:ss",
+    );
+    const formattedEnd = format(new Date(endDateTime), "yyyy-MM-dd HH:mm:ss");
+
+    return `${formattedStart} - ${formattedEnd}`;
   },
 };
 

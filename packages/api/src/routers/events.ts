@@ -1,10 +1,11 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
+import { notificationProvider } from "../providers/notification";
 import { dateInputSchema } from "../providers/validations";
 import { notificationCreateRequest } from "../schemas/notification";
 import { calendarProcedure, createTRPCRouter } from "../trpc";
-import { createAndSendNotification } from "../utils/notification";
+import { dateHelpers } from "../utils/date-helpers";
 
 export const eventsRouter = createTRPCRouter({
   list: calendarProcedure
@@ -107,7 +108,7 @@ export const eventsRouter = createTRPCRouter({
         });
       }
 
-      const { accountId, ...eventData } = input;
+      const { ...eventData } = input;
 
       const event = await calendarClient.client.createEvent(
         eventData.calendarId,
@@ -115,20 +116,22 @@ export const eventsRouter = createTRPCRouter({
       );
 
       if (event) {
+        const date = dateHelpers.prepareCreateNotificationParams({
+          start: event.start.dateTime,
+          end: event.end.dateTime,
+          isAllDay: event.allDay,
+        });
         const notificationPayload: z.infer<typeof notificationCreateRequest> = {
-          body: `Event "${event.title}" created successfully.`,
-          title: "Event Created",
-          type: "custom",
+          body: `Event "${event.title}" is scheduled at ${date}.${event.location ? ` Location: ${event.location}` : ""}`,
+          title: "New event added",
+          type: "event_creation",
           sourceId: calendarClient.account.providerId,
           eventId: event.id,
         };
-        console.log(
-          "Creating notification payload:",
+        notificationProvider.createAndSendNotification(
           notificationPayload,
-          accountId,
-          event,
+          ctx.user.id,
         );
-        createAndSendNotification(notificationPayload, ctx.user.id);
       }
 
       return { event };
@@ -161,13 +164,55 @@ export const eventsRouter = createTRPCRouter({
         });
       }
 
-      const { accountId, calendarId, eventId, ...updateData } = input;
+      const oldEvent = await calendarClient.client.event(
+        input.calendarId,
+        input.eventId,
+      );
+      if (!oldEvent) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: `Event not found for calendarId: ${input.calendarId} and eventId: ${input.eventId}`,
+        });
+      }
+
+      const { calendarId, eventId, ...updateData } = input;
 
       const event = await calendarClient.client.updateEvent(
         calendarId,
         eventId,
         updateData,
       );
+
+      if (oldEvent.title !== event.title) {
+        const notificationPayload: z.infer<typeof notificationCreateRequest> = {
+          body: `Event "${oldEvent.title}" has been rename to "${input.title}"`,
+          title: "Event has been updated",
+          type: "event_update",
+          sourceId: calendarClient.account.providerId,
+          eventId: event.id,
+        };
+        notificationProvider.createAndSendNotification(
+          notificationPayload,
+          ctx.user.id,
+        );
+      } else {
+        const date = dateHelpers.prepareCreateNotificationParams({
+          start: event.start.dateTime,
+          end: event.end.dateTime,
+          isAllDay: event.allDay,
+        });
+        const notificationPayload: z.infer<typeof notificationCreateRequest> = {
+          body: `Event "${event.title}" has been rescheduled to ${date}.${event.location ? ` Location: ${event.location}` : ""}`,
+          title: "Event has been rescheduled",
+          type: "event_reschedule",
+          sourceId: calendarClient.account.providerId,
+          eventId: event.id,
+        };
+        notificationProvider.createAndSendNotification(
+          notificationPayload,
+          ctx.user.id,
+        );
+      }
 
       return { event };
     }),
@@ -191,6 +236,25 @@ export const eventsRouter = createTRPCRouter({
           message: `Calendar client not found for accountId: ${input.accountId}`,
         });
       }
+      calendarClient.client
+        .event(input.calendarId, input.eventId)
+        .then((event) => {
+          if (event) {
+            const notificationPayload: z.infer<
+              typeof notificationCreateRequest
+            > = {
+              body: `Event "${event.title}" has been cancelled`,
+              title: "Event has been cancelled",
+              type: "event_cancellation",
+              sourceId: calendarClient.account.providerId,
+              eventId: event.id,
+            };
+            notificationProvider.createAndSendNotification(
+              notificationPayload,
+              ctx.user.id,
+            );
+          }
+        });
 
       await calendarClient.client.deleteEvent(input.calendarId, input.eventId);
       return { success: true };

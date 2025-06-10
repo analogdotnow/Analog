@@ -251,4 +251,15 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
       color: undefined, // Microsoft doesn't have colorId equivalent
     };
   }
+
+  async event(calendarId: string, eventId: string): Promise<CalendarEvent> {
+    const event = await this.graphClient
+      .api(
+        calendarId === "primary"
+          ? `/me/calendar/events/${eventId}`
+          : `/me/calendars/${calendarId}/events/${eventId}`,
+      )
+      .get();
+    return this.transformEvent(event);
+  }
 }
