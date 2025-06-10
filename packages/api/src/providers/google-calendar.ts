@@ -173,6 +173,6 @@ export class GoogleCalendarProvider implements CalendarProvider {
     const event = await this.client.calendars.events.retrieve(eventId, {
       calendarId,
     });
-    return this.transformEvent(event);
+    return parseGoogleCalendarEvent({ calendarId, event, accountId: "" });
   }
 }

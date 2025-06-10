@@ -169,6 +169,6 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
           : `/me/calendars/${calendarId}/events/${eventId}`,
       )
       .get();
-    return this.transformEvent(event);
+    return parseMicrosoftEvent(event);
   }
 }

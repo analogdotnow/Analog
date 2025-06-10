@@ -6,6 +6,7 @@ import { env } from "@repo/env/server";
 
 export async function sendPushNotification(
   endpoint: Pick<PushSubscription, "endpoint" | "keys">,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   payload: Record<string, any>,
   options?: RequestOptions,
 ) {

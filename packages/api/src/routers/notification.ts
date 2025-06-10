@@ -1,5 +1,4 @@
 import { and, eq, isNotNull, isNull } from "drizzle-orm";
-import z from "zod";
 
 import { db } from "@repo/db";
 import {
