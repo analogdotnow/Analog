@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import { env } from "@repo/env/client";
+
 import { isIOSWithNotificationSupport, toUint8Array } from "@/lib/utils";
 import { useCreatePushSubscription } from "./hooks/use-create-push-subscription";
 import { IOSNotificationRequest } from "./ios-notification-request";
@@ -24,9 +26,7 @@ export function PushNotificationEffect() {
   const subscribeToPush = useCallback(async () => {
     const registration = await navigator.serviceWorker.ready;
     const sub = await registration.pushManager.subscribe({
-      applicationServerKey: toUint8Array(
-        process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
-      ),
+      applicationServerKey: toUint8Array(env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!),
       userVisibleOnly: true,
     });
     const serializedSub = JSON.parse(JSON.stringify(sub));
@@ -75,15 +75,16 @@ export function PushNotificationEffect() {
   // Request permission for everytimes the component mounts
   useEffect(() => {
     const timeout = setTimeout(() => {
-      if ("Notification" in window) {
-        Notification.requestPermission().then((newPermission) => {
-          if (newPermission === "granted") {
-            setIsSubscribed(true);
-          } else {
-            setIsSubscribed(false);
-          }
-        });
+      if (!("Notification" in window)) {
+        return;
       }
+      Notification.requestPermission().then((newPermission) => {
+        if (newPermission === "granted") {
+          setIsSubscribed(true);
+        } else {
+          setIsSubscribed(false);
+        }
+      });
     }, 1000);
     return () => clearTimeout(timeout);
   }, []);

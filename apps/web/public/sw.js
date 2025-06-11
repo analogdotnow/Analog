@@ -4,7 +4,11 @@ self.addEventListener("push", function (event) {
     try {
       const pushData = event.data.json();
 
-      const title = pushData.title || "New Notification";
+      const title = pushData.title;
+      const body = pushData.body;
+      if (!title || !body) {
+        throw new Error("Push data must contain title and body.");
+      }
       const options = {
         body: pushData.body || "You have a new update.",
         icon: pushData.icon || "/favicon.ico", // Use favicon.ico as a fallback

@@ -9,22 +9,32 @@ import {
 } from "../ui/dialog";
 
 export function IOSNotificationRequest({
-  onSuccess,
   isOpen = true,
   onOpenChange,
+  onSuccess,
+  onError,
 }: {
-  onSuccess: () => void;
   isOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
+  onSuccess: () => void;
+  onError?: (error: Error) => void;
 }) {
   const handleEnableNotifications = () => {
-    if ("Notification" in window) {
-      Notification.requestPermission().then((permission) => {
+    if (!("Notification" in window)) {
+      return;
+    }
+
+    Notification.requestPermission()
+      .then((permission) => {
         if (permission === "granted") {
           onSuccess();
+        } else {
+          onError?.(new Error("Notification permission denied"));
         }
+      })
+      .catch((error) => {
+        onError?.(error);
       });
-    }
   };
 
   return (

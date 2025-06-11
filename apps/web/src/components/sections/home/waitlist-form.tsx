@@ -111,9 +111,6 @@ export function WaitlistForm({ className }: WaitlistFormProps) {
         <span className="text-sm text-green-600 sm:text-base dark:text-green-400">
           <NumberFlow value={waitlist.count} /> people already joined
         </span>
-        <Link className="text-center text-xs" href="/calendar">
-          Get Started
-        </Link>
       </div>
     </div>
   );
