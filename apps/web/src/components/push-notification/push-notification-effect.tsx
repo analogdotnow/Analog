@@ -74,7 +74,7 @@ export function PushNotificationEffect() {
 
   // Request permission for everytimes the component mounts
   useEffect(() => {
-    setTimeout(() => {
+    const timeout = setTimeout(() => {
       if ("Notification" in window) {
         Notification.requestPermission().then((newPermission) => {
           if (newPermission === "granted") {
@@ -85,6 +85,7 @@ export function PushNotificationEffect() {
         });
       }
     }, 1000);
+    return () => clearTimeout(timeout);
   }, []);
 
   // Register service worker for iOS

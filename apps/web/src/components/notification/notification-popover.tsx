@@ -19,7 +19,7 @@ export function NotificationPopover() {
         className="max-h-[90vh] w-[520px] cursor-default overflow-auto p-4"
       >
         <div className="space-y-4">
-          <h4 className="text-sm font-medium">Notification</h4>
+          <h4 className="text-sm font-medium">Notifications</h4>
           <Separator />
           <div className="space-y-3">
             {isLoading && <NotificationContentSkeleton />}

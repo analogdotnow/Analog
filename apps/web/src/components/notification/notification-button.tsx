@@ -15,7 +15,7 @@ export const NotificationButton = (
     return (
       <Button
         variant="outline"
-        aria-label="View preferences"
+        aria-label="View notifications"
         {...props}
         disabled
       >
@@ -26,13 +26,13 @@ export const NotificationButton = (
   return (
     <Button
       variant="outline"
-      aria-label="View preferences"
+      aria-label="View notifications"
       {...props}
       className={cn("relative", props.className)}
     >
       <Bell />
       {count > 0 && (
-        <span className="dark:bg-read-500 absolute -top-1 -right-1 flex items-center justify-center rounded-full bg-red-600 p-0.5 text-xs text-white">
+        <span className="absolute -top-1 -right-1 flex items-center justify-center rounded-full bg-red-600 p-0.5 text-xs text-white dark:bg-red-500">
           {count}
         </span>
       )}
