@@ -1,5 +1,5 @@
 {
-  "id": "fabf2928-f03f-47d2-831f-a0010092d602",
+  "id": "8c9e766b-318e-4b24-bfdf-fbb7323324c8",
   "prevId": "398fcf50-83b7-4f30-8379-acdb5a6276ca",
   "version": "7",
   "dialect": "postgresql",
@@ -388,18 +388,6 @@
         },
         "user_id": {
           "name": "user_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "event_id": {
-          "name": "event_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "calendar_source": {
-          "name": "calendar_source",
           "type": "text",
           "primaryKey": false,
           "notNull": true
@@ -408,6 +396,12 @@
           "name": "type",
           "type": "notification_type",
           "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_event": {
+          "name": "source_event",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
@@ -438,9 +432,115 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "notification_user_id_user_id_fk": {
+          "name": "notification_user_id_user_id_fk",
+          "tableFrom": "notification",
+          "tableTo": "user",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "notification_source_event_notification_source_event_id_fk": {
+          "name": "notification_source_event_notification_source_event_id_fk",
+          "tableFrom": "notification",
+          "tableTo": "notification_source_event",
+          "columnsFrom": [
+            "source_event"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.notification_push_subscription": {
+      "name": "notification_push_subscription",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "endpoint": {
+          "name": "endpoint",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "p256dh": {
+          "name": "p256dh",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "auth": {
+          "name": "auth",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "expiration_time": {
+          "name": "expiration_time",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "notification_push_subscription_user_id_user_id_fk": {
+          "name": "notification_push_subscription_user_id_user_id_fk",
+          "tableFrom": "notification_push_subscription",
+          "tableTo": "user",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "notification_push_subscription_endpoint_unique": {
+          "name": "notification_push_subscription_endpoint_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "endpoint"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -509,12 +609,6 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "notification_id": {
-          "name": "notification_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
         "source_id": {
           "name": "source_id",
           "type": "uuid",
@@ -525,7 +619,7 @@
           "name": "event_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",
@@ -537,19 +631,6 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "notification_source_event_notification_id_notification_id_fk": {
-          "name": "notification_source_event_notification_id_notification_id_fk",
-          "tableFrom": "notification_source_event",
-          "tableTo": "notification",
-          "columnsFrom": [
-            "notification_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
         "notification_source_event_source_id_notification_source_id_fk": {
           "name": "notification_source_event_source_id_notification_source_id_fk",
           "tableFrom": "notification_source_event",
@@ -579,7 +660,22 @@
         "reminder",
         "event_update",
         "event_cancellation",
-        "custom"
+        "event_invitation",
+        "event_confirmation",
+        "event_rejection",
+        "event_reschedule",
+        "event_creation",
+        "custom",
+        "system_alert",
+        "user_message",
+        "task_reminder",
+        "task_update",
+        "task_assignment",
+        "task_completion",
+        "task_cancellation",
+        "task_overdue",
+        "task_priority_change",
+        "task_comment"
       ]
     }
   },

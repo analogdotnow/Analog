@@ -52,7 +52,7 @@ self.addEventListener("notificationclick", function (event) {
   let urlToOpen =
     type === "event_cancellation"
       ? "/calendar"
-      : `calendar?eventId=${eventId || ""}`;
+      : `/calendar?eventId=${eventId || ""}`;
 
   // Example: Customize URL based on notification data
   // if (event.notification.data && event.notification.data.eventId) {
