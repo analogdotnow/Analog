@@ -37,12 +37,6 @@ self.addEventListener("push", function (event) {
     console.log(
       "[Service Worker] Push event received but no event.data payload. Showing generic notification.",
     );
-    const title = "New Notification";
-    const options = {
-      body: "You have a new update.",
-      icon: "/favicon.ico",
-    };
-    event.waitUntil(self.registration.showNotification(title, options));
   }
 });
 
