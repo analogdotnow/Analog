@@ -6,10 +6,12 @@ import {
   endOfMonth,
   endOfWeek,
   format,
+  isSameDay,
   isSameMonth,
   isToday,
   startOfMonth,
   startOfWeek,
+  subDays,
 } from "date-fns";
 
 import {
@@ -305,6 +307,22 @@ function MonthViewEvent({
 
   const settings = useCalendarSettings();
 
+  const start = useMemo(() => {
+    return toDate({ value: event.start, timeZone: settings.defaultTimeZone });
+  }, [event.start, settings.defaultTimeZone]);
+
+  const end = useMemo(() => {
+    return toDate({ value: event.end, timeZone: settings.defaultTimeZone });
+  }, [event.end, settings.defaultTimeZone]);
+
+  const isSingleDay = useMemo(() => {
+    return isSameDay(start, subDays(end, 1));
+  }, [start, end]);
+
+  if (!isFirstDay && isSingleDay) {
+    return null;
+  }
+
   if (!isFirstDay) {
     return (
       <div
@@ -318,18 +336,8 @@ function MonthViewEvent({
           isFirstDay={isFirstDay}
           isLastDay={isLastDay}
         >
-          <div className="invisible" aria-hidden={true}>
-            {!event.allDay && (
-              <span>
-                {format(
-                  toDate({
-                    value: event.start,
-                    timeZone: settings.defaultTimeZone,
-                  }),
-                  "h:mm",
-                )}{" "}
-              </span>
-            )}
+          <div className="hidden" aria-hidden={true}>
+            {!event.allDay && <span>{format(start, "h:mm")} </span>}
             {event.title}
           </div>
         </EventItem>
@@ -347,7 +355,7 @@ function MonthViewEvent({
         view="month"
         onClick={(e) => onEventClick(event, e)}
         isFirstDay={isFirstDay}
-        isLastDay={isLastDay}
+        isLastDay={isSingleDay ? true : isLastDay}
       />
     </div>
   );

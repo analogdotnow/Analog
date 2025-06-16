@@ -24,7 +24,7 @@ export type CalendarProps = DayPickerProps & {
   yearRange?: number;
 
   /**
-   * Wether to show the year switcher in the caption.
+   * Whether to show the year switcher in the caption.
    * @default true
    */
   showYearSwitcher?: boolean;
@@ -83,14 +83,13 @@ function Calendar({
       };
     }, [yearRange]),
   );
-
   const { onNextClick, onPrevClick, startMonth, endMonth } = props;
 
   const columnsDisplayed = navView === "years" ? 1 : numberOfMonths;
 
   const _monthsClassName = cn("relative flex", props.monthsClassName);
   const _monthCaptionClassName = cn(
-    "relative mx-10 flex h-7 items-center justify-center",
+    "relative mx-3 flex h-7 items-center justify-start",
     props.monthCaptionClassName,
   );
   const _weekdaysClassName = cn("flex flex-row", props.weekdaysClassName);
@@ -407,8 +406,8 @@ function Nav({
   return (
     <nav className={cn("flex items-center", className)}>
       <Button
-        variant="outline"
-        className="absolute left-1.5 h-7 w-7 bg-transparent p-0 opacity-80 hover:opacity-100 dark:bg-neutral-700/80 dark:hover:bg-neutral-700/90"
+        variant="ghost"
+        className="absolute right-10 h-7 w-7 bg-transparent p-0 opacity-80 hover:opacity-100 dark:hover:bg-neutral-700/90"
         type="button"
         tabIndex={isPreviousDisabled ? undefined : -1}
         disabled={isPreviousDisabled}
@@ -425,8 +424,8 @@ function Nav({
       </Button>
 
       <Button
-        variant="outline"
-        className="absolute right-1.5 h-7 w-7 bg-transparent p-0 opacity-80 hover:opacity-100 dark:bg-neutral-700/80 dark:hover:bg-neutral-700/90"
+        variant="ghost"
+        className="absolute right-1.5 h-7 w-7 bg-transparent p-0 opacity-80 hover:opacity-100 dark:hover:bg-neutral-700/90"
         type="button"
         tabIndex={isNextDisabled ? undefined : -1}
         disabled={isNextDisabled}

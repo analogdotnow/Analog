@@ -6,7 +6,6 @@ import { useQuery } from "@tanstack/react-query";
 import { ChevronRight } from "lucide-react";
 
 import { useCalendarsVisibility } from "@/components/event-calendar/hooks";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Collapsible,
   CollapsibleContent,
@@ -19,10 +18,10 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarSeparator,
 } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTRPC } from "@/lib/trpc/client";
+import { CalendarToggle } from "./calendar-toggle";
 
 export type CalendarItem = {
   id: string;
@@ -69,7 +68,6 @@ export function Calendars() {
               </CollapsibleContent>
             </Collapsible>
           </SidebarGroup>
-          <SidebarSeparator className="mx-0" />
         </Fragment>
       ))}
     </div>
@@ -173,13 +171,19 @@ function ItemWithToggle({ item }: { item: CalendarItem }) {
         tooltip={isTextTruncated ? tooltipProps : undefined}
         className="hover:bg-neutral-600/20"
       >
-        <div className="relative">
-          <Checkbox
+        <div className="relative flex items-center gap-3">
+          <CalendarToggle
+            style={
+              {
+                "--calendar-color": "var(--color-red-500)",
+              } as React.CSSProperties
+            }
             className="dark:border-neutral-700"
             checked={!calendarsVisibility.hiddenCalendars.includes(item.id)}
             onCheckedChange={(checked: boolean) => {
               handleCalendarVisibilityChange(checked, item.id);
             }}
+            primaryCalendar={item.primary}
           />
           <span ref={textRef} className="line-clamp-1 block select-none">
             {item.name}

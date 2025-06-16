@@ -15,6 +15,7 @@ export interface Calendar {
   timeZone?: string;
   primary: boolean;
   accountId: string;
+  color?: string;
 }
 
 export interface CalendarEvent {

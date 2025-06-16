@@ -42,9 +42,9 @@ export function SignInForm({ redirectUrl = "/calendar" }: SignInFormProps) {
   };
 
   return (
-    <Card className="max-w-md border-none shadow-none">
+    <Card className="max-w-sm border-none shadow-none">
       <CardHeader>
-        <CardTitle className="text-center text-xl md:text-2xl">
+        <CardTitle className="text-center text-xl font-medium md:text-2xl">
           Analog
         </CardTitle>
         <CardDescription className="text-md text-center text-balance md:text-lg">
@@ -55,8 +55,7 @@ export function SignInForm({ redirectUrl = "/calendar" }: SignInFormProps) {
         <div className="grid gap-8">
           <div
             className={cn(
-              "flex w-full items-center gap-2",
-              "flex-col justify-between",
+              "flex w-full flex-col items-center justify-between gap-4",
             )}
           >
             {providers.map((provider) => {

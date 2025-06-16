@@ -1,15 +1,16 @@
 "use client";
 
 import { useMemo } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Temporal } from "temporal-polyfill";
 
-import {
-  EventCalendar,
-  type CalendarEvent,
-  type EventColor,
-} from "@/components/event-calendar";
+import { EventCalendar, type CalendarEvent } from "@/components/event-calendar";
 import { compareTemporal, toInstant } from "@/lib/temporal";
 import { RouterOutputs } from "@/lib/trpc";
 import { useTRPC } from "@/lib/trpc/client";
@@ -18,20 +19,6 @@ import { useCalendarSettings } from "./event-calendar/hooks/use-calendar-setting
 interface CalendarViewProps {
   className?: string;
 }
-
-const colorMap: Record<string, EventColor> = {
-  "1": "sky",
-  "2": "emerald",
-  "3": "violet",
-  "4": "rose",
-  "5": "amber",
-  "6": "orange",
-  "7": "sky",
-  "8": "violet",
-  "9": "sky",
-  "10": "emerald",
-  "11": "rose",
-};
 
 const CALENDAR_CONFIG = {
   TIME_RANGE_DAYS_PAST: 30,
@@ -94,7 +81,7 @@ function useCalendarActions() {
         ...event,
         start: event.start,
         end: event.end,
-        color: event.color ? colorMap[event.color] || "sky" : "sky",
+        color: event.color,
       };
     });
   }, [data]);
