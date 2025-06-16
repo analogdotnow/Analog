@@ -43,18 +43,6 @@ export function toPlainDate({ value, timeZone }: ToPlainDateOptions) {
   return value.withTimeZone(timeZone).toPlainDate();
 }
 
-export interface IsSameDayOptions {
-  a: Temporal.Instant | Temporal.ZonedDateTime | Temporal.PlainDate;
-  b: Temporal.Instant | Temporal.ZonedDateTime | Temporal.PlainDate;
-  timeZone: string;
-}
-
-export function isSameDay({ a, b, timeZone }: IsSameDayOptions) {
-  return toPlainDate({ value: a, timeZone }).equals(
-    toPlainDate({ value: b, timeZone }),
-  );
-}
-
 export interface ToPlainYearMonthOptions {
   value: Temporal.Instant | Temporal.ZonedDateTime | Temporal.PlainDate;
   timeZone: string;
@@ -64,34 +52,16 @@ export function toPlainYearMonth({ value, timeZone }: ToPlainYearMonthOptions) {
   if (value instanceof Temporal.PlainDate) {
     return value.toPlainYearMonth();
   }
+
   return toPlainDate({ value, timeZone }).toPlainYearMonth();
 }
 
-export interface IsSameMonthOptions {
-  a: Temporal.Instant | Temporal.ZonedDateTime | Temporal.PlainDate;
-  b: Temporal.Instant | Temporal.ZonedDateTime | Temporal.PlainDate;
-  timeZone: string;
-}
-
-export function isSameMonth({ a, b, timeZone }: IsSameMonthOptions) {
-  return toPlainYearMonth({ value: a, timeZone }).equals(
-    toPlainYearMonth({ value: b, timeZone }),
+export function compareTemporal(
+  a: Temporal.PlainDate | Temporal.Instant | Temporal.ZonedDateTime,
+  b: Temporal.PlainDate | Temporal.Instant | Temporal.ZonedDateTime,
+) {
+  return Temporal.Instant.compare(
+    toInstant({ value: a, timeZone: "UTC" }),
+    toInstant({ value: b, timeZone: "UTC" }),
   );
-}
-
-export interface IsSameYearOptions {
-  a: Temporal.Instant | Temporal.ZonedDateTime | Temporal.PlainDate;
-  b: Temporal.Instant | Temporal.ZonedDateTime | Temporal.PlainDate;
-  timeZone: string;
-}
-
-export function isSameYear({ a, b, timeZone }: IsSameYearOptions) {
-  const yearA = toPlainDate({ value: a, timeZone }).withCalendar(
-    "iso8601",
-  ).year;
-  const yearB = toPlainDate({ value: b, timeZone }).withCalendar(
-    "iso8601",
-  ).year;
-
-  return yearA === yearB;
 }

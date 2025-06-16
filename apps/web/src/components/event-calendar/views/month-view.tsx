@@ -14,6 +14,8 @@ import {
   subDays,
 } from "date-fns";
 
+import { toDate } from "@repo/temporal";
+
 import {
   DraggableEvent,
   DroppableCell,
@@ -43,7 +45,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { toDate } from "@/lib/temporal";
 import { cn, groupArrayIntoChunks } from "@/lib/utils";
 import { useCalendarSettings } from "../hooks/use-calendar-settings";
 
