@@ -32,7 +32,7 @@
     "@repo/api": "workspace:*",
     "@repo/auth": "workspace:*",
     "@repo/env": "workspace:*",
-    "@simpleanalytics/next": "^1.0.1",
+    "@simpleanalytics/next": "https://pkg.pr.new/simpleanalytics/next/@simpleanalytics/next@d059322",
     "@tanstack/react-query": "^5.76.1",
     "@trpc/client": "^11.1.2",
     "@trpc/server": "^11.1.2",
