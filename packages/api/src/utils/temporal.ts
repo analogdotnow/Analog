@@ -86,11 +86,12 @@ export interface IsSameYearOptions {
 }
 
 export function isSameYear({ a, b, timeZone }: IsSameYearOptions) {
-  const yearA = toPlainDate({ value: a, timeZone })
-    .withCalendar("iso8601")
-    .year;
-  const yearB = toPlainDate({ value: b, timeZone })
-    .withCalendar("iso8601")
-    .year;
+  const yearA = toPlainDate({ value: a, timeZone }).withCalendar(
+    "iso8601",
+  ).year;
+  const yearB = toPlainDate({ value: b, timeZone }).withCalendar(
+    "iso8601",
+  ).year;
+
   return yearA === yearB;
 }
