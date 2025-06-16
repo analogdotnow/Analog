@@ -18,8 +18,18 @@ export function toMicrosoftDate(
   }
 
   if (value instanceof Temporal.Instant) {
-    // TODO: might cause issues copying events from other providers
-    throw new Error("Temporal.Instant is not supported");
+    // Microsoft Graph expects dateTime without a zone but formatted using UTC.
+    // Convert the instant to UTC first and output with seven fractional digits
+    // to match the required `{date}T{time}` format.
+    const dateTime = value
+      .toZonedDateTimeISO("UTC")
+      .toPlainDateTime()
+      .toString({ fractionalSecondDigits: 7 });
+
+    return {
+      dateTime,
+      timeZone: "UTC",
+    };
   }
 
   return {
