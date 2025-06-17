@@ -1,6 +1,7 @@
 import type {
   Calendar as MicrosoftCalendar,
   Event as MicrosoftEvent,
+  ScheduleItem,
   Attendee as MicrosoftEventAttendee,
   ResponseStatus as MicrosoftEventAttendeeResponseStatus,
 } from "@microsoft/microsoft-graph-types";
@@ -86,21 +87,22 @@ function parseDateTime(dateTime: string, timeZone: string) {
   return dt.toZonedDateTime(parseTimeZone(timeZone) ?? "UTC");
 }
 
-export function parseMicrosoftEvent(event: MicrosoftEvent): CalendarEvent {
+interface ParseMicrosoftEventOptions {
+  accountId: string;
+  calendarId: string;
+  event: MicrosoftEvent;
+}
+
+export function parseMicrosoftEvent({
+  accountId,
+  calendarId,
+  event,
+}: ParseMicrosoftEventOptions): CalendarEvent {
   const { start, end, isAllDay } = event;
 
   if (!start || !end) {
     throw new Error("Event start or end is missing");
   }
-
-  console.log(
-    start.timeZone,
-    start.timeZone ? parseTimeZone(start.timeZone) : undefined,
-    event.originalStartTimeZone,
-    event.originalStartTimeZone
-      ? parseTimeZone(event.originalStartTimeZone)
-      : undefined,
-  );
 
   return {
     id: event.id!,
@@ -119,8 +121,8 @@ export function parseMicrosoftEvent(event: MicrosoftEvent): CalendarEvent {
     url: event.webLink ?? undefined,
     color: undefined,
     providerId: "microsoft",
-    accountId: "",
-    calendarId: "",
+    accountId,
+    calendarId,
     metadata: {
       ...(event.originalStartTimeZone
         ? {
@@ -167,13 +169,21 @@ export function toMicrosoftEvent(event: CreateEventInput | UpdateEventInput) {
   };
 }
 
-export function parseMicrosoftCalendar(calendar: MicrosoftCalendar): Calendar {
+interface ParseMicrosoftCalendarOptions {
+  accountId: string;
+  calendar: MicrosoftCalendar;
+}
+
+export function parseMicrosoftCalendar({
+  accountId,
+  calendar,
+}: ParseMicrosoftCalendarOptions): Calendar {
   return {
     id: calendar.id as string,
     providerId: "microsoft",
     name: calendar.name as string,
     primary: calendar.isDefaultCalendar as boolean,
-    accountId: "",
+    accountId,
     color: calendar.hexColor as string,
   };
 }
@@ -236,5 +246,17 @@ export function parseMicrosoftAttendee(
     name: attendee.emailAddress?.name ?? undefined,
     status: parseMicrosoftAttendeeStatus(attendee.status?.response),
     type: attendee.type!,
+  };
+}
+
+export function parseScheduleItem(item: ScheduleItem) {
+  if (!item.start || !item.end) {
+    throw new Error("Schedule item start or end is missing");
+  }
+
+  return {
+    start: parseDateTime(item.start.dateTime!, item.start.timeZone!),
+    end: parseDateTime(item.end.dateTime!, item.end.timeZone!),
+    status: item.status ?? "unknown",
   };
 }

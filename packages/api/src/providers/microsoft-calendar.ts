@@ -2,6 +2,7 @@ import { Client } from "@microsoft/microsoft-graph-client";
 import type {
   Calendar as MicrosoftCalendar,
   Event as MicrosoftEvent,
+  ScheduleInformation,
 } from "@microsoft/microsoft-graph-types";
 import { Temporal } from "temporal-polyfill";
 
@@ -9,25 +10,35 @@ import { CALENDAR_DEFAULTS } from "../constants/calendar";
 import { CreateCalendarInput, UpdateCalendarInput } from "../schemas/calendars";
 import { CreateEventInput, UpdateEventInput } from "../schemas/events";
 import { assignColor } from "./colors";
-import type { Calendar, CalendarEvent, CalendarProvider } from "./interfaces";
+import type {
+  Calendar,
+  CalendarEvent,
+  CalendarFreeBusy,
+  CalendarProvider,
+} from "./interfaces";
 import {
   calendarPath,
   eventResponseStatusPath,
   parseMicrosoftCalendar,
   parseMicrosoftEvent,
+  parseScheduleItem,
+  toMicrosoftDate,
   toMicrosoftEvent,
 } from "./microsoft-calendar/utils";
 import { ProviderError } from "./utils";
 
 interface MicrosoftCalendarProviderOptions {
   accessToken: string;
+  accountId: string;
 }
 
 export class MicrosoftCalendarProvider implements CalendarProvider {
-  public providerId = "microsoft" as const;
+  public readonly providerId = "microsoft" as const;
+  public readonly accountId: string;
   private graphClient: Client;
 
-  constructor({ accessToken }: MicrosoftCalendarProviderOptions) {
+  constructor({ accessToken, accountId }: MicrosoftCalendarProviderOptions) {
+    this.accountId = accountId;
     this.graphClient = Client.initWithMiddleware({
       authProvider: {
         getAccessToken: async () => accessToken,
@@ -44,7 +55,7 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
       const data = response.value as MicrosoftCalendar[];
 
       return data.map((calendar, idx) => ({
-        ...parseMicrosoftCalendar(calendar),
+        ...parseMicrosoftCalendar({ calendar, accountId: this.accountId }),
         color: assignColor(idx),
       }));
     });
@@ -56,7 +67,10 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
         .api("/me/calendars")
         .post(calendarData)) as MicrosoftCalendar;
 
-      return parseMicrosoftCalendar(createdCalendar);
+      return parseMicrosoftCalendar({
+        calendar: createdCalendar,
+        accountId: this.accountId,
+      });
     });
   }
 
@@ -69,7 +83,10 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
         .api(calendarPath(calendarId))
         .patch(calendar)) as MicrosoftCalendar;
 
-      return parseMicrosoftCalendar(updatedCalendar);
+      return parseMicrosoftCalendar({
+        calendar: updatedCalendar,
+        accountId: this.accountId,
+      });
     });
   }
 
@@ -98,7 +115,7 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
         .get();
 
       return (response.value as MicrosoftEvent[]).map((event: MicrosoftEvent) =>
-        parseMicrosoftEvent(event),
+        parseMicrosoftEvent({ event, accountId: this.accountId, calendarId }),
       );
     });
   }
@@ -112,7 +129,11 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
         .api(calendarPath(calendarId))
         .post(toMicrosoftEvent(event))) as MicrosoftEvent;
 
-      return parseMicrosoftEvent(createdEvent);
+      return parseMicrosoftEvent({
+        event: createdEvent,
+        accountId: this.accountId,
+        calendarId,
+      });
     });
   }
 
@@ -134,7 +155,11 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
         .api(`${calendarPath(calendarId)}/events/${eventId}`)
         .patch(toMicrosoftEvent(event))) as MicrosoftEvent;
 
-      return parseMicrosoftEvent(updatedEvent);
+      return parseMicrosoftEvent({
+        event: updatedEvent,
+        accountId: this.accountId,
+        calendarId,
+      });
     });
   }
 
@@ -167,6 +192,59 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
         )
         .post({ comment: response.comment, sendResponse: true });
     });
+  }
+
+  async getSchedule(
+    schedules: string[],
+    startTime: Temporal.ZonedDateTime,
+    endTime: Temporal.ZonedDateTime,
+    availabilityViewInterval = 30,
+  ): Promise<
+    Array<{
+      scheduleId: string;
+      items: Array<{
+        start: Temporal.ZonedDateTime;
+        end: Temporal.ZonedDateTime;
+        status: string;
+      }>;
+    }>
+  > {
+    return this.withErrorHandler("getSchedule", async () => {
+      const body = {
+        schedules,
+        startTime: toMicrosoftDate({ value: startTime }),
+        endTime: toMicrosoftDate({ value: endTime }),
+        availabilityViewInterval,
+      };
+
+      const response = await this.graphClient
+        .api("/me/calendar/getSchedule")
+        .post(body);
+
+      const data = response.value as ScheduleInformation[];
+
+      return data.map((info) => ({
+        scheduleId: info.scheduleId ?? "",
+        items: info.scheduleItems?.map(parseScheduleItem) ?? [],
+      }));
+    });
+  }
+
+  async freeBusy(
+    calendars: string[],
+    timeMin: Temporal.ZonedDateTime,
+    timeMax: Temporal.ZonedDateTime,
+  ): Promise<CalendarFreeBusy[]> {
+    const schedules = await this.getSchedule(calendars, timeMin, timeMax);
+
+    return schedules.map((schedule) => ({
+      calendarId: schedule.scheduleId,
+      busy: schedule.items.map((item) => ({
+        start: item.start,
+        end: item.end,
+        status: item.status,
+      })),
+    }));
   }
 
   private async withErrorHandler<T>(
