@@ -38,6 +38,7 @@
         "@repo/api": "workspace:*",
         "@repo/auth": "workspace:*",
         "@repo/env": "workspace:*",
+        "@repo/temporal": "workspace:*",
         "@simpleanalytics/next": "https://pkg.pr.new/simpleanalytics/next/@simpleanalytics/next@d059322",
         "@tanstack/react-query": "^5.76.1",
         "@trpc/client": "^11.1.2",
@@ -87,6 +88,7 @@
         "@repo/env": "workspace:*",
         "@repo/google-calendar": "workspace:*",
         "@repo/google-tasks": "workspace:*",
+        "@repo/temporal": "workspace:*",
         "@upstash/ratelimit": "^2.0.5",
         "@upstash/redis": "^1.34.9",
         "superjson-temporal": "^0.3.1",
@@ -178,6 +180,17 @@
       "devDependencies": {
         "@repo/typescript-config": "workspace:*",
         "@types/node": "^20",
+        "typescript": "^5",
+      },
+    },
+    "packages/temporal": {
+      "name": "@repo/temporal",
+      "version": "0.1.0",
+      "devDependencies": {
+        "@repo/eslint-config": "workspace:*",
+        "@repo/typescript-config": "workspace:*",
+        "@types/node": "^20",
+        "eslint": "^9",
         "typescript": "^5",
       },
     },
@@ -565,6 +578,8 @@
     "@repo/google-calendar": ["@repo/google-calendar@workspace:packages/google-calendar"],
 
     "@repo/google-tasks": ["@repo/google-tasks@workspace:packages/google-tasks"],
+
+    "@repo/temporal": ["@repo/temporal@workspace:packages/temporal"],
 
     "@repo/typescript-config": ["@repo/typescript-config@workspace:tooling/typescript-config"],
 
