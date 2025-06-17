@@ -11,7 +11,12 @@ import {
   MicrosoftEventMetadata,
   UpdateEventInput,
 } from "../../schemas/events";
-import type { Attendee, AttendeeStatus, Calendar, CalendarEvent } from "../interfaces";
+import type {
+  Attendee,
+  AttendeeStatus,
+  Calendar,
+  CalendarEvent,
+} from "../interfaces";
 import { mapWindowsToIanaTimeZone } from "./windows-timezones";
 
 interface ToMicrosoftDateOptions {
@@ -86,21 +91,22 @@ function parseDateTime(dateTime: string, timeZone: string) {
   return dt.toZonedDateTime(parseTimeZone(timeZone) ?? "UTC");
 }
 
-export function parseMicrosoftEvent(event: MicrosoftEvent): CalendarEvent {
+interface ParseMicrosoftEventOptions {
+  accountId: string;
+  calendarId: string;
+  event: MicrosoftEvent;
+}
+
+export function parseMicrosoftEvent({
+  accountId,
+  calendarId,
+  event,
+}: ParseMicrosoftEventOptions): CalendarEvent {
   const { start, end, isAllDay } = event;
 
   if (!start || !end) {
     throw new Error("Event start or end is missing");
   }
-
-  console.log(
-    start.timeZone,
-    start.timeZone ? parseTimeZone(start.timeZone) : undefined,
-    event.originalStartTimeZone,
-    event.originalStartTimeZone
-      ? parseTimeZone(event.originalStartTimeZone)
-      : undefined,
-  );
 
   return {
     id: event.id!,
@@ -119,8 +125,8 @@ export function parseMicrosoftEvent(event: MicrosoftEvent): CalendarEvent {
     url: event.webLink ?? undefined,
     color: undefined,
     providerId: "microsoft",
-    accountId: "",
-    calendarId: "",
+    accountId,
+    calendarId,
     metadata: {
       ...(event.originalStartTimeZone
         ? {
@@ -167,13 +173,21 @@ export function toMicrosoftEvent(event: CreateEventInput | UpdateEventInput) {
   };
 }
 
-export function parseMicrosoftCalendar(calendar: MicrosoftCalendar): Calendar {
+interface ParseMicrosoftCalendarOptions {
+  accountId: string;
+  calendar: MicrosoftCalendar;
+}
+
+export function parseMicrosoftCalendar({
+  accountId,
+  calendar,
+}: ParseMicrosoftCalendarOptions): Calendar {
   return {
     id: calendar.id as string,
     providerId: "microsoft",
     name: calendar.name as string,
     primary: calendar.isDefaultCalendar as boolean,
-    accountId: "",
+    accountId,
     color: calendar.hexColor as string,
   };
 }
