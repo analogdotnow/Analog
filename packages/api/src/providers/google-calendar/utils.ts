@@ -1,13 +1,14 @@
 import { Temporal } from "temporal-polyfill";
 
 import { CreateEventInput, UpdateEventInput } from "../../schemas/events";
-import { Calendar, CalendarEvent } from "../interfaces";
+import { Calendar, CalendarEvent, CalendarFreeBusy } from "../interfaces";
 import {
   GoogleCalendarCalendarListEntry,
   GoogleCalendarDate,
   GoogleCalendarDateTime,
   GoogleCalendarEvent,
   GoogleCalendarEventCreateParams,
+  GoogleCalendarFreeBusyResponse,
 } from "./interfaces";
 
 export function toGoogleCalendarDate(
@@ -118,4 +119,20 @@ export function parseGoogleCalendarCalendarListEntry({
     accountId,
     color: entry.backgroundColor,
   };
+}
+
+export function parseGoogleCalendarFreeBusy(
+  response: GoogleCalendarFreeBusyResponse,
+): CalendarFreeBusy[] {
+  if (!response.calendars) return [];
+
+  return Object.entries(response.calendars).map(([id, data]) => ({
+    calendarId: id,
+    busy:
+      data.busy?.map((slot) => ({
+        start: Temporal.Instant.from(slot.start!).toZonedDateTimeISO("UTC"),
+        end: Temporal.Instant.from(slot.end!).toZonedDateTimeISO("UTC"),
+        status: "busy",
+      })) ?? [],
+  }));
 }

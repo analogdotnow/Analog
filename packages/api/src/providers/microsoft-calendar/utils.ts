@@ -1,6 +1,7 @@
 import type {
   Calendar as MicrosoftCalendar,
   Event as MicrosoftEvent,
+  ScheduleItem,
 } from "@microsoft/microsoft-graph-types";
 import { Temporal } from "temporal-polyfill";
 
@@ -104,4 +105,16 @@ export function calendarPath(calendarId: string) {
   return calendarId === "primary"
     ? "/me/calendar"
     : `/me/calendars/${calendarId}`;
+}
+
+export function parseScheduleItem(item: ScheduleItem) {
+  if (!item.start || !item.end) {
+    throw new Error("Schedule item start or end is missing");
+  }
+
+  return {
+    start: parseDateTime(item.start.dateTime!, item.start.timeZone!),
+    end: parseDateTime(item.end.dateTime!, item.end.timeZone!),
+    status: item.status ?? "unknown",
+  };
 }
