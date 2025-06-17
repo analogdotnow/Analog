@@ -49,7 +49,17 @@ function parseDateTime(dateTime: string, timeZone: string) {
   return instant.toZonedDateTimeISO(timeZone);
 }
 
-export function parseMicrosoftEvent(event: MicrosoftEvent): CalendarEvent {
+interface ParseMicrosoftEventOptions {
+  accountId: string;
+  calendarId: string;
+  event: MicrosoftEvent;
+}
+
+export function parseMicrosoftEvent({
+  accountId,
+  calendarId,
+  event,
+}: ParseMicrosoftEventOptions): CalendarEvent {
   const { start, end, isAllDay } = event;
 
   if (!start || !end || !isAllDay) {
@@ -72,8 +82,8 @@ export function parseMicrosoftEvent(event: MicrosoftEvent): CalendarEvent {
     url: event.webLink || undefined,
     color: undefined,
     providerId: "microsoft",
-    accountId: "",
-    calendarId: "",
+    accountId,
+    calendarId,
   };
 }
 
@@ -90,13 +100,21 @@ export function toMicrosoftEvent(event: CreateEventInput | UpdateEventInput) {
   };
 }
 
-export function parseMicrosoftCalendar(calendar: MicrosoftCalendar): Calendar {
+interface ParseMicrosoftCalendarOptions {
+  accountId: string;
+  calendar: MicrosoftCalendar;
+}
+
+export function parseMicrosoftCalendar({
+  accountId,
+  calendar,
+}: ParseMicrosoftCalendarOptions): Calendar {
   return {
     id: calendar.id as string,
     providerId: "microsoft",
     name: calendar.name as string,
     primary: calendar.isDefaultCalendar as boolean,
-    accountId: "",
+    accountId,
     color: calendar.hexColor as string,
   };
 }
