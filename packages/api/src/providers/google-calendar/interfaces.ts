@@ -13,6 +13,14 @@ export type GoogleCalendarEventCreateParams =
 export type GoogleCalendarEventUpdateParams =
   GoogleCalendar.Calendars.Events.EventUpdateParams;
 
+export type GoogleCalendarFreeBusyResponse =
+  GoogleCalendar.CheckFreeBusyCheckFreeBusyResponse;
+
+export type GoogleCalendarFreeBusyResponseCalendars =
+  GoogleCalendar.CheckFreeBusyCheckFreeBusyResponse.Calendars;
+export type GoogleCalendarFreeBusySlot =
+  GoogleCalendar.CheckFreeBusyCheckFreeBusyResponse.Calendars.Busy;
+
 export interface GoogleCalendarDate {
   date: string;
 }
