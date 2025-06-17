@@ -77,10 +77,6 @@ The application should now be accessible in your browser, typically at `http://l
 - **Database**: Drizzle with PostgreSQL
 - **Authentication**: Better Auth for Google OAuth
 
-## Features
-
-WIP.
-
 ## Roadmap
 
 WIP.
