@@ -6,7 +6,7 @@ import { auth } from "@repo/auth/server";
 import { user } from "@repo/db/schema";
 
 import { createTRPCRouter, protectedProcedure } from "../trpc";
-import { getAccounts, getActiveAccount } from "../utils/accounts";
+import { getAccounts, getDefaultAccount } from "../utils/accounts";
 
 export const accountsRouter = createTRPCRouter({
   list: protectedProcedure.query(async ({ ctx }) => {
@@ -44,7 +44,7 @@ export const accountsRouter = createTRPCRouter({
         .where(eq(user.id, ctx.user.id));
     }),
   getDefault: protectedProcedure.query(async ({ ctx }) => {
-    const account = await getActiveAccount(ctx.user, ctx.headers);
+    const account = await getDefaultAccount(ctx.user, ctx.headers);
 
     return {
       account: {
@@ -66,6 +66,10 @@ export const accountsRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      const defaultAccount = await getDefaultAccount(ctx.user, ctx.headers);
+
+      const isDefaultAccount = defaultAccount.id === input.id;
+
       await auth.api.unlinkAccount({
         body: {
           accountId: input.id,
@@ -74,13 +78,18 @@ export const accountsRouter = createTRPCRouter({
         headers: ctx.headers,
       });
 
-      const activeAccount = await getActiveAccount(ctx.user, ctx.headers);
-
-      if (activeAccount.id === input.id) {
-        await ctx.db
-          .update(user)
-          .set({ defaultAccountId: null })
-          .where(eq(user.id, ctx.user.id));
+      if (!isDefaultAccount) {
+        return;
       }
+
+      const nextAccount = await ctx.db.query.account.findFirst({
+        where: (table, { eq }) => eq(table.userId, ctx.user.id),
+      });
+
+      // TODO: set default calendar
+      await ctx.db
+        .update(user)
+        .set({ defaultAccountId: nextAccount!.id })
+        .where(eq(user.id, ctx.user.id));
     }),
 });
