@@ -23,13 +23,13 @@ Thank you for your interest in contributing to Analog! We aim to make the contri
 
 2. **Set up your development environment**
 
-```bash
+ ```bash
  # Install dependencies
- bun i
+ bun install
 
  # Copy environment variables template
  cp .env.example .env
-```
+ ```
 
 3. **Configure environment variables**
 
