@@ -4,8 +4,9 @@ import { useEffect, useMemo, useRef } from "react";
 import { format, isSameDay } from "date-fns";
 import { XIcon } from "lucide-react";
 
+import { toDate } from "@repo/temporal";
+
 import { EventItem, type CalendarEvent } from "@/components/event-calendar";
-import { toDate } from "@/lib/temporal";
 
 interface EventsPopupProps {
   date: Date;
