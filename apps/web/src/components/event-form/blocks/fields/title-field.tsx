@@ -95,7 +95,7 @@ const TitleField = ({
             aria-invalid={!isFieldValid}
             onFocus={() => setFocused(true)}
             className={cn(
-              "h-auto w-full border-none bg-transparent py-0 pr-12 pl-4 text-lg leading-tight shadow-none focus:outline-hidden focus-visible:ring-0 aria-invalid:text-destructive aria-invalid:placeholder:text-destructive/50",
+              "h-auto w-full border-none bg-transparent py-0 pr-12 pl-1.5 text-lg leading-tight shadow-none focus:outline-hidden focus-visible:ring-0 aria-invalid:text-destructive aria-invalid:placeholder:text-destructive/50",
               isFormValid && "pr-4",
             )}
           />

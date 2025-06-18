@@ -69,7 +69,7 @@ const TimeGroup = withForm({
               duration: 0.3,
             }}
           >
-            <section className="flex flex-col gap-y-2.5 border-b border-muted-foreground/10 pr-4 pb-2.5 pl-3.5">
+            <section className="-ml-0.5 flex flex-col gap-y-2.5 border-b border-muted-foreground/10 pb-2.5">
               <div className="grid grid-cols-[1fr_auto_1fr] pl-0.5">
                 <div className="flex items-center">
                   <Clock

@@ -8,7 +8,7 @@ const LocationField = () => {
   const field = useFieldContext<string>();
 
   return (
-    <div className="flex items-center gap-x-3 px-4">
+    <div className="flex items-center gap-x-3">
       <MapPin className="size-4 shrink-0 text-muted-foreground/80" />
       <Label htmlFor="location" className="sr-only">
         Location
@@ -18,7 +18,7 @@ const LocationField = () => {
         type="text"
         placeholder="Add location..."
         aria-invalid={field.state.meta.isValid === false}
-        className="peer h-6 rounded-none border-none p-0.5 shadow-none focus-visible:ring-0 aria-invalid:text-destructive"
+        className="peer h-6 rounded-none border-none bg-transparent! p-0.5 shadow-none focus-visible:ring-0 aria-invalid:text-destructive"
         value={field.state.value ?? ""}
         onChange={(e) => field.handleChange(e.target.value)}
       />

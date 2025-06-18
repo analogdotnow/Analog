@@ -105,7 +105,7 @@ export function TimezoneSelect({
             role="combobox"
             aria-expanded={open}
             className={cn(
-              "w-full justify-between border-input bg-background/40 px-3 font-normal outline-offset-0 outline-none select-none hover:bg-accent focus-visible:outline-[3px]",
+              "w-full justify-between border-input bg-background/40! px-3 font-normal outline-offset-0 outline-none select-none hover:bg-accent focus-visible:outline-[3px]",
               className,
             )}
           >

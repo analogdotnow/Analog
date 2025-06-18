@@ -12,7 +12,7 @@ const DescriptionField = ({ maxLength = 200 }: { maxLength?: number }) => {
   const textareaRef = useAutoResizeTextarea(120);
 
   return (
-    <div className="flex gap-x-3 px-4">
+    <div className="flex gap-x-3">
       <MessageSquare className="mt-1 size-4 shrink-0 text-muted-foreground/80" />
       <Label htmlFor={id} className="hidden">
         Event description

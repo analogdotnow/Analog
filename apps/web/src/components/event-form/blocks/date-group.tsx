@@ -66,7 +66,7 @@ const DateGroup = withForm({
     }, [startField.state.value, endField.state.value, repeats]);
 
     return (
-      <div className="flex flex-col pr-4 pl-3.5">
+      <div className="-ml-0.5 flex flex-col">
         {repeats ? (
           <DateRangeInput
             range={range as DateRange}

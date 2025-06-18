@@ -2,34 +2,15 @@ import { useState } from "react";
 import { useUpdateEffect } from "@react-hookz/web";
 import { Users } from "lucide-react";
 
-import { withForm } from "@/components/event-form/hooks/form";
 import { AsyncSelect } from "@/components/ui/async-select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { Participant } from "@/lib/schemas/event-form/participants";
 import { cn } from "@/lib/utils";
-import { defaultFormOptions } from "../support/form-defaults";
 import {
   getUsersFromParticipants,
   searchUsers,
   type User,
 } from "../support/users";
-
-const ParticipantsField = withForm({
-  ...defaultFormOptions,
-  render: ({ form }) => {
-    return (
-      <form.Field name="selectedParticipants">
-        {(field) => (
-          <Participants
-            value={field.state.value}
-            onChange={field.handleChange}
-            isInvalid={field.state.meta.isValid === false}
-          />
-        )}
-      </form.Field>
-    );
-  },
-});
 
 interface ParticipantsFieldProps {
   value: Participant[];
@@ -58,7 +39,7 @@ const Participants = ({
   }, [value]);
 
   return (
-    <div className="flex items-center gap-x-3 px-4">
+    <div className="flex items-center gap-x-3">
       <Users className="size-4 text-muted-foreground/80" />
       <div className="flex-1">
         <AsyncSelect<User>
@@ -66,7 +47,7 @@ const Participants = ({
           placeholder="No participants"
           searchPlaceholder="Search users or enter email..."
           noResultsMessage="No users found"
-          triggerClassName="shadow-none border-none bg-transparent hover:bg-transparent h-6 p-0.5 aria-invalid:text-destructive"
+          triggerClassName="shadow-none border-none bg-transparent! hover:bg-transparent h-6 p-0.5! aria-invalid:text-destructive"
           getDisplayValue={SelectedParticipants}
           renderOption={ParticipantOption}
           getOptionValue={(user) => user.id}
@@ -145,4 +126,4 @@ function SelectedParticipants(participants: User[]) {
   );
 }
 
-export default ParticipantsField;
+export default Participants;

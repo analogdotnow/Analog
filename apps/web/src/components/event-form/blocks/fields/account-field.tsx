@@ -23,7 +23,7 @@ const SelectedAccount = () => {
   const field = useFieldContext<string>();
 
   return (
-    <div className="px-4">
+    <>
       <Label htmlFor="selected-account" className="sr-only">
         Selected Account
       </Label>
@@ -31,7 +31,7 @@ const SelectedAccount = () => {
         <SelectTrigger
           id="selected-account"
           aria-invalid={field.state.meta.isValid === false}
-          className="h-7 border-none p-0 shadow-none *:data-[slot=select-value]:gap-2.5 [&>span]:flex [&>span]:items-center [&>span]:gap-2 [&>span_img]:shrink-0"
+          className="h-7 border-none! bg-transparent! px-1 shadow-none *:data-[slot=select-value]:gap-2.5 [&>span]:flex [&>span]:items-center [&>span]:gap-2 [&>span_img]:shrink-0"
         >
           <SelectValue placeholder="Select account" />
         </SelectTrigger>
@@ -42,7 +42,7 @@ const SelectedAccount = () => {
               return (
                 <SelectItem value={account.email} key={account.email}>
                   <Avatar
-                    className="bg-calendar-accent text-calendar-foreground size-5 rounded"
+                    className="size-5 rounded bg-calendar-accent text-calendar-foreground"
                     style={
                       {
                         "--calendar-tint": `var(--calendar-${account.color})`,
@@ -65,7 +65,7 @@ const SelectedAccount = () => {
           </SelectGroup>
         </SelectContent>
       </Select>
-    </div>
+    </>
   );
 };
 

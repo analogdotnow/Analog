@@ -1,15 +1,13 @@
+"use client";
+
 import { useCallback, type KeyboardEvent } from "react";
 import { useMeasure, useUpdateEffect } from "@react-hookz/web";
+import { Video } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { eventFormSchemaWithRepeats } from "@/lib/schemas/event-form/form";
-import {
-  DateGroup,
-  Participants,
-  TimeGroup,
-  ToggleGroup,
-  VideoConferencingButton,
-} from "./blocks";
+import { DateGroup, Participants, TimeGroup, ToggleGroup } from "./blocks";
 import { ErrorsPopover } from "./errors-popover";
 import { useAppForm } from "./hooks/form";
 import { useAiInput } from "./hooks/use-ai-input";
@@ -70,11 +68,8 @@ const EventForm = () => {
           />
         )}
       </form.AppField>
-      <div
-        className="relative rounded-lg border border-border bg-primary-foreground shadow-md dark:shadow-accent/40"
-        ref={ref}
-      >
-        <div className="pt-3.5 pb-4">
+      <div className="relative mb-3 rounded-lg bg-primary-foreground" ref={ref}>
+        <div className="px-4 pt-3.5 pb-4">
           <TimeGroup form={form} />
           <div className="flex flex-col gap-y-2.5">
             <DateGroup form={form} />
@@ -83,21 +78,27 @@ const EventForm = () => {
               {(field) => <field.DescriptionField maxLength={400} />}
             </form.AppField>
             <Separator className="bg-muted-foreground/10" />
-            <Participants form={form} />
+            <form.Field name="selectedParticipants">
+              {(field) => (
+                <Participants
+                  value={field.state.value}
+                  onChange={field.handleChange}
+                  isInvalid={field.state.meta.isValid === false}
+                />
+              )}
+            </form.Field>
             <Separator className="bg-muted-foreground/10" />
             <form.AppField name="location">
               {(field) => <field.LocationField />}
             </form.AppField>
             <Separator className="bg-muted-foreground/10" />
-            <VideoConferencingButton />
-            <Separator className="bg-muted-foreground/10" />
-            <form.AppField name="account">
-              {(field) => <field.SelectedAccountField />}
-            </form.AppField>
-            <Separator className="bg-muted-foreground/10" />
-            <form.AppForm>
-              <form.SubmitButton className="mx-auto w-[calc(100%-1.9rem)] dark:w-[calc(100%-2rem)]" />
-            </form.AppForm>
+            <Button
+              variant="secondary"
+              type="button"
+              className="h-7 w-full bg-input/70 text-[0.8rem] text-muted-foreground shadow-none select-none hover:bg-input/40"
+            >
+              <Video /> Link Video Conferencing
+            </Button>
           </div>
           <form.Subscribe selector={(state) => state.errorMap}>
             {(errors) =>
@@ -115,6 +116,12 @@ const EventForm = () => {
           </form.Subscribe>
         </div>
       </div>
+      <form.AppForm>
+        <form.SubmitButton className="mx-0.5 mb-4 w-full rounded-lg dark:w-[calc(100%-0.25rem)]" />
+      </form.AppForm>
+      <form.AppField name="account">
+        {(field) => <field.SelectedAccountField />}
+      </form.AppField>
     </form>
   );
 };

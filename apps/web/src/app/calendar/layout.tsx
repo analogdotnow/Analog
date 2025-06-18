@@ -13,13 +13,13 @@ export default function Layout({
 }: Readonly<{ children: ReactNode }>) {
   return (
     <CalendarProvider>
-      <SidebarProvider>
+      <SidebarProvider defaultWidthRight="21.5rem">
         <AppHotkeyProvider>
           <AppSidebar variant="inset" side="left" />
           <SidebarInset className="h-full overflow-hidden">
             {children}
           </SidebarInset>
-          {/* <RightSidebar variant="inset" side="right" /> */}
+          <RightSidebar variant="inset" side="right" />
         </AppHotkeyProvider>
       </SidebarProvider>
     </CalendarProvider>

@@ -231,6 +231,7 @@ function SidebarProvider({
       right: rightState,
       isMobile,
     }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       leftState.state,
       leftState.open,
