@@ -43,7 +43,7 @@ const TitleField = ({
       </Label>
       <motion.div
         className={cn(
-          "absolute -left-px z-30 w-[calc(100%+2px)] rounded-2xl bg-muted/0 transition-colors duration-300",
+          "absolute -left-[2px] z-30 w-[calc(100%+4px)] rounded-2xl bg-muted/0 transition-colors duration-300",
           expanded && "z-[100] bg-analog-neutral/90 dark:bg-muted/95",
         )}
         custom={{ expanded, aiEnabled }}
