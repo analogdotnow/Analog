@@ -13,7 +13,7 @@ export default function Layout({
 }: Readonly<{ children: ReactNode }>) {
   return (
     <CalendarProvider>
-      <SidebarProvider defaultWidthRight="21.5rem">
+      <SidebarProvider defaultWidthRight="21.5rem" defaultOpenRight={false}>
         <AppHotkeyProvider>
           <AppSidebar variant="inset" side="left" />
           <SidebarInset className="h-full overflow-hidden">
