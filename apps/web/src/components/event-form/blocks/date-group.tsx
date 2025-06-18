@@ -239,7 +239,7 @@ function WithPopover({ children }: { children: React.ReactNode }) {
   return (
     <Popover
       offset={5}
-      crossOffset={13}
+      crossOffset={11}
       className="z-50 rounded-md border border-input bg-popover text-popover-foreground shadow-lg outline-hidden data-entering:animate-in data-exiting:animate-out data-[entering]:fade-in-0 data-[entering]:zoom-in-95 data-[exiting]:fade-out-0 data-[exiting]:zoom-out-95 data-[placement=bottom]:slide-in-from-top-2 data-[placement=left]:slide-in-from-right-2 data-[placement=right]:slide-in-from-left-2 data-[placement=top]:slide-in-from-bottom-2"
     >
       <Dialog className="max-h-[inherit] overflow-auto p-2">{children}</Dialog>
