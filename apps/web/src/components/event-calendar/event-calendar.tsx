@@ -3,6 +3,7 @@
 import { useEffect, useMemo } from "react";
 import { Plus } from "lucide-react";
 import { useHotkeysContext } from "react-hotkeys-hook";
+import { toast } from "sonner";
 
 import {
   CalendarDndProvider,
@@ -108,7 +109,11 @@ export function EventCalendar({
           <CalendarContent
             events={filteredEvents}
             onEventSelect={handleEventSelect}
-            onEventCreate={() => alert("event form is not wired up yet!")}
+            onEventCreate={() =>
+              toast.error("Event form is not wired up yet!", {
+                closeButton: false,
+              })
+            }
           />
         </div>
 
@@ -126,7 +131,7 @@ export function EventCalendar({
         data-side="right"
         size="icon"
         className={cn(
-          "group/sidebar-trigger absolute right-5 bottom-4 size-12 rounded-lg border border-border/50 bg-background text-foreground/50 shadow-md transition-all duration-300 hover:scale-[102%] hover:bg-background/70 hover:text-foreground/70 hover:shadow-lg",
+          "group/sidebar-trigger absolute right-5 bottom-5 size-12 rounded-lg border border-border/50 bg-background text-foreground/50 shadow-md transition-all duration-300 hover:scale-[104%] hover:bg-background/70 hover:text-foreground/70 hover:shadow-lg dark:border-border/70 dark:bg-muted dark:text-foreground/80 dark:hover:brightness-110",
           className,
         )}
         onClick={() => toggleRightSidebar()}
