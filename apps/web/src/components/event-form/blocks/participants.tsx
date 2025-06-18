@@ -55,6 +55,12 @@ const Participants = ({
           onChange={handleChange}
           fetcher={searchUsers}
           isInvalid={isInvalid}
+          popoverContentProps={{
+            align: "end",
+            alignOffset: 2,
+            side: "bottom",
+            sideOffset: 6,
+          }}
           multiple
         />
       </div>

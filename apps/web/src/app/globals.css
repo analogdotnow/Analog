@@ -20,6 +20,7 @@
   --accent: var(--color-neutral-100);
   --accent-foreground: var(--color-neutral-900);
   --destructive: var(--color-red-600);
+  --destructive-foreground: var(--color-red-500);
   --border: var(--color-neutral-200);
   --input: var(--color-neutral-200);
   --ring: var(--color-neutral-400);
@@ -39,6 +40,7 @@
   --sidebar-ring: var(--color-neutral-400);
   --avatar-gradient-top: var(--color-zinc-200);
   --avatar-gradient-bottom: var(--color-zinc-100);
+  --analog-neutral: oklch(0.945 0 0);
   --calendar-red: #fb2c36;
   --calendar-orange: #ff6900;
   --calendar-yellow: #f0b100;
@@ -171,6 +173,7 @@
     var(--background),
     var(--calendar-color) 40%
   );
+  --color-analog-neutral: var(--analog-neutral);
   --color-calendar-red: var(--calendar-red);
   --color-calendar-orange: var(--calendar-orange);
   --color-calendar-yellow: var(--calendar-yellow);

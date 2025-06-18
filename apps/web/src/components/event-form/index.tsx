@@ -68,8 +68,11 @@ const EventForm = () => {
           />
         )}
       </form.AppField>
-      <div className="relative mb-3 rounded-lg bg-primary-foreground" ref={ref}>
-        <div className="px-4 pt-3.5 pb-4">
+      <div
+        className="relative mb-2.5 rounded-lg border border-border/70 bg-background dark:border-0"
+        ref={ref}
+      >
+        <div className="px-4 pt-3 pb-4">
           <TimeGroup form={form} />
           <div className="flex flex-col gap-y-2.5">
             <DateGroup form={form} />
@@ -104,11 +107,11 @@ const EventForm = () => {
             {(errors) =>
               errors.onChange && (
                 <ErrorsPopover
-                  className="absolute -top-3 right-3 z-30 -translate-y-full"
+                  className="absolute -top-3 right-1 z-30 -translate-y-full"
                   side="bottom"
                   sideOffset={5}
                   align="end"
-                  alignOffset={-14}
+                  alignOffset={-6}
                   errors={errors.onChange}
                 />
               )
@@ -117,7 +120,7 @@ const EventForm = () => {
         </div>
       </div>
       <form.AppForm>
-        <form.SubmitButton className="mx-0.5 mb-4 w-full rounded-lg dark:w-[calc(100%-0.25rem)]" />
+        <form.SubmitButton className="mb-2.5 w-full rounded-lg dark:mx-0.5 dark:w-[calc(100%-0.25rem)]" />
       </form.AppForm>
       <form.AppField name="account">
         {(field) => <field.SelectedAccountField />}

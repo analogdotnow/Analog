@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import type { PopoverContentProps } from "@radix-ui/react-popover";
 import { useDebouncedEffect, useMap, useMountEffect } from "@react-hookz/web";
 import { Check, ChevronDown, Loader2 } from "lucide-react";
 
@@ -69,6 +70,8 @@ export interface AsyncSelectProps<T> {
   multiple?: boolean;
   /** Failed validation state */
   isInvalid?: boolean;
+  /** Custom popover content props */
+  popoverContentProps?: PopoverContentProps;
 }
 
 export function AsyncSelect<T>({
@@ -92,6 +95,7 @@ export function AsyncSelect<T>({
   clearable = true,
   multiple = false,
   isInvalid = false,
+  popoverContentProps,
 }: AsyncSelectProps<T>) {
   const [open, setOpen] = useState(false);
   const [options, setOptions] = useState<T[]>([]);
@@ -217,13 +221,7 @@ export function AsyncSelect<T>({
           />
         </Button>
       </PopoverTrigger>
-      <PopoverContent
-        className={cn("p-0", className)}
-        align="end"
-        alignOffset={-1}
-        side="bottom"
-        sideOffset={6}
-      >
+      <PopoverContent className={cn("p-0", className)} {...popoverContentProps}>
         <Command className="[&_div[cmdk-input-wrapper]]:px-3">
           <div className="relative">
             <CommandInput

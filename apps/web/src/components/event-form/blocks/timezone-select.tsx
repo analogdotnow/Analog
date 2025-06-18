@@ -123,6 +123,8 @@ export function TimezoneSelect({
           className="w-72 min-w-[var(--radix-popper-anchor-width)] border-input p-0"
           align="end"
           side="bottom"
+          sideOffset={10}
+          alignOffset={3}
         >
           <Command filter={filterFn}>
             <CommandInput

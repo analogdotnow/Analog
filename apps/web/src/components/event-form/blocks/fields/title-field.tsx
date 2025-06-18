@@ -43,8 +43,8 @@ const TitleField = ({
       </Label>
       <motion.div
         className={cn(
-          "absolute z-30 w-full rounded-2xl bg-muted/0 transition-colors duration-300",
-          expanded && "bg-analog-neutral/90 z-[100] dark:bg-muted/95",
+          "absolute -left-px z-30 w-[calc(100%+2px)] rounded-2xl bg-muted/0 transition-colors duration-300",
+          expanded && "z-[100] bg-analog-neutral/90 dark:bg-muted/95",
         )}
         custom={{ expanded, aiEnabled }}
         {...fieldMotionConfig}
@@ -79,7 +79,7 @@ const TitleField = ({
             value={field.state.value}
             onChange={(e) => field.handleChange(e.target.value)}
             onBlur={() => !isLoading && setFocused(false)}
-            className="relative scrollbar-hidden field-sizing-content h-full max-h-40 min-h-0 resize-none border-none bg-transparent px-4 pt-0.5 text-lg leading-tight shadow-none focus:outline-hidden focus-visible:ring-0"
+            className="relative scrollbar-hidden field-sizing-content h-full max-h-40 min-h-0 resize-none rounded-none border-none bg-transparent pt-0.5 pr-4 pl-0 text-lg leading-tight shadow-none focus:outline-hidden focus-visible:ring-0"
           />
         ) : (
           <Input
@@ -95,8 +95,8 @@ const TitleField = ({
             aria-invalid={!isFieldValid}
             onFocus={() => setFocused(true)}
             className={cn(
-              "h-auto w-full border-none bg-transparent py-0 pr-12 pl-1.5 text-lg leading-tight shadow-none focus:outline-hidden focus-visible:ring-0 aria-invalid:text-destructive aria-invalid:placeholder:text-destructive/50",
-              isFormValid && "pr-4",
+              "h-auto w-full rounded-none border-none bg-transparent py-0 pr-12 pl-0 text-lg leading-tight shadow-none focus:outline-hidden focus-visible:ring-0 aria-invalid:text-destructive aria-invalid:placeholder:text-destructive/50",
+              isFormValid && "pr-1.5",
             )}
           />
         )}
@@ -146,7 +146,7 @@ function AiInputHint({
       )}
       {...props}
     >
-      <kbd className="ms-1 -me-1 inline-flex h-5 max-h-full items-center rounded-md border bg-transparent px-1.5 font-[inherit] text-[0.8rem] font-medium text-muted-foreground/70">
+      <kbd className="ms-1 -me-1 inline-flex h-5 max-h-full items-center rounded-md border border-ring/30 bg-transparent px-1.5 font-[inherit] text-[0.8rem] font-medium text-muted-foreground/70 dark:border-border">
         ⌘↵
       </kbd>
       <SparklesIcon className="size-3.5 text-muted-foreground/70" />
@@ -160,14 +160,17 @@ const fieldMotionConfig: MotionProps = {
       y: 0,
       scale: 1,
       height: "100%",
-      paddingTop: "0.25rem",
+      paddingTop: "0.4rem",
+      paddingBottom: "0.5rem",
+      paddingLeft: "0.375rem",
     },
     main: ({ expanded, aiEnabled }) => ({
-      y: expanded ? "2.5rem" : 0,
-      scale: expanded ? 1.05 : 1,
+      y: expanded ? "0.1rem" : 0,
+      scaleY: expanded ? 1.05 : 1,
       height: expanded ? "400%" : "100%",
-      paddingTop: expanded ? "1rem" : "0.25rem",
+      paddingTop: expanded ? "1rem" : "0.4rem",
       paddingBottom: expanded && aiEnabled ? "2rem" : "0.5rem",
+      paddingLeft: expanded ? "1rem" : "0.375rem",
     }),
   },
   initial: "base",
