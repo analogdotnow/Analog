@@ -38,7 +38,8 @@
         "@repo/api": "workspace:*",
         "@repo/auth": "workspace:*",
         "@repo/env": "workspace:*",
-        "@simpleanalytics/next": "^1.0.1",
+        "@repo/temporal": "workspace:*",
+        "@simpleanalytics/next": "https://pkg.pr.new/simpleanalytics/next/@simpleanalytics/next@d059322",
         "@tanstack/react-query": "^5.76.1",
         "@trpc/client": "^11.1.2",
         "@trpc/server": "^11.1.2",
@@ -87,6 +88,7 @@
         "@repo/env": "workspace:*",
         "@repo/google-calendar": "workspace:*",
         "@repo/google-tasks": "workspace:*",
+        "@repo/temporal": "workspace:*",
         "@upstash/ratelimit": "^2.0.5",
         "@upstash/redis": "^1.34.9",
         "superjson-temporal": "^0.3.1",
@@ -180,6 +182,17 @@
       "devDependencies": {
         "@repo/typescript-config": "workspace:*",
         "@types/node": "^20",
+        "typescript": "^5",
+      },
+    },
+    "packages/temporal": {
+      "name": "@repo/temporal",
+      "version": "0.1.0",
+      "devDependencies": {
+        "@repo/eslint-config": "workspace:*",
+        "@repo/typescript-config": "workspace:*",
+        "@types/node": "^20",
+        "eslint": "^9",
         "typescript": "^5",
       },
     },
@@ -564,6 +577,8 @@
 
     "@repo/google-tasks": ["@repo/google-tasks@workspace:packages/google-tasks"],
 
+    "@repo/temporal": ["@repo/temporal@workspace:packages/temporal"],
+
     "@repo/typescript-config": ["@repo/typescript-config@workspace:tooling/typescript-config"],
 
     "@repo/web": ["@repo/web@workspace:apps/web"],
@@ -572,7 +587,7 @@
 
     "@rushstack/eslint-patch": ["@rushstack/eslint-patch@1.11.0", "", {}, "sha512-zxnHvoMQVqewTJr/W4pKjF0bMGiKJv1WX7bSrkl46Hg0QjESbzBROWK0Wg4RphzSOS5Jiy7eFimmM3UgMrMZbQ=="],
 
-    "@simpleanalytics/next": ["@simpleanalytics/next@1.0.1", "", { "dependencies": { "server-only": "^0.0.1" }, "peerDependencies": { "next": ">= 13", "react": "^18 || ^19" }, "optionalPeers": ["next", "react"] }, "sha512-CvHuVrHjD5EtTiwMAbJKv2YpzKdc8EN6S1mel1syrNWctdbkcF0hkUk2h4yXsCeXYLBZv63Oyc3UW1CtqdMjmA=="],
+    "@simpleanalytics/next": ["@simpleanalytics/next@https://pkg.pr.new/simpleanalytics/next/@simpleanalytics/next@d059322", { "dependencies": { "server-only": "^0.0.1" }, "peerDependencies": { "next": ">= 13", "react": "^18 || ^19" }, "optionalPeers": ["next", "react"] }],
 
     "@simplewebauthn/browser": ["@simplewebauthn/browser@13.1.0", "", {}, "sha512-WuHZ/PYvyPJ9nxSzgHtOEjogBhwJfC8xzYkPC+rR/+8chl/ft4ngjiK8kSU5HtRJfczupyOh33b25TjYbvwAcg=="],
 

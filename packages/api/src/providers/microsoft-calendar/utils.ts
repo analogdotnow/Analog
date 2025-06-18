@@ -18,8 +18,18 @@ export function toMicrosoftDate(
   }
 
   if (value instanceof Temporal.Instant) {
-    // TODO: might cause issues copying events from other providers
-    throw new Error("Temporal.Instant is not supported");
+    // Microsoft Graph expects dateTime without a zone but formatted using UTC.
+    // Convert the instant to UTC first and output with seven fractional digits
+    // to match the required `{date}T{time}` format.
+    const dateTime = value
+      .toZonedDateTimeISO("UTC")
+      .toPlainDateTime()
+      .toString({ fractionalSecondDigits: 7 });
+
+    return {
+      dateTime,
+      timeZone: "UTC",
+    };
   }
 
   return {
@@ -33,15 +43,15 @@ function parseDate(date: string) {
 }
 
 function parseDateTime(dateTime: string, timeZone: string) {
-  const instant = Temporal.Instant.from(dateTime);
+  const dt = Temporal.PlainDateTime.from(dateTime);
 
-  return instant.toZonedDateTimeISO(timeZone);
+  return dt.toZonedDateTime(timeZone);
 }
 
 export function parseMicrosoftEvent(event: MicrosoftEvent): CalendarEvent {
   const { start, end, isAllDay } = event;
 
-  if (!start || !end || !isAllDay) {
+  if (!start || !end) {
     throw new Error("Event start or end is missing");
   }
 
@@ -55,7 +65,7 @@ export function parseMicrosoftEvent(event: MicrosoftEvent): CalendarEvent {
     end: isAllDay
       ? parseDate(end.dateTime!)
       : parseDateTime(end.dateTime!, end.timeZone!),
-    allDay: isAllDay,
+    allDay: isAllDay ?? false,
     location: event.location?.displayName ?? undefined,
     status: event.showAs || undefined,
     url: event.webLink || undefined,

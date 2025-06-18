@@ -13,6 +13,8 @@ import {
   startOfDay,
 } from "date-fns";
 
+import { toDate } from "@repo/temporal";
+
 import {
   DraggableEvent,
   DroppableCell,
@@ -23,7 +25,6 @@ import {
 import { EndHour, StartHour } from "@/components/event-calendar/constants";
 import { useCurrentTimeIndicator } from "@/components/event-calendar/hooks";
 import { isMultiDayEvent } from "@/components/event-calendar/utils";
-import { toDate } from "@/lib/temporal";
 import { cn } from "@/lib/utils";
 import { useCalendarSettings } from "../hooks/use-calendar-settings";
 

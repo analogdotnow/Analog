@@ -1,17 +1,13 @@
 "use client";
 
 import { useMemo } from "react";
-import {
-  useInfiniteQuery,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Temporal } from "temporal-polyfill";
 
+import { compareTemporal, toInstant } from "@repo/temporal";
+
 import { EventCalendar, type CalendarEvent } from "@/components/event-calendar";
-import { compareTemporal, toInstant } from "@/lib/temporal";
 import { RouterOutputs } from "@/lib/trpc";
 import { useTRPC } from "@/lib/trpc/client";
 import { useCalendarSettings } from "./event-calendar/hooks/use-calendar-settings";

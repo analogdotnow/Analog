@@ -8,7 +8,8 @@ import {
   startOfDay,
 } from "date-fns";
 
-import { toDate } from "@/lib/temporal";
+import { toDate } from "@repo/temporal";
+
 import type { CalendarEvent } from "../types";
 
 // ============================================================================

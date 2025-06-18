@@ -7,6 +7,8 @@ import { format, isBefore } from "date-fns";
 import { toast } from "sonner";
 import { Temporal } from "temporal-polyfill";
 
+import { toDate } from "@repo/temporal";
+
 import type { CalendarEvent } from "@/components/event-calendar";
 import {
   DefaultEndHour,
@@ -41,7 +43,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { toDate } from "@/lib/temporal";
 import { useTRPC } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
 import { useCalendarSettings } from "./hooks/use-calendar-settings";

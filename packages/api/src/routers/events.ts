@@ -3,14 +3,14 @@ import { Temporal } from "temporal-polyfill";
 import { zZonedDateTimeInstance } from "temporal-zod";
 import { z } from "zod";
 
-import { notificationProvider } from "../providers/notification";
+import { formatToNormalizedDate, toInstant } from "@repo/temporal";
+
 import {
   createEventInputSchema,
   updateEventInputSchema,
 } from "../schemas/events";
 import { notificationCreateRequest } from "../schemas/notification";
 import { calendarProcedure, createTRPCRouter } from "../trpc";
-import { formatToNormalizedDate, toInstant } from "../utils/temporal";
 
 export const eventsRouter = createTRPCRouter({
   list: calendarProcedure

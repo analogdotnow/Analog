@@ -21,19 +21,22 @@ Thank you for your interest in contributing to Analog! We aim to make the contri
      git remote add upstream https://github.com/jeanmeijer/analog.git
      ```
 
-2. **Set up your development environment**
+2. **Install dependencies**:
 
-```bash
- # Install dependencies
- bun i
+   ```bash
+   bun install
+   ```
 
- # Copy environment variables template
- cp .env.example .env
-```
+3. **Configure environment variables**:
+   Copy the example environment file:
 
-3. **Configure environment variables**
+   ```bash
+   cp .env.example .env
+   ```
 
-   - Generate `BETTER_AUTH_SECRET`: Run `openssl rand -hex 32`
+   Then, open the newly created `.env` file. You will find default values for `DATABASE_URL` and `BETTER_AUTH_URL`. You need to set the following:
+
+   - `BETTER_AUTH_SECRET`: Generate a secure secret by running `openssl rand -hex 32` in your terminal.
    - `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`:
      1. Create a Google project in the [Google Cloud Console](https://console.cloud.google.com/).
      2. Follow [step 1 in the Better Auth documentation](https://www.better-auth.com/docs/authentication/google) to set up Google OAuth credentials.
