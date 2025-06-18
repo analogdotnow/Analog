@@ -7,9 +7,9 @@ export function RightSidebar({
   ...props
 }: React.ComponentProps<typeof Sidebar>) {
   return (
-    <Sidebar {...props}>
+    <Sidebar className="pt-0" {...props}>
       <SidebarContent className="items-center">
-        <div className="w-full max-w-[22rem] shrink-0 pr-1.5 pl-0.5">
+        <div className="w-full max-w-[22rem] shrink-0 pt-2 pr-1.5 pl-0.5">
           <EventForm />
         </div>
       </SidebarContent>

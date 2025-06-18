@@ -50,7 +50,7 @@ const TitleField = ({
         {...fieldMotionConfig}
       >
         <AiInputHint
-          className="absolute right-4"
+          className="absolute right-2"
           {...hintMotionConfig}
           custom={{
             enabled: showAiInputHint,
@@ -95,7 +95,7 @@ const TitleField = ({
             aria-invalid={!isFieldValid}
             onFocus={() => setFocused(true)}
             className={cn(
-              "h-auto w-full rounded-none border-none bg-transparent py-0 pr-12 pl-0 text-lg leading-tight shadow-none focus:outline-hidden focus-visible:ring-0 aria-invalid:text-destructive aria-invalid:placeholder:text-destructive/50",
+              "h-auto w-full rounded-none border-none bg-transparent py-0 pr-10 pl-0 text-lg leading-tight shadow-none focus:outline-hidden focus-visible:ring-0 aria-invalid:text-destructive aria-invalid:placeholder:text-destructive/50",
               isFormValid && "pr-1.5",
             )}
           />
@@ -165,7 +165,7 @@ const fieldMotionConfig: MotionProps = {
       paddingLeft: "0.375rem",
     },
     main: ({ expanded, aiEnabled }) => ({
-      y: expanded ? "0.1rem" : 0,
+      y: expanded ? "0.15rem" : 0,
       scaleY: expanded ? 1.05 : 1,
       height: expanded ? "400%" : "100%",
       paddingTop: expanded ? "1rem" : "0.4rem",
