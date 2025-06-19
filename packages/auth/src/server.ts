@@ -26,6 +26,43 @@ export const GOOGLE_OAUTH_SCOPES = [
   "https://www.googleapis.com/auth/calendar",
 ];
 
+export const ZOOM_OAUTH_SCOPES = [
+  "user:read:user",
+  "user:read:email",
+  "calendar:read:calendar_list",
+  "calendar:read:color",
+  "calendar:write:calendar",
+  "calendar:write:quick_add_event",
+  "calendar:read:list_events",
+  "calendar:update:calendar",
+  "calendar:update:event",
+  "calendar:write:watch_event",
+  "calendar:read:setting",
+  "calendar:read:instance_event",
+  "calendar:read:list_settings",
+  "calendar:read:list_acl",
+  "calendar:update:calendar_list",
+  "calendar:write:calendar_list",
+  "calendar:delete:calendar_list",
+  "calendar:read:event",
+  "calendar:write:watch_acl",
+  "calendar:delete:event",
+  "calendar:write:event",
+  "calendar:write:stop_channel",
+  "calendar:read:calendar",
+  "calendar:read:acl",
+  "calendar:delete:calendar",
+  "calendar:write:watch_calendar_list",
+  "calendar:write:watch_settings",
+  "calendar:update:acl",
+  "calendar:write:acl",
+  "calendar:read:list_calendar_lists",
+  "calendar:write:import_event",
+  "calendar:write:move_event",
+  "calendar:update:setting",
+  "calendar:delete:acl",
+];
+
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "pg",
@@ -34,7 +71,7 @@ export const auth = betterAuth({
     accountLinking: {
       enabled: true,
       allowDifferentEmails: true,
-      trustedProviders: ["google", "microsoft"],
+      trustedProviders: ["google", "microsoft", "zoom"],
     },
   },
   user: {
@@ -115,6 +152,12 @@ export const auth = betterAuth({
       clientId: env.MICROSOFT_CLIENT_ID,
       clientSecret: env.MICROSOFT_CLIENT_SECRET,
       scope: MICROSOFT_OAUTH_SCOPES,
+      overrideUserInfoOnSignIn: true,
+    },
+    zoom: {
+      clientId: env.ZOOM_CLIENT_ID,
+      clientSecret: env.ZOOM_CLIENT_SECRET,
+      scope: ZOOM_OAUTH_SCOPES,
       overrideUserInfoOnSignIn: true,
     },
   },

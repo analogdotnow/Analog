@@ -4,3 +4,4 @@ export * from "./github";
 export * from "./google";
 export * from "./twitter";
 export * from "./microsoft";
+export * from "./zoom";
