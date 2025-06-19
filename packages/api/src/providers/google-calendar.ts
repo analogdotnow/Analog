@@ -155,6 +155,60 @@ export class GoogleCalendarProvider implements CalendarProvider {
     });
   }
 
+  async acceptEvent(calendarId: string, eventId: string): Promise<void> {
+    return this.withErrorHandler("acceptEvent", async () => {
+      const event = await this.client.calendars.events.retrieve(eventId, {
+        calendarId,
+      });
+
+      const attendees = event.attendees ?? [];
+      const selfIndex = attendees.findIndex((a) => a.self);
+
+      if (selfIndex >= 0) {
+        attendees[selfIndex] = {
+          ...attendees[selfIndex],
+          responseStatus: "accepted",
+        };
+      } else {
+        attendees.push({ self: true, responseStatus: "accepted" });
+      }
+
+      await this.client.calendars.events.update(eventId, {
+        ...event,
+        calendarId,
+        attendees,
+        sendUpdates: "all",
+      });
+    });
+  }
+
+  async declineEvent(calendarId: string, eventId: string): Promise<void> {
+    return this.withErrorHandler("declineEvent", async () => {
+      const event = await this.client.calendars.events.retrieve(eventId, {
+        calendarId,
+      });
+
+      const attendees = event.attendees ?? [];
+      const selfIndex = attendees.findIndex((a) => a.self);
+
+      if (selfIndex >= 0) {
+        attendees[selfIndex] = {
+          ...attendees[selfIndex],
+          responseStatus: "declined",
+        };
+      } else {
+        attendees.push({ self: true, responseStatus: "declined" });
+      }
+
+      await this.client.calendars.events.update(eventId, {
+        ...event,
+        calendarId,
+        attendees,
+        sendUpdates: "all",
+      });
+    });
+  }
+
   private async withErrorHandler<T>(
     operation: string,
     fn: () => Promise<T> | T,

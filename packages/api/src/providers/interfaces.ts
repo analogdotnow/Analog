@@ -60,4 +60,6 @@ export interface CalendarProvider {
     event: UpdateEventInput,
   ): Promise<CalendarEvent>;
   deleteEvent(calendarId: string, eventId: string): Promise<void>;
+  acceptEvent(calendarId: string, eventId: string): Promise<void>;
+  declineEvent(calendarId: string, eventId: string): Promise<void>;
 }

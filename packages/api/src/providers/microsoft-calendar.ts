@@ -151,6 +151,22 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
     });
   }
 
+  async acceptEvent(calendarId: string, eventId: string): Promise<void> {
+    await this.withErrorHandler("acceptEvent", async () => {
+      await this.graphClient
+        .api(`/me/events/${eventId}/accept`)
+        .post({ comment: "", sendResponse: true });
+    });
+  }
+
+  async declineEvent(calendarId: string, eventId: string): Promise<void> {
+    await this.withErrorHandler("declineEvent", async () => {
+      await this.graphClient
+        .api(`/me/events/${eventId}/decline`)
+        .post({ comment: "", sendResponse: true });
+    });
+  }
+
   private async withErrorHandler<T>(
     operation: string,
     fn: () => Promise<T> | T,

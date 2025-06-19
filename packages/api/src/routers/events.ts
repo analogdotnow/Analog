@@ -128,4 +128,52 @@ export const eventsRouter = createTRPCRouter({
 
       return { success: true };
     }),
+  accept: calendarProcedure
+    .input(
+      z.object({
+        accountId: z.string(),
+        calendarId: z.string(),
+        eventId: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const provider = ctx.providers.find(
+        ({ account }) => account.id === input.accountId,
+      );
+
+      if (!provider?.client) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: `Calendar client not found for accountId: ${input.accountId}`,
+        });
+      }
+
+      await provider.client.acceptEvent(input.calendarId, input.eventId);
+
+      return { success: true };
+    }),
+  decline: calendarProcedure
+    .input(
+      z.object({
+        accountId: z.string(),
+        calendarId: z.string(),
+        eventId: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const provider = ctx.providers.find(
+        ({ account }) => account.id === input.accountId,
+      );
+
+      if (!provider?.client) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: `Calendar client not found for accountId: ${input.accountId}`,
+        });
+      }
+
+      await provider.client.declineEvent(input.calendarId, input.eventId);
+
+      return { success: true };
+    }),
 });
