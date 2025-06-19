@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronsUpDown, LogOut, Plus, UserRound } from "lucide-react";
+import { ChevronsUpDown, Link, LogOut, Plus, UserRound } from "lucide-react";
 import { useTheme } from "next-themes";
 
 import { authClient } from "@repo/auth/client";
@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTRPC } from "@/lib/trpc/client";
+import { ConnectAccountDialog } from "./connect-account-dialog";
 
 function useUser() {
   const trpc = useTRPC();
@@ -112,6 +113,12 @@ export function NavUser() {
                   Add account
                 </DropdownMenuItem>
               </AddAccountDialog>
+              <ConnectAccountDialog>
+                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                  <Link />
+                  Connect account
+                </DropdownMenuItem>
+              </ConnectAccountDialog>
             </DropdownMenuGroup>
             <DropdownMenuItem
               onClick={async () =>
