@@ -11,9 +11,9 @@ import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useWaitlistPersistence } from "@/hooks/use-waitlist-persistence";
 import { useTRPC } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
-import { useWaitlistPersistence } from "@/hooks/use-waitlist-persistence";
 
 const formSchema = z.object({
   email: z.string().email(),
@@ -36,7 +36,7 @@ function useWaitlistCount() {
     trpc.earlyAccess.joinWaitlist.mutationOptions({
       onSuccess: () => {
         setSuccess(true);
-        markAsJoined()
+        markAsJoined();
         queryClient.setQueryData(
           [trpc.earlyAccess.getWaitlistCount.queryKey()],
           {
@@ -79,7 +79,7 @@ export function WaitlistForm({ className }: WaitlistFormProps) {
         className,
       )}
     >
-      {(waitlist.success || hasJoined)  ? (
+      {waitlist.success || hasJoined ? (
         <div className="flex flex-col items-center justify-center gap-4 text-center">
           <p className="text-xl font-semibold">
             You&apos;re on the waitlist! 🎉

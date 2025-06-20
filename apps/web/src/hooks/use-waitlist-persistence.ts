@@ -1,4 +1,5 @@
 import { useAtom } from "jotai";
+
 import { waitlistJoinedAtom } from "@/atoms/waitlist-persistence";
 
 export function useWaitlistPersistence() {
