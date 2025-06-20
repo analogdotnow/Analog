@@ -29,13 +29,34 @@ export const session = pgTable("session", {
 export const account = pgTable("account", {
   id: text().primaryKey(),
   accountId: text().notNull(),
-  providerId: text({ enum: ["google", "microsoft", "zoom"] }).notNull(),
+  providerId: text({ enum: ["google", "microsoft"] }).notNull(),
   name: text().notNull().default(""),
   email: text().notNull().default(""),
   image: text(),
   userId: text()
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
+  accessToken: text(),
+  refreshToken: text(),
+  idToken: text(),
+  accessTokenExpiresAt: timestamp(),
+  refreshTokenExpiresAt: timestamp(),
+  scope: text(),
+  password: text(),
+  createdAt: timestamp().notNull(),
+  updatedAt: timestamp().notNull(),
+});
+
+export const connectedAccount = pgTable("connected_account", {
+  id: text().primaryKey(),
+  providerId: text({ enum: ["zoom"] }).notNull(),
+  providerAccountId: text().notNull(),
+  userId: text()
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  name: text().notNull().default(""),
+  email: text().notNull().default(""),
+  image: text(),
   accessToken: text(),
   refreshToken: text(),
   idToken: text(),

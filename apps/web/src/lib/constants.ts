@@ -16,11 +16,6 @@ export const providers = [
 export const connections = [
   {
     name: "Zoom",
-    icon: Google,
-    connectionId: "zoom" as const,
-  },
-  {
-    name: "Zoom",
     icon: Zoom,
     connectionId: "zoom" as const,
   },

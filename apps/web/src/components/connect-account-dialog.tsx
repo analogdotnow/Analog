@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Plus } from "lucide-react";
+import { Loader } from "lucide-react";
 import { toast } from "sonner";
 
 import { authClient } from "@repo/auth/client";
@@ -51,17 +51,17 @@ export function ConnectAccountDialog({ children }: AddAccountDialogProps) {
             below.
           </DialogDescription>
         </DialogHeader>
-        <div className="flex gap-4 space-y-2">
+        <div className="flex flex-wrap gap-6 space-y-2">
           {connections.map((connection) => (
             <Button
               key={connection.connectionId}
               variant="outline"
-              className="h-16 w-16 justify-center"
+              className="h-18 w-20 justify-center"
               onClick={() => handleLinkAccount(connection.connectionId)}
               disabled={isLoading === connection.connectionId}
             >
               {isLoading === connection.connectionId ? (
-                "Connecting..."
+                <Loader className="animate-spin" />
               ) : (
                 <>
                   <div>

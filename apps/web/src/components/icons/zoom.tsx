@@ -7,6 +7,7 @@ export function Zoom(props: React.HTMLAttributes<SVGElement>) {
       clipRule="evenodd"
       strokeLinejoin="round"
       strokeMiterlimit="2"
+      {...props}
     >
       <g fillRule="nonzero">
         <path
