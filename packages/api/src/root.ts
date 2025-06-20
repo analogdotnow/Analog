@@ -1,6 +1,7 @@
 import "server-only";
 import { accountsRouter } from "./routers/accounts";
 import { calendarsRouter } from "./routers/calendars";
+import { connectedAccountsRouter } from "./routers/connectedAccounts";
 import { earlyAccessRouter } from "./routers/early-access";
 import { eventsRouter } from "./routers/events";
 import { userRouter } from "./routers/user";
@@ -13,6 +14,7 @@ import {
 export const appRouter = createTRPCRouter({
   user: userRouter,
   accounts: accountsRouter,
+  connectedAccounts: connectedAccountsRouter,
   calendars: calendarsRouter,
   events: eventsRouter,
   earlyAccess: earlyAccessRouter,
