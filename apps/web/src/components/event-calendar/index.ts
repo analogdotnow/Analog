@@ -13,14 +13,9 @@ export { DroppableCell } from "./droppable-cell";
 export { EventDialog } from "./event-dialog";
 export { EventItem } from "./event-item";
 export { EventsPopup } from "./events-popup";
-export { EventCalendar } from "./event-calendar";
 export { CalendarDndProvider, useCalendarDnd } from "./calendar-dnd-context";
 
-// Constants and utility exports
 export * from "./constants";
-export * from "./calendar-constants";
-
-// Hook exports
 export * from "./hooks";
 
 // Type exports

@@ -2,6 +2,7 @@
 export { useCalendarNavigation } from "./use-calendar-navigation";
 export { useEventDialog } from "./use-event-dialog";
 export { useEventOperations } from "./use-event-operations";
+export { useCalendarActions } from "./use-calendar-actions";
 
 // View-specific hooks
 export {

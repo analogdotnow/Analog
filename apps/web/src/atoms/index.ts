@@ -1,4 +1,9 @@
-export { viewPreferencesAtom, type ViewPreferences } from "./view-preferences";
+export {
+  viewPreferencesAtom,
+  type ViewPreferences,
+  calendarViewAtom,
+  currentDateAtom,
+} from "./view-preferences";
 
 export {
   calendarsVisibilityAtom,
