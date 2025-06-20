@@ -3,14 +3,17 @@ export {
   type ViewPreferences,
   calendarViewAtom,
   currentDateAtom,
+  useViewPreferences,
 } from "./view-preferences";
 
 export {
   calendarsVisibilityAtom,
   type CalendarsVisibility,
+  useCalendarsVisibility,
 } from "./calendars-visibility";
 
 export {
   calendarSettingsAtom,
   type CalendarSettings,
+  useCalendarSettings,
 } from "./calendar-settings";

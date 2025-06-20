@@ -16,6 +16,7 @@ import {
 
 import { toDate } from "@repo/temporal";
 
+import { useCalendarSettings, useViewPreferences } from "@/atoms";
 import {
   DraggableEvent,
   DroppableCell,
@@ -27,7 +28,6 @@ import {
   useCurrentTimeIndicator,
   useEventCollection,
   useGridLayout,
-  useViewPreferences,
   type EventCollectionForWeek,
 } from "@/components/event-calendar/hooks";
 import {
@@ -37,7 +37,6 @@ import {
   type PositionedEvent,
 } from "@/components/event-calendar/utils";
 import { cn } from "@/lib/utils";
-import { useCalendarSettings } from "../hooks/use-calendar-settings";
 
 interface WeekViewContextType {
   allDays: Date[];
@@ -143,7 +142,7 @@ function WeekViewHeader() {
     }).formatToParts(allDays[0]!);
 
     return parts.find((part) => part.type === "timeZoneName")?.value ?? " ";
-  }, [allDays]);
+  }, [allDays, settings.defaultTimeZone, settings.locale]);
 
   return (
     <div

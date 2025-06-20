@@ -8,6 +8,7 @@ import { Temporal } from "temporal-polyfill";
 
 import { toDate } from "@repo/temporal";
 
+import { useCalendarSettings } from "@/atoms";
 import type { CalendarEvent } from "@/components/event-calendar";
 import {
   DefaultEndHour,
@@ -43,7 +44,6 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useDefaultAccount } from "@/hooks/use-default-account";
 import { cn } from "@/lib/utils";
-import { useCalendarSettings } from "./hooks/use-calendar-settings";
 
 interface EventDialogProps {
   event: CalendarEvent | null;

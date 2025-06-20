@@ -1,4 +1,4 @@
-import { atom } from "jotai";
+import { atom, useAtomValue } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 
 import type { CalendarView } from "@/components/event-calendar";
@@ -28,3 +28,7 @@ export const calendarViewAtom = atomWithStorage<CalendarView>(
 
 // Store the current date in memory (non-persistent)
 export const currentDateAtom = atom<Date>(new Date());
+
+export function useViewPreferences() {
+  return useAtomValue(viewPreferencesAtom);
+}

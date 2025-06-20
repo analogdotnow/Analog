@@ -5,11 +5,11 @@ import { Temporal } from "temporal-polyfill";
 
 import { compareTemporal, toInstant } from "@repo/temporal";
 
+import { useCalendarSettings } from "@/atoms";
 import {
   CALENDAR_CONFIG,
   type CalendarEvent,
 } from "@/components/event-calendar";
-import { useCalendarSettings } from "@/components/event-calendar/hooks/use-calendar-settings";
 import { RouterOutputs } from "@/lib/trpc";
 import { useTRPC } from "@/lib/trpc/client";
 

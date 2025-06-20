@@ -5,6 +5,7 @@ import { Plus } from "lucide-react";
 import { useHotkeysContext } from "react-hotkeys-hook";
 import { toast } from "sonner";
 
+import { useCalendarsVisibility, useViewPreferences } from "@/atoms";
 import {
   CalendarContent,
   CalendarDndProvider,
@@ -15,10 +16,8 @@ import {
   WeekCellsHeight,
 } from "@/components/event-calendar";
 import {
-  useCalendarsVisibility,
   useEventDialog,
   useEventOperations,
-  useViewPreferences,
 } from "@/components/event-calendar/hooks";
 import {
   filterPastEvents,
