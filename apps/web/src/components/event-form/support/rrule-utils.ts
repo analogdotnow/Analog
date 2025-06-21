@@ -1,11 +1,13 @@
 import type { Temporal } from "@js-temporal/polyfill";
 import { RRuleTemporal, type RRuleOptions } from "rrule-temporal";
 
+import type { EventOutputData } from "@/lib/schemas/event-form";
+
 type GetFreqType<T> = T extends { freq: infer F } ? F : never;
 type FreqType = GetFreqType<RRuleOptions>;
 
 type GenerateRRuleParams = {
-  repeatType: string;
+  repeatType: Required<EventOutputData>["repeatType"];
   eventDates: {
     startDate: Temporal.ZonedDateTime;
     endDate: Temporal.ZonedDateTime;
