@@ -10,6 +10,7 @@ import {
   CALENDAR_CONFIG,
   type CalendarEvent,
 } from "@/components/event-calendar";
+import { useCalendarState } from "@/hooks/use-calendar-state";
 import { RouterOutputs } from "@/lib/trpc";
 import { useTRPC } from "@/lib/trpc/client";
 
@@ -18,6 +19,7 @@ type Event = RouterOutputs["events"]["list"]["events"][number];
 export function useCalendarActions() {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
+  const { currentDate } = useCalendarState();
 
   const { data: defaultAccountData } = useQuery(
     trpc.accounts.getDefault.queryOptions(),
@@ -27,25 +29,25 @@ export function useCalendarActions() {
 
   const timeMin = useMemo(
     () =>
-      Temporal.Now.plainDateISO()
+      Temporal.PlainDate.from(currentDate.toISOString().split("T")[0]!)
         .subtract({
           days: CALENDAR_CONFIG.TIME_RANGE_DAYS_PAST,
         })
         .toZonedDateTime({
           timeZone: defaultTimeZone,
         }),
-    [defaultTimeZone],
+    [defaultTimeZone, currentDate],
   );
   const timeMax = useMemo(
     () =>
-      Temporal.Now.plainDateISO()
+      Temporal.PlainDate.from(currentDate.toISOString().split("T")[0]!)
         .add({
           days: CALENDAR_CONFIG.TIME_RANGE_DAYS_FUTURE,
         })
         .toZonedDateTime({
           timeZone: defaultTimeZone,
         }),
-    [defaultTimeZone],
+    [defaultTimeZone, currentDate],
   );
 
   const eventsQueryKey = useMemo(
