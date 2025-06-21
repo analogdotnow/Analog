@@ -54,10 +54,10 @@ export const events = pgTable(
     title: text("title"),
     description: text("description"),
 
-    start: timestamp("start_date_time", { withTimezone: true }).notNull(),
+    start: timestamp("start", { withTimezone: true }).notNull(),
     startTimeZone: text("start_time_zone"),
 
-    end: timestamp("end_date_time", { withTimezone: true }).notNull(),
+    end: timestamp("end", { withTimezone: true }).notNull(),
     endTimeZone: text("end_time_zone"),
 
     allDay: boolean("all_day").default(false),
