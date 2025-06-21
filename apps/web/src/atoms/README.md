@@ -20,3 +20,19 @@ export function useUserSettings() {
   useAtom(userSettingsAtom);
 }
 ```
+
+## api-keys atom: adding keys manually for testing
+
+Need to quickly add an API key for testing? Open your browser's console (F12) and run the following code to add API keys to local storage:
+
+```typescript
+localStorage.setItem(
+  "analog-api-keys",
+  JSON.stringify({
+    openai: "sk-YOUR_OPENAI_KEY_HERE",
+    // resend: "xxxxx",
+  }),
+);
+```
+
+After running this code, refresh the page to pick up the new API keys.
