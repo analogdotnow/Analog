@@ -32,6 +32,7 @@ export interface CalendarEvent {
   providerId: string;
   accountId: string;
   calendarId: string;
+  metadata?: Record<string, unknown>;
 }
 
 export interface CalendarProvider {
