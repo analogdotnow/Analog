@@ -1,3 +1,4 @@
+// Tanstack Form breaks this rule when we use the withForm HOC
 /* eslint-disable react-hooks/rules-of-hooks */
 import { useCallback, useMemo } from "react";
 import { parseDate, type CalendarDate } from "@internationalized/date";
