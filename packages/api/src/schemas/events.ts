@@ -6,19 +6,21 @@ import {
 import { z } from "zod";
 
 const microsoftMetadataSchema = z.object({
-  originalStartTimeZone: z.object({
-    raw: z.string(),
-    parsed: z.string().optional(),
-  }).optional(),
-  originalEndTimeZone: z.object({
-    raw: z.string(),
-    parsed: z.string().optional(),
-  }).optional(),
+  originalStartTimeZone: z
+    .object({
+      raw: z.string(),
+      parsed: z.string().optional(),
+    })
+    .optional(),
+  originalEndTimeZone: z
+    .object({
+      raw: z.string(),
+      parsed: z.string().optional(),
+    })
+    .optional(),
 });
 
-const googleMetadataSchema = z.object({
-  
-});
+const googleMetadataSchema = z.object({});
 
 export const dateInputSchema = z.union([
   zPlainDateInstance,

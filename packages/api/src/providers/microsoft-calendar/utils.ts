@@ -4,7 +4,11 @@ import type {
 } from "@microsoft/microsoft-graph-types";
 import { Temporal } from "temporal-polyfill";
 
-import { CreateEventInput, MicrosoftEventMetadata, UpdateEventInput } from "../../schemas/events";
+import {
+  CreateEventInput,
+  MicrosoftEventMetadata,
+  UpdateEventInput,
+} from "../../schemas/events";
 import type { Calendar, CalendarEvent } from "../interfaces";
 import { mapWindowsToIanaTimeZone } from "./windows-timezones";
 
@@ -26,7 +30,7 @@ export function toMicrosoftDate({
       timeZone: originalTimeZone?.raw ?? "UTC",
     };
   }
-  
+
   // These events were created using another provider.
   if (value instanceof Temporal.Instant) {
     const dateTime = value
@@ -42,7 +46,10 @@ export function toMicrosoftDate({
 
   return {
     dateTime: value.toInstant().toString(),
-    timeZone: originalTimeZone?.parsed === value.timeZoneId ? originalTimeZone?.raw : value.timeZoneId,
+    timeZone:
+      originalTimeZone?.parsed === value.timeZoneId
+        ? originalTimeZone?.raw
+        : value.timeZoneId,
   };
 }
 
@@ -84,7 +91,14 @@ export function parseMicrosoftEvent(event: MicrosoftEvent): CalendarEvent {
     throw new Error("Event start or end is missing");
   }
 
-  console.log(start.timeZone, start.timeZone ? parseTimeZone(start.timeZone) : undefined, event.originalStartTimeZone, event.originalStartTimeZone ? parseTimeZone(event.originalStartTimeZone) : undefined);
+  console.log(
+    start.timeZone,
+    start.timeZone ? parseTimeZone(start.timeZone) : undefined,
+    event.originalStartTimeZone,
+    event.originalStartTimeZone
+      ? parseTimeZone(event.originalStartTimeZone)
+      : undefined,
+  );
 
   return {
     id: event.id!,
@@ -105,18 +119,26 @@ export function parseMicrosoftEvent(event: MicrosoftEvent): CalendarEvent {
     accountId: "",
     calendarId: "",
     metadata: {
-      ...event.originalStartTimeZone ? {
-        originalStartTimeZone: {
-          raw: event.originalStartTimeZone,
-          parsed: event.originalStartTimeZone ? parseTimeZone(event.originalStartTimeZone) : undefined,
-        }
-      } : {},
-      ...event.originalEndTimeZone ? {
-        originalEndTimeZone: {
-          raw: event.originalEndTimeZone,
-          parsed: event.originalEndTimeZone ? parseTimeZone(event.originalEndTimeZone) : undefined,
-        }
-      } : {},
+      ...(event.originalStartTimeZone
+        ? {
+            originalStartTimeZone: {
+              raw: event.originalStartTimeZone,
+              parsed: event.originalStartTimeZone
+                ? parseTimeZone(event.originalStartTimeZone)
+                : undefined,
+            },
+          }
+        : {}),
+      ...(event.originalEndTimeZone
+        ? {
+            originalEndTimeZone: {
+              raw: event.originalEndTimeZone,
+              parsed: event.originalEndTimeZone
+                ? parseTimeZone(event.originalEndTimeZone)
+                : undefined,
+            },
+          }
+        : {}),
     },
   };
 }
