@@ -213,7 +213,7 @@ function RepeatTypeSelect({
 
   return (
     <Select value={value ?? "daily"} onValueChange={handleChange}>
-      <SelectTrigger className="h-6 w-[calc(50%+0.5rem)] border-none bg-transparent! pr-0 pl-0.5 text-sm text-muted-foreground/80 shadow-none select-none hover:text-foreground hover:[&_svg]:text-foreground">
+      <SelectTrigger className="h-6 w-[calc(50%+0.5rem)] border-none !bg-transparent pr-0 pl-0.5 text-sm text-muted-foreground/80 shadow-none select-none hover:text-foreground hover:[&_svg]:text-foreground">
         <SelectValue placeholder="Repeat pattern" />
       </SelectTrigger>
       <SelectContent>

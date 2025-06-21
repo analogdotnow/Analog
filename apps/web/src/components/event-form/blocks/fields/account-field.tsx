@@ -36,7 +36,7 @@ const SelectedAccount = () => {
           id="selected-account"
           aria-invalid={field.state.meta.isValid === false}
           disabled={!hasMultipleAccounts}
-          className="border-none! bg-transparent! px-0.5 shadow-none focus-visible:ring-0 *:data-[slot=select-value]:gap-2.5 *:data-[slot=select-value]:overflow-visible dark:px-1 [&_span[data-account-name]]:rounded-sm [&_span[data-account-name]]:ring-ring/50 [&_span[data-account-name]]:ring-offset-2 [&_span[data-account-name]]:ring-offset-sidebar focus-visible:[&_span[data-account-name]]:ring-2 hover:[&_svg]:text-foreground [&>span]:flex [&>span]:items-center [&>span]:gap-2 [&>span_img]:shrink-0"
+          className="!border-none !bg-transparent px-0.5 shadow-none focus-visible:ring-0 *:data-[slot=select-value]:gap-2.5 *:data-[slot=select-value]:overflow-visible dark:px-1 [&_span[data-account-name]]:rounded-sm [&_span[data-account-name]]:ring-ring/50 [&_span[data-account-name]]:ring-offset-2 [&_span[data-account-name]]:ring-offset-sidebar focus-visible:[&_span[data-account-name]]:ring-2 hover:[&_svg]:text-foreground [&>span]:flex [&>span]:items-center [&>span]:gap-2 [&>span_img]:shrink-0"
         >
           <SelectValue placeholder="Select account" />
         </SelectTrigger>

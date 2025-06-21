@@ -47,7 +47,7 @@ const Participants = ({
           placeholder="No participants"
           searchPlaceholder="Search users or enter email..."
           noResultsMessage="No users found"
-          triggerClassName="shadow-none border-none bg-transparent! hover:bg-transparent h-6 p-0.5! aria-invalid:text-destructive"
+          triggerClassName="shadow-none border-none !bg-transparent hover:bg-transparent h-6 !p-0.5 aria-invalid:text-destructive"
           getDisplayValue={SelectedParticipants}
           renderOption={ParticipantOption}
           getOptionValue={(user) => user.id}
