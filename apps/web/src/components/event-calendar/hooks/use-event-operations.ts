@@ -1,7 +1,5 @@
 import { useCallback } from "react";
-import { toast } from "sonner";
 
-import { useDefaultAccount } from "@/hooks/use-default-account";
 import { CALENDAR_CONFIG } from "../constants";
 import { CalendarEvent } from "../types";
 import {
@@ -14,7 +12,6 @@ import {
 import { useCalendarActions } from "./use-calendar-actions";
 
 export function useEventOperations(onOperationComplete?: () => void) {
-  const defaultAccount = useDefaultAccount();
   const { events, createEvent, updateEvent, deleteEvent } =
     useCalendarActions();
 
@@ -24,21 +21,16 @@ export function useEventOperations(onOperationComplete?: () => void) {
         updateEvent(event);
         showEventUpdatedToast(event);
       } else {
-        if (!defaultAccount) {
-          toast.error("No default account available, sign in again.");
-          return;
-        }
         const eventWithId = { ...event, id: generateEventId() };
         createEvent({
           ...eventWithId,
-          accountId: defaultAccount.id,
           calendarId: CALENDAR_CONFIG.DEFAULT_CALENDAR_ID,
         });
         showEventAddedToast(eventWithId);
       }
       onOperationComplete?.();
     },
-    [defaultAccount, createEvent, onOperationComplete, updateEvent],
+    [createEvent, onOperationComplete, updateEvent],
   );
 
   const handleEventDelete = useCallback(

@@ -269,7 +269,7 @@ function WeekViewAllDaySection() {
                 return (
                   <div
                     className="relative z-10 w-full min-w-0"
-                    key={`spanning-${event.id}`}
+                    key={`spanning-${event.id}-${event.accountId}`}
                   >
                     <EventItem
                       className={!isSingleDay && !isFirstDay ? "opacity-0" : ""}

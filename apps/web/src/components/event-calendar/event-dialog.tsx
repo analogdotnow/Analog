@@ -42,7 +42,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useDefaultAccount } from "@/hooks/use-default-account";
+import { useDefaultAccount } from "@/hooks/accounts";
 import { cn } from "@/lib/utils";
 
 interface EventDialogProps {

@@ -2,11 +2,9 @@ import type { Temporal } from "temporal-polyfill";
 
 import type { EventOutputData } from "@/lib/schemas/event-form/form";
 
-export type COLORS = "red" | "orange" | "yellow" | "green" | "blue" | "purple";
-
 export interface Account {
+  id: string;
   email: string;
-  color: COLORS;
 }
 
 export interface StoredEvent

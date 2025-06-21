@@ -12,7 +12,6 @@ import {
   eventFormSchemaWithRepeats,
   type EventFormData,
 } from "@/lib/schemas/event-form/form";
-import { accounts } from "./accounts";
 
 const getDefaultFormValues = (): EventFormData => {
   const timezone = getLocalTimeZone();
@@ -28,7 +27,7 @@ const getDefaultFormValues = (): EventFormData => {
   const endTime = startTime.add({ hours: 1 });
 
   return {
-    account: accounts[0]?.email || "",
+    accountId: "",
     title: "",
     timezone,
     startTime: startTime.toString(),

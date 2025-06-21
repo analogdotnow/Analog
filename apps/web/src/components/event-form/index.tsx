@@ -3,25 +3,49 @@
 import { useCallback, type KeyboardEvent } from "react";
 import { useMeasure, useUpdateEffect } from "@react-hookz/web";
 import { Video } from "lucide-react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { useAccounts, useCurrentUser } from "@/hooks/accounts";
 import { eventFormSchemaWithRepeats } from "@/lib/schemas/event-form/form";
+import { useEventOperations } from "../event-calendar";
 import { DateGroup, Participants, TimeGroup, ToggleGroup } from "./blocks";
 import { ErrorsPopover } from "./errors-popover";
 import { useAppForm } from "./hooks/form";
 import { useAiInput } from "./hooks/use-ai-input";
 import { defaultFormOptions } from "./support/form-defaults";
+import { toCalendarEvent } from "./support/transform";
 
-const EventForm = () => {
+function EventForm() {
+  const { handleEventSave } = useEventOperations();
   const [measurements, ref] = useMeasure<HTMLDivElement>();
+  const { data: currentAccount } = useCurrentUser();
+  const accounts = useAccounts();
 
   const form = useAppForm({
-    ...defaultFormOptions,
+    defaultValues: {
+      ...defaultFormOptions.defaultValues,
+      accountId: currentAccount?.id ?? "",
+    },
+    validators: defaultFormOptions.validators,
     onSubmit: ({ value }) => {
       const data = eventFormSchemaWithRepeats.parse(value);
-      console.log(data);
+      const account = accounts?.find((a) => a.id === data.accountId);
+      if (!account) {
+        toast.error("No account available to save the event");
+        return;
+      }
+      const calendarEvent = toCalendarEvent({
+        data,
+        providerId: account.providerId,
+        accountId: account.id,
+      });
+      if (calendarEvent) {
+        handleEventSave(calendarEvent);
+      }
       form.reset();
+      form.setFieldValue("accountId", account.id);
     },
   });
 
@@ -36,11 +60,11 @@ const EventForm = () => {
     const { startDate, endDate, ...rest } = aiData;
     form.reset(
       {
-        account: form.state.values.account,
+        ...rest,
+        accountId: form.state.values.accountId,
         selectedParticipants: form.state.values.selectedParticipants,
         startDate: startDate.toString(),
         endDate: endDate.toString(),
-        ...rest,
       },
       { keepDefaultValues: true },
     );
@@ -122,11 +146,11 @@ const EventForm = () => {
       <form.AppForm>
         <form.SubmitButton className="mb-2.5 w-full rounded-lg dark:mx-0.5 dark:w-[calc(100%-0.25rem)]" />
       </form.AppForm>
-      <form.AppField name="account">
+      <form.AppField name="accountId">
         {(field) => <field.SelectedAccountField />}
       </form.AppField>
     </form>
   );
-};
+}
 
 export default EventForm;

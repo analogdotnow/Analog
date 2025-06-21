@@ -3,7 +3,7 @@ import type { z } from "zod";
 import { baseEventFormSchema } from "./form";
 
 export const aiInputSchema = baseEventFormSchema.omit({
-  account: true,
+  accountId: true,
   selectedParticipants: true,
 });
 

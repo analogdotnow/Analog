@@ -4,7 +4,7 @@ import { z } from "zod";
 import { participantSchema } from "./participants";
 
 export const baseEventFormSchema = z.object({
-  account: z.string().email(),
+  accountId: z.string(),
   title: z
     .string()
     .min(1, "Title is required")
