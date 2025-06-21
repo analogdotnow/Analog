@@ -1,14 +1,16 @@
-import { createFormHook } from "@tanstack/react-form";
+import { createFormHook, createFormHookContexts } from "@tanstack/react-form";
 
 import {
   DescriptionField,
   LocationField,
   SelectedAccountField,
   TitleField,
-} from "@/components/event-form/blocks/fields";
+} from "@/components/event-form/blocks";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { fieldContext, formContext, useFormContext } from "./form-context";
+
+export const { fieldContext, useFieldContext, formContext, useFormContext } =
+  createFormHookContexts();
 
 function SubmitButton({ className }: { className?: string }) {
   const form = useFormContext();

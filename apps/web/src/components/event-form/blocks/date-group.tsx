@@ -27,7 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { EventFormData } from "@/lib/schemas/event-form/form";
+import type { EventFormData } from "@/lib/schemas/event-form";
 import { cn } from "@/lib/utils";
 
 type DateRange = {

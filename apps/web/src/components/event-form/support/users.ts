@@ -1,6 +1,6 @@
 import z from "zod";
 
-import type { Participant } from "@/lib/schemas/event-form/participants";
+import type { Participant } from "@/lib/schemas/event-form";
 
 export interface User {
   id: string;

@@ -3,7 +3,7 @@ import type { KeyboardEventPredicate } from "@react-hookz/web";
 import { generateObject } from "ai";
 import { Temporal } from "temporal-polyfill";
 
-import { aiInputSchema } from "@/lib/schemas/event-form/ai-data";
+import { aiInputSchema } from "@/lib/schemas/event-form";
 
 export const generateEventFormData = async (
   userInput: string,

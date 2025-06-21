@@ -1,9 +1,13 @@
 import { isSameDay, parseDate, parseTime } from "@internationalized/date";
 import { z } from "zod";
 
-import { participantSchema } from "./participants";
+const participantSchema = z.object({
+  id: z.string().min(1, "Participant ID is required"),
+  name: z.string().trim().optional(),
+  email: z.string().email("Invalid email format"),
+});
 
-export const baseEventFormSchema = z.object({
+const baseEventFormSchema = z.object({
   accountId: z.string(),
   title: z
     .string()
@@ -42,6 +46,11 @@ export const baseEventFormSchema = z.object({
     },
     { message: "Duplicate participants are not allowed" },
   ),
+});
+
+export const aiInputSchema = baseEventFormSchema.omit({
+  accountId: true,
+  selectedParticipants: true,
 });
 
 export const eventFormSchema = baseEventFormSchema.superRefine((data, ctx) => {
@@ -113,5 +122,7 @@ export const eventFormSchemaWithRepeats = eventFormSchema.superRefine(
   },
 );
 
+export type AiOutputData = z.infer<typeof aiInputSchema>;
+export type Participant = z.infer<typeof participantSchema>;
 export type EventFormData = z.input<typeof eventFormSchemaWithRepeats>;
 export type EventOutputData = z.infer<typeof eventFormSchemaWithRepeats>;

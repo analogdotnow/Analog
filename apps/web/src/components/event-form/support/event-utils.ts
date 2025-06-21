@@ -6,7 +6,10 @@ import {
 } from "@internationalized/date";
 import { Temporal } from "temporal-polyfill";
 
-import type { EventOutputData } from "@/lib/schemas/event-form/form";
+import { CalendarEvent } from "@/components/event-calendar";
+import { ProviderId } from "@/lib/constants";
+import type { EventOutputData } from "@/lib/schemas/event-form";
+import { generateRRule } from "./rrule-utils";
 
 type DateFields = Pick<
   EventOutputData,
@@ -61,12 +64,51 @@ export function getTemporalZonedDateTime(
   });
 }
 
-const timeFormatter = new Intl.DateTimeFormat("default", {
-  hour: "2-digit",
-  minute: "2-digit",
-  hour12: false,
-});
+type TransformParams = {
+  data: EventOutputData;
+  providerId: ProviderId;
+  accountId: string;
+};
 
-export function getFormattedTime(time: Temporal.ZonedDateTime): string {
-  return timeFormatter.format(time.toInstant().epochMilliseconds);
+export function toCalendarEvent({
+  data,
+  providerId,
+  accountId,
+}: TransformParams): CalendarEvent | null {
+  const { startTime, endTime } = getZonedEventTimes(data);
+  if (!startTime || !endTime) {
+    return null;
+  }
+  const endDateUTC = endTime
+    .with({
+      year: data.endDate.year,
+      month: data.endDate.month,
+      day: data.endDate.day,
+    })
+    .withTimeZone("UTC");
+
+  const recurrenceRule = data.repeatType
+    ? generateRRule({
+        repeatType: data.repeatType,
+        eventDates: { startDate: startTime, endDate: endDateUTC },
+        timezone: data.timezone,
+      })
+    : "";
+
+  const adjustedStartTime = data.isAllDay ? startTime.toPlainDate() : startTime;
+  const adjustedEndTime = data.isAllDay ? endTime.toPlainDate() : endTime;
+
+  return {
+    id: "",
+    title: data.title,
+    description: data.description,
+    start: adjustedStartTime,
+    end: adjustedEndTime,
+    allDay: data.isAllDay,
+    location: data.location ?? "",
+    calendarId: "primary",
+    color: undefined,
+    providerId,
+    accountId,
+  };
 }

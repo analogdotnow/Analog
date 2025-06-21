@@ -11,7 +11,7 @@ import { formOptions } from "@tanstack/react-form";
 import {
   eventFormSchemaWithRepeats,
   type EventFormData,
-} from "@/lib/schemas/event-form/form";
+} from "@/lib/schemas/event-form";
 
 const getDefaultFormValues = (): EventFormData => {
   const timezone = getLocalTimeZone();

@@ -4,7 +4,7 @@ import { Users } from "lucide-react";
 
 import { AsyncSelect } from "@/components/ui/async-select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import type { Participant } from "@/lib/schemas/event-form/participants";
+import type { Participant } from "@/lib/schemas/event-form";
 import { cn } from "@/lib/utils";
 import {
   getUsersFromParticipants,

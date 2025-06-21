@@ -3,7 +3,7 @@ import { useKeyboardEvent, useToggle } from "@react-hookz/web";
 import { useAtomValue } from "jotai";
 
 import { apiKeysAtom } from "@/atoms/api-keys";
-import type { AiOutputData } from "@/lib/schemas/event-form/ai-data";
+import type { AiOutputData } from "@/lib/schemas/event-form";
 import { aiInputPredicate, generateEventFormData } from "../support/ai-input";
 
 export const useAiInput = (getPrompt: () => string) => {

@@ -1,6 +1,6 @@
 import { MapPin } from "lucide-react";
 
-import { useFieldContext } from "@/components/event-form/hooks/form-context";
+import { useFieldContext } from "@/components/event-form/hooks/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 

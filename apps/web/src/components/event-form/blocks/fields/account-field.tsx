@@ -1,7 +1,6 @@
 import { useDeepCompareMemo } from "@react-hookz/web";
 
-import { useFieldContext } from "@/components/event-form/hooks/form-context";
-import type { Account } from "@/components/event-form/support/types";
+import { useFieldContext } from "@/components/event-form/hooks/form";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Label } from "@/components/ui/label";
 import {
@@ -27,7 +26,7 @@ const SelectedAccount = () => {
   const additionalAccounts = useAccounts();
   const field = useFieldContext<string>();
 
-  const accounts: Account[] = useDeepCompareMemo(() => {
+  const accounts = useDeepCompareMemo(() => {
     if (!currentAccount) {
       return [];
     }
