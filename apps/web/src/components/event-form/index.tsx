@@ -207,10 +207,10 @@ function ErrorsPopover({
           <div className="bg-destructive/10 px-3 py-2">
             <p className="mb-1 font-medium">Errors</p>
             <ul className="list-disc pl-3">
-              {Object.entries(errors).map(([, errors]) =>
-                errors.map((error) => (
+              {Object.entries(errors).map(([field, errors]) =>
+                errors.map((error, ind) => (
                   <li
-                    key={error.message}
+                    key={`${field}-${ind}`}
                     className="text-[0.8rem] text-pretty text-destructive-foreground/80"
                   >
                     {error.message}
