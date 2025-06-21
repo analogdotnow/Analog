@@ -5,9 +5,15 @@ import { useTRPC } from "@/lib/trpc/client";
 export function useAccounts() {
   const trpc = useTRPC();
 
-  const { data } = useQuery(trpc.accounts.list.queryOptions());
+  const { data, isLoading, error } = useQuery(
+    trpc.accounts.list.queryOptions(),
+  );
 
-  return data?.accounts;
+  return {
+    accounts: data?.accounts,
+    isLoading,
+    error,
+  };
 }
 
 export function useDefaultAccount() {

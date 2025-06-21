@@ -34,7 +34,7 @@ function EventForm() {
   const { handleEventSave } = useEventOperations();
   const [measurements, ref] = useMeasure<HTMLDivElement>();
   const { data: currentAccount } = useCurrentUser();
-  const accounts = useAccounts();
+  const { accounts } = useAccounts();
 
   const form = useAppForm({
     defaultValues: {

@@ -23,7 +23,7 @@ const getAccountNameParts = (name: string) => {
 
 const SelectedAccount = () => {
   const { data: currentAccount } = useCurrentUser();
-  const additionalAccounts = useAccounts();
+  const { accounts: additionalAccounts } = useAccounts();
   const field = useFieldContext<string>();
 
   const accounts = useDeepCompareMemo(() => {
