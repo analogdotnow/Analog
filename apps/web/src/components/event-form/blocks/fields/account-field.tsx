@@ -1,4 +1,4 @@
-import { useFieldContext } from "@/components/event-form/hooks/form";
+import { useFieldContext } from "@/components/event-form/hooks/form-context";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Label } from "@/components/ui/label";
 import {

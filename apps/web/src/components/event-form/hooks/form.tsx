@@ -1,16 +1,20 @@
-import { createFormHook, createFormHookContexts } from "@tanstack/react-form";
+"use client";
 
-import {
-  DescriptionField,
-  LocationField,
-  SelectedAccountField,
-  TitleField,
-} from "@/components/event-form/blocks";
+import { lazy } from "react";
+import { createFormHook } from "@tanstack/react-form";
+
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { fieldContext, formContext, useFormContext } from "./form-context";
 
-export const { fieldContext, useFieldContext, formContext, useFormContext } =
-  createFormHookContexts();
+const TitleField = lazy(() => import("../blocks/fields/title-field"));
+const DescriptionField = lazy(
+  () => import("../blocks/fields/description-field"),
+);
+const LocationField = lazy(() => import("../blocks/fields/location-field"));
+const SelectedAccountField = lazy(
+  () => import("../blocks/fields/account-field"),
+);
 
 function SubmitButton({ className }: { className?: string }) {
   const form = useFormContext();
