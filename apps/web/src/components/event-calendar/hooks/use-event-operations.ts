@@ -47,11 +47,8 @@ export function useEventOperations(onOperationComplete?: () => void) {
         calendarId: deletedEvent.calendarId,
         eventId,
       });
+      showEventDeletedToast(deletedEvent);
       onOperationComplete?.();
-
-      if (deletedEvent) {
-        showEventDeletedToast(deletedEvent);
-      }
     },
     [events, deleteEvent, onOperationComplete],
   );
