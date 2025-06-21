@@ -8,6 +8,7 @@ import { useTheme } from "next-themes";
 import { authClient } from "@repo/auth/client";
 
 import { AddAccountDialog } from "@/components/add-account-dialog";
+import { Zoom } from "@/components/icons";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -31,12 +32,39 @@ function useUser() {
   return useQuery(trpc.user.me.queryOptions());
 }
 
+function useAccounts() {
+  const trpc = useTRPC();
+  return useQuery(trpc.accounts.list.queryOptions());
+}
+
 export function NavUser() {
   const router = useRouter();
   const queryClient = useQueryClient();
 
   const { data: user, isLoading } = useUser();
+  const { data: accounts } = useAccounts();
   const { theme, setTheme } = useTheme();
+
+  const hasGoogleAccount = accounts?.accounts?.some(
+    (acc) => acc.providerId === "google",
+  );
+  const hasMicrosoftAccount = accounts?.accounts?.some(
+    (acc) => acc.providerId === "microsoft",
+  );
+  const hasZoomAccount = accounts?.accounts?.some(
+    (acc) => acc.providerId === "zoom",
+  );
+
+  const handleLinkZoom = async () => {
+    try {
+      await authClient.linkSocial({
+        provider: "zoom",
+        callbackURL: "/calendar",
+      });
+    } catch {
+      // TODO: handle error
+    }
+  };
 
   const toggleTheme = () => {
     if (theme === "dark") {
@@ -112,6 +140,12 @@ export function NavUser() {
                   Add account
                 </DropdownMenuItem>
               </AddAccountDialog>
+              {(hasGoogleAccount || hasMicrosoftAccount) && !hasZoomAccount && (
+                <DropdownMenuItem onClick={handleLinkZoom}>
+                  <Zoom />
+                  Connect Zoom
+                </DropdownMenuItem>
+              )}
             </DropdownMenuGroup>
             <DropdownMenuItem
               onClick={async () =>

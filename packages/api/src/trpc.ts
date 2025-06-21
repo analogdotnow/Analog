@@ -61,10 +61,12 @@ export const calendarProcedure = protectedProcedure.use(
     try {
       const accounts = await getAccounts(ctx.user, ctx.headers);
 
-      const providers = accounts.map((account) => ({
-        account,
-        client: accountToProvider(account),
-      }));
+      const providers = accounts
+        .filter((account) => account.providerId !== "zoom")
+        .map((account) => ({
+          account,
+          client: accountToProvider(account),
+        }));
 
       return next({
         ctx: {
