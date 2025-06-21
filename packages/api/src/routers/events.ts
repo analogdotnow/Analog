@@ -3,12 +3,13 @@ import { Temporal } from "temporal-polyfill";
 import { zZonedDateTimeInstance } from "temporal-zod";
 import { z } from "zod";
 
-import { toInstant } from "@repo/temporal";
+import { formatToNormalizedDate, toInstant } from "@repo/temporal";
 
 import {
   createEventInputSchema,
   updateEventInputSchema,
 } from "../schemas/events";
+import { notificationCreateRequest } from "../schemas/notification";
 import { calendarProcedure, createTRPCRouter } from "../trpc";
 
 export const eventsRouter = createTRPCRouter({
@@ -81,6 +82,21 @@ export const eventsRouter = createTRPCRouter({
         ...input,
       });
 
+      if (event) {
+        const formattedStartDate = formatToNormalizedDate(event.start, "UTC");
+        const notificationPayload: z.infer<typeof notificationCreateRequest> = {
+          body: `Event "${event.title}" is scheduled for ${formattedStartDate}.${event.location ? ` Location: ${event.location}` : ""}`,
+          title: `${event.allDay ? "(All Day)" : ""} New Event: ${event.title}`,
+          type: "event_creation",
+          sourceId: event.providerId,
+          eventId: event.id,
+        };
+        notificationProvider.createAndSendNotification(
+          notificationPayload,
+          ctx.user.id,
+        );
+      }
+
       return { event };
     }),
   update: calendarProcedure
@@ -97,11 +113,46 @@ export const eventsRouter = createTRPCRouter({
         });
       }
 
+      const oldEvent = await provider.client.event(input.calendarId, input.id);
+      if (!oldEvent) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: `Event not found for calendarId: ${input.calendarId} and eventId: ${input.id}`,
+        });
+      }
+
       const event = await provider.client.updateEvent(
         input.calendarId,
         input.id,
         input,
       );
+
+      if (oldEvent.title !== event.title) {
+        const notificationPayload: z.infer<typeof notificationCreateRequest> = {
+          body: `Event "${oldEvent.title}" has been renamed to "${event.title}"`,
+          title: "Event has been updated",
+          type: "event_update",
+          sourceId: event.providerId,
+          eventId: event.id,
+        };
+        notificationProvider.createAndSendNotification(
+          notificationPayload,
+          ctx.user.id,
+        );
+      } else {
+        const formattedStartDate = formatToNormalizedDate(event.start, "UTC");
+        const notificationPayload: z.infer<typeof notificationCreateRequest> = {
+          body: `Event "${event.title}" has been rescheduled to ${formattedStartDate}.${event.location ? ` Location: ${event.location}` : ""}`,
+          title: `Rescheduled: ${event.title} to ${formattedStartDate}`,
+          type: "event_reschedule",
+          sourceId: event.providerId,
+          eventId: event.id,
+        };
+        notificationProvider.createAndSendNotification(
+          notificationPayload,
+          ctx.user.id,
+        );
+      }
 
       return { event };
     }),
@@ -124,6 +175,22 @@ export const eventsRouter = createTRPCRouter({
           message: `Calendar client not found for accountId: ${input.accountId}`,
         });
       }
+      provider.client.event(input.calendarId, input.eventId).then((event) => {
+        if (event) {
+          const notificationPayload: z.infer<typeof notificationCreateRequest> =
+            {
+              body: `Event "${event.title}" has been cancelled`,
+              title: "Event has been cancelled",
+              type: "event_cancellation",
+              sourceId: event.providerId,
+              eventId: event.id,
+            };
+          notificationProvider.createAndSendNotification(
+            notificationPayload,
+            ctx.user.id,
+          );
+        }
+      });
 
       await provider.client.deleteEvent(input.calendarId, input.eventId);
 

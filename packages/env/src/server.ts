@@ -14,6 +14,7 @@ export const env = createEnv({
     VERCEL_URL: z.string().optional(),
     UPSTASH_REDIS_REST_URL: z.string().url(),
     UPSTASH_REDIS_REST_TOKEN: z.string().min(1),
+    VAPID_PRIVATE_KEY: z.string().optional(),
   },
   experimental__runtimeEnv: process.env,
   skipValidation: process.env.NODE_ENV !== "production",

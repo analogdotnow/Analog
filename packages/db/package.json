@@ -12,13 +12,16 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "format": "prettier --write \"**/*.{ts,tsx,css,,md}\""
+    "db:seed": "bun run './src/seed/index.ts'",
+    "format": "prettier --write \"**/*.{ts,tsx,css,,md}\"",
+    "generate:vapid": "bun web-push generate-vapid-keys"
   },
   "dependencies": {
     "@repo/env": "workspace:*",
     "drizzle-orm": "^0.43.1",
     "postgres": "^3.4.5",
-    "server-only": "^0.0.1"
+    "server-only": "^0.0.1",
+    "web-push": "^3.6.7"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
@@ -26,6 +29,7 @@
     "@types/node": "^20",
     "drizzle-kit": "^0.31.1",
     "eslint": "^9",
-    "typescript": "^5"
+    "typescript": "^5",
+    "@types/web-push": "^3.6.4"
   }
 }

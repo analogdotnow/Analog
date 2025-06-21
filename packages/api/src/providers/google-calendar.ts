@@ -168,4 +168,11 @@ export class GoogleCalendarProvider implements CalendarProvider {
       throw new ProviderError(error as Error, operation, context);
     }
   }
+
+  async event(calendarId: string, eventId: string): Promise<CalendarEvent> {
+    const event = await this.client.calendars.events.retrieve(eventId, {
+      calendarId,
+    });
+    return parseGoogleCalendarEvent({ calendarId, event, accountId: "" });
+  }
 }

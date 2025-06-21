@@ -164,4 +164,15 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
       throw new ProviderError(error as Error, operation, context);
     }
   }
+
+  async event(calendarId: string, eventId: string): Promise<CalendarEvent> {
+    const event = await this.graphClient
+      .api(
+        calendarId === "primary"
+          ? `/me/calendar/events/${eventId}`
+          : `/me/calendars/${calendarId}/events/${eventId}`,
+      )
+      .get();
+    return parseMicrosoftEvent(event);
+  }
 }

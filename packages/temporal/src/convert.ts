@@ -65,3 +65,11 @@ export function compareTemporal(
     toInstant({ value: b, timeZone: "UTC" }),
   );
 }
+
+export function formatToNormalizedDate(
+  date: Temporal.Instant | Temporal.ZonedDateTime | Temporal.PlainDate,
+  timeZone: string,
+): string {
+  const plainDate = toPlainDate({ value: date, timeZone });
+  return plainDate.toPlainDateTime().toLocaleString();
+}

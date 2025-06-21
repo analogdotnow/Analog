@@ -49,7 +49,7 @@ export function CalendarHeader({ className }: CalendarHeaderProps) {
           onNext={handleNext}
           onToday={handleToday}
         />
-
+        {/* <NotificationPopover /> */}
         <CalendarViewMenu currentView={view} onViewChange={setView} />
       </div>
     </header>
