@@ -20,7 +20,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useAccounts, useCurrentUser } from "@/hooks/accounts";
+import { useAccounts } from "@/hooks/accounts";
 import { eventFormSchemaWithRepeats } from "@/lib/schemas/event-form";
 import { cn } from "@/lib/utils";
 import { useEventOperations } from "../event-calendar";
@@ -33,20 +33,21 @@ import { defaultFormOptions } from "./support/form-defaults";
 function EventForm() {
   const { handleEventSave } = useEventOperations();
   const [measurements, ref] = useMeasure<HTMLDivElement>();
-  const { data: currentAccount } = useCurrentUser();
   const { accounts } = useAccounts();
 
   const form = useAppForm({
     defaultValues: {
       ...defaultFormOptions.defaultValues,
-      accountId: currentAccount?.id ?? "",
+      accountId: accounts?.find((a) => !a.email)?.id ?? "",
     },
     validators: defaultFormOptions.validators,
     onSubmit: ({ value }) => {
       const data = eventFormSchemaWithRepeats.parse(value);
       const account = accounts?.find((a) => a.id === data.accountId);
       if (!account) {
-        toast.error("No account available to save the event");
+        toast.error("No account available to save the event", {
+          closeButton: false,
+        });
         return;
       }
       const calendarEvent = toCalendarEvent({
