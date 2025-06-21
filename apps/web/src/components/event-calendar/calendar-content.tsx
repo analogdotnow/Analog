@@ -1,6 +1,5 @@
 "use client";
 
-import { AgendaView } from "@/components/event-calendar/views/agenda-view";
 import { DayView } from "@/components/event-calendar/views/day-view";
 import { MonthView } from "@/components/event-calendar/views/month-view";
 import { WeekView } from "@/components/event-calendar/views/week-view";
@@ -48,15 +47,6 @@ export function CalendarContent({
           events={events}
           onEventSelect={onEventSelect}
           onEventCreate={onEventCreate}
-        />
-      );
-
-    case "agenda":
-      return (
-        <AgendaView
-          currentDate={currentDate}
-          events={events}
-          onEventSelect={onEventSelect}
         />
       );
 

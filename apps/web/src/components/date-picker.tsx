@@ -33,7 +33,7 @@ export function DatePicker() {
   }, [currentDate]);
 
   const isWeekView = view === "week";
-  const isDayView = view === "day" || view === "agenda";
+  const isDayView = view === "day";
 
   return (
     <Calendar

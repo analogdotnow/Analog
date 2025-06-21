@@ -74,7 +74,6 @@ const VIEW_OPTIONS = [
   { value: "month" as const, label: "Month", shortcut: "M" },
   { value: "week" as const, label: "Week", shortcut: "W" },
   { value: "day" as const, label: "Day", shortcut: "D" },
-  { value: "agenda" as const, label: "Agenda", shortcut: "A" },
 ];
 
 interface CalendarViewMenuProps {

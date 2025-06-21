@@ -12,7 +12,6 @@ export const KEYBOARD_SHORTCUTS = {
   MONTH: "m",
   WEEK: "w",
   DAY: "d",
-  AGENDA: "a",
   NEXT_PERIOD: "n",
   PREVIOUS_PERIOD: "p",
   TODAY: "t",
@@ -28,9 +27,6 @@ export function CalendarHotkeys() {
     scopes: ["calendar"],
   });
   useHotkeys(KEYBOARD_SHORTCUTS.DAY, () => setView("day"), {
-    scopes: ["calendar"],
-  });
-  useHotkeys(KEYBOARD_SHORTCUTS.AGENDA, () => setView("agenda"), {
     scopes: ["calendar"],
   });
   useHotkeys(KEYBOARD_SHORTCUTS.TODAY, () => setCurrentDate(new Date()), {

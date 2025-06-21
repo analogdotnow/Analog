@@ -123,7 +123,7 @@ export function EventsPopup({
               >
                 <EventItem
                   event={event}
-                  view="agenda"
+                  view="day"
                   isFirstDay={isFirstDay}
                   isLastDay={isLastDay}
                 />

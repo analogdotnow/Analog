@@ -1,7 +1,6 @@
 "use client";
 
 // Component exports
-export { AgendaView } from "./views/agenda-view";
 export { CalendarContent } from "./calendar-content";
 export { CalendarHeader } from "./calendar-header";
 export { CalendarNavigation } from "./calendar-navigation";

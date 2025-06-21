@@ -81,7 +81,7 @@ function EventWrapper({
 
 interface EventItemProps {
   event: CalendarEvent;
-  view: "month" | "week" | "day" | "agenda";
+  view: "month" | "week" | "day";
   isDragging?: boolean;
   onClick?: (e: React.MouseEvent) => void;
   showTime?: boolean;
@@ -242,49 +242,4 @@ export function EventItem({
       </EventWrapper>
     );
   }
-
-  // Agenda view - kept separate since it's significantly different
-  return (
-    <button
-      className={`${cn(
-        "flex w-full flex-col gap-1 rounded p-2 text-left transition outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 data-past-event:line-through data-past-event:opacity-90",
-        "border-[color-mix(in_oklab,var(--background),var(--calendar-color)_30%)] bg-[color-mix(in_oklab,var(--background),var(--calendar-color)_20%)]",
-        className,
-      )} text-[color-mix(in_oklab,var(--foreground),var(--calendar-color)_80%)]`}
-      style={
-        {
-          "--calendar-color": event.color ?? "var(--color-muted-foreground)",
-        } as React.CSSProperties
-      }
-      data-past-event={
-        isPast(toDate({ value: event.end, timeZone: "UTC" })) || undefined
-      }
-      onClick={onClick}
-      onMouseDown={onMouseDown}
-      onTouchStart={onTouchStart}
-      {...dndListeners}
-      {...dndAttributes}
-    >
-      <div className="text-sm font-medium">{event.title ?? "(untitled)"}</div>
-      <div className="text-xs opacity-70">
-        {event.allDay ? (
-          <span>All day</span>
-        ) : (
-          <span className="uppercase">
-            {formatTimeWithOptionalMinutes(displayStart)} -{" "}
-            {formatTimeWithOptionalMinutes(displayEnd)}
-          </span>
-        )}
-        {event.location && (
-          <>
-            <span className="px-1 opacity-35"> · </span>
-            <span>{event.location}</span>
-          </>
-        )}
-      </div>
-      {event.description && (
-        <div className="my-1 text-xs opacity-90">{event.description}</div>
-      )}
-    </button>
-  );
 }

@@ -16,7 +16,6 @@ import {
   endOfWeek,
   format,
   getDay,
-  isBefore,
   isSameMonth,
   startOfWeek,
   subMonths,
@@ -24,7 +23,6 @@ import {
 } from "date-fns";
 
 import { CALENDAR_CONFIG, TIME_INTERVALS } from "../calendar-constants";
-import { AgendaDaysToShow } from "../constants";
 import { CalendarView } from "../types";
 
 /**
@@ -69,8 +67,6 @@ export function navigateToPrevious(
       return subWeeks(currentDate, 1);
     case "day":
       return addDays(currentDate, -1);
-    case "agenda":
-      return addDays(currentDate, -AgendaDaysToShow);
     default:
       return currentDate;
   }
@@ -84,8 +80,6 @@ export function navigateToNext(currentDate: Date, view: CalendarView): Date {
       return addWeeks(currentDate, 1);
     case "day":
       return addDays(currentDate, 1);
-    case "agenda":
-      return addDays(currentDate, AgendaDaysToShow);
     default:
       return currentDate;
   }
@@ -130,21 +124,6 @@ export function getDayTitle(date: Date) {
   };
 }
 
-export function getAgendaTitle(date: Date) {
-  const start = date;
-  const end = addDays(date, AgendaDaysToShow - 1);
-
-  if (isSameMonth(start, end)) {
-    return getMonthTitle(start);
-  }
-
-  return {
-    full: `${format(start, "MMM")} - ${format(end, "MMM yyyy")}`,
-    medium: "",
-    short: `${format(start, "MMM")} - ${format(end, "MMM")}`,
-  };
-}
-
 export function getViewTitleData(currentDate: Date, view: CalendarView) {
   switch (view) {
     case "month":
@@ -153,8 +132,6 @@ export function getViewTitleData(currentDate: Date, view: CalendarView) {
       return getWeekTitle(currentDate);
     case "day":
       return getDayTitle(currentDate);
-    case "agenda":
-      return getAgendaTitle(currentDate);
     default:
       return getMonthTitle(currentDate);
   }
