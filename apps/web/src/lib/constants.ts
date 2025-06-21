@@ -1,4 +1,4 @@
-import { Google, Microsoft, Zoom } from "@/components/icons";
+import { Google, Microsoft } from "@/components/icons";
 
 export const providers = [
   {
@@ -10,11 +10,6 @@ export const providers = [
     name: "Outlook",
     icon: Microsoft,
     providerId: "microsoft" as const,
-  },
-  {
-    name: "Zoom",
-    icon: Zoom,
-    providerId: "zoom" as const,
   },
 ];
 

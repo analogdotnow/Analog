@@ -16,7 +16,10 @@ export function accountToProvider(
     throw new Error("Invalid account");
   }
 
-  const Provider = supportedProviders[activeAccount.providerId];
+  const Provider =
+    supportedProviders[
+      activeAccount.providerId as keyof typeof supportedProviders
+    ];
 
   if (!Provider) {
     throw new Error("Provider not supported");
