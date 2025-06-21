@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { useKeyboardEvent, useToggle } from "@react-hookz/web";
 import { useAtomValue } from "jotai";
+import { toast } from "sonner";
 
 import { apiKeysAtom } from "@/atoms/api-keys";
 import type { AiOutputData } from "@/lib/schemas/event-form";
@@ -19,9 +20,14 @@ export const useAiInput = (getPrompt: () => string) => {
     async (userInput: string) => {
       if (!aiKey) return;
       toggleLoading();
-      const generatedInput = await generateEventFormData(userInput, aiKey);
-      toggleLoading();
-      setData(generatedInput);
+      try {
+        const generatedInput = await generateEventFormData(userInput, aiKey);
+        setData(generatedInput);
+      } catch {
+        toast.error("Failed to get AI input");
+      } finally {
+        toggleLoading();
+      }
     },
     [toggleLoading, aiKey],
   );
