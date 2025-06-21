@@ -1,4 +1,4 @@
-import { Google, Microsoft } from "@/components/icons";
+import { Google, Microsoft, Zoom } from "@/components/icons";
 
 export const providers = [
   {
@@ -13,4 +13,13 @@ export const providers = [
   },
 ];
 
+export const connections = [
+  {
+    name: "Zoom",
+    icon: Zoom,
+    connectionId: "zoom" as const,
+  },
+];
+
 export type ProviderId = (typeof providers)[number]["providerId"];
+export type ConnectionId = (typeof connections)[number]["connectionId"];

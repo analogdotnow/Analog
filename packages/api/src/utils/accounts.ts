@@ -1,4 +1,6 @@
 import "server-only";
+import { TRPCError } from "@trpc/server";
+
 import { auth, type Session } from "@repo/auth/server";
 import { db } from "@repo/db";
 
@@ -85,4 +87,19 @@ export const getAccounts = async (user: Session["user"], headers: Headers) => {
   return accounts.filter(
     (account) => account.accessToken && account.refreshToken,
   );
+};
+
+export const getConnectedAccounts = async (user: Session["user"]) => {
+  const _connectedAccounts = await db.query.connectedAccount.findMany({
+    where: (table, { eq }) => eq(table.userId, user.id),
+  });
+
+  const connectedAccounts = _connectedAccounts
+    .filter((account) => account.accessToken && account.refreshToken)
+    .map((account) => ({
+      ...account,
+      accessToken: account.accessToken,
+    }));
+
+  return connectedAccounts;
 };

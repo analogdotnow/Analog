@@ -5,7 +5,7 @@ import { APIError } from "better-auth/api";
 import { eq } from "drizzle-orm";
 
 import { db } from "@repo/db";
-import { account, user } from "@repo/db/schema";
+import { account, connectedAccount, user } from "@repo/db/schema";
 import { env } from "@repo/env/server";
 
 export const MICROSOFT_OAUTH_SCOPES = [
@@ -26,6 +26,16 @@ export const GOOGLE_OAUTH_SCOPES = [
   "https://www.googleapis.com/auth/calendar",
 ];
 
+export const ZOOM_OAUTH_SCOPES = [
+  "user:read:admin",
+  "user:read",
+  "calendar:read",
+  "calendar:write",
+  "meeting:read",
+  "meeting:write",
+  "offline_access",
+];
+
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "pg",
@@ -34,7 +44,7 @@ export const auth = betterAuth({
     accountLinking: {
       enabled: true,
       allowDifferentEmails: true,
-      trustedProviders: ["google", "microsoft"],
+      trustedProviders: ["google", "microsoft", "zoom"],
     },
   },
   user: {
@@ -57,6 +67,11 @@ export const auth = betterAuth({
               message: "Access token or refresh token is not set",
             });
           }
+
+          const loginProviders = ["google", "microsoft"];
+          const connectionProviders = ["zoom"];
+
+          const providerId = _account.providerId;
 
           const provider = ctx?.context.socialProviders.find(
             (p) => p.id === _account.providerId,
@@ -81,23 +96,50 @@ export const auth = betterAuth({
             });
           }
 
-          await db.transaction(async (tx) => {
-            await tx
-              .update(account)
-              .set({
-                name: info.user.name,
-                email: info.user.email ?? undefined,
-                image: info.user.image,
-              })
-              .where(eq(account.id, _account.id));
+          if (loginProviders.includes(providerId)) {
+            await db.transaction(async (tx) => {
+              await tx
+                .update(account)
+                .set({
+                  name: info.user.name,
+                  email: info.user.email ?? undefined,
+                  image: info.user.image,
+                })
+                .where(eq(account.id, _account.id));
 
-            await tx
-              .update(user)
-              .set({
-                defaultAccountId: _account.id,
-              })
-              .where(eq(user.id, _account.userId));
-          });
+              await tx
+                .update(user)
+                .set({
+                  defaultAccountId: _account.id,
+                })
+                .where(eq(user.id, _account.userId));
+            });
+
+            return;
+          }
+
+          if (connectionProviders.includes(providerId)) {
+            await db.transaction(async (tx) => {
+              await tx.insert(connectedAccount).values({
+                id: _account.id,
+                providerId: providerId as "zoom",
+                providerAccountId: info.user.id,
+                userId: _account.userId,
+                accessToken: _account.accessToken,
+                refreshToken: _account.refreshToken,
+                accessTokenExpiresAt: _account.accessTokenExpiresAt,
+                refreshTokenExpiresAt: _account.refreshTokenExpiresAt,
+                scope: _account.scope,
+                name: info.user.name ?? "",
+                email: info.user.email ?? "",
+                image: info.user.image,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+              });
+
+              await tx.delete(account).where(eq(account.id, _account.id));
+            });
+          }
         },
       },
     },
@@ -115,6 +157,12 @@ export const auth = betterAuth({
       clientId: env.MICROSOFT_CLIENT_ID,
       clientSecret: env.MICROSOFT_CLIENT_SECRET,
       scope: MICROSOFT_OAUTH_SCOPES,
+      overrideUserInfoOnSignIn: true,
+    },
+    zoom: {
+      clientId: process.env.ZOOM_CLIENT_ID!,
+      clientSecret: process.env.ZOOM_CLIENT_SECRET!,
+      scope: ZOOM_OAUTH_SCOPES,
       overrideUserInfoOnSignIn: true,
     },
   },
