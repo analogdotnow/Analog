@@ -1,5 +1,3 @@
-// Tanstack Form breaks this rule when we use the withForm HOC
-/* eslint-disable react-hooks/rules-of-hooks */
 import { useCallback, useMemo } from "react";
 import { parseDate, type CalendarDate } from "@internationalized/date";
 import { useField, useStore } from "@tanstack/react-form";
@@ -54,7 +52,7 @@ const segmentClassName =
 
 const DateGroup = withForm({
   ...defaultFormOptions,
-  render: ({ form }) => {
+  render: function Render({ form }) {
     const startField = useField({ name: "startDate", form });
     const endField = useField({ name: "endDate", form });
     const repeats = useStore(form.store, (state) => state.values.repeats);

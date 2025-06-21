@@ -1,5 +1,3 @@
-// Tanstack Form breaks this rule when we use the withForm HOC
-/* eslint-disable react-hooks/rules-of-hooks */
 import { useCallback } from "react";
 import {
   getLocalTimeZone,
@@ -31,7 +29,7 @@ const safeParseTime = (time: string | null) => {
 
 const TimeGroup = withForm({
   ...defaultFormOptions,
-  render: ({ form }) => {
+  render: function Render({ form }) {
     const isAllDay = useStore(form.store, (state) => state.values.isAllDay);
     const startField = useField({ name: "startTime", form });
     const endField = useField({ name: "endTime", form });
