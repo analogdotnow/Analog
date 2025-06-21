@@ -34,6 +34,17 @@ export interface CalendarEvent {
   calendarId: string;
 }
 
+export interface FreeBusySlot {
+  start: Temporal.ZonedDateTime;
+  end: Temporal.ZonedDateTime;
+  status?: string;
+}
+
+export interface CalendarFreeBusy {
+  calendarId: string;
+  busy: FreeBusySlot[];
+}
+
 export interface CalendarProvider {
   providerId: "google" | "microsoft";
   calendars(): Promise<Calendar[]>;
@@ -60,4 +71,10 @@ export interface CalendarProvider {
     event: UpdateEventInput,
   ): Promise<CalendarEvent>;
   deleteEvent(calendarId: string, eventId: string): Promise<void>;
+
+  freeBusy(
+    calendarIds: string[],
+    timeMin: Temporal.ZonedDateTime,
+    timeMax: Temporal.ZonedDateTime,
+  ): Promise<CalendarFreeBusy[]>;
 }

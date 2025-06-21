@@ -1,6 +1,7 @@
 import type {
   Calendar as MicrosoftCalendar,
   Event as MicrosoftEvent,
+  ScheduleItem,
 } from "@microsoft/microsoft-graph-types";
 import { Temporal } from "temporal-polyfill";
 
@@ -48,7 +49,17 @@ function parseDateTime(dateTime: string, timeZone: string) {
   return dt.toZonedDateTime(timeZone);
 }
 
-export function parseMicrosoftEvent(event: MicrosoftEvent): CalendarEvent {
+interface ParseMicrosoftEventOptions {
+  accountId: string;
+  calendarId: string;
+  event: MicrosoftEvent;
+}
+
+export function parseMicrosoftEvent({
+  accountId,
+  calendarId,
+  event,
+}: ParseMicrosoftEventOptions): CalendarEvent {
   const { start, end, isAllDay } = event;
 
   if (!start || !end) {
@@ -71,8 +82,8 @@ export function parseMicrosoftEvent(event: MicrosoftEvent): CalendarEvent {
     url: event.webLink || undefined,
     color: undefined,
     providerId: "microsoft",
-    accountId: "",
-    calendarId: "",
+    accountId,
+    calendarId,
   };
 }
 
@@ -89,13 +100,21 @@ export function toMicrosoftEvent(event: CreateEventInput | UpdateEventInput) {
   };
 }
 
-export function parseMicrosoftCalendar(calendar: MicrosoftCalendar): Calendar {
+interface ParseMicrosoftCalendarOptions {
+  accountId: string;
+  calendar: MicrosoftCalendar;
+}
+
+export function parseMicrosoftCalendar({
+  accountId,
+  calendar,
+}: ParseMicrosoftCalendarOptions): Calendar {
   return {
     id: calendar.id as string,
     providerId: "microsoft",
     name: calendar.name as string,
     primary: calendar.isDefaultCalendar as boolean,
-    accountId: "",
+    accountId,
     color: calendar.hexColor as string,
   };
 }
@@ -104,4 +123,16 @@ export function calendarPath(calendarId: string) {
   return calendarId === "primary"
     ? "/me/calendar"
     : `/me/calendars/${calendarId}`;
+}
+
+export function parseScheduleItem(item: ScheduleItem) {
+  if (!item.start || !item.end) {
+    throw new Error("Schedule item start or end is missing");
+  }
+
+  return {
+    start: parseDateTime(item.start.dateTime!, item.start.timeZone!),
+    end: parseDateTime(item.end.dateTime!, item.end.timeZone!),
+    status: item.status ?? "unknown",
+  };
 }

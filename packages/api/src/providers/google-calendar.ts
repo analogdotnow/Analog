@@ -7,20 +7,29 @@ import { CreateEventInput, UpdateEventInput } from "../schemas/events";
 import {
   parseGoogleCalendarCalendarListEntry,
   parseGoogleCalendarEvent,
+  parseGoogleCalendarFreeBusy,
   toGoogleCalendarEvent,
 } from "./google-calendar/utils";
-import type { Calendar, CalendarEvent, CalendarProvider } from "./interfaces";
+import type {
+  Calendar,
+  CalendarEvent,
+  CalendarFreeBusy,
+  CalendarProvider,
+} from "./interfaces";
 import { ProviderError } from "./utils";
 
 interface GoogleCalendarProviderOptions {
   accessToken: string;
+  accountId: string;
 }
 
 export class GoogleCalendarProvider implements CalendarProvider {
-  public providerId = "google" as const;
+  public readonly providerId = "google" as const;
+  public readonly accountId: string;
   private client: GoogleCalendar;
 
-  constructor({ accessToken }: GoogleCalendarProviderOptions) {
+  constructor({ accessToken, accountId }: GoogleCalendarProviderOptions) {
+    this.accountId = accountId;
     this.client = new GoogleCalendar({
       accessToken,
     });
@@ -34,7 +43,7 @@ export class GoogleCalendarProvider implements CalendarProvider {
 
       return items.map((calendar) =>
         parseGoogleCalendarCalendarListEntry({
-          accountId: "",
+          accountId: this.accountId,
           entry: calendar,
         }),
       );
@@ -50,7 +59,7 @@ export class GoogleCalendarProvider implements CalendarProvider {
       });
 
       return parseGoogleCalendarCalendarListEntry({
-        accountId: "",
+        accountId: this.accountId,
         entry: createdCalendar,
       });
     });
@@ -66,7 +75,7 @@ export class GoogleCalendarProvider implements CalendarProvider {
       });
 
       return parseGoogleCalendarCalendarListEntry({
-        accountId: "",
+        accountId: this.accountId,
         entry: updatedCalendar,
       });
     });
@@ -96,7 +105,7 @@ export class GoogleCalendarProvider implements CalendarProvider {
         items?.map((event) =>
           parseGoogleCalendarEvent({
             calendarId,
-            accountId: "",
+            accountId: this.accountId,
             event,
           }),
         ) ?? []
@@ -116,7 +125,7 @@ export class GoogleCalendarProvider implements CalendarProvider {
 
       return parseGoogleCalendarEvent({
         calendarId,
-        accountId: "",
+        accountId: this.accountId,
         event: createdEvent,
       });
     });
@@ -143,7 +152,7 @@ export class GoogleCalendarProvider implements CalendarProvider {
 
       return parseGoogleCalendarEvent({
         calendarId,
-        accountId: "",
+        accountId: this.accountId,
         event: updatedEvent,
       });
     });
@@ -152,6 +161,23 @@ export class GoogleCalendarProvider implements CalendarProvider {
   async deleteEvent(calendarId: string, eventId: string): Promise<void> {
     return this.withErrorHandler("deleteEvent", async () => {
       await this.client.calendars.events.delete(eventId, { calendarId });
+    });
+  }
+
+  async freeBusy(
+    calendars: string[],
+    timeMin: Temporal.ZonedDateTime,
+    timeMax: Temporal.ZonedDateTime,
+  ): Promise<CalendarFreeBusy[]> {
+    return this.withErrorHandler("freeBusy", async () => {
+      const response = await this.client.checkFreeBusy.checkFreeBusy({
+        timeMin: timeMin.withTimeZone("UTC").toInstant().toString(),
+        timeMax: timeMax.withTimeZone("UTC").toInstant().toString(),
+        timeZone: "UTC",
+        items: calendars.map((id) => ({ id })),
+      });
+
+      return parseGoogleCalendarFreeBusy(response);
     });
   }
 
