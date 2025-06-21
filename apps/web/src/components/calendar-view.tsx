@@ -8,6 +8,7 @@ import { Temporal } from "temporal-polyfill";
 import { compareTemporal, toInstant } from "@repo/temporal";
 
 import { EventCalendar, type CalendarEvent } from "@/components/event-calendar";
+import { useCalendarContext } from "@/contexts/calendar-context";
 import { RouterOutputs } from "@/lib/trpc";
 import { useTRPC } from "@/lib/trpc/client";
 import { useCalendarSettings } from "./event-calendar/hooks/use-calendar-settings";
@@ -32,31 +33,34 @@ function useCalendarActions() {
     trpc.accounts.getDefault.queryOptions(),
   );
 
+  const { currentDate } = useCalendarContext();
   const { defaultTimeZone } = useCalendarSettings();
 
   const timeMin = useMemo(
     () =>
-      Temporal.Now.plainDateISO()
+      Temporal.PlainDate.from(currentDate.toISOString().split("T")[0]!)
         .subtract({
           days: CALENDAR_CONFIG.TIME_RANGE_DAYS_PAST,
         })
         .toZonedDateTime({
           timeZone: defaultTimeZone,
         }),
-    [defaultTimeZone],
+    [defaultTimeZone, currentDate],
   );
+
   const timeMax = useMemo(
     () =>
-      Temporal.Now.plainDateISO()
+      Temporal.PlainDate.from(currentDate.toISOString().split("T")[0]!)
         .add({
           days: CALENDAR_CONFIG.TIME_RANGE_DAYS_FUTURE,
         })
         .toZonedDateTime({
           timeZone: defaultTimeZone,
         }),
-    [defaultTimeZone],
+    [defaultTimeZone, currentDate],
   );
 
+  console.log(timeMin.toString(), timeMax.toString());
   const eventsQueryKey = useMemo(
     () => trpc.events.list.queryOptions({ timeMin, timeMax }).queryKey,
     [trpc.events.list, timeMin, timeMax],
