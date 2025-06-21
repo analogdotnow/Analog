@@ -25,7 +25,9 @@ export const freeBusyRouter = createTRPCRouter({
           const calendars = await client.calendars();
 
           const r = await client.freeBusy(
-            input.calendars.length === 0 ? calendars.map((c) => c.id) : input.calendars,
+            input.calendars.length === 0
+              ? calendars.map((c) => c.id)
+              : input.calendars,
             input.timeMin,
             input.timeMax,
           );
@@ -43,5 +45,5 @@ export const freeBusyRouter = createTRPCRouter({
         .map(([v]) => v);
 
       return { events };
-    })
+    }),
 });
