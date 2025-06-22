@@ -51,7 +51,7 @@ const SelectedAccount = () => {
               return (
                 <SelectItem value={account.id} key={account.id}>
                   <Avatar className="size-5 rounded bg-blue-200 text-blue-900 dark:bg-blue-900 dark:text-blue-200">
-                    <AvatarFallback className="bg-transparent bg-none select-none">
+                    <AvatarFallback className="rounded border-0 bg-transparent bg-none select-none">
                       {email.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
