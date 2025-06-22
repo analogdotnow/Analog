@@ -101,11 +101,11 @@ export function TimezoneSelect({
         <PopoverTrigger asChild>
           <Button
             id={id}
-            variant="outline"
+            variant="ghost"
             role="combobox"
             aria-expanded={open}
             className={cn(
-              "w-full justify-between border-input bg-background/40! px-3 font-normal outline-offset-0 outline-none select-none hover:bg-accent focus-visible:outline-[3px]",
+              "w-full justify-between rounded-md border border-input !bg-background/40 font-medium outline-offset-0 outline-none select-none hover:!bg-accent focus-visible:outline-[3px] dark:hover:!bg-accent/50",
               className,
             )}
           >
@@ -124,7 +124,6 @@ export function TimezoneSelect({
           align="end"
           side="bottom"
           sideOffset={10}
-          alignOffset={3}
         >
           <Command filter={filterFn}>
             <CommandInput

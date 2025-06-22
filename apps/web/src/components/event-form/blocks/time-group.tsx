@@ -103,7 +103,7 @@ const TimeGroup = withForm({
                 <form.Field name="timezone">
                   {(field) => (
                     <TimezoneSelect
-                      className="h-5 gap-0 px-2 text-xs shadow-none"
+                      className="h-5 gap-0 text-xs shadow-none"
                       value={field.state.value}
                       onChange={(value) => field.handleChange(value)}
                     />

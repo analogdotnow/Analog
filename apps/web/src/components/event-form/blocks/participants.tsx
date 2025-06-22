@@ -57,7 +57,7 @@ const Participants = ({
           isInvalid={isInvalid}
           popoverContentProps={{
             align: "end",
-            alignOffset: 2,
+            alignOffset: -1,
             side: "bottom",
             sideOffset: 6,
           }}
