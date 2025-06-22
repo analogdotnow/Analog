@@ -1,3 +1,5 @@
+"use client";
+
 import { useCallback, useMemo } from "react";
 import { parseDate, type CalendarDate } from "@internationalized/date";
 import { useField, useStore } from "@tanstack/react-form";
