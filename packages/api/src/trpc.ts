@@ -10,40 +10,16 @@ import { getAccounts } from "./utils/accounts";
 import { superjson } from "./utils/superjson";
 
 export const createTRPCContext = async (opts: { headers: Headers }) => {
-  try {
-    console.log("[createTRPCContext] Starting session creation");
-    
-    // Add timeout to session creation
-    const sessionPromise = auth.api.getSession({
-      headers: opts.headers,
-    });
-    
-    const session = await Promise.race([
-      sessionPromise,
-      new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error("Session creation timed out")), 10000)
-      ),
-    ]);
+  const session = await auth.api.getSession({
+    headers: opts.headers,
+  });
 
-    console.log("[createTRPCContext] Session created successfully");
-
-    return {
-      db,
-      session: session?.session,
-      user: session?.user,
-      ...opts,
-    };
-  } catch (error) {
-    console.error("[createTRPCContext] Error creating session:", error);
-    
-    // Return context without session if auth fails
-    return {
-      db,
-      session: null,
-      user: null,
-      ...opts,
-    };
-  }
+  return {
+    db,
+    session: session?.session,
+    user: session?.user,
+    ...opts,
+  };
 };
 
 const t = initTRPC.context<typeof createTRPCContext>().create({
