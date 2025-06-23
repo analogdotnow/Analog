@@ -12,6 +12,7 @@ import { assignColor } from "./google-calendar/colors";
 import type { Calendar, CalendarEvent, CalendarProvider } from "./interfaces";
 import {
   calendarPath,
+  eventResponseStatusPath,
   parseMicrosoftCalendar,
   parseMicrosoftEvent,
   toMicrosoftEvent,
@@ -148,6 +149,23 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
       await this.graphClient
         .api(`${calendarPath(calendarId)}/events/${eventId}`)
         .delete();
+    });
+  }
+
+  async responseToEvent(
+    calendarId: string,
+    eventId: string,
+    response: {
+      status: "accepted" | "tentative" | "declined";
+      comment?: string;
+    },
+  ): Promise<void> {
+    await this.withErrorHandler("responseToEvent", async () => {
+      await this.graphClient
+        .api(
+          `/me/events/${eventId}/${eventResponseStatusPath(response.status)}`,
+        )
+        .post({ comment: response.comment, sendResponse: true });
     });
   }
 

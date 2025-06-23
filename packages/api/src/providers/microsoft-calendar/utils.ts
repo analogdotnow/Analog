@@ -180,3 +180,21 @@ export function calendarPath(calendarId: string) {
     ? "/me/calendar"
     : `/me/calendars/${calendarId}`;
 }
+
+export function eventResponseStatusPath(
+  status: "accepted" | "tentative" | "declined",
+): "accept" | "tentativelyAccept" | "decline" {
+  if (status === "accepted") {
+    return `accept`;
+  }
+
+  if (status === "tentative") {
+    return `tentativelyAccept`;
+  }
+
+  if (status === "declined") {
+    return `decline`;
+  }
+
+  throw new Error("Invalid status");
+}

@@ -7,6 +7,7 @@ import { CreateEventInput, UpdateEventInput } from "../schemas/events";
 import {
   parseGoogleCalendarCalendarListEntry,
   parseGoogleCalendarEvent,
+  toGoogleCalendarAttendeeResponseStatus,
   toGoogleCalendarEvent,
 } from "./google-calendar/utils";
 import type { Calendar, CalendarEvent, CalendarProvider } from "./interfaces";
@@ -152,6 +153,73 @@ export class GoogleCalendarProvider implements CalendarProvider {
   async deleteEvent(calendarId: string, eventId: string): Promise<void> {
     return this.withErrorHandler("deleteEvent", async () => {
       await this.client.calendars.events.delete(eventId, { calendarId });
+    });
+  }
+
+  async acceptEvent(calendarId: string, eventId: string): Promise<void> {
+    return this.withErrorHandler("acceptEvent", async () => {
+      const event = await this.client.calendars.events.retrieve(eventId, {
+        calendarId,
+      });
+
+      const attendees = event.attendees ?? [];
+      const selfIndex = attendees.findIndex((a) => a.self);
+
+      if (selfIndex >= 0) {
+        attendees[selfIndex] = {
+          ...attendees[selfIndex],
+          responseStatus: "accepted",
+        };
+      } else {
+        attendees.push({ self: true, responseStatus: "accepted" });
+      }
+
+      await this.client.calendars.events.update(eventId, {
+        ...event,
+        calendarId,
+        attendees,
+        sendUpdates: "all",
+      });
+    });
+  }
+
+  async responseToEvent(
+    calendarId: string,
+    eventId: string,
+    response: {
+      status: "accepted" | "tentative" | "declined";
+      comment?: string;
+    },
+  ): Promise<void> {
+    return this.withErrorHandler("responseToEvent", async () => {
+      const event = await this.client.calendars.events.retrieve(eventId, {
+        calendarId,
+      });
+
+      if (!event.attendees) {
+        throw new Error("Event has no attendees");
+      }
+
+      if (response.comment) {
+        throw new Error("Comment is not supported");
+      }
+
+      const selfIndex = event.attendees.findIndex((attendee) => attendee.self);
+
+      if (selfIndex === -1) {
+        throw new Error("Event has no self attendee");
+      }
+
+      event.attendees[selfIndex] = {
+        ...event.attendees[selfIndex],
+        responseStatus: toGoogleCalendarAttendeeResponseStatus(response.status),
+      };
+
+      await this.client.calendars.events.update(eventId, {
+        ...event,
+        calendarId,
+        sendUpdates: "all",
+      });
     });
   }
 

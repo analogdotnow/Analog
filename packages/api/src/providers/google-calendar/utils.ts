@@ -119,3 +119,9 @@ export function parseGoogleCalendarCalendarListEntry({
     color: entry.backgroundColor,
   };
 }
+
+export function toGoogleCalendarAttendeeResponseStatus(
+  status: "accepted" | "tentative" | "declined",
+): "accepted" | "tentative" | "declined" | "needsAction" {
+  return status;
+}
