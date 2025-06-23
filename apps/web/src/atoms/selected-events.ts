@@ -1,8 +1,9 @@
-import { atom, useAtom, useAtomValue } from "jotai";
+import { atom, useAtom } from "jotai";
 
 import type { CalendarEvent } from "@/components/event-calendar";
+import { DraftEvent } from "@/lib/interfaces";
 
-export type SelectedEvents = CalendarEvent[];
+export type SelectedEvents = (CalendarEvent | DraftEvent)[];
 
 export const selectedEventsAtom = atom<SelectedEvents>([]);
 
@@ -33,12 +34,4 @@ export function useSelectedEvents() {
     unselectEvent,
     clearSelectedEvents,
   };
-}
-
-export function useSelectedEvent() {
-  const selectedEvents = useAtomValue(selectedEventsAtom);
-
-  const selectedEvent = selectedEvents[0] ?? null;
-
-  return selectedEvent;
 }

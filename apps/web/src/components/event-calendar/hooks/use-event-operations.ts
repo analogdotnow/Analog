@@ -10,8 +10,8 @@ import * as R from "remeda";
 
 import { compareTemporal } from "@repo/temporal";
 
-import { selectedEventsAtom } from "@/atoms";
-import { CALENDAR_CONFIG } from "../constants";
+import { SelectedEvents, selectedEventsAtom } from "@/atoms";
+import { DraftEvent } from "@/lib/interfaces";
 import { CalendarEvent } from "../types";
 import {
   generateEventId,
@@ -75,28 +75,9 @@ export function useEventOperations(onOperationComplete?: () => void) {
     },
   );
 
-  // Derive optimistic selected events from optimistic events - this ensures perfect sync
-  const optimisticSelectedEvents = useMemo(() => {
-    return selectedEvents.reduce<CalendarEvent[]>((acc, selectedEvent) => {
-      const updatedEvent = optimisticEvents.find(
-        (e) => e.id === selectedEvent.id,
-      );
-      if (updatedEvent) {
-        acc.push(updatedEvent);
-      }
-      return acc;
-    }, []);
-  }, [optimisticEvents, selectedEvents]);
-
   const handleEventSave = useCallback(
     (event: CalendarEvent) => {
-      if (event.id) {
-        // Optimistically update UI
-        startTransition(() => applyOptimistic({ type: "update", event }));
-
-        updateEvent(event);
-        showEventUpdatedToast(event);
-      } else {
+      if (event.id.startsWith("draft-")) {
         const eventWithId = { ...event, id: generateEventId() };
 
         // Optimistically add event to UI
@@ -106,10 +87,18 @@ export function useEventOperations(onOperationComplete?: () => void) {
 
         createEvent({
           ...eventWithId,
-          calendarId: CALENDAR_CONFIG.DEFAULT_CALENDAR_ID,
         });
         showEventAddedToast(eventWithId);
+        onOperationComplete?.();
+        return;
       }
+
+      // Optimistically update UI
+      startTransition(() => applyOptimistic({ type: "update", event }));
+
+      updateEvent(event);
+      showEventUpdatedToast(event);
+
       onOperationComplete?.();
     },
     [
@@ -169,6 +158,7 @@ export function useEventOperations(onOperationComplete?: () => void) {
 
   const handleEventSelect = useCallback(
     (event: CalendarEvent) => {
+      setSelectedEvents([]);
       setSelectedEvents((prev) => {
         const filtered = prev.filter((e) => e.id !== event.id);
         return [event, ...filtered];
@@ -177,9 +167,30 @@ export function useEventOperations(onOperationComplete?: () => void) {
     [setSelectedEvents],
   );
 
+  const handleEventCreate = useCallback(
+    (draft: DraftEvent) => {
+      setSelectedEvents([]);
+      setSelectedEvents((prev) => [draft, ...prev]);
+    },
+    [setSelectedEvents],
+  );
+
   const handleDialogClose = useCallback(() => {
     setSelectedEvents([]);
   }, [setSelectedEvents]);
+
+  // Derive optimistic selected events from optimistic events - this ensures perfect sync
+  const optimisticSelectedEvents = useMemo(() => {
+    return selectedEvents.reduce<SelectedEvents>((acc, selectedEvent) => {
+      const updatedEvent = optimisticEvents.find(
+        (e) => e.id === selectedEvent.id,
+      );
+
+      acc.push(updatedEvent ?? selectedEvent);
+
+      return acc;
+    }, []);
+  }, [optimisticEvents, selectedEvents]);
 
   return {
     events: optimisticEvents,
@@ -190,5 +201,6 @@ export function useEventOperations(onOperationComplete?: () => void) {
     handleEventMove,
     handleEventSelect,
     handleDialogClose,
+    handleEventCreate,
   };
 }

@@ -15,7 +15,7 @@ export const calendarSettingsAtom = atomWithStorage<CalendarSettings>(
     locale: "en-US",
     weekStartsOn: 1,
     use12Hour: false,
-    defaultTimeZone: "UTC",
+    defaultTimeZone: "Europe/Amsterdam",
     defaultEventDuration: 60,
   },
 );

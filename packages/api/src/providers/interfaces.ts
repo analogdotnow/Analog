@@ -9,7 +9,7 @@ export type TemporalDate =
 
 export interface Calendar {
   id: string;
-  providerId: string;
+  providerId: "google" | "microsoft";
   name: string;
   description?: string;
   timeZone?: string;
@@ -32,7 +32,7 @@ export interface CalendarEvent {
   url?: string;
   color?: string;
   readOnly: boolean;
-  providerId: string;
+  providerId: "google" | "microsoft";
   accountId: string;
   calendarId: string;
   metadata?: Record<string, unknown>;

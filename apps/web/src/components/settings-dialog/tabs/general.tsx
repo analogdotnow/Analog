@@ -92,14 +92,14 @@ function ThemePicker() {
 function StartOfWeekPicker() {
   const [calendarSettings, setCalendarSettings] = useCalendarSettings();
   const value = weekDays[calendarSettings.weekStartsOn - 1];
-  console.log(calendarSettings.weekStartsOn, value);
+
   return (
     <div className="w-48">
       <Label htmlFor="settings-start-of-week" className="sr-only">
         Start of week
       </Label>
       <Select
-        value={weekDays[calendarSettings.weekStartsOn - 1]}
+        value={value}
         onValueChange={(value: WeekDay) => {
           const weekStartsOn = weekDays.indexOf(value) + 1;
 

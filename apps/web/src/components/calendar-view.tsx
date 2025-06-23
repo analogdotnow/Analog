@@ -10,7 +10,6 @@ import {
   EventHeight,
   WeekCellsHeight,
 } from "@/components/event-calendar";
-import { CalendarEvent } from "@/components/event-calendar/types";
 import {
   filterPastEvents,
   filterVisibleEvents,
@@ -20,13 +19,14 @@ import { DayView } from "@/components/event-calendar/views/day-view";
 import { MonthView } from "@/components/event-calendar/views/month-view";
 import { WeekView } from "@/components/event-calendar/views/week-view";
 import { useCalendarState } from "@/hooks/use-calendar-state";
+import { CalendarEvent, DraftEvent } from "@/lib/interfaces";
 import { cn } from "@/lib/utils";
 import { useScrollToCurrentTime } from "./event-calendar/week-view/use-scroll-to-current-time";
 
 interface CalendarContentProps {
   events: CalendarEvent[];
   onEventSelect: (event: CalendarEvent) => void;
-  onEventCreate: (startTime: Date) => void;
+  onEventCreate: (draft: DraftEvent) => void;
   scrollContainerRef: React.RefObject<HTMLDivElement | null>;
   onEventUpdate: (event: CalendarEvent) => void;
   headerRef: React.RefObject<HTMLDivElement | null>;
@@ -111,6 +111,7 @@ function CalendarContent({
 interface CalendarViewProps {
   className?: string;
   events: CalendarEvent[];
+  handleEventCreate: (draft: DraftEvent) => void;
   handleEventSelect: (event: CalendarEvent) => void;
   handleEventMove: (event: CalendarEvent) => void;
 }
@@ -120,6 +121,7 @@ export function CalendarView({
   events,
   handleEventSelect,
   handleEventMove,
+  handleEventCreate,
 }: CalendarViewProps) {
   const viewPreferences = useViewPreferences();
   const [calendarVisibility] = useCalendarsVisibility();
@@ -173,7 +175,7 @@ export function CalendarView({
           events={filteredEvents}
           onEventSelect={handleEventSelect}
           onEventUpdate={handleEventMove}
-          onEventCreate={() => console.log("onEventCreate")}
+          onEventCreate={handleEventCreate}
           scrollContainerRef={scrollContainerRef}
           headerRef={headerRef}
         />

@@ -119,7 +119,6 @@ export function EventItem({
 
   const { defaultTimeZone, locale, use12Hour } = useCalendarSettings();
   const eventTime = React.useMemo(() => {
-    // console.log("eventTime", event.start.toString(), event.end.toString(), durationMinutes, event.allDay, use12Hour, locale);
     if (event.allDay) {
       return "All day";
     }

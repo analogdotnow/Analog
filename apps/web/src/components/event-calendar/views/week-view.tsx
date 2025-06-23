@@ -6,13 +6,13 @@ import {
   eachHourOfInterval,
   format,
   getHours,
-  isBefore,
   isSameDay,
   isToday,
   startOfDay,
   startOfWeek,
   subDays,
 } from "date-fns";
+import { Temporal } from "temporal-polyfill";
 
 import { toDate } from "@repo/temporal";
 
@@ -35,7 +35,9 @@ import {
   isWeekend,
   type PositionedEvent,
 } from "@/components/event-calendar/utils";
+import { DraftEvent } from "@/lib/interfaces";
 import { cn } from "@/lib/utils";
+import { createDraftEvent } from "@/lib/utils/calendar";
 
 interface WeekViewContextType {
   allDays: Date[];
@@ -45,7 +47,7 @@ interface WeekViewContextType {
   currentDate: Date;
   gridTemplateColumns: string;
   onEventClick: (event: CalendarEvent, e: React.MouseEvent) => void;
-  onEventCreate: (startTime: Date) => void;
+  onEventCreate: (draft: DraftEvent) => void;
   onEventUpdate: (event: CalendarEvent) => void;
   containerRef: React.RefObject<HTMLDivElement | null>;
 }
@@ -64,7 +66,7 @@ interface WeekViewProps extends React.ComponentProps<"div"> {
   currentDate: Date;
   events: CalendarEvent[];
   onEventSelect: (event: CalendarEvent) => void;
-  onEventCreate: (startTime: Date) => void;
+  onEventCreate: (draft: DraftEvent) => void;
   onEventUpdate: (event: CalendarEvent) => void;
   headerRef: React.RefObject<HTMLDivElement | null>;
 }
@@ -201,6 +203,7 @@ function WeekViewAllDaySection() {
     currentDate,
     containerRef,
     onEventUpdate,
+    onEventCreate,
   } = useWeekViewContext();
   const viewPreferences = useViewPreferences();
   const settings = useCalendarSettings();
@@ -228,7 +231,7 @@ function WeekViewAllDaySection() {
           </span>
         </div>
 
-        {allDays.map((day, dayIndex) => {
+        {allDays.map((day) => {
           const isDayVisible = viewPreferences.showWeekends || !isWeekend(day);
           const visibleDayIndex = visibleDays.findIndex(
             (d) => d.getTime() === day.getTime(),
@@ -265,6 +268,17 @@ function WeekViewAllDaySection() {
               )}
               data-today={isToday(day) || undefined}
               style={{ visibility: isDayVisible ? "visible" : "hidden" }}
+              onClick={() => {
+                const start = Temporal.PlainDate.from({
+                  year: day.getFullYear(),
+                  month: day.getMonth() + 1,
+                  day: day.getDate(),
+                });
+
+                const end = start.add({ days: 1 });
+
+                onEventCreate(createDraftEvent({ start, end }));
+              }}
             >
               {dayAllDayEvents.map((event) => {
                 const eventStart = toDate({
@@ -400,7 +414,6 @@ function WeekViewDayColumns() {
     currentDate,
     onEventClick,
     onEventUpdate,
-    onEventCreate,
     containerRef,
     hours,
   } = useWeekViewContext();
@@ -458,15 +471,7 @@ function WeekViewDayColumns() {
                 </div>
               </div>
             )}
-
-            <div
-              onClick={() => {
-                const startTime = new Date(day);
-                startTime.setHours(0);
-                startTime.setMinutes(0);
-                onEventCreate(startTime);
-              }}
-            >
+            <div>
               <MemoizedWeekViewDayTimeSlots day={day} hours={hours} />
             </div>
           </div>
@@ -478,7 +483,9 @@ function WeekViewDayColumns() {
 
 function WeekViewDayTimeSlots({ day, hours }: { day: Date; hours: Date[] }) {
   // TODO: replace context
-  // const { hours, onEventCreate } = useWeekViewContext();
+  const { onEventCreate } = useWeekViewContext();
+
+  const settings = useCalendarSettings();
 
   return (
     <>
@@ -504,12 +511,20 @@ function WeekViewDayTimeSlots({ day, hours }: { day: Date; hours: Date[] }) {
                     quarter === 2 && "top-[calc(var(--week-cells-height)/4*2)]",
                     quarter === 3 && "top-[calc(var(--week-cells-height)/4*3)]",
                   )}
-                  // onClick={() => {
-                  //   const startTime = new Date(day);
-                  //   startTime.setHours(hourValue);
-                  //   startTime.setMinutes(quarter * 15);
-                  //   onEventCreate(startTime);
-                  // }}
+                  onClick={() => {
+                    const start = Temporal.ZonedDateTime.from({
+                      year: day.getFullYear(),
+                      month: day.getMonth() + 1,
+                      day: day.getDate(),
+                      hour: hourValue,
+                      minute: quarter * 15,
+                      timeZone: settings.defaultTimeZone,
+                    });
+
+                    const end = start.add({ minutes: 15 });
+
+                    onEventCreate(createDraftEvent({ start, end }));
+                  }}
                 />
               );
             })}

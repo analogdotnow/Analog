@@ -19,6 +19,7 @@ import {
   startOfWeek,
   subDays,
 } from "date-fns";
+import { Temporal } from "temporal-polyfill";
 
 import { toDate } from "@repo/temporal";
 
@@ -51,7 +52,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { DraftEvent } from "@/lib/interfaces";
 import { cn, groupArrayIntoChunks } from "@/lib/utils";
+import { createDraftEvent } from "@/lib/utils/calendar";
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -62,7 +65,7 @@ interface MonthViewContextType {
   gridTemplateColumns: string;
   eventCollection: EventCollectionForMonth;
   onEventClick: (event: CalendarEvent, e: React.MouseEvent) => void;
-  onEventCreate: (startTime: Date) => void;
+  onEventCreate: (draft: DraftEvent) => void;
   containerRef: React.RefObject<HTMLDivElement | null>;
   onEventUpdate: (event: CalendarEvent) => void;
 }
@@ -83,7 +86,7 @@ interface MonthViewProps {
   currentDate: Date;
   events: CalendarEvent[];
   onEventSelect: (event: CalendarEvent) => void;
-  onEventCreate: (startTime: Date) => void;
+  onEventCreate: (draft: DraftEvent) => void;
   onEventUpdate: (event: CalendarEvent) => void;
 }
 
@@ -229,12 +232,22 @@ function MonthViewDay({
 }) {
   const { currentDate, onEventCreate } = useMonthViewContext();
   const viewPreferences = useViewPreferences();
+  const settings = useCalendarSettings();
 
   const handleDayClick = useCallback(() => {
-    const startTime = new Date(day);
-    startTime.setHours(DefaultStartHour, 0, 0);
-    onEventCreate(startTime);
-  }, [day, onEventCreate]);
+    const start = Temporal.ZonedDateTime.from({
+      year: day.getFullYear(),
+      month: day.getMonth() + 1,
+      day: day.getDate(),
+      hour: DefaultStartHour,
+      minute: 0,
+      timeZone: settings.defaultTimeZone,
+    });
+
+    const end = start.add({ days: 1 });
+
+    onEventCreate(createDraftEvent({ start, end }));
+  }, [day, onEventCreate, settings.defaultTimeZone]);
 
   if (!day) return null;
 

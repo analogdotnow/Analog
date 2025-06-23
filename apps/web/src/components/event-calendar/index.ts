@@ -15,4 +15,4 @@ export * from "./constants";
 export * from "./hooks";
 
 // Type exports
-export type { CalendarEvent, CalendarView, EventColor } from "./types";
+export type { CalendarEvent, CalendarView } from "./types";

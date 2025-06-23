@@ -16,7 +16,14 @@ export function CalendarLayout() {
 }
 
 function IsolatedCalendarLayout() {
-  const { events, handleEventMove, handleEventSelect } = useEventOperations();
+  const {
+    events,
+    selectedEvents,
+    handleEventMove,
+    handleEventSelect,
+    handleEventSave,
+    handleEventCreate,
+  } = useEventOperations();
 
   return (
     <>
@@ -27,10 +34,16 @@ function IsolatedCalendarLayout() {
             events={events}
             handleEventMove={handleEventMove}
             handleEventSelect={handleEventSelect}
+            handleEventCreate={handleEventCreate}
           />
         </div>
       </SidebarInset>
-      <RightSidebar variant="inset" side="right" />
+      <RightSidebar
+        variant="inset"
+        side="right"
+        selectedEvent={selectedEvents[0]}
+        handleEventSave={handleEventSave}
+      />
     </>
   );
 }

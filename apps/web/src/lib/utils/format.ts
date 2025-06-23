@@ -7,10 +7,16 @@ export interface FormatTimeOptions {
   value: Temporal.ZonedDateTime;
   use12Hour: boolean;
   locale: string;
+  timeZone?: string;
 }
 
-export function formatTime({ value, use12Hour, locale }: FormatTimeOptions) {
-  const date = toDate({ value, timeZone: value.timeZoneId });
+export function formatTime({
+  value,
+  use12Hour,
+  locale,
+  timeZone,
+}: FormatTimeOptions) {
+  const date = toDate({ value, timeZone: timeZone ?? value.timeZoneId });
 
   if (use12Hour) {
     return format({

@@ -12,6 +12,7 @@ import {
   isSameDay,
   startOfDay,
 } from "date-fns";
+import { Temporal } from "temporal-polyfill";
 
 import { toDate } from "@repo/temporal";
 
@@ -26,13 +27,15 @@ import {
 import { EndHour, StartHour } from "@/components/event-calendar/constants";
 import { useCurrentTimeIndicator } from "@/components/event-calendar/hooks";
 import { isMultiDayEvent } from "@/components/event-calendar/utils";
+import { DraftEvent } from "@/lib/interfaces";
 import { cn } from "@/lib/utils";
+import { createDraftEvent } from "@/lib/utils/calendar";
 
 interface DayViewProps {
   currentDate: Date;
   events: CalendarEvent[];
   onEventSelect: (event: CalendarEvent) => void;
-  onEventCreate: (startTime: Date) => void;
+  onEventCreate: (draft: DraftEvent) => void;
   onEventUpdate: (event: CalendarEvent) => void;
 }
 
@@ -381,10 +384,18 @@ export function DayView({
                           "top-[calc(var(--week-cells-height)/4*3)]",
                       )}
                       onClick={() => {
-                        const startTime = new Date(currentDate);
-                        startTime.setHours(hourValue);
-                        startTime.setMinutes(quarter * 15);
-                        onEventCreate(startTime);
+                        const start = Temporal.ZonedDateTime.from({
+                          year: currentDate.getFullYear(),
+                          month: currentDate.getMonth() + 1,
+                          day: currentDate.getDate(),
+                          hour: hourValue,
+                          minute: quarter * 15,
+                          timeZone: settings.defaultTimeZone,
+                        });
+
+                        const end = start.add({ minutes: 15 });
+
+                        onEventCreate(createDraftEvent({ start, end }));
                       }}
                     />
                   );

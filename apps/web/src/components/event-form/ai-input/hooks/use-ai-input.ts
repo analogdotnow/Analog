@@ -4,8 +4,11 @@ import { useAtomValue } from "jotai";
 import { toast } from "sonner";
 
 import { apiKeysAtom } from "@/atoms/api-keys";
+import {
+  aiInputPredicate,
+  generateEventFormData,
+} from "@/components/event-form/ai-input/support/ai-input";
 import type { AiOutputData } from "@/lib/schemas/event-form";
-import { aiInputPredicate, generateEventFormData } from "../support/ai-input";
 
 export const useAiInput = (getPrompt: () => string) => {
   const [isLoading, toggleLoading] = useToggle(false);
