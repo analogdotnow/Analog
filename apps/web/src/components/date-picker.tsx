@@ -52,7 +52,7 @@ export function DatePicker() {
         "[&>button]:font-medium",
       )}
       selectedClassName={cn(
-        "[&>button]:text-sidebar-primary [&>button]:bg-transparent",
+        "[&>button]:text-sidebar-foreground [&>button]:bg-transparent",
         "[&>button:hover]:text-sidebar-primary-foreground [&>button:hover]:bg-sidebar-primary/80",
         "[&>button:focus]:bg-sidebar-primary [&>button:focus]:text-sidebar-primary-foreground",
         isDayView &&
