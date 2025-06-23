@@ -157,7 +157,10 @@ export function CalendarPicker() {
                   value={account.name}
                 >
                   {account.calendars.map((calendar) => (
-                    <CalendarListItem calendar={calendar} key={calendar.id} />
+                    <CalendarListItem
+                      calendar={calendar}
+                      key={`${account.id}-${calendar.id}`}
+                    />
                   ))}
                 </CommandGroup>
               ))}
