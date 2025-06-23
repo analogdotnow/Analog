@@ -2,13 +2,18 @@ const EventHeight = 24;
 
 // Vertical gap between events in pixels - controls spacing in month view
 const EventGap = 4;
+
 // Height of hour cells in week and day views - controls the scale of time display
 const WeekCellsHeight = 64;
 
+// Number of days to show in the agenda view
 const AgendaDaysToShow = 30;
 
+// Start and end hours for the week and day views
 const StartHour = 0;
 const EndHour = 24;
+
+// Default start and end times
 const DefaultStartHour = 9;
 const DefaultEndHour = 10;
 

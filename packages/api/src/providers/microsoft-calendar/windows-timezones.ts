@@ -174,8 +174,8 @@ const WINDOWS_TO_IANA_TIMEZONE_MAP: Record<string, string> = {
  * Converts a Microsoft Windows timezone identifier to an IANA timezone identifier.
  * Falls back to UTC if the Windows timezone is not found in the mapping.
  *
- * @param windowsTimeZone - The Windows timezone identifier from Microsoft Graph
  * @returns The corresponding IANA timezone identifier
+ * @param timeZone
  */
 export function mapWindowsToIanaTimeZone(timeZone: string) {
   return WINDOWS_TO_IANA_TIMEZONE_MAP[timeZone];
