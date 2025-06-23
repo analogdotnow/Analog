@@ -46,19 +46,26 @@ export function DatePicker() {
       month={displayedMonth}
       onMonthChange={setDisplayedMonth}
       className={cn("w-full px-0 [&_[role=gridcell]]:w-[33px]")}
-      todayClassName="[&>button]:!bg-sidebar-primary hover:[&>button]:!bg-sidebar-primary [&>button]:font-medium hover:opacity-80"
-      selectedClassName={cn(
-        "[&>button]:text-sidebar-primary-foreground hover:[&>button]:text-sidebar-primary-foreground hover:filter hover:brightness-[0.8] focus:[&>button]:bg-sidebar-primary focus:[&>button]:text-sidebar-primary-foreground",
-        "[&>button]:bg-transparent",
-        isDayView &&
-          "dark:[&>button]:!bg-sidebar-foreground/10 [&>button]:!bg-sidebar-foreground/5",
+      todayClassName={cn(
+        "[&>button]:!bg-sidebar-primary [&>button]:!text-sidebar-primary-foreground",
+        "[&>button:hover]:!bg-sidebar-primary [&>button:hover]:brightness-90",
+        "[&>button]:font-medium",
       )}
-      dayButtonClassName="dark:hover:bg-sidebar-foreground/15"
+      selectedClassName={cn(
+        "[&>button]:text-sidebar-foreground [&>button]:bg-transparent",
+        "[&>button:hover]:text-sidebar-primary-foreground [&>button:hover]:bg-sidebar-primary/80",
+        "[&>button:focus]:bg-sidebar-primary [&>button:focus]:text-sidebar-primary-foreground",
+        isDayView &&
+          "dark:[&>button]:bg-sidebar-foreground/8 [&>button]:bg-sidebar-foreground/4",
+      )}
+      dayButtonClassName="hover:bg-sidebar-foreground/10 dark:hover:bg-sidebar-foreground/15"
       weekClassName={cn(
-        "relative z-0 before:-z-10 before:absolute before:content-[''] before:inset-0 before:rounded-md dark:[&:has([aria-selected=true])]:before:bg-sidebar-foreground/10 [&:has([aria-selected=true])]:before:bg-sidebar-foreground/5",
+        "relative z-0 before:-z-10 before:absolute before:content-[''] before:inset-0 before:rounded-md",
+        "[&:has([aria-selected=true])]:before:bg-sidebar-foreground/4",
+        "dark:[&:has([aria-selected=true])]:before:bg-sidebar-foreground/8",
         !isWeekView && "before:hidden",
       )}
-      weekdayClassName="flex-1"
+      weekdayClassName="flex-1 text-sidebar-foreground/70 font-medium"
       outsideClassName="aria-selected:opacity-100 aria-selected:bg-transparent"
       navClassName="[&>button]:z-10"
     />
