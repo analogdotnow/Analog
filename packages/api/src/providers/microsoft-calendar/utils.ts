@@ -1,6 +1,8 @@
 import type {
   Calendar as MicrosoftCalendar,
   Event as MicrosoftEvent,
+  Attendee as MicrosoftEventAttendee,
+  ResponseStatus as MicrosoftEventAttendeeResponseStatus,
 } from "@microsoft/microsoft-graph-types";
 import { Temporal } from "temporal-polyfill";
 
@@ -9,7 +11,7 @@ import {
   MicrosoftEventMetadata,
   UpdateEventInput,
 } from "../../schemas/events";
-import type { Calendar, CalendarEvent } from "../interfaces";
+import type { Attendee, AttendeeStatus, Calendar, CalendarEvent } from "../interfaces";
 import { mapWindowsToIanaTimeZone } from "./windows-timezones";
 
 interface ToMicrosoftDateOptions {
@@ -113,6 +115,7 @@ export function parseMicrosoftEvent(event: MicrosoftEvent): CalendarEvent {
     allDay: isAllDay ?? false,
     location: event.location?.displayName ?? undefined,
     status: event.showAs ?? undefined,
+    attendees: event.attendees?.map(parseMicrosoftAttendee) ?? [],
     url: event.webLink ?? undefined,
     color: undefined,
     providerId: "microsoft",
@@ -197,4 +200,41 @@ export function eventResponseStatusPath(
   }
 
   throw new Error("Invalid status");
+}
+
+function parseMicrosoftAttendeeStatus(
+  status: MicrosoftEventAttendeeResponseStatus["response"],
+): AttendeeStatus {
+  if (
+    status === "notResponded" ||
+    status === "none" ||
+    status === "organizer"
+  ) {
+    return "unknown";
+  }
+
+  if (status === "accepted") {
+    return "accepted";
+  }
+
+  if (status === "tentativelyAccepted") {
+    return "tentative";
+  }
+
+  if (status === "declined") {
+    return "declined";
+  }
+
+  return "unknown";
+}
+
+export function parseMicrosoftAttendee(
+  attendee: MicrosoftEventAttendee,
+): Attendee {
+  return {
+    email: attendee.emailAddress?.address ?? undefined,
+    name: attendee.emailAddress?.name ?? undefined,
+    status: parseMicrosoftAttendeeStatus(attendee.status?.response),
+    type: attendee.type!,
+  };
 }
