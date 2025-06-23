@@ -197,8 +197,8 @@ function WeekViewAllDaySection() {
   );
   const allDayEvents =
     eventCollection.type === "week" ? eventCollection.allDayEvents : [];
-  
-    // if (allDayEvents.length === 0) {
+
+  // if (allDayEvents.length === 0) {
   //   return null;
   // }
 
@@ -229,7 +229,6 @@ function WeekViewAllDaySection() {
               value: event.end,
               timeZone: settings.defaultTimeZone,
             });
-            
             // if (event.allDay && !isSameDay(day, eventEnd)) {
             //   return false;
             // }
