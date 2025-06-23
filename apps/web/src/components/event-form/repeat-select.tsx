@@ -1,0 +1,55 @@
+import * as React from "react";
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { cn } from "@/lib/utils";
+import { RepeatType } from "./utils/form";
+
+interface RepeatSelectProps {
+  className?: string;
+  value: RepeatType;
+  onChange: (value: RepeatType) => void;
+  onBlur: () => void;
+}
+
+function getRepeatOptions() {
+  return [
+    { label: "Daily", value: "daily" },
+    { label: "Weekly", value: "weekly" },
+    { label: "Monthly", value: "monthly" },
+  ];
+}
+
+export function RepeatSelect({
+  className,
+  value,
+  onChange,
+  onBlur,
+}: RepeatSelectProps) {
+  return (
+    <Select>
+      <SelectTrigger
+        disabled
+        className={cn(
+          "h-8 border-none bg-transparent dark:bg-transparent [&_svg]:hidden",
+          className,
+        )}
+        onBlur={onBlur}
+      >
+        <SelectValue placeholder="Repeat" />
+      </SelectTrigger>
+      <SelectContent>
+        {getRepeatOptions().map((option) => (
+          <SelectItem key={option.value} value={option.value}>
+            {option.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}

@@ -11,6 +11,8 @@ import {
   EventItem,
   useCalendarDnd,
 } from "@/components/event-calendar";
+import { EventContextMenu } from "../event-context-menu";
+import { ContextMenuTrigger } from "../ui/context-menu";
 
 interface DraggableEventProps {
   event: CalendarEvent;
@@ -142,20 +144,24 @@ export function DraggableEvent({
       style={style}
       className="touch-none"
     >
-      <EventItem
-        event={event}
-        view={view}
-        showTime={showTime}
-        isFirstDay={isFirstDay}
-        isLastDay={isLastDay}
-        isDragging={isDragging}
-        onClick={onClick}
-        onMouseDown={handleMouseDown}
-        onTouchStart={handleTouchStart}
-        dndListeners={listeners}
-        dndAttributes={attributes}
-        aria-hidden={ariaHidden}
-      />
+      <EventContextMenu event={event}>
+        <ContextMenuTrigger>
+          <EventItem
+            event={event}
+            view={view}
+            showTime={showTime}
+            isFirstDay={isFirstDay}
+            isLastDay={isLastDay}
+            isDragging={isDragging}
+            onClick={onClick}
+            onMouseDown={handleMouseDown}
+            onTouchStart={handleTouchStart}
+            dndListeners={listeners}
+            dndAttributes={attributes}
+            aria-hidden={ariaHidden}
+          />
+        </ContextMenuTrigger>
+      </EventContextMenu>
     </div>
   );
 }

@@ -1,9 +1,7 @@
 "use client";
 
 import { useEffect, useMemo } from "react";
-import { Plus } from "lucide-react";
 import { useHotkeysContext } from "react-hotkeys-hook";
-import { toast } from "sonner";
 
 import { useCalendarsVisibility, useViewPreferences } from "@/atoms";
 import {
@@ -23,9 +21,8 @@ import {
   filterPastEvents,
   filterVisibleEvents,
 } from "@/components/event-calendar/utils";
-import { Button } from "@/components/ui/button";
-import { useSidebarWithSide } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
+import { SignalView } from "./signal/signal-view";
 
 interface CalendarViewProps {
   className?: string;
@@ -34,8 +31,6 @@ interface CalendarViewProps {
 export function CalendarView({ className }: CalendarViewProps) {
   const viewPreferences = useViewPreferences();
   const [calendarVisibility] = useCalendarsVisibility();
-  const { toggleSidebar: toggleRightSidebar, open: isRightSidebarOpen } =
-    useSidebarWithSide("right");
 
   const {
     isEventDialogOpen,
@@ -91,11 +86,7 @@ export function CalendarView({ className }: CalendarViewProps) {
           <CalendarContent
             events={filteredEvents}
             onEventSelect={handleEventSelect}
-            onEventCreate={() =>
-              toast.error("Event form is not wired up yet!", {
-                closeButton: false,
-              })
-            }
+            onEventCreate={() => console.log("onEventCreate")}
           />
         </div>
 
@@ -107,26 +98,7 @@ export function CalendarView({ className }: CalendarViewProps) {
           onDelete={handleEventDelete}
         />
       </CalendarDndProvider>
-      <Button
-        data-sidebar="trigger"
-        data-slot="sidebar-trigger"
-        data-side="right"
-        size="icon"
-        className={cn(
-          "group/sidebar-trigger absolute right-5 bottom-5 size-12 rounded-lg border border-border/50 bg-background text-foreground/50 shadow-md transition-all duration-300 hover:scale-[104%] hover:bg-background/70 hover:text-foreground/70 hover:shadow-lg dark:border-border/70 dark:bg-muted dark:text-foreground/80 dark:hover:brightness-110",
-          className,
-        )}
-        onClick={() => toggleRightSidebar()}
-      >
-        <Plus
-          className={cn("size-6 transition-transform duration-300", {
-            "rotate-45": isRightSidebarOpen,
-          })}
-          strokeWidth={1.75}
-          strokeLinecap="round"
-        />
-        <span className="sr-only">Toggle Sidebar</span>
-      </Button>
+      <SignalView className="absolute bottom-8 left-1/2 -translate-x-1/2" />
     </div>
   );
 }

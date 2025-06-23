@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@repo/auth/server";
 
 import { CalendarView } from "@/components/calendar-view";
+import { SignalView } from "@/components/signal/signal-view";
 
 export default async function Page() {
   const session = await auth.api.getSession({ headers: await headers() });

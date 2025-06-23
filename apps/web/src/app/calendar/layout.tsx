@@ -11,7 +11,7 @@ export default function Layout({
   children,
 }: Readonly<{ children: ReactNode }>) {
   return (
-    <SidebarProvider defaultWidthRight="21.5rem" defaultOpenRight={false}>
+    <SidebarProvider defaultWidthRight="21.5rem">
       <AppHotkeyProvider>
         <AppSidebar variant="inset" side="left" />
         <SidebarInset className="h-full overflow-hidden">
