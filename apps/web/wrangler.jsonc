@@ -11,4 +11,7 @@
     "enabled": true,
     "head_sampling_rate": 1,
   },
+  "vars": {
+    "BETTER_AUTH_URL": "https://analog-calendar.thomas-development.workers.dev"
+  },
 }
