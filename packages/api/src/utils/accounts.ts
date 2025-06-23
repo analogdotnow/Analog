@@ -56,33 +56,60 @@ export const getActiveAccount = async (
 };
 
 export const getAccounts = async (user: Session["user"], headers: Headers) => {
-  const _accounts = await db.query.account.findMany({
-    where: (table, { eq }) => eq(table.userId, user.id),
-  });
+  console.log(`[getAccounts] Getting accounts for user ${user.id}`);
+  
+  try {
+    const _accounts = await db.query.account.findMany({
+      where: (table, { eq }) => eq(table.userId, user.id),
+    });
 
-  const accounts = await Promise.all(
-    _accounts.map(async (account) => {
-      try {
-        const { accessToken } = await auth.api.getAccessToken({
-          body: {
-            providerId: account.providerId,
-            accountId: account.id,
-            userId: account.userId,
-          },
-          headers,
-        });
+    console.log(`[getAccounts] Found ${_accounts.length} accounts in database`);
 
-        return {
-          ...account,
-          accessToken: accessToken ?? account.accessToken,
-        };
-      } catch {
-        throw new Error(`Failed to get access token for account ${account.id}`);
-      }
-    }),
-  );
+    const accounts = await Promise.all(
+      _accounts.map(async (account, index) => {
+        try {
+          console.log(`[getAccounts] Getting access token for account ${index + 1}/${_accounts.length}: ${account.id}`);
+          
+          // Add timeout to access token fetch
+          const accessTokenPromise = auth.api.getAccessToken({
+            body: {
+              providerId: account.providerId,
+              accountId: account.id,
+              userId: account.userId,
+            },
+            headers,
+          });
+          
+          const { accessToken } = await Promise.race([
+            accessTokenPromise,
+            new Promise<never>((_, reject) =>
+              setTimeout(() => reject(new Error(`Access token fetch timed out for account ${account.id}`)), 10000)
+            ),
+          ]);
 
-  return accounts.filter(
-    (account) => account.accessToken && account.refreshToken,
-  );
+          return {
+            ...account,
+            accessToken: accessToken ?? account.accessToken,
+          };
+        } catch (error) {
+          console.error(`[getAccounts] Error getting access token for account ${account.id}:`, error);
+          // Return account without refreshed token instead of throwing
+          return {
+            ...account,
+            accessToken: account.accessToken, // Use existing token
+          };
+        }
+      }),
+    );
+
+    const validAccounts = accounts.filter(
+      (account) => account.accessToken && account.refreshToken,
+    );
+
+    console.log(`[getAccounts] Returning ${validAccounts.length} valid accounts`);
+    return validAccounts;
+  } catch (error) {
+    console.error(`[getAccounts] Fatal error:`, error);
+    throw error;
+  }
 };
