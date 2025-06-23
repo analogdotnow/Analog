@@ -7,8 +7,8 @@ export const env = createEnv({
     NEXT_PUBLIC_ENV: z.enum(["development", "test", "production"]),
   },
   runtimeEnv: {
-    NEXT_PUBLIC_VERCEL_URL: process.env.NEXT_PUBLIC_VERCEL_URL,
-    NEXT_PUBLIC_ENV: process.env.NODE_ENV,
+    NEXT_PUBLIC_VERCEL_URL: "https://analog-calendar.thomas-development.workers.dev/",
+    NEXT_PUBLIC_ENV: "production",
   },
   skipValidation: process.env.NODE_ENV !== "production",
 });
