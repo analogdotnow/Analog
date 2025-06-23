@@ -25,20 +25,20 @@ export function SignInForm({ redirectUrl = "/calendar" }: SignInFormProps) {
   const [loading, setLoading] = useState(false);
 
   const signInWithProvider = async (providerId: ProviderId) => {
-    await authClient.signIn.social(
-      {
+    if (loading) return; // Prevent multiple clicks
+    
+    setLoading(true);
+    
+    try {
+      await authClient.signIn.social({
         provider: providerId,
         callbackURL: redirectUrl,
-      },
-      {
-        onRequest: () => {
-          setLoading(true);
-        },
-        onResponse: () => {
-          setLoading(false);
-        },
-      },
-    );
+      });
+    } catch (error) {
+      setLoading(false);
+      console.error('Sign in error:', error);
+    }
+    // Note: We don't reset loading on success because the user will be redirected
   };
 
   return (
