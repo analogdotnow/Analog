@@ -18,7 +18,7 @@ const globalForDb = globalThis as unknown as {
  * Disable prefetch as it is not supported for Supabase "Transaction" pool mode.
  * @see https://supabase.com/docs/guides/database/connecting-to-postgres#supavisor-transaction-mode
  */
-const conn = globalForDb.conn ?? postgres(env.DATABASE_URL, { prepare: false });
+const conn = globalForDb.conn ?? postgres(env.DATABASE_URL ?? "", { prepare: false });
 if (env.NODE_ENV !== "production") globalForDb.conn = conn;
 
 /**

@@ -104,16 +104,16 @@ export const auth = betterAuth({
   },
   socialProviders: {
     google: {
-      clientId: env.GOOGLE_CLIENT_ID,
-      clientSecret: env.GOOGLE_CLIENT_SECRET,
+      clientId: env.GOOGLE_CLIENT_ID ?? "",
+      clientSecret: env.GOOGLE_CLIENT_SECRET ?? "",
       scope: GOOGLE_OAUTH_SCOPES,
       accessType: "offline",
-      prompt: "consent",
+      prompt: "consent", 
       overrideUserInfoOnSignIn: true,
     },
     microsoft: {
-      clientId: env.MICROSOFT_CLIENT_ID,
-      clientSecret: env.MICROSOFT_CLIENT_SECRET,
+      clientId: env.MICROSOFT_CLIENT_ID ?? "",
+      clientSecret: env.MICROSOFT_CLIENT_SECRET ?? "",
       scope: MICROSOFT_OAUTH_SCOPES,
       overrideUserInfoOnSignIn: true,
     },
