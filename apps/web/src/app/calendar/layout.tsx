@@ -11,13 +11,13 @@ export default function Layout({
   children,
 }: Readonly<{ children: ReactNode }>) {
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultWidthRight="21.5rem" defaultOpenRight={false}>
       <AppHotkeyProvider>
         <AppSidebar variant="inset" side="left" />
         <SidebarInset className="h-full overflow-hidden">
           {children}
         </SidebarInset>
-        {/* <RightSidebar variant="inset" side="right" /> */}
+        <RightSidebar variant="inset" side="right" />
       </AppHotkeyProvider>
     </SidebarProvider>
   );
