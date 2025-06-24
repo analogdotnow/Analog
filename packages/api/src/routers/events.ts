@@ -21,46 +21,69 @@ export const eventsRouter = createTRPCRouter({
       }),
     )
     .query(async ({ ctx, input }) => {
-      const allEvents = await Promise.all(
-        ctx.providers.map(async ({ client, account }) => {
-          const calendars = await client.calendars();
+      try {
+        const allEvents = await Promise.allSettled(
+          ctx.providers.map(async ({ client, account }) => {
+            try {
+              const calendars = await client.calendars();
 
-          const requestedCalendars =
-            input.calendarIds.length === 0
-              ? calendars
-              : calendars.filter((cal) => input.calendarIds.includes(cal.id));
+              const requestedCalendars =
+                input.calendarIds.length === 0
+                  ? calendars
+                  : calendars.filter((cal) => input.calendarIds.includes(cal.id));
 
-          const providerEvents = await Promise.all(
-            requestedCalendars.map(async (calendar) => {
-              const events = await client.events(
-                calendar.id,
-                input.timeMin,
-                input.timeMax,
+              const providerEvents = await Promise.allSettled(
+                requestedCalendars.map(async (calendar) => {
+                  try {
+                    const events = await client.events(
+                      calendar.id,
+                      input.timeMin,
+                      input.timeMax,
+                    );
+
+                    return events.map((event) => ({
+                      ...event,
+                      calendarId: calendar.id,
+                      providerId: account.providerId,
+                      accountId: account.id,
+                      color: calendar.color,
+                    }));
+                  } catch (error) {
+                    console.error(`Failed to fetch events for calendar ${calendar.id}:`, error);
+                    return []; // Return empty array for failed calendars
+                  }
+                }),
               );
 
-              return events.map((event) => ({
-                ...event,
-                calendarId: calendar.id,
-                providerId: account.providerId,
-                accountId: account.id,
-                color: calendar.color,
-              }));
-            }),
-          );
+              // Flatten successful results
+              return providerEvents
+                .filter((result): result is PromiseFulfilledResult<any[]> => result.status === 'fulfilled')
+                .flatMap(result => result.value);
+            } catch (error) {
+              console.error(`Failed to fetch calendars for provider ${account.providerId}:`, error);
+              return []; // Return empty array for failed providers
+            }
+          }),
+        );
 
-          return providerEvents.flat();
-        }),
-      );
+        // Flatten successful results from all providers
+        const events = allEvents
+          .filter((result): result is PromiseFulfilledResult<any[]> => result.status === 'fulfilled')
+          .flatMap(result => result.value)
+          .map(
+            (v) => [v, toInstant({ value: v.start, timeZone: "UTC" })] as const,
+          )
+          .sort(([, i1], [, i2]) => Temporal.Instant.compare(i1, i2))
+          .map(([v]) => v);
 
-      const events = allEvents
-        .flat()
-        .map(
-          (v) => [v, toInstant({ value: v.start, timeZone: "UTC" })] as const,
-        )
-        .sort(([, i1], [, i2]) => Temporal.Instant.compare(i1, i2))
-        .map(([v]) => v);
-
-      return { events };
+        return { events };
+      } catch (error) {
+        console.error("Failed to fetch events:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch events from calendar providers",
+        });
+      }
     }),
 
   create: calendarProcedure

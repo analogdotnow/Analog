@@ -22,6 +22,18 @@ interface MicrosoftCalendarProviderOptions {
   accessToken: string;
 }
 
+// Helper function to add timeout to promises
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number = 15000): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) => {
+      setTimeout(() => {
+        reject(new Error(`Operation timed out after ${timeoutMs}ms`));
+      }, timeoutMs);
+    }),
+  ]);
+}
+
 export class MicrosoftCalendarProvider implements CalendarProvider {
   public providerId = "microsoft" as const;
   private graphClient: Client;
@@ -37,9 +49,12 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
   async calendars(): Promise<Calendar[]> {
     return this.withErrorHandler("calendars", async () => {
       // Microsoft Graph API does not work without $select due to a bug
-      const response = await this.graphClient
-        .api("/me/calendars?$select=id,name,isDefaultCalendar")
-        .get();
+      const response = await withTimeout(
+        this.graphClient
+          .api("/me/calendars?$select=id,name,isDefaultCalendar")
+          .get(),
+        15000
+      );
       const data = response.value as MicrosoftCalendar[];
 
       return data.map((calendar, idx) => ({
@@ -51,9 +66,12 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
 
   async createCalendar(calendarData: CreateCalendarInput): Promise<Calendar> {
     return this.withErrorHandler("createCalendar", async () => {
-      const createdCalendar = (await this.graphClient
-        .api("/me/calendars")
-        .post(calendarData)) as MicrosoftCalendar;
+      const createdCalendar = await withTimeout(
+        this.graphClient
+          .api("/me/calendars")
+          .post(calendarData) as Promise<MicrosoftCalendar>,
+        15000
+      );
 
       return parseMicrosoftCalendar(createdCalendar);
     });
@@ -64,9 +82,12 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
     calendar: UpdateCalendarInput,
   ): Promise<Calendar> {
     return this.withErrorHandler("updateCalendar", async () => {
-      const updatedCalendar = (await this.graphClient
-        .api(calendarPath(calendarId))
-        .patch(calendar)) as MicrosoftCalendar;
+      const updatedCalendar = await withTimeout(
+        this.graphClient
+          .api(calendarPath(calendarId))
+          .patch(calendar) as Promise<MicrosoftCalendar>,
+        15000
+      );
 
       return parseMicrosoftCalendar(updatedCalendar);
     });
@@ -74,7 +95,10 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
 
   async deleteCalendar(calendarId: string): Promise<void> {
     return this.withErrorHandler("deleteCalendar", async () => {
-      await this.graphClient.api(calendarPath(calendarId)).delete();
+      await withTimeout(
+        this.graphClient.api(calendarPath(calendarId)).delete(),
+        15000
+      );
     });
   }
 
@@ -87,14 +111,17 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
       const startTime = timeMin.withTimeZone("UTC").toInstant().toString();
       const endTime = timeMax.withTimeZone("UTC").toInstant().toString();
 
-      const response = await this.graphClient
-        .api(`${calendarPath(calendarId)}/events`)
-        .filter(
-          `start/dateTime ge '${startTime}' and end/dateTime le '${endTime}'`,
-        )
-        .orderby("start/dateTime")
-        .top(CALENDAR_DEFAULTS.MAX_EVENTS_PER_CALENDAR)
-        .get();
+      const response = await withTimeout(
+        this.graphClient
+          .api(`${calendarPath(calendarId)}/events`)
+          .filter(
+            `start/dateTime ge '${startTime}' and end/dateTime le '${endTime}'`,
+          )
+          .orderby("start/dateTime")
+          .top(CALENDAR_DEFAULTS.MAX_EVENTS_PER_CALENDAR)
+          .get(),
+        30000 // Longer timeout for events as they can be slower
+      );
 
       return (response.value as MicrosoftEvent[]).map((event: MicrosoftEvent) =>
         parseMicrosoftEvent(event),
@@ -107,9 +134,12 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
     event: CreateEventInput,
   ): Promise<CalendarEvent> {
     return this.withErrorHandler("createEvent", async () => {
-      const createdEvent = (await this.graphClient
-        .api(calendarPath(calendarId))
-        .post(toMicrosoftEvent(event))) as MicrosoftEvent;
+      const createdEvent = await withTimeout(
+        this.graphClient
+          .api(calendarPath(calendarId))
+          .post(toMicrosoftEvent(event)) as Promise<MicrosoftEvent>,
+        15000
+      );
 
       return parseMicrosoftEvent(createdEvent);
     });
@@ -129,9 +159,12 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
     event: UpdateEventInput,
   ): Promise<CalendarEvent> {
     return this.withErrorHandler("updateEvent", async () => {
-      const updatedEvent = (await this.graphClient
-        .api(`${calendarPath(calendarId)}/events/${eventId}`)
-        .patch(toMicrosoftEvent(event))) as MicrosoftEvent;
+      const updatedEvent = await withTimeout(
+        this.graphClient
+          .api(`${calendarPath(calendarId)}/events/${eventId}`)
+          .patch(toMicrosoftEvent(event)) as Promise<MicrosoftEvent>,
+        15000
+      );
 
       return parseMicrosoftEvent(updatedEvent);
     });
@@ -145,9 +178,12 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
    */
   async deleteEvent(calendarId: string, eventId: string): Promise<void> {
     await this.withErrorHandler("deleteEvent", async () => {
-      await this.graphClient
-        .api(`${calendarPath(calendarId)}/events/${eventId}`)
-        .delete();
+      await withTimeout(
+        this.graphClient
+          .api(`${calendarPath(calendarId)}/events/${eventId}`)
+          .delete(),
+        15000
+      );
     });
   }
 

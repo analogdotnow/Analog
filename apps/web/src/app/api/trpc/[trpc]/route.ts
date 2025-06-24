@@ -14,6 +14,7 @@ const handler = (req: NextRequest) =>
         return await createContext({ headers: req.headers });
       } catch (error) {
         console.error("Failed to create context:", error);
+        // Re-throw the error to let tRPC handle it properly
         throw error;
       }
     },
@@ -24,11 +25,15 @@ const handler = (req: NextRequest) =>
               `❌ tRPC failed on ${path ?? "<no-path>"}: ${error.message}`,
             );
             console.error("Full error:", error);
+            console.error("Error stack:", error.stack);
+            console.error("Error cause:", error.cause);
           }
         : ({ path, error }) => {
             console.error(
               `❌ tRPC failed on ${path ?? "<no-path>"}: ${error.message}`,
             );
+            console.error("Error code:", error.code);
+            console.error("Error cause:", error.cause);
           },
   });
 
