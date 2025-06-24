@@ -6,12 +6,12 @@ export const getActiveAccount = async (
   user: Session["user"],
   headers: Headers,
 ) => {
-  if (user?.id) {
+  if (user?.defaultAccountId) {
     const activeAccount = await db.query.account.findFirst({
       where: (table, { eq, and }) =>
         and(
           eq(table.userId, user.id),
-          eq(table.id, user.id as string),
+          eq(table.id, user.defaultAccountId as string),
         ),
     });
 
