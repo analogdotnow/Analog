@@ -6,11 +6,6 @@ export const providers = [
     icon: Google,
     providerId: "google" as const,
   },
-  {
-    name: "Outlook",
-    icon: Microsoft,
-    providerId: "microsoft" as const,
-  },
 ];
 
 export type ProviderId = (typeof providers)[number]["providerId"];

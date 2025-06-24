@@ -8,16 +8,6 @@ import { db } from "@repo/db";
 import { account, user } from "@repo/db/schema";
 import { env } from "@repo/env/server";
 
-export const MICROSOFT_OAUTH_SCOPES = [
-  "https://graph.microsoft.com/User.Read",
-  "https://graph.microsoft.com/Calendars.Read",
-  "https://graph.microsoft.com/Calendars.Read.Shared",
-  "https://graph.microsoft.com/Calendars.ReadBasic",
-  "https://graph.microsoft.com/Calendars.ReadWrite",
-  "https://graph.microsoft.com/Calendars.ReadWrite.Shared",
-  "offline_access",
-];
-
 export const GOOGLE_OAUTH_SCOPES = [
   "email",
   "profile",
@@ -27,6 +17,8 @@ export const GOOGLE_OAUTH_SCOPES = [
 ];
 
 export const auth = betterAuth({
+  secret: env.BETTER_AUTH_SECRET ?? "",
+  baseURL: env.BETTER_AUTH_URL ?? "",
   database: drizzleAdapter(db, {
     provider: "pg",
   }),
@@ -34,7 +26,7 @@ export const auth = betterAuth({
     accountLinking: {
       enabled: true,
       allowDifferentEmails: true,
-      trustedProviders: ["google", "microsoft"],
+      trustedProviders: ["google"],
     },
   },
   user: {
@@ -109,12 +101,6 @@ export const auth = betterAuth({
       scope: GOOGLE_OAUTH_SCOPES,
       accessType: "offline",
       prompt: "consent", 
-      overrideUserInfoOnSignIn: true,
-    },
-    microsoft: {
-      clientId: env.MICROSOFT_CLIENT_ID ?? "",
-      clientSecret: env.MICROSOFT_CLIENT_SECRET ?? "",
-      scope: MICROSOFT_OAUTH_SCOPES,
       overrideUserInfoOnSignIn: true,
     },
   },
