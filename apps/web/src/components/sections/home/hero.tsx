@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { Variants } from "motion/react";
 
 import PreviewDark from "@/assets/dark-preview.png";
 import PreviewLight from "@/assets/preview.png";
@@ -9,7 +10,7 @@ import { WaitlistForm } from "./waitlist-form";
 // import { CalendarWindow } from "./calendar-window";
 // import { cn } from "@/lib/utils";
 
-const transitionVariants = {
+const transitionVariants: Record<string, Variants> = {
   item: {
     hidden: {
       opacity: 0,
