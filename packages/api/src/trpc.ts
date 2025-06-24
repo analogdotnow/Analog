@@ -10,9 +10,16 @@ import { getAccounts } from "./utils/accounts";
 import { superjson } from "./utils/superjson";
 
 export const createTRPCContext = async (opts: { headers: Headers }) => {
-  const session = await auth.api.getSession({
-    headers: opts.headers,
-  });
+  let session = null;
+  
+  try {
+    session = await auth.api.getSession({
+      headers: opts.headers,
+    });
+  } catch (error) {
+    // Session doesn't exist or is invalid - this is normal for unauthenticated requests
+    // We'll just continue with null session
+  }
 
   return {
     db,
