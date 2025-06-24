@@ -66,16 +66,7 @@ export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
 export const calendarProcedure = protectedProcedure.use(
   async ({ ctx, next }) => {
     try {
-      // Add timeout to prevent hanging
-      const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => {
-          reject(new Error("Calendar procedure timeout after 30 seconds"));
-        }, 30000); // 30 second timeout
-      });
-
-      const accountsPromise = getAccounts(ctx.user, ctx.headers);
-
-      const accounts = await Promise.race([accountsPromise, timeoutPromise]);
+      const accounts = await getAccounts(ctx.user, ctx.headers);
 
       const providers = accounts.map((account) => ({
         account,
@@ -90,15 +81,6 @@ export const calendarProcedure = protectedProcedure.use(
         },
       });
     } catch (error) {
-      console.error("Calendar procedure error:", error);
-      
-      if (error instanceof Error && error.message.includes("timeout")) {
-        throw new TRPCError({
-          code: "TIMEOUT",
-          message: "Request timed out while fetching calendar data",
-        });
-      }
-
       throw new TRPCError({
         code: "PRECONDITION_FAILED",
         message: error instanceof Error ? error.message : "Unknown error",

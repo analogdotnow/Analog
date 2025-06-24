@@ -16,32 +16,19 @@ interface GoogleCalendarProviderOptions {
   accessToken: string;
 }
 
-// Helper function to add timeout to promises
-function withTimeout<T>(promise: Promise<T>, timeoutMs: number = 15000): Promise<T> {
-  return Promise.race([
-    promise,
-    new Promise<never>((_, reject) => {
-      setTimeout(() => {
-        reject(new Error(`Operation timed out after ${timeoutMs}ms`));
-      }, timeoutMs);
-    }),
-  ]);
-}
-
 export class GoogleCalendarProvider implements CalendarProvider {
   public providerId = "google" as const;
   private client: GoogleCalendar;
 
   constructor({ accessToken }: GoogleCalendarProviderOptions) {
-    this.client = new GoogleCalendar({ accessToken });
+    this.client = new GoogleCalendar({
+      accessToken,
+    });
   }
 
   async calendars(): Promise<Calendar[]> {
     return this.withErrorHandler("calendars", async () => {
-      const { items } = await withTimeout(
-        this.client.users.me.calendarList.list(),
-        15000
-      );
+      const { items } = await this.client.users.me.calendarList.list();
 
       if (!items) return [];
 
@@ -58,12 +45,9 @@ export class GoogleCalendarProvider implements CalendarProvider {
     calendar: Omit<Calendar, "id" | "providerId">,
   ): Promise<Calendar> {
     return this.withErrorHandler("createCalendar", async () => {
-      const createdCalendar = await withTimeout(
-        this.client.calendars.create({
-          summary: calendar.name,
-        }),
-        15000
-      );
+      const createdCalendar = await this.client.calendars.create({
+        summary: calendar.name,
+      });
 
       return parseGoogleCalendarCalendarListEntry({
         accountId: "",
@@ -77,12 +61,9 @@ export class GoogleCalendarProvider implements CalendarProvider {
     calendar: Partial<Calendar>,
   ): Promise<Calendar> {
     return this.withErrorHandler("updateCalendar", async () => {
-      const updatedCalendar = await withTimeout(
-        this.client.calendars.update(calendarId, {
-          summary: calendar.name,
-        }),
-        15000
-      );
+      const updatedCalendar = await this.client.calendars.update(calendarId, {
+        summary: calendar.name,
+      });
 
       return parseGoogleCalendarCalendarListEntry({
         accountId: "",
@@ -93,10 +74,7 @@ export class GoogleCalendarProvider implements CalendarProvider {
 
   async deleteCalendar(calendarId: string): Promise<void> {
     return this.withErrorHandler("deleteCalendar", async () => {
-      await withTimeout(
-        this.client.calendars.delete(calendarId),
-        15000
-      );
+      await this.client.calendars.delete(calendarId);
     });
   }
 
@@ -106,16 +84,13 @@ export class GoogleCalendarProvider implements CalendarProvider {
     timeMax: Temporal.ZonedDateTime,
   ): Promise<CalendarEvent[]> {
     return this.withErrorHandler("events", async () => {
-      const { items } = await withTimeout(
-        this.client.calendars.events.list(calendarId, {
-          timeMin: timeMin.withTimeZone("UTC").toInstant().toString(),
-          timeMax: timeMax.withTimeZone("UTC").toInstant().toString(),
-          singleEvents: CALENDAR_DEFAULTS.SINGLE_EVENTS,
-          orderBy: CALENDAR_DEFAULTS.ORDER_BY,
-          maxResults: CALENDAR_DEFAULTS.MAX_EVENTS_PER_CALENDAR,
-        }),
-        30000 // Longer timeout for events as they can be slower
-      );
+      const { items } = await this.client.calendars.events.list(calendarId, {
+        timeMin: timeMin.withTimeZone("UTC").toInstant().toString(),
+        timeMax: timeMax.withTimeZone("UTC").toInstant().toString(),
+        singleEvents: CALENDAR_DEFAULTS.SINGLE_EVENTS,
+        orderBy: CALENDAR_DEFAULTS.ORDER_BY,
+        maxResults: CALENDAR_DEFAULTS.MAX_EVENTS_PER_CALENDAR,
+      });
 
       return (
         items?.map((event) =>
@@ -134,12 +109,9 @@ export class GoogleCalendarProvider implements CalendarProvider {
     event: CreateEventInput,
   ): Promise<CalendarEvent> {
     return this.withErrorHandler("createEvent", async () => {
-      const createdEvent = await withTimeout(
-        this.client.calendars.events.create(
-          calendarId,
-          toGoogleCalendarEvent(event),
-        ),
-        15000
+      const createdEvent = await this.client.calendars.events.create(
+        calendarId,
+        toGoogleCalendarEvent(event),
       );
 
       return parseGoogleCalendarEvent({
@@ -156,24 +128,18 @@ export class GoogleCalendarProvider implements CalendarProvider {
     event: UpdateEventInput,
   ): Promise<CalendarEvent> {
     return this.withErrorHandler("updateEvent", async () => {
-      const existingEvent = await withTimeout(
-        this.client.calendars.events.retrieve(
-          eventId,
-          {
-            calendarId,
-          },
-        ),
-        15000
+      const existingEvent = await this.client.calendars.events.retrieve(
+        eventId,
+        {
+          calendarId,
+        },
       );
 
-      const updatedEvent = await withTimeout(
-        this.client.calendars.events.update(eventId, {
-          ...existingEvent,
-          calendarId,
-          ...toGoogleCalendarEvent(event),
-        }),
-        15000
-      );
+      const updatedEvent = await this.client.calendars.events.update(eventId, {
+        ...existingEvent,
+        calendarId,
+        ...toGoogleCalendarEvent(event),
+      });
 
       return parseGoogleCalendarEvent({
         calendarId,
@@ -185,10 +151,7 @@ export class GoogleCalendarProvider implements CalendarProvider {
 
   async deleteEvent(calendarId: string, eventId: string): Promise<void> {
     return this.withErrorHandler("deleteEvent", async () => {
-      await withTimeout(
-        this.client.calendars.events.delete(eventId, { calendarId }),
-        15000
-      );
+      await this.client.calendars.events.delete(eventId, { calendarId });
     });
   }
 
