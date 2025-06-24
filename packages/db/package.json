@@ -16,8 +16,8 @@
   },
   "dependencies": {
     "@repo/env": "workspace:*",
+    "@neondatabase/serverless": "^0.9.0",
     "drizzle-orm": "^0.43.1",
-    "postgres": "^3.4.5",
     "server-only": "^0.0.1"
   },
   "devDependencies": {

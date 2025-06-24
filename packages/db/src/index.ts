@@ -1,6 +1,6 @@
 import "server-only";
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
+import { drizzle } from "drizzle-orm/neon-serverless";
+import { neon } from "@neondatabase/serverless";
 
 import { env } from "@repo/env/server";
 
@@ -11,14 +11,13 @@ import * as schema from "./schema";
  * update.
  */
 const globalForDb = globalThis as unknown as {
-  conn: postgres.Sql | undefined;
+  conn: ReturnType<typeof neon> | undefined;
 };
 
 /**
- * Disable prefetch as it is not supported for Supabase "Transaction" pool mode.
- * @see https://supabase.com/docs/guides/database/connecting-to-postgres#supavisor-transaction-mode
+ * Use Neon's serverless driver which is compatible with Cloudflare Workers
  */
-const conn = globalForDb.conn ?? postgres(env.DATABASE_URL ?? "", { prepare: false });
+const conn = globalForDb.conn ?? neon(env.DATABASE_URL ?? "");
 if (env.NODE_ENV !== "production") globalForDb.conn = conn;
 
 /**
