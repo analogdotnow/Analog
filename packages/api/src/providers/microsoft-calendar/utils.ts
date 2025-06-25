@@ -1,9 +1,9 @@
 import type {
   Calendar as MicrosoftCalendar,
   Event as MicrosoftEvent,
-  ScheduleItem,
   Attendee as MicrosoftEventAttendee,
   ResponseStatus as MicrosoftEventAttendeeResponseStatus,
+  ScheduleItem,
 } from "@microsoft/microsoft-graph-types";
 import { Temporal } from "temporal-polyfill";
 
@@ -12,7 +12,12 @@ import {
   MicrosoftEventMetadata,
   UpdateEventInput,
 } from "../../schemas/events";
-import type { Attendee, AttendeeStatus, Calendar, CalendarEvent } from "../interfaces";
+import type {
+  Attendee,
+  AttendeeStatus,
+  Calendar,
+  CalendarEvent,
+} from "../interfaces";
 import { mapWindowsToIanaTimeZone } from "./windows-timezones";
 
 interface ToMicrosoftDateOptions {
