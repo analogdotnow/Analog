@@ -25,6 +25,8 @@ export const calendarsRouter = createTRPCRouter({
     const accounts = await Promise.all(promises);
 
     return {
+      defaultCalendarId: ctx.user.defaultCalendarId,
+      defaultAccountId: ctx.user.defaultAccountId,
       accounts,
     };
   }),

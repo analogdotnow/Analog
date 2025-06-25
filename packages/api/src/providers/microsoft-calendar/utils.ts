@@ -90,13 +90,15 @@ export function toMicrosoftEvent(event: CreateEventInput | UpdateEventInput) {
 }
 
 export function parseMicrosoftCalendar(calendar: MicrosoftCalendar): Calendar {
+  console.log(calendar);
   return {
     id: calendar.id as string,
     providerId: "microsoft",
     name: calendar.name as string,
     primary: calendar.isDefaultCalendar as boolean,
     accountId: "",
-    color: calendar.hexColor as string,
+    color: calendar.hexColor as string | undefined,
+    readOnly: !calendar.canEdit,
   };
 }
 

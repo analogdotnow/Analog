@@ -1,4 +1,5 @@
-import { useId } from "react";
+import React, { JSX, useId } from "react";
+import { format } from "@formkit/tempo";
 import { useTheme } from "next-themes";
 
 import DarkTheme from "@/assets/theme-dark.svg";
@@ -14,21 +15,31 @@ import {
 } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useCalendarSettings } from "../hooks/use-calendar-settings";
+import {
+  SettingsPage,
+  SettingsSection,
+  SettingsSectionDescription,
+  SettingsSectionHeader,
+  SettingsSectionTitle,
+} from "./settings-page";
 
-const themes = {
-  system: {
+const themes = [
+  {
+    value: "system",
     name: "System",
     icon: SystemTheme,
   },
-  light: {
+  {
+    value: "light",
     name: "Light",
     icon: LightTheme,
   },
-  dark: {
+  {
+    value: "dark",
     name: "Dark",
     icon: DarkTheme,
   },
-};
+];
 
 // Array where index represents the day number (0-6) and value is the day name
 const weekDays = [
@@ -41,90 +52,142 @@ const weekDays = [
   "saturday",
 ] as const;
 
-export function General() {
+function ThemePicker() {
   const { theme, setTheme } = useTheme();
+
+  return (
+    <ToggleGroup
+      type="single"
+      variant="outline"
+      className="gap-x-4 data-[variant=outline]:shadow-none"
+      value={theme ?? "system"}
+      onValueChange={(value: string) => {
+        if (!value) {
+          return;
+        }
+
+        setTheme(value);
+      }}
+    >
+      {themes.map((theme) => (
+        <ToggleGroupItem
+          className="group/theme h-fit flex-1 border-none px-0 hover:bg-transparent data-[state=on]:bg-transparent"
+          value={theme.value}
+          key={theme.value}
+        >
+          <div className="relative w-full">
+            <theme.icon className="size-full rounded-md ring-offset-popover group-aria-checked/theme:ring-2 group-aria-checked/theme:ring-ring/40 group-aria-checked/theme:ring-offset-4 dark:group-aria-checked/theme:ring-ring" />
+            <p className="mt-3 text-sm text-muted-foreground group-aria-checked/theme:text-foreground">
+              {theme.name}
+            </p>
+          </div>
+        </ToggleGroupItem>
+      ))}
+    </ToggleGroup>
+  );
+}
+
+function StartOfWeekPicker() {
   const [calendarSettings, setCalendarSettings] = useCalendarSettings();
 
   const startOfWeekId = useId();
-  // const dateFormatId = useId();
-  const timeFormatId = useId();
 
   return (
-    <div className="flex flex-col gap-6 px-3">
-      <section className="space-y-5">
-        <div className="flex flex-col gap-0.5">
-          <p className="text-md font-light">Theme</p>
-          <p className="text-sm text-muted-foreground">
-            Select a theme to customize the look of your calendar
-          </p>
-        </div>
-        <ToggleGroup
-          type="single"
-          variant="outline"
-          className="gap-x-4 data-[variant=outline]:shadow-none"
-          value={theme ?? "system"}
-          onValueChange={(value: string) => {
-            if (value) setTheme(value);
-          }}
-        >
-          {Object.entries(themes).map(([key, value]) => (
-            <ToggleGroupItem
-              className="group/theme h-fit flex-1 border-none px-0 hover:bg-transparent data-[state=on]:bg-transparent"
-              value={key}
-              key={key}
-            >
-              <div className="relative w-full">
-                <value.icon className="size-full rounded-md ring-offset-popover group-aria-checked/theme:ring-2 group-aria-checked/theme:ring-ring/40 group-aria-checked/theme:ring-offset-4 dark:group-aria-checked/theme:ring-ring" />
-                <p className="mt-3 text-sm font-light text-muted-foreground group-aria-checked/theme:text-foreground">
-                  {value.name}
-                </p>
-              </div>
-            </ToggleGroupItem>
-          ))}
-        </ToggleGroup>
-      </section>
+    <div className="w-48">
+      <Label htmlFor={startOfWeekId} className="sr-only">
+        Start of week
+      </Label>
+      <Select
+        value={weekDays[calendarSettings.weekStartsOn]}
+        onValueChange={(value: string) => {
+          const dayNumber = weekDays.indexOf(
+            value as (typeof weekDays)[number],
+          );
+          setCalendarSettings((prev) => ({
+            ...prev,
+            weekStartsOn: dayNumber as 0 | 1 | 2 | 3 | 4 | 5 | 6,
+          }));
+        }}
+      >
+        <SelectTrigger id={startOfWeekId}>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="sunday">Sunday</SelectItem>
+          <SelectItem value="monday">Monday</SelectItem>
+          <SelectItem value="tuesday">Tuesday</SelectItem>
+          <SelectItem value="wednesday">Wednesday</SelectItem>
+          <SelectItem value="thursday">Thursday</SelectItem>
+          <SelectItem value="friday">Friday</SelectItem>
+          <SelectItem value="saturday">Saturday</SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
+  );
+}
 
-      <section className="space-y-4">
-        <p className="text-md font-light">Locale and format</p>
+function TimeFormatPicker() {
+  const [calendarSettings, setCalendarSettings] = useCalendarSettings();
+
+  const timeFormatId = useId();
+  const time = React.useRef(new Date());
+
+  return (
+    <div className="w-48">
+      <Label htmlFor={timeFormatId} className="sr-only">
+        Time format
+      </Label>
+      <Select
+        value={calendarSettings.use12Hour ? "12h" : "24h"}
+        onValueChange={(value: string) => {
+          setCalendarSettings((prev) => ({
+            ...prev,
+            use12Hour: value === "12h",
+          }));
+        }}
+      >
+        <SelectTrigger id={timeFormatId}>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem className="tabular-nums" value="24h">
+            <span className="flex items-center gap-2">
+              {format(time.current, "HH:mm")}
+              <span className="text-xs text-muted-foreground">24h</span>
+            </span>
+          </SelectItem>
+          <SelectItem className="tabular-nums" value="12h">
+            <span>{format(time.current, "h:mm a")}</span>
+            <span className="ml-auto text-xs text-muted-foreground">12h</span>
+          </SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
+  );
+}
+
+export function General() {
+  return (
+    <SettingsPage>
+      <SettingsSection>
+        <SettingsSectionHeader>
+          <SettingsSectionTitle>Theme</SettingsSectionTitle>
+          <SettingsSectionDescription>
+            Select a theme to customize the look of your calendar
+          </SettingsSectionDescription>
+        </SettingsSectionHeader>
+        <ThemePicker />
+      </SettingsSection>
+
+      <SettingsSection>
         <div className="flex items-center justify-between gap-4">
-          <div className="flex-1">
-            <h3 className="mb-1 text-sm font-light text-foreground/80">
-              Start of week
-            </h3>
-            <p className="text-xs text-pretty text-muted-foreground">
+          <SettingsSectionHeader>
+            <SettingsSectionTitle>Start of week</SettingsSectionTitle>
+            <SettingsSectionDescription>
               Which day should be shown as the first day of the week.
-            </p>
-          </div>
-          <div className="w-48">
-            <Label htmlFor={startOfWeekId} className="sr-only">
-              Start of week
-            </Label>
-            <Select
-              value={weekDays[calendarSettings.weekStartsOn]}
-              onValueChange={(value: string) => {
-                const dayNumber = weekDays.indexOf(
-                  value as (typeof weekDays)[number],
-                );
-                setCalendarSettings((prev) => ({
-                  ...prev,
-                  weekStartsOn: dayNumber as 0 | 1 | 2 | 3 | 4 | 5 | 6,
-                }));
-              }}
-            >
-              <SelectTrigger id={startOfWeekId}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="sunday">Sunday</SelectItem>
-                <SelectItem value="monday">Monday</SelectItem>
-                <SelectItem value="tuesday">Tuesday</SelectItem>
-                <SelectItem value="wednesday">Wednesday</SelectItem>
-                <SelectItem value="thursday">Thursday</SelectItem>
-                <SelectItem value="friday">Friday</SelectItem>
-                <SelectItem value="saturday">Saturday</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+            </SettingsSectionDescription>
+          </SettingsSectionHeader>
+          <StartOfWeekPicker />
         </div>
         {/* <div className="flex items-center justify-between gap-4">
           <div className="flex-1">
@@ -160,38 +223,15 @@ export function General() {
           </div>
         </div> */}
         <div className="flex items-center justify-between gap-4">
-          <div className="flex-1">
-            <h3 className="mb-1 text-sm font-light text-foreground/80">
-              Time format
-            </h3>
-            <p className="text-xs text-pretty text-muted-foreground">
+          <SettingsSectionHeader>
+            <SettingsSectionTitle>Time format</SettingsSectionTitle>
+            <SettingsSectionDescription>
               Which format used to display a time.
-            </p>
-          </div>
-          <div className="w-48">
-            <Label htmlFor={timeFormatId} className="sr-only">
-              Time format
-            </Label>
-            <Select
-              value={calendarSettings.use12Hour ? "12h" : "24h"}
-              onValueChange={(value: string) => {
-                setCalendarSettings((prev) => ({
-                  ...prev,
-                  use12Hour: value === "12h",
-                }));
-              }}
-            >
-              <SelectTrigger id={timeFormatId}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="24h">16:30</SelectItem>
-                <SelectItem value="12h">4:30 PM</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+            </SettingsSectionDescription>
+          </SettingsSectionHeader>
+          <TimeFormatPicker />
         </div>
-      </section>
-    </div>
+      </SettingsSection>
+    </SettingsPage>
   );
 }

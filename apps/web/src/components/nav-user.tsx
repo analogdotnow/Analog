@@ -1,10 +1,14 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronsUpDown, LogOut, Plus, UserRound } from "lucide-react";
-import { useHotkeys } from "react-hotkeys-hook";
+import {
+  ChevronsUpDown,
+  LogOut,
+  Plus,
+  Settings,
+  UserRound,
+} from "lucide-react";
 
 import { authClient } from "@repo/auth/client";
 
@@ -95,11 +99,12 @@ export function NavUser() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <UserRound />
-                Account
-              </DropdownMenuItem>
-              <SettingsDialog />
+              <SettingsDialog>
+                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                  <Settings />
+                  Settings
+                </DropdownMenuItem>
+              </SettingsDialog>
               <AddAccountDialog>
                 <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                   <Plus />
