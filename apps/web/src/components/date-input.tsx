@@ -39,6 +39,7 @@ interface DateInputProps {
   value: Temporal.ZonedDateTime;
   onChange: (value: Temporal.ZonedDateTime) => void;
   minValue?: Temporal.ZonedDateTime;
+  disabled?: boolean;
 }
 
 export function DateInput({
@@ -46,6 +47,7 @@ export function DateInput({
   value,
   onChange,
   minValue,
+  disabled,
 }: DateInputProps) {
   const { locale } = useAtomValue(calendarSettingsAtom);
   const [open, setOpen] = React.useState(false);
@@ -121,8 +123,18 @@ export function DateInput({
   const triggerRef = React.useRef<HTMLButtonElement>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
 
+  const onOpenChange = React.useCallback(
+    (open: boolean) => {
+      if (disabled) {
+        return;
+      }
+      setOpen(open);
+    },
+    [disabled],
+  );
+
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open && !disabled} onOpenChange={onOpenChange}>
       <PopoverTrigger ref={triggerRef} className="hidden"></PopoverTrigger>
       <PopoverAnchor asChild>
         <Input
@@ -134,6 +146,7 @@ export function DateInput({
               "text-muted-foreground",
             className,
           )}
+          disabled={disabled}
           value={input}
           ref={inputRef}
           onFocus={() => {

@@ -18,7 +18,7 @@ export function DescriptionField({
   return (
     <Textarea
       className={cn(
-        "scrollbar-hidden field-sizing-content max-h-64 min-h-0 resize-none border-none bg-transparent py-1.5 ps-8 shadow-none dark:bg-transparent",
+        "scrollbar-hidden field-sizing-content max-h-24 min-h-0 resize-none border-none bg-transparent py-1.5 ps-8 shadow-none dark:bg-transparent",
         className,
       )}
       ref={ref}

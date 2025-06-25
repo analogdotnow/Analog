@@ -3,7 +3,14 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Temporal } from "temporal-polyfill";
 
-import { compareTemporal, toInstant } from "@repo/temporal";
+import {
+  compareTemporal,
+  endOfDay,
+  endOfWeek,
+  startOfDay,
+  startOfWeek,
+  toInstant,
+} from "@repo/temporal";
 
 import { useCalendarSettings } from "@/atoms";
 import {
@@ -16,7 +23,7 @@ import { useTRPC } from "@/lib/trpc/client";
 
 type Event = RouterOutputs["events"]["list"]["events"][number];
 
-export function useCalendarActions() {
+export function useCalendar() {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const { currentDate } = useCalendarState();
@@ -25,30 +32,52 @@ export function useCalendarActions() {
     trpc.accounts.getDefault.queryOptions(),
   );
 
-  const { defaultTimeZone } = useCalendarSettings();
+  const { defaultTimeZone, weekStartsOn } = useCalendarSettings();
 
-  const timeMin = useMemo(
-    () =>
-      Temporal.PlainDate.from(currentDate.toISOString().split("T")[0]!)
-        .subtract({
-          days: CALENDAR_CONFIG.TIME_RANGE_DAYS_PAST,
-        })
-        .toZonedDateTime({
-          timeZone: defaultTimeZone,
-        }),
-    [defaultTimeZone, currentDate],
-  );
-  const timeMax = useMemo(
-    () =>
-      Temporal.PlainDate.from(currentDate.toISOString().split("T")[0]!)
-        .add({
-          days: CALENDAR_CONFIG.TIME_RANGE_DAYS_FUTURE,
-        })
-        .toZonedDateTime({
-          timeZone: defaultTimeZone,
-        }),
-    [defaultTimeZone, currentDate],
-  );
+  const timeMin = useMemo(() => {
+    const base = Temporal.PlainDate.from(
+      currentDate.toISOString().split("T")[0]!,
+    )
+      .subtract({
+        days: CALENDAR_CONFIG.TIME_RANGE_DAYS_PAST,
+      })
+      .toZonedDateTime({
+        timeZone: defaultTimeZone,
+      });
+
+    const start = startOfWeek({
+      value: base,
+      timeZone: defaultTimeZone,
+      weekStartsOn,
+    });
+
+    return startOfDay({
+      value: start,
+      timeZone: defaultTimeZone,
+    });
+  }, [defaultTimeZone, currentDate, weekStartsOn]);
+  const timeMax = useMemo(() => {
+    const base = Temporal.PlainDate.from(
+      currentDate.toISOString().split("T")[0]!,
+    )
+      .add({
+        days: CALENDAR_CONFIG.TIME_RANGE_DAYS_FUTURE,
+      })
+      .toZonedDateTime({
+        timeZone: defaultTimeZone,
+      });
+
+    const start = endOfWeek({
+      value: base,
+      timeZone: defaultTimeZone,
+      weekStartsOn,
+    });
+
+    return endOfDay({
+      value: start,
+      timeZone: defaultTimeZone,
+    });
+  }, [defaultTimeZone, currentDate, weekStartsOn]);
 
   const eventsQueryKey = useMemo(
     () => trpc.events.list.queryOptions({ timeMin, timeMax }).queryKey,

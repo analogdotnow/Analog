@@ -1,4 +1,4 @@
-import { useCallback, useId, useMemo, useState } from "react";
+import * as React from "react";
 import { CheckIcon, GlobeIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -46,33 +46,46 @@ const formattedTimezones = timezones
   })
   .sort((a, b) => a.numericOffset - b.numericOffset);
 
-type TimezoneSelectProps = {
+interface TimezoneSelectProps {
   className?: string;
   value: string;
   onChange: (value: string) => void;
-};
+  disabled?: boolean;
+}
 
 export function TimezoneSelect({
   className,
   value,
   onChange,
+  disabled,
 }: TimezoneSelectProps) {
-  const id = useId();
-  const [open, setOpen] = useState<boolean>(false);
+  const id = React.useId();
+  const [open, setOpen] = React.useState<boolean>(false);
 
-  const sortedTimezones = useMemo(() => {
-    if (value) {
-      return [
-        ...formattedTimezones.filter((timezone) => timezone.value === value),
-        ...formattedTimezones.filter((timezone) => timezone.value !== value),
-      ];
+  const {sortedTimezones, displayValue} = React.useMemo(() => {
+    if (!value) {
+      const timezone = formattedTimezones.find((tz) => tz.value === value);
+      
+      return {
+        sortedTimezones: formattedTimezones,
+        displayValue: timezone,
+      };
     }
-    return formattedTimezones;
+    const sortedTimezones = [
+      ...formattedTimezones.filter((timezone) => timezone.value === value),
+      ...formattedTimezones.filter((timezone) => timezone.value !== value),
+    ];
+
+    const timezone = sortedTimezones.find((tz) => tz.value === value);
+
+    return {
+      sortedTimezones,
+      displayValue: timezone,
+    };
   }, [value]);
 
-  const filterFn = useCallback(
-    (value: string, search: string) => {
-      const timezone = sortedTimezones.find((tz) => tz.value === value);
+  const filterFn = (value: string, search: string) => {
+      const timezone = sortedTimezones?.find((tz) => tz.value === value);
       if (!timezone) return 0;
 
       const normalizedValue = value.toLowerCase();
@@ -83,22 +96,24 @@ export function TimezoneSelect({
         normalizedLabel.includes(normalizedSearch)
         ? 1
         : 0;
-    },
-    [sortedTimezones],
-  );
+  };
 
-  const displayValue = useMemo(() => {
-    const timezone = sortedTimezones.find((tz) => tz.value === value);
-    if (!timezone) return { value, sign: "", offset: "", label: "" };
-    return timezone;
-  }, [value, sortedTimezones]);
+  const onOpenChange = React.useCallback(
+    (open: boolean) => {
+      if (disabled) {
+        return;
+      }
+      setOpen(open);
+    },
+    [disabled],
+  );
 
   return (
     <div className="flex flex-1">
       <label htmlFor={id} className="sr-only">
         Select a timezone
       </label>
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover open={open && !disabled} onOpenChange={onOpenChange}>
         <PopoverTrigger asChild>
           <Button
             id={id}
@@ -107,9 +122,11 @@ export function TimezoneSelect({
             role="combobox"
             aria-expanded={open}
             className={cn("w-full justify-start gap-2.5 px-1.5", className)}
+            disabled={disabled}
           >
             <GlobeIcon className="size-4 text-muted-foreground/80 hover:text-foreground" />
-            <span
+            {displayValue ? (
+              <span
               className={cn(
                 "space-x-2 truncate text-sm",
                 !value && "text-muted-foreground",
@@ -126,6 +143,7 @@ export function TimezoneSelect({
               </span>
               {displayValue.label}
             </span>
+            ) : null}
           </Button>
         </PopoverTrigger>
         <PopoverContent

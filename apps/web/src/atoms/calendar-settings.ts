@@ -3,7 +3,7 @@ import { atomWithStorage } from "jotai/utils";
 
 export interface CalendarSettings {
   locale: string;
-  weekStartsOn: 0 | 1 | 2 | 3 | 4 | 5 | 6;
+  weekStartsOn: 1 | 2 | 3 | 4 | 5 | 6 | 7;
   use12Hour: boolean;
   defaultTimeZone: string;
   defaultCalendar: {

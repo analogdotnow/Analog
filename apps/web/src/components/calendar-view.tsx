@@ -8,7 +8,6 @@ import {
   CalendarContent,
   CalendarDndProvider,
   CalendarHeader,
-  EventDialog,
   EventGap,
   EventHeight,
   WeekCellsHeight,
@@ -32,15 +31,10 @@ export function CalendarView({ className }: CalendarViewProps) {
   const viewPreferences = useViewPreferences();
   const [calendarVisibility] = useCalendarsVisibility();
 
-  const {
-    isEventDialogOpen,
-    selectedEvent,
-    handleEventSelect,
-    handleDialogClose,
-  } = useEventDialog();
+  const { isEventDialogOpen, handleEventSelect, handleDialogClose } =
+    useEventDialog();
 
-  const { events, handleEventSave, handleEventDelete, handleEventMove } =
-    useEventOperations(handleDialogClose);
+  const { events, handleEventMove } = useEventOperations(handleDialogClose);
 
   const filteredEvents = useMemo(
     () =>
@@ -89,14 +83,6 @@ export function CalendarView({ className }: CalendarViewProps) {
             onEventCreate={() => console.log("onEventCreate")}
           />
         </div>
-
-        <EventDialog
-          event={selectedEvent}
-          isOpen={isEventDialogOpen}
-          onClose={handleDialogClose}
-          onSave={handleEventSave}
-          onDelete={handleEventDelete}
-        />
       </CalendarDndProvider>
       <SignalView className="absolute bottom-8 left-1/2 -translate-x-1/2" />
     </div>

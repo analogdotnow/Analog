@@ -15,6 +15,7 @@ interface RepeatSelectProps {
   value: RepeatType;
   onChange: (value: RepeatType) => void;
   onBlur: () => void;
+  disabled?: boolean;
 }
 
 function getRepeatOptions() {
@@ -30,6 +31,7 @@ export function RepeatSelect({
   value,
   onChange,
   onBlur,
+  disabled,
 }: RepeatSelectProps) {
   return (
     <Select>

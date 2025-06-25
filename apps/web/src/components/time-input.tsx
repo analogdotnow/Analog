@@ -168,9 +168,15 @@ interface TimeInputProps {
   className?: string;
   value: Temporal.ZonedDateTime;
   onChange: (value: Temporal.ZonedDateTime) => void;
+  disabled?: boolean;
 }
 
-export function TimeInput({ className, value, onChange }: TimeInputProps) {
+export function TimeInput({
+  className,
+  value,
+  onChange,
+  disabled,
+}: TimeInputProps) {
   const { use12Hour, locale } = useAtomValue(calendarSettingsAtom);
   const [input, setInput] = React.useState(
     formatTime({ value, use12Hour, locale }),
@@ -246,6 +252,7 @@ export function TimeInput({ className, value, onChange }: TimeInputProps) {
 
           onComplete(input);
         }}
+        disabled={disabled}
       />
       <ComboboxPopover className={cn("max-h-64 overflow-y-auto")}>
         {suggestions.map(({ key, label }) => (

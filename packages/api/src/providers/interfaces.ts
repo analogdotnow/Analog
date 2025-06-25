@@ -20,7 +20,7 @@ export interface Calendar {
 
 export interface CalendarEvent {
   id: string;
-  title: string;
+  title?: string;
   description?: string;
   start: Temporal.PlainDate | Temporal.Instant | Temporal.ZonedDateTime;
   end: Temporal.PlainDate | Temporal.Instant | Temporal.ZonedDateTime;
