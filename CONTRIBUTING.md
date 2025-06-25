@@ -5,7 +5,6 @@ Thank you for your interest in contributing to Analog! We aim to make the contri
 ## Getting Started
 
 1. **Fork the repository**
-
    - Visit [Analog repository](https://github.com/jeanmeijer/analog)
    - Click the "Fork" button in the top right
    - Clone your fork locally:
@@ -35,7 +34,6 @@ Thank you for your interest in contributing to Analog! We aim to make the contri
    ```
 
    Then, open the newly created `.env` file. You will find default values for `DATABASE_URL` and `BETTER_AUTH_URL`. You need to set the following:
-
    - `BETTER_AUTH_SECRET`: Generate a secure secret by running `openssl rand -hex 32` in your terminal.
    - `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`:
      1. Create a Google project in the [Google Cloud Console](https://console.cloud.google.com/).
