@@ -21,7 +21,7 @@ function getUrl() {
   const base = (() => {
     if (typeof window !== "undefined") return "";
     if (env.NEXT_PUBLIC_VERCEL_URL)
-      return `https://analog-calendar.thomas-development.workers.dev/`;
+      return `https://analog-calendar.thomas-development.workers.dev`;
     return "http://localhost:3000";
   })();
 
