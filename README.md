@@ -42,6 +42,10 @@ Ensure you have the following installed:
       1.  Create a Google project in the [Google Cloud Console](https://console.cloud.google.com/).
       2.  Follow [step 1 in the Better Auth documentation](https://www.better-auth.com/docs/authentication/google) to set up Google OAuth credentials.
       3.  Enable the Google Calendar API by visiting [Google Cloud Console APIs](https://console.cloud.google.com/apis/library/calendar-json.googleapis.com) and enabling it for your project.
+      4.  Add test user emails:
+          - Locate the Google OAuth [`Audience`](https://console.cloud.google.com/auth/audience) tab.
+          - Under 'Test users', click on 'Add Users'
+          - Add your email(s) in the textbox and click 'Save'.
     - `MICROSOFT_CLIENT_ID` and `MICROSOFT_CLIENT_SECRET`:
       1. Go to the [Microsoft Azure Portal](https://portal.azure.com/), then navigate to Microsoft Entra ID → App registrations.
       2. Register a new application and set the redirect URI (`http://localhost:3000/api/auth/callback/microsoft`).
@@ -75,7 +79,7 @@ After setting up the environment and database, you can start the development ser
 bun run dev
 ```
 
-The application should now be accessible in your browser, typically at `http://localhost:3000`.
+The application should now be accessible in your browser at [http://localhost:3000](http://localhost:3000).
 
 ## Tech Stack
 
