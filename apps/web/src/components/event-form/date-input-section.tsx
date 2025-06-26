@@ -7,7 +7,7 @@ import { DateInput } from "@/components/date-input";
 import { TimeInput } from "@/components/time-input";
 import { TimezoneSelect } from "@/components/timezone-select";
 import { cn } from "@/lib/utils";
-import { defaultValues, withForm } from "./utils/form";
+import { defaultValues, withForm } from "./form";
 
 export const DateInputSection = withForm({
   defaultValues,
@@ -28,6 +28,7 @@ export const DateInputSection = withForm({
         endField.handleBlur();
     };
 
+    // console.log("startField", startField.state.value.toString(), endField.state.value.toString());
     const onStartChange = (value: Temporal.ZonedDateTime) => {
         const duration = startField.state.value.until(endField.state.value);
 

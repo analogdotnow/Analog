@@ -10,6 +10,10 @@ import { toDate } from "@repo/temporal";
 import { type CalendarEvent } from "@/components/event-calendar";
 import { getBorderRadiusClasses } from "@/components/event-calendar/utils";
 import { cn } from "@/lib/utils";
+import React from "react";
+import { useCalendarSettings } from "@/atoms";
+import { formatTime } from "@/lib/utils/format";
+import { Temporal } from "temporal-polyfill";
 
 // Using date-fns format with custom formatting:
 // 'h' - hours (1-12)
@@ -132,17 +136,24 @@ export function EventItem({
     return differenceInMinutes(displayEnd, displayStart);
   }, [displayStart, displayEnd]);
 
-  const getEventTime = () => {
-    if (event.allDay) return "All day";
+  const { defaultTimeZone, locale, use12Hour } = useCalendarSettings();
+  const eventTime = React.useMemo(() => {
+    // console.log("eventTime", event.start.toString(), event.end.toString(), durationMinutes, event.allDay, use12Hour, locale);
+    if (event.allDay) {
+      return "All day";
+    }
+
+    const start = (event.start as Temporal.ZonedDateTime).withTimeZone(defaultTimeZone);
+    const end = (event.end as Temporal.ZonedDateTime).withTimeZone(defaultTimeZone);
 
     // For short events (less than 45 minutes), only show start time
     if (durationMinutes < 45) {
-      return formatTimeWithOptionalMinutes(displayStart);
+      return formatTime({ value: start, use12Hour, locale });
     }
 
     // For longer events, show both start and end time
-    return `${formatTimeWithOptionalMinutes(displayStart)} - ${formatTimeWithOptionalMinutes(displayEnd)}`;
-  };
+    return `${formatTime({ value: start, use12Hour, locale })} - ${formatTime({ value: end, use12Hour, locale })}`;
+  }, [event.start, event.end, durationMinutes, event.allDay, use12Hour, locale, defaultTimeZone]);
 
   // if (event.allDay && isLastDay) {
   //   return null;
@@ -176,10 +187,10 @@ export function EventItem({
         <div className="flex min-w-0 grow items-stretch gap-y-1.5">
           {!isFirstDay ? <div className="h-lh" /> : null}
           {children || (
-            <span className="truncate text-[color-mix(in_oklab,var(--foreground),var(--calendar-color)_80%)]">
+            <span className="truncate text-[color-mix(in_oklab,var(--foreground),var(--calendar-color)_80%)] pointer-events-none">
               {!event.allDay && (
                 <span className="truncate font-normal text-[color-mix(in_oklab,var(--foreground),var(--calendar-color)_80%)] opacity-70 sm:text-[11px]">
-                  {formatTimeWithOptionalMinutes(displayStart)}{" "}
+                  {eventTime}
                 </span>
               )}
               {event.title}
@@ -218,22 +229,22 @@ export function EventItem({
           )}
         >
           {durationMinutes < 45 ? (
-            <div className="truncate text-[color-mix(in_oklab,var(--foreground),var(--calendar-color)_80%)]">
+            <div className="truncate text-[color-mix(in_oklab,var(--foreground),var(--calendar-color)_80%)] pointer-events-none">
               {event.title ?? "(untitled)"}{" "}
               {showTime && (
                 <span className="text-[color-mix(in_oklab,var(--foreground),var(--calendar-color)_80%)] opacity-70">
-                  {formatTimeWithOptionalMinutes(displayStart)}
+                  {eventTime}
                 </span>
               )}
             </div>
           ) : (
             <>
-              <div className="truncate font-medium text-[color-mix(in_oklab,var(--foreground),var(--calendar-color)_80%)]">
+              <div className="truncate font-medium text-[color-mix(in_oklab,var(--foreground),var(--calendar-color)_80%)] pointer-events-none">
                 {event.title ?? "(untitled)"}
               </div>
               {showTime && (
-                <div className="truncate font-normal text-[color-mix(in_oklab,var(--foreground),var(--calendar-color)_80%)] opacity-70 sm:text-[11px]">
-                  {getEventTime()}
+                <div className="truncate font-normal text-[color-mix(in_oklab,var(--foreground),var(--calendar-color)_80%)] opacity-70 sm:text-[11px] pointer-events-none">
+                  {eventTime}
                 </div>
               )}
             </>
@@ -265,14 +276,13 @@ export function EventItem({
       {...dndListeners}
       {...dndAttributes}
     >
-      <div className="text-sm font-medium">{event.title ?? "(untitled)"}</div>
-      <div className="text-xs opacity-70">
+      <div className="text-sm font-medium pointer-events-none">{event.title ?? "(untitled)"}</div>
+      <div className="text-xs opacity-70 pointer-events-none">
         {event.allDay ? (
           <span>All day</span>
         ) : (
           <span className="uppercase">
-            {formatTimeWithOptionalMinutes(displayStart)} -{" "}
-            {formatTimeWithOptionalMinutes(displayEnd)}
+            {eventTime}
           </span>
         )}
         {event.location && (
@@ -283,7 +293,7 @@ export function EventItem({
         )}
       </div>
       {event.description && (
-        <div className="my-1 text-xs opacity-90">{event.description}</div>
+        <div className="my-1 text-xs opacity-90 pointer-events-none">{event.description}</div>
       )}
     </button>
   );

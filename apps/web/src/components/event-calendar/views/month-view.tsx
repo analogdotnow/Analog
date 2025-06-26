@@ -271,7 +271,7 @@ function MonthViewDayEvents({
 
         return (
           <MonthViewEvent
-            key={event.id}
+            key={`${event.accountId}-${event.calendarId}-${event.id}`}
             event={event}
             day={day}
             isHidden={isHidden}
@@ -404,7 +404,7 @@ function MonthViewMoreEventsPopover({
 
               return (
                 <EventItem
-                  key={event.id}
+                  key={`${event.accountId}-${event.calendarId}-${event.id}`}
                   onClick={(e) => onEventClick(event, e)}
                   event={event}
                   view="month"

@@ -254,7 +254,20 @@ export function TimeInput({
         }}
         disabled={disabled}
       />
-      <ComboboxPopover className={cn("max-h-64 overflow-y-auto")}>
+      <MemoizedTimeInputList value={value} suggestions={suggestions} list={list} />
+    </Combobox>
+  );
+}
+
+interface TimeInputListProps {
+  value: Temporal.ZonedDateTime;
+  suggestions: TimeInputValue[];
+  list: TimeInputValue[];
+}
+
+function TimeInputList({ value, suggestions, list }: TimeInputListProps) {
+  return (
+    <ComboboxPopover className={"max-h-64 overflow-y-auto"}>
         {suggestions.map(({ key, label }) => (
           <ComboboxItem
             key={key}
@@ -262,14 +275,17 @@ export function TimeInput({
             className="ps-7 text-sm font-medium tabular-nums"
           />
         ))}
-        {list.map(({ key, label }) => (
+        {/* {list.map(({ key, label }) => (
           <ComboboxItem
             key={key}
             value={label}
             className="ps-7 text-sm font-medium tabular-nums"
           />
-        ))}
+        ))} */}
       </ComboboxPopover>
-    </Combobox>
   );
 }
+
+const MemoizedTimeInputList = React.memo(TimeInputList, (prevProps, nextProps) => {
+  return prevProps.value.toString() === nextProps.value.toString();
+});

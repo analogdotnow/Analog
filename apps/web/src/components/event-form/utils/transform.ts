@@ -1,5 +1,5 @@
 import { CalendarEvent } from "@/components/event-calendar/types";
-import { FormValues } from "./form";
+import { FormValues } from "../form";
 
 export function saveEvent(input: FormValues): CalendarEvent {
   const data = {

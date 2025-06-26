@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils";
 import { DateInputSection } from "./date-input-section";
 import { DescriptionField } from "./description-field";
 import { RepeatSelect } from "./repeat-select";
-import { formSchema, useAppForm, type FormValues } from "./utils/form";
+import { formSchema, useAppForm, type FormValues } from "./form";
 import { CalendarEvent } from "../event-calendar/types";
 
 function roundTo15Minutes(
@@ -32,7 +32,7 @@ interface CreateDefaultEvent {
   settings: CalendarSettings;
 }
 
-function createDefaultEvent({ settings }: CreateDefaultEvent): FormValues {
+export function createDefaultEvent({ settings }: CreateDefaultEvent): FormValues {
   const timeZone =
     settings.defaultCalendar.timeZone ?? settings.defaultTimeZone;
   const now = Temporal.Now.zonedDateTimeISO(timeZone);
@@ -102,6 +102,7 @@ function parseEvent({ event, settings }: ParseEvent): FormValues {
     providerId: event.providerId as "google" | "microsoft",
   };
 
+  // console.log("formValues", formValues);
   return formValues;
 }
 
@@ -159,6 +160,10 @@ export function EventForm({ event }: EventFormProps) {
       onChange: ({ formApi, fieldApi }) => {},
     },
   });
+
+  React.useEffect(() => {
+    form.reset();
+  }, [event]);
 
   return (
     <form

@@ -8,23 +8,27 @@ import { Temporal } from "temporal-polyfill";
 import { useCalendarSettings } from "@/atoms";
 import {
   CalendarEvent,
+  EventHeight,
   EventItem,
   useCalendarDnd,
 } from "@/components/event-calendar";
 import { EventContextMenu } from "../event-context-menu";
 import { ContextMenuTrigger } from "../ui/context-menu";
+import { motion, PanInfo, useMotionTemplate, useMotionValue } from "motion/react";
 
 interface DraggableEventProps {
   event: CalendarEvent;
   view: "month" | "week" | "day";
   showTime?: boolean;
   onClick?: (e: React.MouseEvent) => void;
+  onEventUpdate?: (event: CalendarEvent) => void;
   height?: number;
   isMultiDay?: boolean;
   multiDayWidth?: number;
   isFirstDay?: boolean;
   isLastDay?: boolean;
   "aria-hidden"?: boolean | "true" | "false";
+  containerRef: React.RefObject<HTMLDivElement | null>;
 }
 
 interface IsMultiDayEventOptions {
@@ -53,19 +57,26 @@ export function DraggableEvent({
   view,
   showTime,
   onClick,
+  onEventUpdate,
   height,
   multiDayWidth,
   isFirstDay = true,
   isLastDay = true,
   "aria-hidden": ariaHidden,
+  containerRef,
 }: DraggableEventProps) {
   const { activeId } = useCalendarDnd();
   const elementRef = useRef<HTMLDivElement>(null);
+  const dragRef = useRef<HTMLDivElement>(null);
   const [dragHandlePosition, setDragHandlePosition] = useState<{
     x: number;
     y: number;
   } | null>(null);
 
+  const top = useMotionValue(0);
+  const left = useMotionValue(0);
+  const translate = useMotionTemplate`translate(${left}px, ${top}px)`;
+  
   const { defaultTimeZone } = useCalendarSettings();
 
   const isMultiDay = isMultiDayEvent({
@@ -87,6 +98,9 @@ export function DraggableEvent({
         isLastDay,
       },
     });
+
+  const [startX, setStartX] = useState(0);
+  const [startY, setStartY] = useState(0);
 
   // Handle mouse down to track where on the event the user clicked
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -135,14 +149,108 @@ export function DraggableEvent({
     }
   };
 
+
+  const onDragStart = (event: PointerEvent, info: PanInfo)=> {
+    if (!dragRef.current) {
+      return;
+    }
+    
+    const rect = dragRef.current.getBoundingClientRect();
+    setStartX(rect.left);
+    setStartY(rect.top);
+
+  };
+
+  const onDrag = (event: PointerEvent, info: PanInfo) => {
+    // console.log("onPan", startX, startY, info.point.x, info.point.y);
+    // console.log(info.point.x - startX, info.point.y - startY);
+    // console.log(info.offset.y, info.offset.x);
+    top.set(info.offset.y);
+    left.set(info.offset.x);
+  };
+
+  const onDragEnd = (e: PointerEvent, info: PanInfo) => {
+    top.set(0);
+    left.set(0);
+    // TODO: Update the event position in the calendar
+
+    // console.log("onPanEnd", e, info);
+
+    
+
+    const WEEK_CELLS_HEIGHT = 64;
+    const minutes = Math.round((info.offset.y / (WEEK_CELLS_HEIGHT)) * 60);
+
+    // round to the nearest 15 minutes
+
+    // console.log(minute);
+    // const minute = Math.floor((info.offset.y % EventHeight) / EventHeight * 60);
+    
+    // @ts-expect-error -- should both be of the same type
+    const duration = event.start.until(event.end);
+
+    // TODO: get number of columns (can we do this outside react?)
+    const columnDelta = Math.round((info.offset.x / (containerRef.current?.getBoundingClientRect().width || 0)) * 7);
+
+    const dayAdjustedStart = event.start.add({
+      days: columnDelta,
+    });
+
+    
+    if (dayAdjustedStart instanceof Temporal.PlainDate || dayAdjustedStart instanceof Temporal.PlainDate) {
+      const newEnd = dayAdjustedStart.add(duration);
+
+      onEventUpdate?.({
+        ...event,
+        start: dayAdjustedStart,
+        end: newEnd,
+      });
+
+      return;
+    }
+
+    // if (dayAdjustedStart instanceof Temporal.Instant) {
+    //   d
+    //   return;
+    // }
+
+    
+    const newStart = dayAdjustedStart.add({
+      minutes,
+    })
+
+    // console.log(newStart.toString());
+
+    const roundedStart = newStart.round({
+      smallestUnit: "minute",
+      roundingMode: "halfExpand",
+      roundingIncrement: 15,
+    });
+
+    // console.log(roundedStart.toString());
+
+    const newEnd = roundedStart.add(duration);
+
+    onEventUpdate?.({
+      ...event,
+      start: roundedStart,
+      end: newEnd,
+    });
+  };
+
   return (
-    <div
-      ref={(node) => {
-        setNodeRef(node);
-        if (elementRef) elementRef.current = node;
-      }}
-      style={style}
-      className="touch-none"
+    <motion.div
+      // ref={(node) => {
+      //   setNodeRef(node);
+      //   if (elementRef) elementRef.current = node;
+      // }}
+      // style={style}
+      ref={dragRef}
+      className="touch-none z-[9999]"
+      onPanStart={onDragStart}
+      onPan={onDrag}
+      onPanEnd={onDragEnd}
+      style={{ transform: translate }}
     >
       <EventContextMenu event={event}>
         <ContextMenuTrigger>
@@ -156,12 +264,12 @@ export function DraggableEvent({
             onClick={onClick}
             onMouseDown={handleMouseDown}
             onTouchStart={handleTouchStart}
-            dndListeners={listeners}
-            dndAttributes={attributes}
+            // dndListeners={listeners}
+            // dndAttributes={attributes}
             aria-hidden={ariaHidden}
           />
         </ContextMenuTrigger>
       </EventContextMenu>
-    </div>
+    </motion.div>
   );
 }

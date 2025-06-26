@@ -22,7 +22,7 @@ interface SignalViewProps {
 
 const VARIANTS: Variants = {
   default: {
-    height: "calc(var(--spacing) * 24)",
+    height: "calc(var(--spacing) * 30)",
     width: "var(--container-xs)",
     opacity: 1,
   },
@@ -71,7 +71,7 @@ export function SignalView({ className }: SignalViewProps) {
         <div className="flex flex-col gap-2">
           <Input
             className="border-none focus-visible:ring-0 focus-visible:ring-offset-0 dark:bg-transparent"
-            placeholder="Enter your prompt"
+            placeholder="..."
           />
         </div>
       </WindowContent>
