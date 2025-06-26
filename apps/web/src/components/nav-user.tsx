@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronsUpDown, LogOut, Plus, UserRound } from "lucide-react";
 import { useTheme } from "next-themes";
+import { toast } from "sonner";
 
 import { authClient } from "@repo/auth/client";
 
@@ -51,6 +52,7 @@ export function NavUser() {
   const hasMicrosoftAccount = accounts?.accounts?.some(
     (acc) => acc.providerId === "microsoft",
   );
+
   const hasZoomAccount = accounts?.accounts?.some(
     (acc) => acc.providerId === "zoom",
   );
@@ -62,7 +64,7 @@ export function NavUser() {
         callbackURL: "/calendar",
       });
     } catch {
-      // TODO: handle error
+      toast.error("Failed to link Zoom account");
     }
   };
 
