@@ -1,6 +1,6 @@
 import * as React from "react";
-import { CheckIcon, GlobeIcon } from "lucide-react";
 import { useVirtualizer } from "@tanstack/react-virtual";
+import { CheckIcon, GlobeIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -47,7 +47,6 @@ const formattedTimezones = timezones
   })
   .sort((a, b) => a.numericOffset - b.numericOffset);
 
-  
 interface TimezoneSelectProps {
   className?: string;
   value: string;
@@ -224,32 +223,38 @@ function List({ sortedTimezones, value, onSelect }: ListProps) {
             height: `${rowVirtualizer.getTotalSize()}px`,
           }}
         >
-          {rowVirtualizer.getVirtualItems().map((virtualRow: { index: number; start: number }) => {
-            const item = sortedTimezones[virtualRow.index] as TimezoneItem;
-            if (!item) return null;
+          {rowVirtualizer
+            .getVirtualItems()
+            .map((virtualRow: { index: number; start: number }) => {
+              const item = sortedTimezones[virtualRow.index] as TimezoneItem;
+              if (!item) return null;
 
-            const { value: itemValue, label, offset, sign } = item;
+              const { value: itemValue, label, offset, sign } = item;
 
-            return (
-              <CommandItem
-                key={itemValue}
-                value={itemValue}
-                onSelect={onSelect}
-                className="text-sm tabular-nums [&_svg]:size-3.5 absolute top-0 left-0 w-full"
-                style={{ transform: `translateY(${virtualRow.start}px)` }}
-              >
-                <span>
-                  <span className="text-muted-foreground/80">UTC</span>
-                  <span className="inline-block w-2 text-center text-muted-foreground/80">
-                    {sign}
+              return (
+                <CommandItem
+                  key={itemValue}
+                  value={itemValue}
+                  onSelect={onSelect}
+                  className="absolute top-0 left-0 w-full text-sm tabular-nums [&_svg]:size-3.5"
+                  style={{ transform: `translateY(${virtualRow.start}px)` }}
+                >
+                  <span>
+                    <span className="text-muted-foreground/80">UTC</span>
+                    <span className="inline-block w-2 text-center text-muted-foreground/80">
+                      {sign}
+                    </span>
+                    <span className="w-24 text-muted-foreground/80">
+                      {offset}
+                    </span>
                   </span>
-                  <span className="w-24 text-muted-foreground/80">{offset}</span>
-                </span>
-                <span className="truncate">{label}</span>
-                {value === itemValue ? <CheckIcon className="ml-auto" /> : null}
-              </CommandItem>
-            );
-          })}
+                  <span className="truncate">{label}</span>
+                  {value === itemValue ? (
+                    <CheckIcon className="ml-auto" />
+                  ) : null}
+                </CommandItem>
+              );
+            })}
         </div>
       </div>
     </CommandGroup>
@@ -257,5 +262,8 @@ function List({ sortedTimezones, value, onSelect }: ListProps) {
 }
 
 export const MemoizedList = React.memo(List, (prevProps, nextProps) => {
-  return prevProps.value === nextProps.value && prevProps.onSelect === nextProps.onSelect;
+  return (
+    prevProps.value === nextProps.value &&
+    prevProps.onSelect === nextProps.onSelect
+  );
 });

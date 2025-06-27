@@ -4,6 +4,7 @@ import React, { useMemo } from "react";
 import type { DraggableAttributes } from "@dnd-kit/core";
 import type { SyntheticListenerMap } from "@dnd-kit/core/dist/hooks/utilities";
 import { differenceInMinutes, format, getMinutes, isPast } from "date-fns";
+import { motion } from "motion/react";
 import { Temporal } from "temporal-polyfill";
 
 import { toDate } from "@repo/temporal";
@@ -13,15 +14,6 @@ import { type CalendarEvent } from "@/components/event-calendar";
 import { getBorderRadiusClasses } from "@/components/event-calendar/utils";
 import { cn } from "@/lib/utils";
 import { formatTime } from "@/lib/utils/format";
-import { motion } from "motion/react";
-
-// Using date-fns format with custom formatting:
-// 'h' - hours (1-12)
-// 'a' - am/pm
-// ':mm' - minutes with leading zero (only if the token 'mm' is present)
-const formatTimeWithOptionalMinutes = (date: Date) => {
-  return format(date, getMinutes(date) === 0 ? "ha" : "h:mma").toLowerCase();
-};
 
 interface EventWrapperProps {
   event: CalendarEvent;
@@ -43,13 +35,10 @@ function EventWrapper({
   event,
   isFirstDay = true,
   isLastDay = true,
-  isDragging,
   onClick,
   className,
   children,
   displayEnd,
-  dndListeners,
-  dndAttributes,
   onMouseDown,
   onTouchStart,
 }: EventWrapperProps) {
@@ -57,9 +46,9 @@ function EventWrapper({
   const isEventInPast = isPast(displayEnd);
 
   return (
-    <button
+    <div
       className={cn(
-        "hover:text-event-hover flex size-full overflow-hidden border border-event bg-event px-1 text-left font-medium text-event backdrop-blur-md transition outline-none select-none hover:border-event-hover hover:bg-event-hover focus-visible:ring-[3px] focus-visible:ring-ring/50 data-dragging:cursor-grabbing data-dragging:shadow-lg data-past-event:line-through",
+        "hover:text-event-hover flex size-full overflow-hidden border border-event bg-event px-1 text-left font-medium text-event backdrop-blur-md transition outline-none select-none hover:border-event-hover hover:bg-event-hover focus-visible:ring-[3px] focus-visible:ring-ring/50 data-past-event:line-through",
         getBorderRadiusClasses(isFirstDay, isLastDay),
         className,
       )}
@@ -68,25 +57,21 @@ function EventWrapper({
           "--calendar-color": event.color ?? "var(--color-muted-foreground)",
         } as React.CSSProperties
       }
-      data-dragging={isDragging || undefined}
       data-past-event={isEventInPast || undefined}
       data-first-day={isFirstDay || undefined}
       data-last-day={isLastDay || undefined}
       onClick={onClick}
       onMouseDown={onMouseDown}
       onTouchStart={onTouchStart}
-      {...dndListeners}
-      {...dndAttributes}
     >
       {children}
-    </button>
+    </div>
   );
 }
 
 interface EventItemProps {
   event: CalendarEvent;
   view: "month" | "week" | "day" | "agenda";
-  isDragging?: boolean;
   onClick?: (e: React.MouseEvent) => void;
   showTime?: boolean;
   currentTime?: Date; // For updating time during drag
@@ -94,8 +79,6 @@ interface EventItemProps {
   isLastDay?: boolean;
   children?: React.ReactNode;
   className?: string;
-  dndListeners?: SyntheticListenerMap;
-  dndAttributes?: DraggableAttributes;
   onMouseDown?: (e: React.MouseEvent) => void;
   onTouchStart?: (e: React.TouchEvent) => void;
 }
@@ -103,7 +86,6 @@ interface EventItemProps {
 export function EventItem({
   event,
   view,
-  isDragging,
   onClick,
   showTime,
   currentTime,
@@ -111,8 +93,6 @@ export function EventItem({
   isLastDay = true,
   children,
   className,
-  dndListeners,
-  dndAttributes,
   onMouseDown,
   onTouchStart,
 }: EventItemProps) {
@@ -177,7 +157,6 @@ export function EventItem({
         event={event}
         isFirstDay={isFirstDay}
         isLastDay={isLastDay}
-        isDragging={isDragging}
         onClick={onClick}
         className={cn(
           "flex gap-x-1.5 py-1 ps-1 pe-2",
@@ -185,8 +164,6 @@ export function EventItem({
           className,
         )}
         displayEnd={displayEnd}
-        dndListeners={dndListeners}
-        dndAttributes={dndAttributes}
         onMouseDown={onMouseDown}
         onTouchStart={onTouchStart}
       >
@@ -197,17 +174,18 @@ export function EventItem({
           )}
         />
         <div className="flex min-w-0 grow items-stretch gap-y-1.5">
-          {!isFirstDay ? <div className="h-lh" /> : null}
-          {children || (
+          {!isFirstDay ? <div className="h-lh b" /> : null}
+          {children}
+          {
             <span className="pointer-events-none truncate text-[color-mix(in_oklab,var(--foreground),var(--calendar-color)_80%)]">
-              {!event.allDay && (
+              {!event.allDay && isFirstDay && (
                 <span className="truncate font-normal text-[color-mix(in_oklab,var(--foreground),var(--calendar-color)_80%)] opacity-70 sm:text-[11px]">
                   {eventTime}
                 </span>
               )}
               {event.title}
             </span>
-          )}
+          }
         </div>
       </EventWrapper>
     );
@@ -219,17 +197,14 @@ export function EventItem({
         event={event}
         isFirstDay={isFirstDay}
         isLastDay={isLastDay}
-        isDragging={isDragging}
         onClick={onClick}
         className={cn(
-          "flex w-full gap-x-1.5 py-1 ps-1 pe-2 relative",
+          "relative flex w-full gap-x-1.5 py-1 ps-1 pe-2",
 
           view === "week" ? "text-[10px] sm:text-xs" : "text-xs",
           className,
         )}
         displayEnd={displayEnd}
-        dndListeners={dndListeners}
-        dndAttributes={dndAttributes}
         onMouseDown={onMouseDown}
         onTouchStart={onTouchStart}
       >
@@ -286,8 +261,6 @@ export function EventItem({
       onClick={onClick}
       onMouseDown={onMouseDown}
       onTouchStart={onTouchStart}
-      {...dndListeners}
-      {...dndAttributes}
     >
       <div className="pointer-events-none text-sm font-medium">
         {event.title ?? "(untitled)"}

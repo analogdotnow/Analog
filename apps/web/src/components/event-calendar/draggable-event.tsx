@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   PanInfo,
   motion,
@@ -11,6 +11,7 @@ import {
 // import { CSS } from "@dnd-kit/utilities";
 import { Temporal } from "temporal-polyfill";
 
+import { useSelectedEvents } from "@/atoms";
 // import { useCalendarSettings } from "@/atoms";
 import {
   CalendarEvent,
@@ -20,7 +21,6 @@ import {
 } from "@/components/event-calendar";
 import { MemoizedEventContextMenu } from "../event-context-menu";
 import { ContextMenuTrigger } from "../ui/context-menu";
-import { useSelectedEvents } from "@/atoms";
 
 interface DraggableEventProps {
   event: CalendarEvent;
@@ -64,27 +64,34 @@ export function DraggableEvent({
   showTime,
   onClick,
   onEventUpdate,
-  height,
+  height: initialHeight,
   multiDayWidth,
   isFirstDay = true,
   isLastDay = true,
   "aria-hidden": ariaHidden,
   containerRef,
 }: DraggableEventProps) {
-  // const { activeId } = useCalendarDnd();
-  const elementRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<HTMLDivElement>(null);
-  // const [dragHandlePosition, setDragHandlePosition] = useState<{
-  //   x: number;
-  //   y: number;
-  // } | null>(null);
 
-  const { selectEvent, deselectEvent, selectedEvents } = useSelectedEvents();
+  const { selectEvent } = useSelectedEvents();
+  const eventRef = useRef(event);
+  const heightRef = useRef(initialHeight);
+  useEffect(() => {
+    eventRef.current = event;
+  }, [event]);
+  useEffect(() => {
+    heightRef.current = initialHeight;
+  }, [initialHeight]);
+
   const top = useMotionValue(0);
-  const topDrag = useMotionValue(0);
   const left = useMotionValue(0);
-  const height2 = useMotionValue(height);
-  const translate = useMotionTemplate`translate(${left}px, ${top}px)`;
+  const height = useMotionValue(initialHeight ?? "100%");
+  const transform = useMotionTemplate`translate(${left}px,${top}px)`;
+
+  useEffect(() => {
+    height.set(initialHeight ?? "100%");
+  }, [initialHeight, height]);
+
 
   // const { defaultTimeZone } = useCalendarSettings();
 
@@ -99,7 +106,7 @@ export function DraggableEvent({
   //     data: {
   //       event,
   //       view,
-  //       height: height || elementRef.current?.offsetHeight || null,
+  //       initialHeight: initialHeight || elementRef.current?.offsetHeight || null,
   //       isMultiDay,
   //       multiDayWidth: multiDayWidth,
   //       dragHandlePosition,
@@ -129,7 +136,7 @@ export function DraggableEvent({
   //     <div
   //       ref={setNodeRef}
   //       className="opacity-0"
-  //       style={{ height: height || "auto" }}
+  //       style={{ initialHeight: initialHeight || "auto" }}
   //     />
   //   );
   // }
@@ -137,11 +144,11 @@ export function DraggableEvent({
   // const style = transform
   //   ? {
   //       transform: CSS.Translate.toString(transform),
-  //       height: height || "auto",
+  //       initialHeight: initialHeight || "auto",
   //       width: isMultiDay && multiDayWidth ? `${multiDayWidth}%` : undefined,
   //     }
   //   : {
-  //       height: height || "auto",
+  //       initialHeight: initialHeight || "auto",
   //       width: isMultiDay && multiDayWidth ? `${multiDayWidth}%` : undefined,
   //     };
 
@@ -159,148 +166,152 @@ export function DraggableEvent({
   //   }
   // };
 
+  const [isDragging, setIsDragging] = useState(false);
   const onDragStart = () => {
-    if (!dragRef.current) {
-      return;
-    }
-    console.log("onDragStart");
+    setIsDragging(true);
   };
 
   const onDrag = (event: PointerEvent, info: PanInfo) => {
-    // console.log("onPan", startX, startY, info.point.x, info.point.y);
-    // console.log(info.point.x - startX, info.point.y - startY);
-    // console.log(info.offset.y, info.offset.x);
     top.set(info.offset.y);
     left.set(info.offset.x);
   };
 
-  const onDragEnd = (e: PointerEvent, info: PanInfo) => {
+  const onDragEnd = (_e: PointerEvent, info: PanInfo) => {
+    setIsDragging(false);
     top.set(0);
     left.set(0);
-    // TODO: Update the event position in the calendar
 
-    // console.log("onPanEnd", e, info);
-
-    const WEEK_CELLS_HEIGHT = 64;
-    const minutes = Math.round((info.offset.y / WEEK_CELLS_HEIGHT) * 60);
-
-    // round to the nearest 15 minutes
-
-    // console.log(minute);
-    // const minute = Math.floor((info.offset.y % EventHeight) / EventHeight * 60);
-
+    const current = eventRef.current;
     // @ts-expect-error -- should both be of the same type
-    const duration = event.start.until(event.end);
+    const duration = current.start.until(current.end);
 
-    // TODO: get number of columns (can we do this outside react?)
     const columnDelta = Math.round(
       (info.offset.x /
         (containerRef.current?.getBoundingClientRect().width || 0)) *
         7,
     );
 
-    const dayAdjustedStart = event.start.add({
-      days: columnDelta,
-    });
+    const dayAdjustedStart = current.start.add({ days: columnDelta }) as Temporal.ZonedDateTime | Temporal.Instant;
 
-    if (
-      dayAdjustedStart instanceof Temporal.PlainDate ||
-      dayAdjustedStart instanceof Temporal.PlainDate
-    ) {
-      const newEnd = dayAdjustedStart.add(duration);
-
-      onEventUpdate?.({
-        ...event,
-        start: dayAdjustedStart,
-        end: newEnd,
-      });
-
-      return;
-    }
-
-    // if (dayAdjustedStart instanceof Temporal.Instant) {
-    //   d
-    //   return;
-    // }
-
-    const newStart = dayAdjustedStart.add({
-      minutes,
-    });
-
-    // console.log(newStart.toString());
-
-    const roundedStart = newStart.round({
+    const minutes = Math.round((info.offset.y / 64) * 60);
+    const newStart = dayAdjustedStart.add({ minutes }).round({
       smallestUnit: "minute",
-      roundingMode: "halfExpand",
       roundingIncrement: 15,
+      roundingMode: "halfExpand",
     });
 
-    // console.log(roundedStart.toString());
+    const newEnd = newStart.add(duration);
 
-    const newEnd = roundedStart.add(duration);
-
-    onEventUpdate?.({
-      ...event,
-      start: roundedStart,
-      end: newEnd,
-    });
+    onEventUpdate?.({ ...current, start: newStart, end: newEnd });
   };
 
-  const startY = useRef(0);
-  const startHeight = useRef(height || 0);
+  const startHeight = useRef(0);
 
-  const onResizeTopStart = (event: PointerEvent) => {
-    console.log("onResizeTopStart");
-    startY.current = event.clientY;
-    startHeight.current = event.height;
+  const onResizeTopStart = (_e: PointerEvent, info: PanInfo) => {
+    startHeight.current = heightRef.current ?? 0;
+    height.set(startHeight.current - info.offset.y);
+    top.set(info.offset.y);
+  };
+  const onResizeBottomStart = (_e: PointerEvent, info: PanInfo) => {
+    startHeight.current = heightRef.current ?? 0;
+    height.set(startHeight.current + info.offset.y);
   };
 
-  const onResizeBottomStart = (event: PointerEvent) => {
-    console.log("onResizeBottomStart");
-    startY.current = event.clientY;
-    startHeight.current = height || 0;
+  const onResizeTop = (_e: PointerEvent, info: PanInfo) => {
+    height.set(startHeight.current - info.offset.y);
+    top.set(info.offset.y);
   };
 
-  const onResizeTop = (event: PointerEvent, info: PanInfo) => {
-    console.log("onResizeTop", info.offset.y);
-    //height2.set(startHeight.current - info.offset.y);
-    topDrag.set(startY.current - info.offset.y);
+  const onResizeBottom = (_e: PointerEvent, info: PanInfo) => {
+    height.set(startHeight.current + info.offset.y);
+  }
+
+  const updateStartTime = useCallback(
+    (offsetY: number) => {
+      const start = eventRef.current.start as
+        | Temporal.ZonedDateTime
+        | Temporal.Instant;
+      const minutes = Math.round((offsetY / 64) * 60);
+      const rounded = start.add({ minutes }).round({
+        smallestUnit: "minute",
+        roundingIncrement: 15,
+        roundingMode: "halfExpand",
+      });
+      onEventUpdate?.({ ...eventRef.current, start: rounded });
+    },
+    [onEventUpdate],
+  );
+
+  const updateEndTime = useCallback(
+    (offsetY: number) => {
+      const end = eventRef.current.end as
+        | Temporal.ZonedDateTime
+        | Temporal.Instant;
+      const minutes = Math.round((offsetY / 64) * 60);
+      const rounded = end.add({ minutes }).round({
+        smallestUnit: "minute",
+        roundingIncrement: 15,
+        roundingMode: "halfExpand",
+      });
+      onEventUpdate?.({ ...eventRef.current, end: rounded });
+    },
+    [onEventUpdate],
+  );
+
+  const onResizeTopEnd = (_: PointerEvent, info: PanInfo) => {
+    top.set(0);
+    updateStartTime(info.offset.y);
+  };
+  const onResizeBottomEnd = (_: PointerEvent, info: PanInfo) => {
+    top.set(0);
+    updateEndTime(info.offset.y);
   };
 
-  const onResizeBottom = (event: PointerEvent, info: PanInfo) => {
-    console.log("onResizeBottom", info.offset.y);
-    height2.set(startHeight.current + info.offset.y);
-  };
-
-  const onResizeTopEnd = () => {
-    console.log("onResizeTopEnd");
-    topDrag.set(0);
-    startY.current = 0;
-    startHeight.current = 0;
-    height2.set(startHeight.current);
-  };
-
-  const onResizeBottomEnd = () => {
-    console.log("onResizeBottomEnd");
-    topDrag.set(0);
-    startY.current = 0;
-    startHeight.current = 0;
-    height2.set(startHeight.current);
-  };
+  if (event.allDay || view === "month") {
+    return (
+      <motion.div
+        ref={dragRef}
+        className="z-[9999] size-full touch-none"
+        style={{ transform, height, top }}
+      >
+        <MemoizedEventContextMenu event={event}>
+          <ContextMenuTrigger>
+            <EventItem
+              event={event}
+              view={view}
+              showTime={showTime}
+              isFirstDay={isFirstDay}
+              isLastDay={isLastDay}
+              isDragging={isDragging}
+              onClick={onClick}
+              onMouseDown={handleMouseDown}
+              // onTouchStart={handleTouchStart}
+              // dndListeners={listeners}
+              // dndAttributes={attributes}
+              aria-hidden={ariaHidden}
+            >
+              {!event.readOnly ? (
+                <>
+                  <motion.div
+                    className="absolute inset-x-0 inset-y-2 touch-pan-x touch-pan-y"
+                    onPanStart={onDragStart}
+                    onPan={onDrag}
+                    onPanEnd={onDragEnd}
+                  />
+                </>
+              ) : null}
+            </EventItem>
+          </ContextMenuTrigger>
+        </MemoizedEventContextMenu>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div
-      // ref={(node) => {
-      //   setNodeRef(node);
-      //   if (elementRef) elementRef.current = node;
-      // }}
-      // style={style}
       ref={dragRef}
       className="z-[9999] size-full touch-none"
-      // onPanStart={onDragStart}
-      // onPan={onDrag}
-      // onPanEnd={onDragEnd}
-      style={{ transform: translate, height: height2, top: topDrag }}
+      style={{ transform, height: height }}
     >
       <MemoizedEventContextMenu event={event}>
         <ContextMenuTrigger>
@@ -310,17 +321,33 @@ export function DraggableEvent({
             showTime={showTime}
             isFirstDay={isFirstDay}
             isLastDay={isLastDay}
-            // isDragging={isDragging}
             onClick={onClick}
             onMouseDown={handleMouseDown}
             // onTouchStart={handleTouchStart}
-            // dndListeners={listeners}
-            // dndAttributes={attributes}
             aria-hidden={ariaHidden}
           >
-            <motion.div className="absolute inset-x-0 top-0 h-1 bg-red-500" onPanStart={onResizeTopStart} onPan={onResizeTop} onPanEnd={onResizeTopEnd} />
-            <motion.div className="absolute inset-x-0 bottom-0 h-1 bg-red-500" onPanStart={onResizeBottomStart} onPan={onResizeBottom} onPanEnd={onResizeBottomEnd} />
-            <motion.div className="absolute inset-x-0 inset-y-1 opacity-0" onPanStart={onDragStart} onPan={onDrag} onPanEnd={onDragEnd} />
+            {!event.readOnly ? (
+              <>
+                <motion.div
+                  className="absolute inset-x-0 top-0 h-1 touch-pan-y cursor-row-resize"
+                  onPanStart={onResizeTopStart}
+                  onPan={onResizeTop}
+                  onPanEnd={onResizeTopEnd}
+                />
+                <motion.div
+                  className="absolute inset-x-0 bottom-0 h-1 touch-pan-y cursor-row-resize"
+                  onPanStart={onResizeBottomStart}
+                  onPan={onResizeBottom}
+                  onPanEnd={onResizeBottomEnd}
+                />
+                <motion.div
+                  className="absolute inset-x-0 inset-y-2 touch-pan-x touch-pan-y"
+                  onPanStart={onDragStart}
+                  onPan={onDrag}
+                  onPanEnd={onDragEnd}
+                />
+              </>
+            ) : null}
           </EventItem>
         </ContextMenuTrigger>
       </MemoizedEventContextMenu>

@@ -218,7 +218,7 @@ function WeekViewAllDaySection() {
   // }
 
   return (
-    <div className="border-b border-border/70">
+    <div className="border-b border-border/70 [--calendar-height:100%]">
       <div
         className="grid transition-[grid-template-columns] duration-200 ease-linear"
         style={{ gridTemplateColumns }}

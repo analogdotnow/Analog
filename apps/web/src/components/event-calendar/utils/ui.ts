@@ -13,9 +13,9 @@ export function getBorderRadiusClasses(
   if (isFirstDay && isLastDay) {
     return "rounded-sm"; // Both ends rounded
   } else if (isFirstDay) {
-    return "rounded-l-sm rounded-r-none"; // Only left end rounded
+    return "rounded-l-sm rounded-r-none border-r-0"; // Only left end rounded
   } else if (isLastDay) {
-    return "rounded-r-sm rounded-l-none"; // Only right end rounded
+    return "rounded-r-sm rounded-l-none border-l-0"; // Only right end rounded
   } else {
     return "rounded-none"; // No rounded corners
   }

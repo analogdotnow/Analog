@@ -3,11 +3,11 @@
 import * as React from "react";
 import { startTransition, useMemo, useState } from "react";
 import { format } from "@formkit/tempo";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { parseDate } from "chrono-node";
 import { useAtomValue } from "jotai";
 import { matchSorter } from "match-sorter";
 import { Temporal } from "temporal-polyfill";
-import { useVirtualizer } from "@tanstack/react-virtual";
 
 import { toDate } from "@repo/temporal";
 
@@ -258,7 +258,11 @@ export function TimeInput({
         }}
         disabled={disabled}
       />
-      <MemoizedTimeInputList value={value} searchValue={searchValue} suggestions={suggestions} />
+      <MemoizedTimeInputList
+        value={value}
+        searchValue={searchValue}
+        suggestions={suggestions}
+      />
     </Combobox>
   );
 }
@@ -291,7 +295,7 @@ function TimeInputList({ suggestions }: TimeInputListProps) {
             <ComboboxItem
               key={item?.key}
               value={item?.label}
-              className="ps-7 text-sm font-medium tabular-nums absolute left-0 w-full"
+              className="absolute left-0 w-full ps-7 text-sm font-medium tabular-nums"
               style={{ transform: `translateY(${virtualRow.start}px)` }}
             />
           );
@@ -304,6 +308,9 @@ function TimeInputList({ suggestions }: TimeInputListProps) {
 const MemoizedTimeInputList = React.memo(
   TimeInputList,
   (prevProps, nextProps) => {
-    return prevProps.value === nextProps.value && prevProps.searchValue === nextProps.searchValue;
+    return (
+      prevProps.value === nextProps.value &&
+      prevProps.searchValue === nextProps.searchValue
+    );
   },
 );
