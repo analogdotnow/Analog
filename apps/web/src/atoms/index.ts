@@ -1,5 +1,5 @@
 export { viewPreferencesAtom, type ViewPreferences } from "./view-preferences";
-export { waitlistJoinedAtom } from "./waitlist-persistence";
+export { waitlistJoinedAtom, useWaitlistPersistence } from "./waitlist-persistence";
 export {
   calendarsVisibilityAtom,
   type CalendarsVisibility,
