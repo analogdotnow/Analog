@@ -305,6 +305,7 @@ function WeekViewAllDaySection() {
                           ? isSameDay(day, subDays(eventEnd, 1))
                           : isLastDay
                       }
+                      
                       containerRef={containerRef}
                       onEventUpdate={onEventUpdate}
                     >
@@ -380,17 +381,15 @@ function PositionedEvent({
       }}
       onClick={(e) => e.stopPropagation()}
     >
-      <div className="size-full">
-        <DraggableEvent
-          event={positionedEvent.event}
-          view="week"
-          onClick={(e) => onEventClick(positionedEvent.event, e)}
-          onEventUpdate={onEventUpdate}
-          showTime
-          height={positionedEvent.height}
-          containerRef={containerRef}
-        />
-      </div>
+      <DraggableEvent
+        event={positionedEvent.event}
+        view="week"
+        onClick={(e) => onEventClick(positionedEvent.event, e)}
+        onEventUpdate={onEventUpdate}
+        showTime
+        height={positionedEvent.height}
+        containerRef={containerRef}
+      />
     </div>
   );
 }

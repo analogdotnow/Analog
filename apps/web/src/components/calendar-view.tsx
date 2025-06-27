@@ -65,6 +65,7 @@ function CalendarContent({
           events={events}
           onEventSelect={onEventSelect}
           onEventCreate={onEventCreate}
+          onEventUpdate={onEventUpdate}
         />
       );
 
@@ -87,6 +88,7 @@ function CalendarContent({
           events={events}
           onEventSelect={onEventSelect}
           onEventCreate={onEventCreate}
+          onEventUpdate={onEventUpdate}
         />
       );
 

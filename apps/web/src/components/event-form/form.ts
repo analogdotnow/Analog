@@ -24,6 +24,14 @@ export const formSchema = z.object({
   description: z.string(),
   calendarId: z.string(),
   accountId: z.string(),
+  attendees: z.array(
+    z.object({
+      name: z.string().optional(),
+      email: z.string(),
+      status: z.enum(["accepted", "declined", "tentative", "unknown"]),
+      type: z.enum(["required", "optional", "resource"]).optional(),
+    }),
+  ),
   providerId: z.enum(["google", "microsoft"]),
 });
 
@@ -37,6 +45,14 @@ export const defaultValues: FormValues = {
   isAllDay: true,
   description: "",
   repeat: {},
+  attendees: [
+    {
+      name: "",
+      email: "",
+      status: "unknown",
+      type: "required",
+    },
+  ],
   calendarId: "",
   accountId: "",
   providerId: "google",

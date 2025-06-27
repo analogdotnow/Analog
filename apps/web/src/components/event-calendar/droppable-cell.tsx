@@ -21,14 +21,10 @@ function DroppableCellComponent({
   className,
   onClick,
 }: DroppableCellProps) {
-
   return (
     <div
       onClick={onClick}
-      className={cn(
-        "flex h-full flex-col overflow-hidden gap-0.5",
-        className,
-      )}
+      className={cn("flex h-full flex-col gap-0.5", className)}
     >
       {children}
     </div>
