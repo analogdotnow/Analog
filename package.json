@@ -1,5 +1,13 @@
 {
   "name": "analog",
+  "devDependencies": {
+    "@ianvs/prettier-plugin-sort-imports": "^3.7.2",
+    "dotenv-cli": "^8.0.0",
+    "prettier": "^3.5.3",
+    "prettier-plugin-tailwindcss": "^0.6.11",
+    "turbo": "^2.5.3"
+  },
+  "packageManager": "bun@1.2.13",
   "private": true,
   "scripts": {
     "build": "dotenv -- turbo run build",
@@ -14,13 +22,8 @@
     "db:push": "dotenv -- turbo run db:push",
     "db:studio": "dotenv -- turbo run db:studio"
   },
-  "devDependencies": {
-    "@ianvs/prettier-plugin-sort-imports": "^3.7.2",
-    "dotenv-cli": "^8.0.0",
-    "prettier": "^3.5.3",
-    "prettier-plugin-tailwindcss": "^0.6.11",
-    "turbo": "^2.5.3"
-  },
-  "packageManager": "bun@1.2.13",
-  "workspaces": ["apps/*", "packages/*", "tooling/*"]
+  "workspaces": ["apps/*", "packages/*", "tooling/*"],
+  "dependencies": {
+    "@tanstack/react-form": "^1.12.4"
+  }
 }
