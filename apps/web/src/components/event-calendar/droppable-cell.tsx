@@ -1,10 +1,10 @@
 "use client";
 
+import React from "react";
 import { useDroppable } from "@dnd-kit/core";
 
 import { useCalendarDnd } from "@/components/event-calendar";
 import { cn } from "@/lib/utils";
-import React from "react";
 
 interface DroppableCellProps {
   id: string;
@@ -48,6 +48,9 @@ function DroppableCellComponent({
   );
 }
 
-export const DroppableCell = React.memo(DroppableCellComponent, (prevProps, nextProps) => {
-return true;
-});
+export const DroppableCell = React.memo(
+  DroppableCellComponent,
+  (prevProps, nextProps) => {
+    return true;
+  },
+);

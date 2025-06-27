@@ -1,19 +1,19 @@
 "use client";
 
-import { useMemo } from "react";
+import React, { useMemo } from "react";
 import type { DraggableAttributes } from "@dnd-kit/core";
 import type { SyntheticListenerMap } from "@dnd-kit/core/dist/hooks/utilities";
 import { differenceInMinutes, format, getMinutes, isPast } from "date-fns";
+import { Temporal } from "temporal-polyfill";
 
 import { toDate } from "@repo/temporal";
 
+import { useCalendarSettings } from "@/atoms";
 import { type CalendarEvent } from "@/components/event-calendar";
 import { getBorderRadiusClasses } from "@/components/event-calendar/utils";
 import { cn } from "@/lib/utils";
-import React from "react";
-import { useCalendarSettings } from "@/atoms";
 import { formatTime } from "@/lib/utils/format";
-import { Temporal } from "temporal-polyfill";
+import { motion } from "motion/react";
 
 // Using date-fns format with custom formatting:
 // 'h' - hours (1-12)
@@ -143,8 +143,12 @@ export function EventItem({
       return "All day";
     }
 
-    const start = (event.start as Temporal.ZonedDateTime).withTimeZone(defaultTimeZone);
-    const end = (event.end as Temporal.ZonedDateTime).withTimeZone(defaultTimeZone);
+    const start = (event.start as Temporal.ZonedDateTime).withTimeZone(
+      defaultTimeZone,
+    );
+    const end = (event.end as Temporal.ZonedDateTime).withTimeZone(
+      defaultTimeZone,
+    );
 
     // For short events (less than 45 minutes), only show start time
     if (durationMinutes < 45) {
@@ -153,7 +157,15 @@ export function EventItem({
 
     // For longer events, show both start and end time
     return `${formatTime({ value: start, use12Hour, locale })} - ${formatTime({ value: end, use12Hour, locale })}`;
-  }, [event.start, event.end, durationMinutes, event.allDay, use12Hour, locale, defaultTimeZone]);
+  }, [
+    event.start,
+    event.end,
+    durationMinutes,
+    event.allDay,
+    use12Hour,
+    locale,
+    defaultTimeZone,
+  ]);
 
   // if (event.allDay && isLastDay) {
   //   return null;
@@ -187,7 +199,7 @@ export function EventItem({
         <div className="flex min-w-0 grow items-stretch gap-y-1.5">
           {!isFirstDay ? <div className="h-lh" /> : null}
           {children || (
-            <span className="truncate text-[color-mix(in_oklab,var(--foreground),var(--calendar-color)_80%)] pointer-events-none">
+            <span className="pointer-events-none truncate text-[color-mix(in_oklab,var(--foreground),var(--calendar-color)_80%)]">
               {!event.allDay && (
                 <span className="truncate font-normal text-[color-mix(in_oklab,var(--foreground),var(--calendar-color)_80%)] opacity-70 sm:text-[11px]">
                   {eventTime}
@@ -210,7 +222,7 @@ export function EventItem({
         isDragging={isDragging}
         onClick={onClick}
         className={cn(
-          "flex w-full gap-x-1.5 py-1 ps-1 pe-2",
+          "flex w-full gap-x-1.5 py-1 ps-1 pe-2 relative",
 
           view === "week" ? "text-[10px] sm:text-xs" : "text-xs",
           className,
@@ -221,6 +233,7 @@ export function EventItem({
         onMouseDown={onMouseDown}
         onTouchStart={onTouchStart}
       >
+        {children}
         <div className="w-1 shrink-0 rounded-lg bg-[color-mix(in_oklab,var(--background),var(--calendar-color)_90%)] opacity-40" />
         <div
           className={cn(
@@ -229,7 +242,7 @@ export function EventItem({
           )}
         >
           {durationMinutes < 45 ? (
-            <div className="truncate text-[color-mix(in_oklab,var(--foreground),var(--calendar-color)_80%)] pointer-events-none">
+            <div className="pointer-events-none truncate text-[color-mix(in_oklab,var(--foreground),var(--calendar-color)_80%)]">
               {event.title ?? "(untitled)"}{" "}
               {showTime && (
                 <span className="text-[color-mix(in_oklab,var(--foreground),var(--calendar-color)_80%)] opacity-70">
@@ -239,11 +252,11 @@ export function EventItem({
             </div>
           ) : (
             <>
-              <div className="truncate font-medium text-[color-mix(in_oklab,var(--foreground),var(--calendar-color)_80%)] pointer-events-none">
+              <div className="pointer-events-none truncate font-medium text-[color-mix(in_oklab,var(--foreground),var(--calendar-color)_80%)]">
                 {event.title ?? "(untitled)"}
               </div>
               {showTime && (
-                <div className="truncate font-normal text-[color-mix(in_oklab,var(--foreground),var(--calendar-color)_80%)] opacity-70 sm:text-[11px] pointer-events-none">
+                <div className="pointer-events-none truncate font-normal text-[color-mix(in_oklab,var(--foreground),var(--calendar-color)_80%)] opacity-70 sm:text-[11px]">
                   {eventTime}
                 </div>
               )}
@@ -276,14 +289,14 @@ export function EventItem({
       {...dndListeners}
       {...dndAttributes}
     >
-      <div className="text-sm font-medium pointer-events-none">{event.title ?? "(untitled)"}</div>
-      <div className="text-xs opacity-70 pointer-events-none">
+      <div className="pointer-events-none text-sm font-medium">
+        {event.title ?? "(untitled)"}
+      </div>
+      <div className="pointer-events-none text-xs opacity-70">
         {event.allDay ? (
           <span>All day</span>
         ) : (
-          <span className="uppercase">
-            {eventTime}
-          </span>
+          <span className="uppercase">{eventTime}</span>
         )}
         {event.location && (
           <>
@@ -293,7 +306,9 @@ export function EventItem({
         )}
       </div>
       {event.description && (
-        <div className="my-1 text-xs opacity-90 pointer-events-none">{event.description}</div>
+        <div className="pointer-events-none my-1 text-xs opacity-90">
+          {event.description}
+        </div>
       )}
     </button>
   );

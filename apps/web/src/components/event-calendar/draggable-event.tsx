@@ -1,20 +1,26 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { useDraggable } from "@dnd-kit/core";
-import { CSS } from "@dnd-kit/utilities";
+import { useRef } from "react";
+import {
+  PanInfo,
+  motion,
+  useMotionTemplate,
+  useMotionValue,
+} from "motion/react";
+// import { useDraggable } from "@dnd-kit/core";
+// import { CSS } from "@dnd-kit/utilities";
 import { Temporal } from "temporal-polyfill";
 
-import { useCalendarSettings } from "@/atoms";
+// import { useCalendarSettings } from "@/atoms";
 import {
   CalendarEvent,
-  EventHeight,
+  // EventHeight,
   EventItem,
-  useCalendarDnd,
+  // useCalendarDnd,
 } from "@/components/event-calendar";
-import { EventContextMenu } from "../event-context-menu";
+import { MemoizedEventContextMenu } from "../event-context-menu";
 import { ContextMenuTrigger } from "../ui/context-menu";
-import { motion, PanInfo, useMotionTemplate, useMotionValue } from "motion/react";
+import { useSelectedEvents } from "@/atoms";
 
 interface DraggableEventProps {
   event: CalendarEvent;
@@ -65,100 +71,99 @@ export function DraggableEvent({
   "aria-hidden": ariaHidden,
   containerRef,
 }: DraggableEventProps) {
-  const { activeId } = useCalendarDnd();
+  // const { activeId } = useCalendarDnd();
   const elementRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<HTMLDivElement>(null);
-  const [dragHandlePosition, setDragHandlePosition] = useState<{
-    x: number;
-    y: number;
-  } | null>(null);
+  // const [dragHandlePosition, setDragHandlePosition] = useState<{
+  //   x: number;
+  //   y: number;
+  // } | null>(null);
 
+  const { selectEvent, deselectEvent, selectedEvents } = useSelectedEvents();
   const top = useMotionValue(0);
+  const topDrag = useMotionValue(0);
   const left = useMotionValue(0);
+  const height2 = useMotionValue(height);
   const translate = useMotionTemplate`translate(${left}px, ${top}px)`;
-  
-  const { defaultTimeZone } = useCalendarSettings();
 
-  const isMultiDay = isMultiDayEvent({
-    event,
-    defaultTimeZone,
-  });
+  // const { defaultTimeZone } = useCalendarSettings();
 
-  const { attributes, listeners, setNodeRef, transform, isDragging } =
-    useDraggable({
-      id: `${event.id}-${view}`,
-      data: {
-        event,
-        view,
-        height: height || elementRef.current?.offsetHeight || null,
-        isMultiDay,
-        multiDayWidth: multiDayWidth,
-        dragHandlePosition,
-        isFirstDay,
-        isLastDay,
-      },
-    });
+  // const isMultiDay = isMultiDayEvent({
+  //   event,
+  //   defaultTimeZone,
+  // });
 
-  const [startX, setStartX] = useState(0);
-  const [startY, setStartY] = useState(0);
+  // const { attributes, listeners, setNodeRef, transform, isDragging } =
+  //   useDraggable({
+  //     id: `${event.id}-${view}`,
+  //     data: {
+  //       event,
+  //       view,
+  //       height: height || elementRef.current?.offsetHeight || null,
+  //       isMultiDay,
+  //       multiDayWidth: multiDayWidth,
+  //       dragHandlePosition,
+  //       isFirstDay,
+  //       isLastDay,
+  //     },
+  //   });
+
+  // const [startX, setStartX] = useState(0);
+  // const [startY, setStartY] = useState(0);
 
   // Handle mouse down to track where on the event the user clicked
   const handleMouseDown = (e: React.MouseEvent) => {
-    if (elementRef.current) {
-      const rect = elementRef.current.getBoundingClientRect();
-      setDragHandlePosition({
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top,
-      });
-    }
+    selectEvent(event);
+    // if (elementRef.current) {
+    //   const rect = elementRef.current.getBoundingClientRect();
+    //   setDragHandlePosition({
+    //     x: e.clientX - rect.left,
+    //     y: e.clientY - rect.top,
+    //   });
+    // }
   };
 
   // Don't render if this event is being dragged
-  if (isDragging || activeId === `${event.id}-${view}`) {
-    return (
-      <div
-        ref={setNodeRef}
-        className="opacity-0"
-        style={{ height: height || "auto" }}
-      />
-    );
-  }
+  // if (isDragging || activeId === `${event.id}-${view}`) {
+  //   return (
+  //     <div
+  //       ref={setNodeRef}
+  //       className="opacity-0"
+  //       style={{ height: height || "auto" }}
+  //     />
+  //   );
+  // }
 
-  const style = transform
-    ? {
-        transform: CSS.Translate.toString(transform),
-        height: height || "auto",
-        width: isMultiDay && multiDayWidth ? `${multiDayWidth}%` : undefined,
-      }
-    : {
-        height: height || "auto",
-        width: isMultiDay && multiDayWidth ? `${multiDayWidth}%` : undefined,
-      };
+  // const style = transform
+  //   ? {
+  //       transform: CSS.Translate.toString(transform),
+  //       height: height || "auto",
+  //       width: isMultiDay && multiDayWidth ? `${multiDayWidth}%` : undefined,
+  //     }
+  //   : {
+  //       height: height || "auto",
+  //       width: isMultiDay && multiDayWidth ? `${multiDayWidth}%` : undefined,
+  //     };
 
   // Handle touch start to track where on the event the user touched
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (elementRef.current) {
-      const rect = elementRef.current.getBoundingClientRect();
-      const touch = e.touches[0];
-      if (touch) {
-        setDragHandlePosition({
-          x: touch.clientX - rect.left,
-          y: touch.clientY - rect.top,
-        });
-      }
-    }
-  };
+  // const handleTouchStart = (e: React.TouchEvent) => {
+  //   if (elementRef.current) {
+  //     const rect = elementRef.current.getBoundingClientRect();
+  //     const touch = e.touches[0];
+  //     if (touch) {
+  //       setDragHandlePosition({
+  //         x: touch.clientX - rect.left,
+  //         y: touch.clientY - rect.top,
+  //       });
+  //     }
+  //   }
+  // };
 
-
-  const onDragStart = (event: PointerEvent, info: PanInfo)=> {
+  const onDragStart = () => {
     if (!dragRef.current) {
       return;
     }
-    
-    const rect = dragRef.current.getBoundingClientRect();
-    setStartX(rect.left);
-    setStartY(rect.top);
-
+    console.log("onDragStart");
   };
 
   const onDrag = (event: PointerEvent, info: PanInfo) => {
@@ -176,28 +181,32 @@ export function DraggableEvent({
 
     // console.log("onPanEnd", e, info);
 
-    
-
     const WEEK_CELLS_HEIGHT = 64;
-    const minutes = Math.round((info.offset.y / (WEEK_CELLS_HEIGHT)) * 60);
+    const minutes = Math.round((info.offset.y / WEEK_CELLS_HEIGHT) * 60);
 
     // round to the nearest 15 minutes
 
     // console.log(minute);
     // const minute = Math.floor((info.offset.y % EventHeight) / EventHeight * 60);
-    
+
     // @ts-expect-error -- should both be of the same type
     const duration = event.start.until(event.end);
 
     // TODO: get number of columns (can we do this outside react?)
-    const columnDelta = Math.round((info.offset.x / (containerRef.current?.getBoundingClientRect().width || 0)) * 7);
+    const columnDelta = Math.round(
+      (info.offset.x /
+        (containerRef.current?.getBoundingClientRect().width || 0)) *
+        7,
+    );
 
     const dayAdjustedStart = event.start.add({
       days: columnDelta,
     });
 
-    
-    if (dayAdjustedStart instanceof Temporal.PlainDate || dayAdjustedStart instanceof Temporal.PlainDate) {
+    if (
+      dayAdjustedStart instanceof Temporal.PlainDate ||
+      dayAdjustedStart instanceof Temporal.PlainDate
+    ) {
       const newEnd = dayAdjustedStart.add(duration);
 
       onEventUpdate?.({
@@ -214,10 +223,9 @@ export function DraggableEvent({
     //   return;
     // }
 
-    
     const newStart = dayAdjustedStart.add({
       minutes,
-    })
+    });
 
     // console.log(newStart.toString());
 
@@ -238,6 +246,48 @@ export function DraggableEvent({
     });
   };
 
+  const startY = useRef(0);
+  const startHeight = useRef(height || 0);
+
+  const onResizeTopStart = (event: PointerEvent) => {
+    console.log("onResizeTopStart");
+    startY.current = event.clientY;
+    startHeight.current = event.height;
+  };
+
+  const onResizeBottomStart = (event: PointerEvent) => {
+    console.log("onResizeBottomStart");
+    startY.current = event.clientY;
+    startHeight.current = height || 0;
+  };
+
+  const onResizeTop = (event: PointerEvent, info: PanInfo) => {
+    console.log("onResizeTop", info.offset.y);
+    //height2.set(startHeight.current - info.offset.y);
+    topDrag.set(startY.current - info.offset.y);
+  };
+
+  const onResizeBottom = (event: PointerEvent, info: PanInfo) => {
+    console.log("onResizeBottom", info.offset.y);
+    height2.set(startHeight.current + info.offset.y);
+  };
+
+  const onResizeTopEnd = () => {
+    console.log("onResizeTopEnd");
+    topDrag.set(0);
+    startY.current = 0;
+    startHeight.current = 0;
+    height2.set(startHeight.current);
+  };
+
+  const onResizeBottomEnd = () => {
+    console.log("onResizeBottomEnd");
+    topDrag.set(0);
+    startY.current = 0;
+    startHeight.current = 0;
+    height2.set(startHeight.current);
+  };
+
   return (
     <motion.div
       // ref={(node) => {
@@ -246,13 +296,13 @@ export function DraggableEvent({
       // }}
       // style={style}
       ref={dragRef}
-      className="touch-none z-[9999]"
-      onPanStart={onDragStart}
-      onPan={onDrag}
-      onPanEnd={onDragEnd}
-      style={{ transform: translate }}
+      className="z-[9999] size-full touch-none"
+      // onPanStart={onDragStart}
+      // onPan={onDrag}
+      // onPanEnd={onDragEnd}
+      style={{ transform: translate, height: height2, top: topDrag }}
     >
-      <EventContextMenu event={event}>
+      <MemoizedEventContextMenu event={event}>
         <ContextMenuTrigger>
           <EventItem
             event={event}
@@ -260,16 +310,20 @@ export function DraggableEvent({
             showTime={showTime}
             isFirstDay={isFirstDay}
             isLastDay={isLastDay}
-            isDragging={isDragging}
+            // isDragging={isDragging}
             onClick={onClick}
             onMouseDown={handleMouseDown}
-            onTouchStart={handleTouchStart}
+            // onTouchStart={handleTouchStart}
             // dndListeners={listeners}
             // dndAttributes={attributes}
             aria-hidden={ariaHidden}
-          />
+          >
+            <motion.div className="absolute inset-x-0 top-0 h-1 bg-red-500" onPanStart={onResizeTopStart} onPan={onResizeTop} onPanEnd={onResizeTopEnd} />
+            <motion.div className="absolute inset-x-0 bottom-0 h-1 bg-red-500" onPanStart={onResizeBottomStart} onPan={onResizeBottom} onPanEnd={onResizeBottomEnd} />
+            <motion.div className="absolute inset-x-0 inset-y-1 opacity-0" onPanStart={onDragStart} onPan={onDrag} onPanEnd={onDragEnd} />
+          </EventItem>
         </ContextMenuTrigger>
-      </EventContextMenu>
+      </MemoizedEventContextMenu>
     </motion.div>
   );
 }

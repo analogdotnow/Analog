@@ -17,7 +17,7 @@ export function RightSidebar({ minSidebarWidth, ...props }: RightSidebarProps) {
     <Sidebar {...props}>
       <SidebarRail minSidebarWidth={minSidebarWidth} />
       <SidebarContent className="pr-0.5">
-      <EventForm event={selectedEvent ?? undefined} /> 
+        <EventForm event={selectedEvent ?? undefined} />
       </SidebarContent>
     </Sidebar>
   );

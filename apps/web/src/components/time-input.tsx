@@ -7,6 +7,7 @@ import { parseDate } from "chrono-node";
 import { useAtomValue } from "jotai";
 import { matchSorter } from "match-sorter";
 import { Temporal } from "temporal-polyfill";
+import { useVirtualizer } from "@tanstack/react-virtual";
 
 import { toDate } from "@repo/temporal";
 
@@ -122,9 +123,11 @@ function useTimeSuggestions() {
   }, [settings.locale, settings.defaultTimeZone, settings.use12Hour]);
 
   const suggestions = useMemo(() => {
+    console.log("searchValue", searchValue);
     const parsedDate = parseDate(searchValue);
 
     const matches = matchSorter(list, searchValue, { keys: ["label"] });
+    console.log("matches", matches.length);
 
     if (parsedDate) {
       const instant = Temporal.Instant.fromEpochMilliseconds(
@@ -160,6 +163,7 @@ function useTimeSuggestions() {
   return {
     list,
     suggestions,
+    searchValue,
     setSearchValue,
   };
 }
@@ -181,7 +185,7 @@ export function TimeInput({
   const [input, setInput] = React.useState(
     formatTime({ value, use12Hour, locale }),
   );
-  const { list, suggestions, setSearchValue } = useTimeSuggestions();
+  const { suggestions, searchValue, setSearchValue } = useTimeSuggestions();
 
   React.useEffect(() => {
     setInput(formatTime({ value, use12Hour, locale }));
@@ -254,7 +258,7 @@ export function TimeInput({
         }}
         disabled={disabled}
       />
-      <MemoizedTimeInputList value={value} suggestions={suggestions} list={list} />
+      <MemoizedTimeInputList value={value} searchValue={searchValue} suggestions={suggestions} />
     </Combobox>
   );
 }
@@ -262,30 +266,44 @@ export function TimeInput({
 interface TimeInputListProps {
   value: Temporal.ZonedDateTime;
   suggestions: TimeInputValue[];
-  list: TimeInputValue[];
+  searchValue: string;
 }
 
-function TimeInputList({ value, suggestions, list }: TimeInputListProps) {
+function TimeInputList({ suggestions }: TimeInputListProps) {
+  const parentRef = React.useRef<HTMLDivElement | null>(null);
+
+  const rowVirtualizer = useVirtualizer({
+    count: suggestions.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 32,
+    overscan: 6,
+  });
+
   return (
-    <ComboboxPopover className={"max-h-64 overflow-y-auto"}>
-        {suggestions.map(({ key, label }) => (
-          <ComboboxItem
-            key={key}
-            value={label}
-            className="ps-7 text-sm font-medium tabular-nums"
-          />
-        ))}
-        {/* {list.map(({ key, label }) => (
-          <ComboboxItem
-            key={key}
-            value={label}
-            className="ps-7 text-sm font-medium tabular-nums"
-          />
-        ))} */}
-      </ComboboxPopover>
+    <ComboboxPopover className="max-h-64 overflow-y-auto" ref={parentRef}>
+      <div
+        className="relative w-full"
+        style={{ height: rowVirtualizer.getTotalSize() }}
+      >
+        {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+          const item = suggestions[virtualRow.index];
+          return (
+            <ComboboxItem
+              key={item?.key}
+              value={item?.label}
+              className="ps-7 text-sm font-medium tabular-nums absolute left-0 w-full"
+              style={{ transform: `translateY(${virtualRow.start}px)` }}
+            />
+          );
+        })}
+      </div>
+    </ComboboxPopover>
   );
 }
 
-const MemoizedTimeInputList = React.memo(TimeInputList, (prevProps, nextProps) => {
-  return prevProps.value.toString() === nextProps.value.toString();
-});
+const MemoizedTimeInputList = React.memo(
+  TimeInputList,
+  (prevProps, nextProps) => {
+    return prevProps.value === nextProps.value && prevProps.searchValue === nextProps.searchValue;
+  },
+);

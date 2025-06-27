@@ -2,7 +2,6 @@
 
 import { useState, type ReactNode } from "react";
 import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
-import { QueryClientProvider } from "@tanstack/react-query";
 import {
   PersistQueryClientProvider,
   removeOldestQuery,

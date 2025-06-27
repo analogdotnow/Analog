@@ -22,5 +22,8 @@
     "turbo": "^2.5.4"
   },
   "packageManager": "bun@1.2.13",
-  "workspaces": ["apps/*", "packages/*", "tooling/*"]
+  "workspaces": ["apps/*", "packages/*", "tooling/*"],
+  "dependencies": {
+    "@tanstack/react-virtual": "^3.13.11"
+  }
 }

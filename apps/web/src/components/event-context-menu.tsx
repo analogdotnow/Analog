@@ -13,40 +13,11 @@ import {
   ContextMenuItem,
   ContextMenuRadioGroup,
   ContextMenuSeparator,
-  ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import { useTRPC } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
 import { KeyboardShortcut } from "./ui/keyboard-shortcut";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
-
-// export function CalendarToggle({
-//   className,
-//   primaryCalendar,
-//   ...props
-// }: CalendarToggleProps) {
-//   return (
-//     <CheckboxPrimitive.Root
-//       data-slot="checkbox"
-//       className={cn(
-//         "peer size-3 shrink-0 rounded-[4px] shadow-xs transition-shadow",
-//         "focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed",
-//         "disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 data-[state=checked]:border-primary",
-//         "bg-(--calendar-color)/40 data-[state=checked]:bg-(--calendar-color) dark:aria-invalid:ring-destructive/40",
-//         primaryCalendar &&
-//           "outline-2 outline-offset-2 outline-(--calendar-color)",
-//         className,
-//       )}
-//       {...props}
-//     >
-//       <CheckboxPrimitive.Indicator
-//         data-slot="checkbox-indicator"
-//         className="flex items-center justify-center text-current transition-none"
-//       />
-
-//     </CheckboxPrimitive.Root>
-//   );
-// }
 
 function CalendarRadioItem({
   className,
@@ -84,10 +55,38 @@ interface EventContextMenuProps {
   children: React.ReactNode;
 }
 
-export function EventContextMenu({ event, children }: EventContextMenuProps) {
+function EventContextMenuCalendarList() {
   const trpc = useTRPC();
   const calendarQuery = useQuery(trpc.calendars.list.queryOptions());
 
+  return (
+    <div className="mb-1 flex scrollbar-hidden gap-3 overflow-x-auto px-2 py-2">
+      {calendarQuery.data?.accounts.map((account, index) => (
+        <React.Fragment key={index}>
+          {account.calendars.map((calendar, index) => (
+            <Tooltip key={index}>
+              <TooltipTrigger asChild>
+                <CalendarRadioItem
+                  value={`${account.id}-${calendar.id}`}
+                  style={
+                    {
+                      "--calendar-color": calendar.color,
+                    } as React.CSSProperties
+                  }
+                ></CalendarRadioItem>
+              </TooltipTrigger>
+              <TooltipContent className="w-full max-w-48" sideOffset={8}>
+                <span className="break-all">{calendar.name}</span>
+              </TooltipContent>
+            </Tooltip>
+          ))}
+        </React.Fragment>
+      ))}
+    </div>
+  );
+}
+
+export function EventContextMenu({ event, children }: EventContextMenuProps) {
   const responseStatus: string | undefined = "going";
 
   return (
@@ -95,29 +94,7 @@ export function EventContextMenu({ event, children }: EventContextMenuProps) {
       {children}
       <ContextMenuContent className="w-64">
         <ContextMenuRadioGroup value={`${event.accountId}-${event.calendarId}`}>
-          <div className="mb-1 flex scrollbar-hidden gap-3 overflow-x-auto px-2 py-2">
-            {calendarQuery.data?.accounts.map((account, index) => (
-              <React.Fragment key={index}>
-                {account.calendars.map((calendar, index) => (
-                  <Tooltip key={index}>
-                    <TooltipTrigger asChild>
-                      <CalendarRadioItem
-                        value={`${account.id}-${calendar.id}`}
-                        style={
-                          {
-                            "--calendar-color": calendar.color,
-                          } as React.CSSProperties
-                        }
-                      ></CalendarRadioItem>
-                    </TooltipTrigger>
-                    <TooltipContent className="w-full max-w-48" sideOffset={8}>
-                      <span className="break-all">{calendar.name}</span>
-                    </TooltipContent>
-                  </Tooltip>
-                ))}
-              </React.Fragment>
-            ))}
-          </div>
+          <EventContextMenuCalendarList />
         </ContextMenuRadioGroup>
 
         <ContextMenuSeparator />
@@ -203,3 +180,14 @@ export function EventContextMenu({ event, children }: EventContextMenuProps) {
     </ContextMenu>
   );
 }
+
+export const MemoizedEventContextMenu = React.memo(
+  EventContextMenu,
+  (prevProps, nextProps) => {
+    return (
+      prevProps.event.id === nextProps.event.id &&
+      prevProps.event.accountId === nextProps.event.accountId &&
+      prevProps.event.calendarId === nextProps.event.calendarId
+    );
+  },
+);

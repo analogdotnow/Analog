@@ -22,30 +22,30 @@ export const DateInputSection = withForm({
       startField.state.value.timeZoneId === endField.state.value.timeZoneId;
 
     const onTimezoneChange = (value: string) => {
-        startField.handleChange(startField.state.value.withTimeZone(value));
-        startField.handleBlur();
-        endField.handleChange(endField.state.value.withTimeZone(value));
-        endField.handleBlur();
+      startField.handleChange(startField.state.value.withTimeZone(value));
+      startField.handleBlur();
+      endField.handleChange(endField.state.value.withTimeZone(value));
+      endField.handleBlur();
     };
 
     // console.log("startField", startField.state.value.toString(), endField.state.value.toString());
     const onStartChange = (value: Temporal.ZonedDateTime) => {
-        const duration = startField.state.value.until(endField.state.value);
+      const duration = startField.state.value.until(endField.state.value);
 
-        startField.handleChange(value);
+      startField.handleChange(value);
 
-        if (!isSameTimezone) {
-          const newEnd = value
-            .add(duration)
-            .withTimeZone(endField.state.value.timeZoneId);
-          endField.handleChange(newEnd);
-          endField.handleBlur();
-
-          return;
-        }
-
-        endField.handleChange(value.add(duration));
+      if (!isSameTimezone) {
+        const newEnd = value
+          .add(duration)
+          .withTimeZone(endField.state.value.timeZoneId);
+        endField.handleChange(newEnd);
         endField.handleBlur();
+
+        return;
+      }
+
+      endField.handleChange(value.add(duration));
+      endField.handleBlur();
     };
 
     const onEndChange = (value: Temporal.ZonedDateTime) => {

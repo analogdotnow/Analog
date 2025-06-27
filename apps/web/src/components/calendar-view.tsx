@@ -1,9 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
+import { useAtomValue } from "jotai";
 import { useHotkeysContext } from "react-hotkeys-hook";
 
 import { useCalendarsVisibility, useViewPreferences } from "@/atoms";
+import { isDraggingAtom } from "@/atoms/is-dragging";
 import {
   CalendarDndProvider,
   CalendarHeader,
@@ -11,25 +13,22 @@ import {
   EventHeight,
   WeekCellsHeight,
 } from "@/components/event-calendar";
+import { useEdgeAutoScroll } from "@/components/event-calendar/drag-and-drop/use-auto-scroll";
 import {
   useEventDialog,
   useEventOperations,
 } from "@/components/event-calendar/hooks";
+import { CalendarEvent } from "@/components/event-calendar/types";
 import {
   filterPastEvents,
   filterVisibleEvents,
 } from "@/components/event-calendar/utils";
-import { cn } from "@/lib/utils";
-import { SignalView } from "./signal/signal-view";
 import { AgendaView } from "@/components/event-calendar/views/agenda-view";
 import { DayView } from "@/components/event-calendar/views/day-view";
 import { MonthView } from "@/components/event-calendar/views/month-view";
 import { WeekView } from "@/components/event-calendar/views/week-view";
 import { useCalendarState } from "@/hooks/use-calendar-state";
-import { CalendarEvent } from "@/components/event-calendar/types";
-import { useEdgeAutoScroll } from "@/components/event-calendar/drag-and-drop/use-auto-scroll";
-import { useAtomValue } from "jotai";
-import { isDraggingAtom } from "@/atoms/is-dragging";
+import { cn } from "@/lib/utils";
 import { useScrollToCurrentTime } from "./event-calendar/week-view/use-scroll-to-current-time";
 
 interface CalendarContentProps {
@@ -40,8 +39,6 @@ interface CalendarContentProps {
   onEventUpdate: (event: CalendarEvent) => void;
   headerRef: React.RefObject<HTMLDivElement | null>;
 }
-
-
 
 function CalendarContent({
   events,
@@ -159,7 +156,6 @@ export function CalendarView({ className }: CalendarViewProps) {
     }
   }, [isEventDialogOpen, enableScope, disableScope]);
 
-
   return (
     <div
       className={cn(
@@ -177,7 +173,10 @@ export function CalendarView({ className }: CalendarViewProps) {
       <CalendarDndProvider onEventUpdate={handleEventMove}>
         <CalendarHeader ref={headerRef} />
 
-        <div className="grow overflow-auto scrollbar-hidden" ref={scrollContainerRef}>
+        <div
+          className="scrollbar-hidden grow overflow-x-hidden overflow-y-auto"
+          ref={scrollContainerRef}
+        >
           <CalendarContent
             events={filteredEvents}
             onEventSelect={handleEventSelect}

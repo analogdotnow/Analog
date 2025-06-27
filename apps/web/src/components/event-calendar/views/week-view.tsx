@@ -123,7 +123,10 @@ export function WeekView({
   return (
     <WeekViewContext.Provider value={contextValue}>
       <div data-slot="week-view" className="isolate flex flex-col" {...props}>
-        <div ref={headerRef} className="sticky top-0 z-30 bg-background/80 backdrop-blur-md">
+        <div
+          ref={headerRef}
+          className="sticky top-0 z-30 bg-background/80 backdrop-blur-md"
+        >
           <WeekViewHeader />
           <WeekViewAllDaySection />
         </div>
@@ -225,7 +228,7 @@ function WeekViewAllDaySection() {
             All day
           </span>
         </div>
-        
+
         {allDays.map((day, dayIndex) => {
           const isDayVisible = viewPreferences.showWeekends || !isWeekend(day);
           const visibleDayIndex = visibleDays.findIndex(
@@ -257,7 +260,7 @@ function WeekViewAllDaySection() {
             <div
               key={day.toString()}
               className={cn(
-                "relative space-y-[1px] border-r border-border/70 grid auto-cols-fr ",
+                "relative grid auto-cols-fr space-y-[1px] border-r border-border/70",
                 isLastVisibleDay && "border-r-0",
                 isDayVisible ? "px-0.5 py-[1px]" : "w-0",
               )}
@@ -393,8 +396,17 @@ function PositionedEvent({
 }
 
 function WeekViewDayColumns() {
-  const { allDays, visibleDays, eventCollection, currentDate, onEventClick, onEventUpdate, onEventCreate, containerRef, hours } =
-    useWeekViewContext();
+  const {
+    allDays,
+    visibleDays,
+    eventCollection,
+    currentDate,
+    onEventClick,
+    onEventUpdate,
+    onEventCreate,
+    containerRef,
+    hours,
+  } = useWeekViewContext();
   const viewPreferences = useViewPreferences();
 
   const { currentTimePosition, currentTimeVisible } = useCurrentTimeIndicator(
@@ -450,12 +462,14 @@ function WeekViewDayColumns() {
               </div>
             )}
 
-            <div onClick={() => {
-              const startTime = new Date(day);
-              startTime.setHours(0);
-              startTime.setMinutes(0);
-              onEventCreate(startTime);
-            }}>
+            <div
+              onClick={() => {
+                const startTime = new Date(day);
+                startTime.setHours(0);
+                startTime.setMinutes(0);
+                onEventCreate(startTime);
+              }}
+            >
               <MemoizedWeekViewDayTimeSlots day={day} hours={hours} />
             </div>
           </div>
@@ -465,7 +479,7 @@ function WeekViewDayColumns() {
   );
 }
 
-function WeekViewDayTimeSlots({ day, hours }: { day: Date, hours: Date[] }) {
+function WeekViewDayTimeSlots({ day, hours }: { day: Date; hours: Date[] }) {
   // TODO: replace context
   // const { hours, onEventCreate } = useWeekViewContext();
 

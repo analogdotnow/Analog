@@ -33,13 +33,6 @@ const VARIANTS: Variants = {
   },
 };
 
-const STATES = {
-  default: {
-    left: {},
-    right: {},
-  },
-};
-
 export function SignalView({ className }: SignalViewProps) {
   const [state, setState] = React.useState<"default" | "expanded">("default");
 

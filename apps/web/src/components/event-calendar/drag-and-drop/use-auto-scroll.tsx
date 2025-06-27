@@ -1,7 +1,7 @@
 import * as React from "react";
 
 interface UseEdgeAutoScrollOptions {
-  headerRef?: React.RefObject<HTMLElement | null>,
+  headerRef?: React.RefObject<HTMLElement | null>;
 
   active: boolean;
   /**
@@ -131,7 +131,10 @@ export function useEdgeAutoScroll(
             ? topEnd.current - (pointerY.current - rect.top)
             : pointerY.current - (rect.bottom - bottomThreshold);
 
-        const zoneSize = dirRef.current === -1 ? topEnd.current - topStart.current : bottomThreshold;
+        const zoneSize =
+          dirRef.current === -1
+            ? topEnd.current - topStart.current
+            : bottomThreshold;
         const ratio = Math.min(distance / zoneSize, 1);
         const delta = dirRef.current * ratio * maxSpeed;
         el.scrollBy({ top: delta });
@@ -149,5 +152,12 @@ export function useEdgeAutoScroll(
       window.removeEventListener("pointerleave", stopLoop);
       stopLoop();
     };
-  }, [active, bottomThreshold, maxSpeed, containerRef, headerRef, topThreshold]);
+  }, [
+    active,
+    bottomThreshold,
+    maxSpeed,
+    containerRef,
+    headerRef,
+    topThreshold,
+  ]);
 }

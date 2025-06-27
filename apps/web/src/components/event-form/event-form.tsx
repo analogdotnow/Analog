@@ -8,17 +8,16 @@ import {
   CalendarSettings,
   useCalendarSettings,
 } from "@/atoms/calendar-settings";
-import { useEventOperations } from "@/components/event-calendar/hooks";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
+import { CalendarEvent } from "../event-calendar/types";
 import { DateInputSection } from "./date-input-section";
 import { DescriptionField } from "./description-field";
-import { RepeatSelect } from "./repeat-select";
 import { formSchema, useAppForm, type FormValues } from "./form";
-import { CalendarEvent } from "../event-calendar/types";
+import { RepeatSelect } from "./repeat-select";
 
 function roundTo15Minutes(
   date: Temporal.ZonedDateTime,
@@ -32,7 +31,9 @@ interface CreateDefaultEvent {
   settings: CalendarSettings;
 }
 
-export function createDefaultEvent({ settings }: CreateDefaultEvent): FormValues {
+export function createDefaultEvent({
+  settings,
+}: CreateDefaultEvent): FormValues {
   const timeZone =
     settings.defaultCalendar.timeZone ?? settings.defaultTimeZone;
   const now = Temporal.Now.zonedDateTimeISO(timeZone);
@@ -111,7 +112,10 @@ interface ToCalendarEvent {
   event?: CalendarEvent;
 }
 
-function toCalendarEvent({ formValues, event }: ToCalendarEvent): CalendarEvent {
+function toCalendarEvent({
+  formValues,
+  event,
+}: ToCalendarEvent): CalendarEvent {
   return {
     ...event,
     id: event?.id ?? crypto.randomUUID(),
@@ -121,7 +125,9 @@ function toCalendarEvent({ formValues, event }: ToCalendarEvent): CalendarEvent 
     calendarId: formValues.calendarId,
     accountId: formValues.accountId,
     providerId: formValues.providerId as "google" | "microsoft",
-    start: formValues.isAllDay ? formValues.start.toPlainDate() : formValues.start,
+    start: formValues.isAllDay
+      ? formValues.start.toPlainDate()
+      : formValues.start,
     end: formValues.isAllDay ? formValues.end.toPlainDate() : formValues.end,
   };
 }
@@ -131,7 +137,7 @@ interface EventFormProps {
 }
 
 export function EventForm({ event }: EventFormProps) {
-  const { handleEventSave } = useEventOperations();
+  // const { handleEventSave } = useEventOperations();
   const settings = useCalendarSettings();
   const disabled = false;
 
@@ -153,7 +159,7 @@ export function EventForm({ event }: EventFormProps) {
 
         const f = toCalendarEvent({ formValues: formApi.state.values, event });
 
-        handleEventSave(f);
+        // handleEventSave(f);
 
         // formApi.handleSubmit();
       },
