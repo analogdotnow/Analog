@@ -262,7 +262,7 @@ function WeekViewAllDaySection() {
               className={cn(
                 "relative grid auto-cols-fr space-y-[1px] border-r border-border/70",
                 isLastVisibleDay && "border-r-0",
-                isDayVisible ? "px-0.5 py-[1px]" : "w-0",
+                isDayVisible ? "" : "w-0",
               )}
               data-today={isToday(day) || undefined}
               style={{ visibility: isDayVisible ? "visible" : "hidden" }}
@@ -370,7 +370,7 @@ function PositionedEvent({
   return (
     <div
       key={positionedEvent.event.id}
-      className="absolute z-10 px-0.5"
+      className="absolute z-10"
       style={{
         top: `${positionedEvent.top}px`,
         height: `${positionedEvent.height}px`,

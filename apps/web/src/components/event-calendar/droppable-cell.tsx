@@ -1,9 +1,7 @@
 "use client";
 
 import React from "react";
-import { useDroppable } from "@dnd-kit/core";
 
-import { useCalendarDnd } from "@/components/event-calendar";
 import { cn } from "@/lib/utils";
 
 interface DroppableCellProps {
@@ -23,34 +21,18 @@ function DroppableCellComponent({
   className,
   onClick,
 }: DroppableCellProps) {
-  // const { activeEvent } = useCalendarDnd();
-
-  // const { setNodeRef } = useDroppable({
-  //   id,
-  //   data: {
-  //     date,
-  //     time,
-  //   },
-  // });
 
   return (
     <div
-      // ref={setNodeRef}
       onClick={onClick}
       className={cn(
-        "flex h-full flex-col overflow-hidden px-0.5 py-1 data-dragging:bg-accent sm:px-1",
+        "flex h-full flex-col overflow-hidden gap-0.5",
         className,
       )}
-      // data-dragging={isOver && activeEvent ? true : undefined}
     >
       {children}
     </div>
   );
 }
 
-export const DroppableCell = React.memo(
-  DroppableCellComponent,
-  (prevProps, nextProps) => {
-    return true;
-  },
-);
+export const DroppableCell = React.memo(DroppableCellComponent);

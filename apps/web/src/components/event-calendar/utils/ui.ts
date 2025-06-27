@@ -6,6 +6,21 @@
  * - Component styling helpers
  */
 
+export function getContentPaddingClasses(
+  isFirstDay: boolean,
+  isLastDay: boolean,
+): string {
+  if (isFirstDay && isLastDay) {
+    return "mx-0.5 w-[calc(100%-0.25rem)]";
+  } else if (isFirstDay) {
+    return "ml-0.5 w-[calc(100%-0.125rem)]";
+  } else if (isLastDay) {
+    return "mr-0.5 w-[calc(100%-0.125rem)]";
+  } else {
+    return "";
+  }
+}
+
 export function getBorderRadiusClasses(
   isFirstDay: boolean,
   isLastDay: boolean,

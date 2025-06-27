@@ -11,7 +11,7 @@ import { toDate } from "@repo/temporal";
 
 import { useCalendarSettings } from "@/atoms";
 import { type CalendarEvent } from "@/components/event-calendar";
-import { getBorderRadiusClasses } from "@/components/event-calendar/utils";
+import { getBorderRadiusClasses, getContentPaddingClasses } from "@/components/event-calendar/utils";
 import { cn } from "@/lib/utils";
 import { formatTime } from "@/lib/utils/format";
 
@@ -48,8 +48,9 @@ function EventWrapper({
   return (
     <div
       className={cn(
-        "hover:text-event-hover flex size-full overflow-hidden border border-event bg-event px-1 text-left font-medium text-event backdrop-blur-md transition outline-none select-none hover:border-event-hover hover:bg-event-hover focus-visible:ring-[3px] focus-visible:ring-ring/50 data-past-event:line-through",
+        "hover:text-event-hover flex h-full overflow-hidden border border-event bg-event px-1 text-left font-medium text-event backdrop-blur-md transition outline-none select-none hover:border-event-hover hover:bg-event-hover focus-visible:ring-[3px] focus-visible:ring-ring/50 data-past-event:line-through",
         getBorderRadiusClasses(isFirstDay, isLastDay),
+        getContentPaddingClasses(isFirstDay, isLastDay),
         className,
       )}
       style={
@@ -199,7 +200,7 @@ export function EventItem({
         isLastDay={isLastDay}
         onClick={onClick}
         className={cn(
-          "relative flex w-full gap-x-1.5 py-1 ps-1 pe-2",
+          "relative flex gap-x-1.5 py-1 ps-1 pe-2",
 
           view === "week" ? "text-[10px] sm:text-xs" : "text-xs",
           className,

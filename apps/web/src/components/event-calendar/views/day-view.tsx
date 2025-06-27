@@ -291,7 +291,7 @@ export function DayView({
           {positionedEvents.map((positionedEvent) => (
             <div
               key={positionedEvent.event.id}
-              className="absolute z-10 px-0.5"
+              className="absolute z-10"
               style={{
                 top: `${positionedEvent.top}px`,
                 height: `${positionedEvent.height}px`,

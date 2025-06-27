@@ -222,7 +222,7 @@ function MonthViewDay({
       style={{ visibility: isDayVisible ? "visible" : "hidden" }}
     >
       <DroppableCell id={cellId} date={day} onClick={handleDayClick}>
-        <div className="mt-1 inline-flex size-6 items-center justify-center rounded-full text-sm group-data-today:bg-primary group-data-today:text-primary-foreground">
+        <div className="ml-0.5 mt-1 inline-flex size-6 items-center justify-center rounded-full text-sm group-data-today:bg-primary group-data-today:text-primary-foreground">
           {format(day, "d")}
         </div>
         <MonthViewDayEvents day={day} isReferenceCell={isReferenceCell} />
@@ -262,7 +262,7 @@ function MonthViewDayEvents({
   return (
     <div
       ref={isReferenceCell ? contentRef : null}
-      className="min-h-[calc((var(--event-height)+var(--event-gap))*2)] sm:min-h-[calc((var(--event-height)+var(--event-gap))*3)] lg:min-h-[calc((var(--event-height)+var(--event-gap))*4)]"
+      className="min-h-[calc((var(--event-height)+var(--event-gap))*2)] space-y-0.5 sm:min-h-[calc((var(--event-height)+var(--event-gap))*3)] lg:min-h-[calc((var(--event-height)+var(--event-gap))*4)]"
     >
       {sortEventsForDisplay(allDayEvents).map((event, index) => {
         const isHidden = Boolean(visibleCount && index >= visibleCount);
