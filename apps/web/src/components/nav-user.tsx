@@ -1,14 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  ChevronsUpDown,
-  LogOut,
-  Plus,
-  Settings,
-  UserRound,
-} from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { ChevronsUpDown, LogOut, Plus, Settings } from "lucide-react";
+import { useTheme } from "next-themes";
 
 import { authClient } from "@repo/auth/client";
 
@@ -46,7 +41,6 @@ export function NavUser() {
       setTheme("dark");
     }
   };
-  const { data: user, isLoading } = useUser();
 
   if (isLoading) {
     return <NavUserSkeleton />;

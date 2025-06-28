@@ -189,6 +189,7 @@ export function parseMicrosoftCalendar({
     primary: calendar.isDefaultCalendar as boolean,
     accountId,
     color: calendar.hexColor as string,
+    readOnly: !calendar.canEdit,
   };
 }
 

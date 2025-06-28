@@ -3,6 +3,7 @@ import { Temporal } from "temporal-polyfill";
 
 import { authClient } from "@repo/auth/client";
 
+import { useCalendarSettings } from "@/atoms";
 import { CalendarEvent } from "../types";
 import { snapTimeToInterval } from "../utils";
 
