@@ -17,7 +17,7 @@ interface SettingsDialogProps {
 }
 
 export function SettingsDialog({ children }: SettingsDialogProps) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

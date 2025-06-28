@@ -1,1 +1,3 @@
-export function Notifications() {}
+export function Notifications() {
+  return null;
+}

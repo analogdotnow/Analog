@@ -90,7 +90,6 @@ export function toMicrosoftEvent(event: CreateEventInput | UpdateEventInput) {
 }
 
 export function parseMicrosoftCalendar(calendar: MicrosoftCalendar): Calendar {
-  console.log(calendar);
   return {
     id: calendar.id as string,
     providerId: "microsoft",
