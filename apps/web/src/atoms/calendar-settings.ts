@@ -1,3 +1,4 @@
+import { useAtomValue } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 
 export interface CalendarSettings {
@@ -18,3 +19,7 @@ export const calendarSettingsAtom = atomWithStorage<CalendarSettings>(
     defaultEventDuration: 60,
   },
 );
+
+export function useCalendarSettings() {
+  return useAtomValue(calendarSettingsAtom);
+}

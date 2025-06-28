@@ -8,10 +8,11 @@ import { Temporal } from "temporal-polyfill";
 import { CALENDAR_DEFAULTS } from "../constants/calendar";
 import { CreateCalendarInput, UpdateCalendarInput } from "../schemas/calendars";
 import { CreateEventInput, UpdateEventInput } from "../schemas/events";
-import { assignColor } from "./google-calendar/colors";
+import { assignColor } from "./colors";
 import type { Calendar, CalendarEvent, CalendarProvider } from "./interfaces";
 import {
   calendarPath,
+  eventResponseStatusPath,
   parseMicrosoftCalendar,
   parseMicrosoftEvent,
   toMicrosoftEvent,
@@ -20,13 +21,16 @@ import { ProviderError } from "./utils";
 
 interface MicrosoftCalendarProviderOptions {
   accessToken: string;
+  accountId: string;
 }
 
 export class MicrosoftCalendarProvider implements CalendarProvider {
-  public providerId = "microsoft" as const;
+  public readonly providerId = "microsoft" as const;
+  public readonly accountId: string;
   private graphClient: Client;
 
-  constructor({ accessToken }: MicrosoftCalendarProviderOptions) {
+  constructor({ accessToken, accountId }: MicrosoftCalendarProviderOptions) {
+    this.accountId = accountId;
     this.graphClient = Client.initWithMiddleware({
       authProvider: {
         getAccessToken: async () => accessToken,
@@ -45,7 +49,7 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
       const data = response.value as MicrosoftCalendar[];
 
       return data.map((calendar, idx) => ({
-        ...parseMicrosoftCalendar(calendar),
+        ...parseMicrosoftCalendar({ calendar, accountId: this.accountId }),
         color: assignColor(idx),
       }));
     });
@@ -57,7 +61,10 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
         .api("/me/calendars")
         .post(calendarData)) as MicrosoftCalendar;
 
-      return parseMicrosoftCalendar(createdCalendar);
+      return parseMicrosoftCalendar({
+        calendar: createdCalendar,
+        accountId: this.accountId,
+      });
     });
   }
 
@@ -70,7 +77,10 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
         .api(calendarPath(calendarId))
         .patch(calendar)) as MicrosoftCalendar;
 
-      return parseMicrosoftCalendar(updatedCalendar);
+      return parseMicrosoftCalendar({
+        calendar: updatedCalendar,
+        accountId: this.accountId,
+      });
     });
   }
 
@@ -99,7 +109,7 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
         .get();
 
       return (response.value as MicrosoftEvent[]).map((event: MicrosoftEvent) =>
-        parseMicrosoftEvent(event),
+        parseMicrosoftEvent({ event, accountId: this.accountId, calendarId }),
       );
     });
   }
@@ -113,7 +123,11 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
         .api(calendarPath(calendarId))
         .post(toMicrosoftEvent(event))) as MicrosoftEvent;
 
-      return parseMicrosoftEvent(createdEvent);
+      return parseMicrosoftEvent({
+        event: createdEvent,
+        accountId: this.accountId,
+        calendarId,
+      });
     });
   }
 
@@ -135,7 +149,11 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
         .api(`${calendarPath(calendarId)}/events/${eventId}`)
         .patch(toMicrosoftEvent(event))) as MicrosoftEvent;
 
-      return parseMicrosoftEvent(updatedEvent);
+      return parseMicrosoftEvent({
+        event: updatedEvent,
+        accountId: this.accountId,
+        calendarId,
+      });
     });
   }
 
@@ -150,6 +168,23 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
       await this.graphClient
         .api(`${calendarPath(calendarId)}/events/${eventId}`)
         .delete();
+    });
+  }
+
+  async responseToEvent(
+    calendarId: string,
+    eventId: string,
+    response: {
+      status: "accepted" | "tentative" | "declined";
+      comment?: string;
+    },
+  ): Promise<void> {
+    await this.withErrorHandler("responseToEvent", async () => {
+      await this.graphClient
+        .api(
+          `/me/events/${eventId}/${eventResponseStatusPath(response.status)}`,
+        )
+        .post({ comment: response.comment, sendResponse: true });
     });
   }
 

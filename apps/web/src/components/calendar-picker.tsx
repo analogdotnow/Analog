@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { Calendar } from "@repo/api/providers/interfaces";
 
+import { useCalendarsVisibility } from "@/atoms";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -22,7 +23,6 @@ import {
 } from "@/components/ui/popover";
 import { useTRPC } from "@/lib/trpc/client";
 import { CalendarToggle } from "./calendar-toggle";
-import { useCalendarsVisibility } from "./event-calendar";
 
 interface VisibleCalendarProps {
   calendars?: Calendar[];
@@ -157,7 +157,10 @@ export function CalendarPicker() {
                   value={account.name}
                 >
                   {account.calendars.map((calendar) => (
-                    <CalendarListItem calendar={calendar} key={calendar.id} />
+                    <CalendarListItem
+                      calendar={calendar}
+                      key={`${account.id}-${calendar.id}`}
+                    />
                   ))}
                 </CommandGroup>
               ))}

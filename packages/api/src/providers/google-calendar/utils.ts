@@ -1,12 +1,19 @@
 import { Temporal } from "temporal-polyfill";
 
 import { CreateEventInput, UpdateEventInput } from "../../schemas/events";
-import { Calendar, CalendarEvent } from "../interfaces";
+import {
+  Attendee,
+  AttendeeStatus,
+  Calendar,
+  CalendarEvent,
+} from "../interfaces";
 import {
   GoogleCalendarCalendarListEntry,
   GoogleCalendarDate,
   GoogleCalendarDateTime,
   GoogleCalendarEvent,
+  GoogleCalendarEventAttendee,
+  GoogleCalendarEventAttendeeResponseStatus,
   GoogleCalendarEventCreateParams,
 } from "./interfaces";
 
@@ -72,6 +79,7 @@ export function parseGoogleCalendarEvent({
     allDay: isAllDay,
     location: event.location,
     status: event.status,
+    attendees: event.attendees?.map(parseGoogleCalendarAttendee) ?? [],
     url: event.htmlLink,
     providerId: "google",
     accountId,
@@ -118,5 +126,54 @@ export function parseGoogleCalendarCalendarListEntry({
     providerId: "google",
     accountId,
     color: entry.backgroundColor,
+  };
+}
+
+export function toGoogleCalendarAttendeeResponseStatus(
+  status: AttendeeStatus,
+): GoogleCalendarEventAttendeeResponseStatus {
+  if (status === "unknown") {
+    return "needsAction";
+  }
+
+  return status;
+}
+
+function parseGoogleCalendarAttendeeStatus(
+  status: GoogleCalendarEventAttendeeResponseStatus,
+): AttendeeStatus {
+  if (status === "needsAction") {
+    return "unknown";
+  }
+
+  return status;
+}
+
+function parseGoogleCalendarAttendeeType(
+  attendee: GoogleCalendarEventAttendee,
+): "required" | "optional" | "resource" {
+  if (attendee.resource) {
+    return "resource";
+  }
+
+  if (attendee.optional) {
+    return "optional";
+  }
+
+  return "required";
+}
+
+export function parseGoogleCalendarAttendee(
+  attendee: GoogleCalendarEventAttendee,
+): Attendee {
+  return {
+    id: attendee.id,
+    email: attendee.email,
+    name: attendee.displayName,
+    status: parseGoogleCalendarAttendeeStatus(
+      attendee.responseStatus as GoogleCalendarEventAttendeeResponseStatus,
+    ),
+    type: parseGoogleCalendarAttendeeType(attendee),
+    additionalGuests: attendee.additionalGuests,
   };
 }

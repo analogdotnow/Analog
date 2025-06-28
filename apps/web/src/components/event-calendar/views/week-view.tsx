@@ -16,6 +16,7 @@ import {
 
 import { toDate } from "@repo/temporal";
 
+import { useCalendarSettings, useViewPreferences } from "@/atoms";
 import {
   DraggableEvent,
   DroppableCell,
@@ -27,7 +28,6 @@ import {
   useCurrentTimeIndicator,
   useEventCollection,
   useGridLayout,
-  useViewPreferences,
   type EventCollectionForWeek,
 } from "@/components/event-calendar/hooks";
 import {
@@ -37,7 +37,6 @@ import {
   type PositionedEvent,
 } from "@/components/event-calendar/utils";
 import { cn } from "@/lib/utils";
-import { useCalendarSettings } from "../hooks/use-calendar-settings";
 
 interface WeekViewContextType {
   allDays: Date[];
@@ -143,7 +142,7 @@ function WeekViewHeader() {
     }).formatToParts(allDays[0]!);
 
     return parts.find((part) => part.type === "timeZoneName")?.value ?? " ";
-  }, [allDays]);
+  }, [allDays, settings.defaultTimeZone, settings.locale]);
 
   return (
     <div
@@ -182,6 +181,7 @@ function WeekViewHeader() {
 function WeekViewAllDaySection() {
   const {
     allDays,
+    visibleDays,
     eventCollection,
     gridTemplateColumns,
     onEventClick,
@@ -214,6 +214,11 @@ function WeekViewAllDaySection() {
         </div>
         {allDays.map((day, dayIndex) => {
           const isDayVisible = viewPreferences.showWeekends || !isWeekend(day);
+          const visibleDayIndex = visibleDays.findIndex(
+            (d) => d.getTime() === day.getTime(),
+          );
+          const isLastVisibleDay =
+            isDayVisible && visibleDayIndex === visibleDays.length - 1;
           const dayAllDayEvents = allDayEvents.filter((event) => {
             const eventStart = toDate({
               value: event.start,
@@ -223,7 +228,6 @@ function WeekViewAllDaySection() {
               value: event.end,
               timeZone: settings.defaultTimeZone,
             });
-
             // if (event.allDay && !isSameDay(day, eventEnd)) {
             //   return false;
             // }
@@ -239,7 +243,8 @@ function WeekViewAllDaySection() {
             <div
               key={day.toString()}
               className={cn(
-                "relative space-y-[1px] overflow-hidden border-r border-border/70 last:border-r-0",
+                "relative space-y-[1px] overflow-hidden border-r border-border/70",
+                isLastVisibleDay && "border-r-0",
                 isDayVisible ? "px-0.5 py-[1px]" : "w-0",
               )}
               data-today={isToday(day) || undefined}
@@ -270,7 +275,7 @@ function WeekViewAllDaySection() {
                 return (
                   <div
                     className="relative z-10 w-full min-w-0"
-                    key={`spanning-${event.id}`}
+                    key={`spanning-${event.id}-${event.accountId}`}
                   >
                     <EventItem
                       className={!isSingleDay && !isFirstDay ? "opacity-0" : ""}
@@ -382,6 +387,8 @@ function WeekViewDayColumns() {
         const visibleDayIndex = visibleDays.findIndex(
           (d) => d.getTime() === day.getTime(),
         );
+        const isLastVisibleDay =
+          isDayVisible && visibleDayIndex === visibleDays.length - 1;
 
         const positionedEvents =
           eventCollection.type === "week" && visibleDayIndex >= 0
@@ -392,7 +399,8 @@ function WeekViewDayColumns() {
           <div
             key={day.toString()}
             className={cn(
-              "relative grid auto-cols-fr border-r border-border/70 last:border-r-0",
+              "relative grid auto-cols-fr border-r border-border/70",
+              isLastVisibleDay && "border-r-0",
               !isDayVisible && "w-0 overflow-hidden",
             )}
             data-today={isToday(day) || undefined}

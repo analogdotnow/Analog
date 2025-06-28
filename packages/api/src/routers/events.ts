@@ -129,4 +129,36 @@ export const eventsRouter = createTRPCRouter({
 
       return { success: true };
     }),
+  respondToInvite: calendarProcedure
+    .input(
+      z.object({
+        accountId: z.string(),
+        calendarId: z.string(),
+        eventId: z.string(),
+        response: z.object({
+          status: z.enum(["accepted", "tentative", "declined"]),
+          comment: z.string().optional(),
+        }),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const provider = ctx.providers.find(
+        ({ account }) => account.id === input.accountId,
+      );
+
+      if (!provider?.client) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: `Calendar client not found for accountId: ${input.accountId}`,
+        });
+      }
+
+      await provider.client.responseToEvent(
+        input.calendarId,
+        input.eventId,
+        input.response,
+      );
+
+      return { success: true };
+    }),
 });

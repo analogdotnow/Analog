@@ -30,17 +30,22 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useTRPC } from "@/lib/trpc/client";
-
-function useUser() {
-  const trpc = useTRPC();
-  return useQuery(trpc.user.me.queryOptions());
-}
+import { useCurrentUser } from "@/hooks/accounts";
 
 export function NavUser() {
   const router = useRouter();
   const queryClient = useQueryClient();
 
+  const { data: user, isLoading } = useCurrentUser();
+  const { theme, setTheme } = useTheme();
+
+  const toggleTheme = () => {
+    if (theme === "dark") {
+      setTheme("light");
+    } else {
+      setTheme("dark");
+    }
+  };
   const { data: user, isLoading } = useUser();
 
   if (isLoading) {

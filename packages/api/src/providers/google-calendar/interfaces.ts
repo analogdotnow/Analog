@@ -28,3 +28,12 @@ export type DateTimeGoogleCalendarEvent = GoogleCalendarEvent & {
   start: GoogleCalendarDateTime;
   end: GoogleCalendarDateTime;
 };
+
+export type GoogleCalendarEventAttendee = NonNullable<
+  GoogleCalendar.Calendars.Events.Event["attendees"]
+>[number];
+export type GoogleCalendarEventAttendeeResponseStatus =
+  | "needsAction"
+  | "accepted"
+  | "declined"
+  | "tentative";

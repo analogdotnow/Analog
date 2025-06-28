@@ -5,7 +5,6 @@ import { authClient } from "@repo/auth/client";
 
 import { CalendarEvent } from "../types";
 import { snapTimeToInterval } from "../utils";
-import { useCalendarSettings } from "./use-calendar-settings";
 
 interface CreateEventParams {
   startTime: Date;
@@ -89,7 +88,7 @@ export function useEventDialog(): {
       setSelectedEvent(newEvent);
       setIsEventDialogOpen(true);
     },
-    [settings],
+    [settings, session],
   );
 
   const handleDialogClose = useCallback(() => {
