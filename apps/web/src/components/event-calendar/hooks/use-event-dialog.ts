@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 import { Temporal } from "temporal-polyfill";
 
-import { useCalendarSettings } from "@/atoms";
+import { useCalendarSettings, useSelectedEvents } from "@/atoms";
 import { CalendarEvent } from "../types";
 import { snapTimeToInterval } from "../utils";
 
@@ -52,15 +52,16 @@ export function useEventDialog(): {
   handleDialogClose: () => void;
 } {
   const settings = useCalendarSettings();
-  const [isEventDialogOpen, setIsEventDialogOpen] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(
-    null,
-  );
+  const { selectedEvent, selectEvent, unselectEvent } = useSelectedEvents();
+  const [isEventDialogOpen] = useState(false);
 
-  const handleEventSelect = useCallback((event: CalendarEvent) => {
-    setSelectedEvent(event);
-    setIsEventDialogOpen(true);
-  }, []);
+  const handleEventSelect = useCallback(
+    (event: CalendarEvent) => {
+      selectEvent(event);
+      // setIsEventDialogOpen(true);
+    },
+    [selectEvent],
+  );
 
   const handleEventCreate = useCallback(
     (startTime: Date) => {
@@ -71,16 +72,18 @@ export function useEventDialog(): {
         calendar: settings.defaultCalendar,
       });
 
-      setSelectedEvent(newEvent);
-      setIsEventDialogOpen(true);
+      selectEvent(newEvent);
+      // setIsEventDialogOpen(true);
     },
-    [settings],
+    [settings, selectEvent],
   );
 
   const handleDialogClose = useCallback(() => {
-    setIsEventDialogOpen(false);
-    setSelectedEvent(null);
-  }, []);
+    // setIsEventDialogOpen(false);
+    if (selectedEvent) {
+      unselectEvent(selectedEvent.id);
+    }
+  }, [selectedEvent, unselectEvent]);
 
   return {
     isEventDialogOpen,

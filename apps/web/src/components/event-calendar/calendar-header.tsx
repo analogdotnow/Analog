@@ -10,11 +10,9 @@ import { CalendarNavigation } from "./calendar-navigation";
 import { CalendarViewMenu } from "./calendar-view-menu";
 import { CalendarViewTitle } from "./calendar-view-title";
 
-interface CalendarHeaderProps {
-  className?: string;
-}
+type CalendarHeaderProps = React.ComponentProps<"header">;
 
-export function CalendarHeader({ className }: CalendarHeaderProps) {
+export function CalendarHeader({ className, ref }: CalendarHeaderProps) {
   const { currentDate, view, setView } = useCalendarState();
   const prevDate = usePrevious(currentDate);
 
@@ -24,6 +22,7 @@ export function CalendarHeader({ className }: CalendarHeaderProps) {
         "flex h-12 items-center justify-between gap-2 p-2 ps-4",
         className,
       )}
+      ref={ref}
     >
       <div className="flex flex-1 items-center gap-1 sm:gap-4">
         <SidebarTrigger className="-ml-1" />

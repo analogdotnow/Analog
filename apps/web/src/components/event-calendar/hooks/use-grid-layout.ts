@@ -34,7 +34,7 @@ export function useGridLayout(days: Date[], options: GridLayoutOptions = {}) {
           ? viewPreferences.showWeekends || !isWeekendIndex(index)
           : viewPreferences.showWeekends || !isWeekend(day);
 
-      return isDayVisible ? "1fr" : "0fr";
+      return isDayVisible ? "minmax(0,1fr)" : "0fr";
     });
 
     const dayColumns = columnSizes.join(" ");

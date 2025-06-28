@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useRef } from "react";
 import {
   addHours,
   areIntervalsOverlapping,
@@ -33,6 +33,7 @@ interface DayViewProps {
   events: CalendarEvent[];
   onEventSelect: (event: CalendarEvent) => void;
   onEventCreate: (startTime: Date) => void;
+  onEventUpdate: (event: CalendarEvent) => void;
 }
 
 interface PositionedEvent {
@@ -49,7 +50,9 @@ export function DayView({
   events,
   onEventSelect,
   onEventCreate,
+  onEventUpdate,
 }: DayViewProps) {
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const hours = useMemo(() => {
     const dayStart = startOfDay(currentDate);
     return eachHourOfInterval({
@@ -229,7 +232,7 @@ export function DayView({
   );
 
   return (
-    <div data-slot="day-view" className="contents">
+    <div data-slot="day-view" className="contents" ref={containerRef}>
       {showAllDaySection && (
         <div className="border-t border-border/70 bg-muted/50">
           <div className="grid grid-cols-[3rem_1fr] sm:grid-cols-[4rem_1fr]">
@@ -291,7 +294,7 @@ export function DayView({
           {positionedEvents.map((positionedEvent) => (
             <div
               key={positionedEvent.event.id}
-              className="absolute z-10 px-0.5"
+              className="absolute z-10"
               style={{
                 top: `${positionedEvent.top}px`,
                 height: `${positionedEvent.height}px`,
@@ -307,6 +310,8 @@ export function DayView({
                   onClick={(e) => handleEventClick(positionedEvent.event, e)}
                   showTime
                   height={positionedEvent.height}
+                  containerRef={containerRef}
+                  onEventUpdate={onEventUpdate}
                 />
               </div>
             </div>

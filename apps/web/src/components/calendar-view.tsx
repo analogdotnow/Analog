@@ -1,31 +1,120 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
-import { Plus } from "lucide-react";
+import { useEffect, useMemo, useRef } from "react";
+import { useAtomValue } from "jotai";
 import { useHotkeysContext } from "react-hotkeys-hook";
-import { toast } from "sonner";
 
 import { useCalendarsVisibility, useViewPreferences } from "@/atoms";
+import { isDraggingAtom } from "@/atoms/is-dragging";
 import {
-  CalendarContent,
   CalendarDndProvider,
   CalendarHeader,
-  EventDialog,
   EventGap,
   EventHeight,
   WeekCellsHeight,
 } from "@/components/event-calendar";
+import { useEdgeAutoScroll } from "@/components/event-calendar/drag-and-drop/use-auto-scroll";
 import {
   useEventDialog,
   useEventOperations,
 } from "@/components/event-calendar/hooks";
+import { CalendarEvent } from "@/components/event-calendar/types";
 import {
   filterPastEvents,
   filterVisibleEvents,
 } from "@/components/event-calendar/utils";
-import { Button } from "@/components/ui/button";
-import { useSidebarWithSide } from "@/components/ui/sidebar";
+import { AgendaView } from "@/components/event-calendar/views/agenda-view";
+import { DayView } from "@/components/event-calendar/views/day-view";
+import { MonthView } from "@/components/event-calendar/views/month-view";
+import { WeekView } from "@/components/event-calendar/views/week-view";
+import { useCalendarState } from "@/hooks/use-calendar-state";
 import { cn } from "@/lib/utils";
+import { useScrollToCurrentTime } from "./event-calendar/week-view/use-scroll-to-current-time";
+
+interface CalendarContentProps {
+  events: CalendarEvent[];
+  onEventSelect: (event: CalendarEvent) => void;
+  onEventCreate: (startTime: Date) => void;
+  scrollContainerRef: React.RefObject<HTMLDivElement | null>;
+  onEventUpdate: (event: CalendarEvent) => void;
+  headerRef: React.RefObject<HTMLDivElement | null>;
+}
+
+function CalendarContent({
+  events,
+  onEventSelect,
+  onEventCreate,
+  onEventUpdate,
+  scrollContainerRef,
+  headerRef,
+}: CalendarContentProps) {
+  const { currentDate, view } = useCalendarState();
+
+  const scrollToCurrentTime = useScrollToCurrentTime({ scrollContainerRef });
+
+  useEffect(() => {
+    scrollToCurrentTime();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  switch (view) {
+    case "month":
+      return (
+        <MonthView
+          currentDate={currentDate}
+          events={events}
+          onEventSelect={onEventSelect}
+          onEventCreate={onEventCreate}
+          onEventUpdate={onEventUpdate}
+        />
+      );
+
+    case "week":
+      return (
+        <WeekView
+          currentDate={currentDate}
+          events={events}
+          onEventSelect={onEventSelect}
+          onEventCreate={onEventCreate}
+          onEventUpdate={onEventUpdate}
+          headerRef={headerRef}
+        />
+      );
+
+    case "day":
+      return (
+        <DayView
+          currentDate={currentDate}
+          events={events}
+          onEventSelect={onEventSelect}
+          onEventCreate={onEventCreate}
+          onEventUpdate={onEventUpdate}
+        />
+      );
+
+    case "agenda":
+      return (
+        <AgendaView
+          currentDate={currentDate}
+          events={events}
+          onEventSelect={onEventSelect}
+        />
+      );
+
+    default:
+      // Fallback to week view for unknown view types
+      return (
+        <WeekView
+          currentDate={currentDate}
+          events={events}
+          onEventSelect={onEventSelect}
+          onEventCreate={onEventCreate}
+          onEventUpdate={onEventUpdate}
+          headerRef={headerRef}
+        />
+      );
+  }
+}
 
 interface CalendarViewProps {
   className?: string;
@@ -34,18 +123,17 @@ interface CalendarViewProps {
 export function CalendarView({ className }: CalendarViewProps) {
   const viewPreferences = useViewPreferences();
   const [calendarVisibility] = useCalendarsVisibility();
-  const { toggleSidebar: toggleRightSidebar, open: isRightSidebarOpen } =
-    useSidebarWithSide("right");
+  const isDragging = useAtomValue(isDraggingAtom);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
 
-  const {
-    isEventDialogOpen,
-    selectedEvent,
-    handleEventSelect,
-    handleDialogClose,
-  } = useEventDialog();
+  // Enable edge auto scroll when dragging events
+  useEdgeAutoScroll(scrollContainerRef, { active: isDragging, headerRef });
 
-  const { events, handleEventSave, handleEventDelete, handleEventMove } =
-    useEventOperations(handleDialogClose);
+  const { isEventDialogOpen, handleEventSelect, handleDialogClose } =
+    useEventDialog();
+
+  const { events, handleEventMove } = useEventOperations(handleDialogClose);
 
   const filteredEvents = useMemo(
     () =>
@@ -85,48 +173,23 @@ export function CalendarView({ className }: CalendarViewProps) {
       }
     >
       <CalendarDndProvider onEventUpdate={handleEventMove}>
-        <CalendarHeader />
+        <CalendarHeader ref={headerRef} />
 
-        <div className="grow overflow-auto">
+        <div
+          className="scrollbar-hidden grow overflow-x-hidden overflow-y-auto"
+          ref={scrollContainerRef}
+        >
           <CalendarContent
             events={filteredEvents}
             onEventSelect={handleEventSelect}
-            onEventCreate={() =>
-              toast.error("Event form is not wired up yet!", {
-                closeButton: false,
-              })
-            }
+            onEventUpdate={handleEventMove}
+            onEventCreate={() => console.log("onEventCreate")}
+            scrollContainerRef={scrollContainerRef}
+            headerRef={headerRef}
           />
         </div>
-
-        <EventDialog
-          event={selectedEvent}
-          isOpen={isEventDialogOpen}
-          onClose={handleDialogClose}
-          onSave={handleEventSave}
-          onDelete={handleEventDelete}
-        />
       </CalendarDndProvider>
-      <Button
-        data-sidebar="trigger"
-        data-slot="sidebar-trigger"
-        data-side="right"
-        size="icon"
-        className={cn(
-          "group/sidebar-trigger absolute right-5 bottom-5 size-12 rounded-lg border border-border/50 bg-background text-foreground/50 shadow-md transition-all duration-300 hover:scale-[104%] hover:bg-background/70 hover:text-foreground/70 hover:shadow-lg dark:border-border/70 dark:bg-muted dark:text-foreground/80 dark:hover:brightness-110",
-          className,
-        )}
-        onClick={() => toggleRightSidebar()}
-      >
-        <Plus
-          className={cn("size-6 transition-transform duration-300", {
-            "rotate-45": isRightSidebarOpen,
-          })}
-          strokeWidth={1.75}
-          strokeLinecap="round"
-        />
-        <span className="sr-only">Toggle Sidebar</span>
-      </Button>
+      {/* <SignalView className="absolute bottom-8 left-1/2 -translate-x-1/2" /> */}
     </div>
   );
 }
