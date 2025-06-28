@@ -30,16 +30,16 @@ export function SettingsDialog({ children }: SettingsDialogProps) {
             orientation="vertical"
             className="flex h-full w-full flex-row gap-3"
           >
-            <TabsList className="h-fit w-56 p-0 shrink-0 flex-col gap-1 bg-transparent">
+            <TabsList className="h-fit w-56 shrink-0 flex-col gap-1 bg-transparent p-0">
               <TabsTrigger
                 value="general"
-                className="w-full justify-start gap-3 data-[state=active]:bg-muted data-[state=active]:shadow-none border-none"
+                className="w-full justify-start gap-3 border-none data-[state=active]:bg-muted data-[state=active]:shadow-none"
               >
                 <SlidersVertical className="size-4" /> General
               </TabsTrigger>
               <TabsTrigger
                 value="accounts"
-                className="w-full justify-start gap-3 data-[state=active]:bg-muted data-[state=active]:shadow-none border-none"
+                className="w-full justify-start gap-3 border-none data-[state=active]:bg-muted data-[state=active]:shadow-none"
               >
                 <UsersRound className="size-4" /> Accounts
               </TabsTrigger>
