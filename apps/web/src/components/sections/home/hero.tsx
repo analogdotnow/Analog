@@ -1,3 +1,7 @@
+// import { CalendarWindow } from "./calendar-window";
+// import { cn } from "@/lib/utils";
+
+import { Titillium_Web } from "next/font/google";
 import Image from "next/image";
 import { Variants } from "motion/react";
 
@@ -7,8 +11,11 @@ import { AnimatedGroup } from "@/components/ui/animated-group";
 import { HydrateClient, prefetch, trpc } from "@/lib/trpc/server";
 import { WaitlistForm } from "./waitlist-form";
 
-// import { CalendarWindow } from "./calendar-window";
-// import { cn } from "@/lib/utils";
+const titillium = Titillium_Web({
+  subsets: ["latin"],
+  weight: ["200", "400", "600", "700", "900"],
+  style: "italic",
+});
 
 const transitionVariants: Record<string, Variants> = {
   item: {
@@ -39,7 +46,10 @@ export function Hero() {
         <div className="flex flex-col gap-12 px-4 md:px-6">
           <div className="flex flex-col items-center justify-center gap-3 text-center md:gap-6">
             <h1 className="font-satoshi text-4xl leading-tight md:text-5xl lg:text-6xl">
-              Beyond Scheduling. <br /> A calendar that understands your life.
+              Beyond Scheduling. <br /> A calendar that{" "}
+              <span className={titillium.className}>
+                understands your life.
+              </span>
             </h1>
             <p className="max-w-xl text-base text-muted-foreground md:text-lg">
               Analog is an open-source alternative that turns intentions into
