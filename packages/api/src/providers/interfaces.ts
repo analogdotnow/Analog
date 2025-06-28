@@ -16,6 +16,7 @@ export interface Calendar {
   primary: boolean;
   accountId: string;
   color?: string;
+  readOnly: boolean;
 }
 
 export interface CalendarEvent {

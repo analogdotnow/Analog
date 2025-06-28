@@ -2,12 +2,13 @@
 
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
-import { ChevronsUpDown, LogOut, Plus, UserRound } from "lucide-react";
+import { ChevronsUpDown, LogOut, Plus, Settings } from "lucide-react";
 import { useTheme } from "next-themes";
 
 import { authClient } from "@repo/auth/client";
 
 import { AddAccountDialog } from "@/components/add-account-dialog";
+import { SettingsDialog } from "@/components/settings-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -97,10 +98,12 @@ export function NavUser() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <UserRound />
-                Account
-              </DropdownMenuItem>
+              <SettingsDialog>
+                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                  <Settings />
+                  Settings
+                </DropdownMenuItem>
+              </SettingsDialog>
               <AddAccountDialog>
                 <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                   <Plus />

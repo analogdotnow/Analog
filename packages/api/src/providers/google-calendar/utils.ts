@@ -120,7 +120,8 @@ export function parseGoogleCalendarCalendarListEntry({
     // location: entry.location,
     timeZone: entry.timeZone,
     primary: entry.primary!,
-    // readOnly: entry.accessRole === "reader",
+    readOnly:
+      entry.accessRole === "reader" || entry.accessRole === "freeBusyReader",
 
     providerId: "google",
     accountId,

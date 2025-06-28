@@ -42,7 +42,9 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
     return this.withErrorHandler("calendars", async () => {
       // Microsoft Graph API does not work without $select due to a bug
       const response = await this.graphClient
-        .api("/me/calendars?$select=id,name,isDefaultCalendar")
+        .api(
+          "/me/calendars?$select=id,name,isDefaultCalendar,canEdit,hexColor,isRemovable,owner,calendarPermissions",
+        )
         .get();
       const data = response.value as MicrosoftCalendar[];
 
