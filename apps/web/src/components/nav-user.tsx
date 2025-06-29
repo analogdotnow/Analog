@@ -2,8 +2,10 @@
 
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
-import { ChevronsUpDown, LogOut, Plus, UserRound } from "lucide-react";
+import { ChevronsUpDown, LogOut, Plus, UserRound, Bell, BellOff, Send, Clock } from "lucide-react";
 import { useTheme } from "next-themes";
+import { useState } from "react";
+import { toast } from "sonner";
 
 import { authClient } from "@repo/auth/client";
 
@@ -25,19 +27,89 @@ import {
 } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCurrentUser } from "@/hooks/accounts";
+import { useNotifications } from "@/hooks/use-notifications";
 
 export function NavUser() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const [isSending, setIsSending] = useState(false);
 
   const { data: user, isLoading } = useCurrentUser();
   const { theme, setTheme } = useTheme();
+  const { isSupported, isSubscribed, isLoading: notificationsLoading, subscribe, unsubscribe } = useNotifications();
 
   const toggleTheme = () => {
     if (theme === "dark") {
       setTheme("light");
     } else {
       setTheme("dark");
+    }
+  };
+
+  const toggleNotifications = () => {
+    if (isSubscribed) {
+      unsubscribe();
+    } else {
+      subscribe();
+    }
+  };
+
+  const sendTestNotification = async () => {
+    if (!user?.id) return;
+
+    setIsSending(true);
+    try {
+      const response = await fetch("/api/test-notifications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: user.id,
+          title: "Test Notification",
+          body: "This is a test notification from Analog Calendar!",
+        }),
+      });
+
+      const result = await response.json();
+      
+      if (response.ok) {
+        toast.success(`Notification sent! ${result.successful}/${result.total} successful`);
+      } else {
+        toast.error(result.error || "Failed to send notification");
+      }
+    } catch (error) {
+      toast.error("Failed to send test notification");
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const createTestReminder = async () => {
+    if (!user?.id) return;
+
+    setIsSending(true);
+    try {
+      const response = await fetch("/api/test-reminders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: user.id,
+          title: "Test Reminder",
+          body: "This is a test reminder that will trigger in 1 minute",
+          minutesFromNow: 1,
+        }),
+      });
+
+      const result = await response.json();
+      
+      if (response.ok) {
+        toast.success("Test reminder created! Check back in 1 minute for the notification.");
+      } else {
+        toast.error(result.error || "Failed to create reminder");
+      }
+    } catch (error) {
+      toast.error("Failed to create test reminder");
+    } finally {
+      setIsSending(false);
     }
   };
 
@@ -107,6 +179,44 @@ export function NavUser() {
                   Add account
                 </DropdownMenuItem>
               </AddAccountDialog>
+              {isSupported && (
+                <>
+                  <DropdownMenuItem 
+                    onSelect={(e) => {
+                      e.preventDefault();
+                      toggleNotifications();
+                    }}
+                    disabled={notificationsLoading}
+                  >
+                    {isSubscribed ? <BellOff /> : <Bell />}
+                    {isSubscribed ? "Disable" : "Enable"} notifications
+                  </DropdownMenuItem>
+                  {isSubscribed && (
+                    <>
+                      <DropdownMenuItem 
+                        onSelect={(e) => {
+                          e.preventDefault();
+                          sendTestNotification();
+                        }}
+                        disabled={isSending}
+                      >
+                        <Send />
+                        Send test notification
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onSelect={(e) => {
+                          e.preventDefault();
+                          createTestReminder();
+                        }}
+                        disabled={isSending}
+                      >
+                        <Clock />
+                        Create test reminder
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                </>
+              )}
             </DropdownMenuGroup>
             <DropdownMenuItem
               onClick={async () =>
@@ -123,11 +233,6 @@ export function NavUser() {
               <LogOut />
               Log out
             </DropdownMenuItem>
-            {/* <DropdownMenuItem onClick={toggleTheme}>
-              <Sun className="h-[1.2rem] w-[1.2rem] scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
-              <Moon className="absolute h-[1.2rem] w-[1.2rem] scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" />
-              App theme
-            </DropdownMenuItem> */}
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>

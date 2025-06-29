@@ -65,7 +65,8 @@
     "temporal-polyfill": "^0.3.0",
     "superjson-temporal": "^0.3.1",
     "temporal-zod": "^0.3.1",
-    "tw-animate-css": "^1.3.4"
+    "tw-animate-css": "^1.3.4",
+    "web-push": "^3.6.7"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
@@ -75,6 +76,7 @@
     "@types/node": "^20.19.1",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
+    "@types/web-push": "^3.6.2",
     "eslint": "^9.29.0",
     "eslint-config-next": "15.3.2",
     "tailwindcss": "^4.1.10",
