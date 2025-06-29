@@ -6,7 +6,6 @@ import { db } from "@repo/db";
 import { pushSubscription } from "@repo/db/schema";
 import { eq } from "drizzle-orm";
 
-// Configure web-push with VAPID keys
 webpush.setVapidDetails(
   "mailto:notifications@analog.com",
   env.VAPID_PUBLIC_KEY,
@@ -14,7 +13,6 @@ webpush.setVapidDetails(
 );
 
 export async function POST(request: NextRequest) {
-  // Only allow in development
   if (process.env.NODE_ENV !== "development") {
     return NextResponse.json({ error: "Not available in production" }, { status: 403 });
   }
@@ -26,7 +24,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "userId is required" }, { status: 400 });
     }
 
-    // Get user's push subscriptions
     const subscriptions = await db
       .select()
       .from(pushSubscription)
@@ -46,7 +43,6 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Send to all user's subscriptions
     const results = await Promise.allSettled(
       subscriptions.map(async (subscription) => {
         try {
@@ -64,7 +60,6 @@ export async function POST(request: NextRequest) {
         } catch (error) {
           console.error(`Failed to send to subscription ${subscription.id}:`, error);
           
-          // If subscription is invalid, remove it
           if (error instanceof webpush.WebPushError && error.statusCode === 410) {
             await db
               .delete(pushSubscription)

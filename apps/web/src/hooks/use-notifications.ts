@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { useTRPC } from "@/lib/trpc/client";
@@ -11,11 +11,23 @@ export function useNotifications() {
   const [isLoading, setIsLoading] = useState(false);
 
   const trpc = useTRPC();
+  const queryClient = useQueryClient();
 
   const { data: subscriptions } = useQuery(trpc.push.list.queryOptions());
 
-  const subscribeMutation = useMutation(trpc.push.subscribe.mutationOptions());
-  const unsubscribeMutation = useMutation(trpc.push.unsubscribe.mutationOptions());
+  const subscribeMutation = useMutation({
+    ...trpc.push.subscribe.mutationOptions(),
+    onSuccess: () => {
+      queryClient.invalidateQueries(trpc.push.list.queryOptions());
+    },
+  });
+
+  const unsubscribeMutation = useMutation({
+    ...trpc.push.unsubscribe.mutationOptions(),
+    onSuccess: () => {
+      queryClient.invalidateQueries(trpc.push.list.queryOptions());
+    },
+  });
 
   useEffect(() => {
     setIsSupported(
@@ -38,24 +50,20 @@ export function useNotifications() {
     try {
       setIsLoading(true);
 
-      // Request notification permission
       const permission = await Notification.requestPermission();
       if (permission !== "granted") {
         toast.error("Notification permission denied");
         return;
       }
 
-      // Register service worker
       const registration = await navigator.serviceWorker.register("/sw.js");
       await navigator.serviceWorker.ready;
 
-      // Subscribe to push notifications
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
       });
 
-      // Send subscription to server
       await subscribeMutation.mutateAsync({
         endpoint: subscription.endpoint,
         p256dh: btoa(
@@ -87,15 +95,12 @@ export function useNotifications() {
     try {
       setIsLoading(true);
 
-      // Get current subscription
       const registration = await navigator.serviceWorker.ready;
       const subscription = await registration.pushManager.getSubscription();
 
       if (subscription) {
-        // Unsubscribe from push service
         await subscription.unsubscribe();
 
-        // Remove from server
         await unsubscribeMutation.mutateAsync({
           endpoint: subscription.endpoint,
         });

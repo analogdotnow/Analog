@@ -6,7 +6,6 @@ import { db } from "@repo/db";
 import { notificationEvent, pushSubscription } from "@repo/db/schema";
 import { eq, and, lte, gte } from "drizzle-orm";
 
-// Configure web-push with VAPID keys
 webpush.setVapidDetails(
   "mailto:notifications@analog.com",
   env.VAPID_PUBLIC_KEY,
@@ -15,7 +14,6 @@ webpush.setVapidDetails(
 
 export async function POST(request: NextRequest) {
   try {
-    // Verify cron secret
     const authHeader = request.headers.get("authorization");
     if (authHeader !== `Bearer ${env.CRON_SECRET}`) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -24,7 +22,6 @@ export async function POST(request: NextRequest) {
     const now = new Date();
     const fiveMinutesFromNow = new Date(now.getTime() + 5 * 60 * 1000);
 
-    // Get unsent notifications that are due within the next 5 minutes
     const dueNotifications = await db
       .select()
       .from(notificationEvent)
@@ -46,17 +43,14 @@ export async function POST(request: NextRequest) {
     let sentCount = 0;
     const errors: string[] = [];
 
-    // Process each notification
     for (const notification of dueNotifications) {
       try {
-        // Get user's push subscriptions
         const subscriptions = await db
           .select()
           .from(pushSubscription)
           .where(eq(pushSubscription.userId, notification.userId));
 
         if (subscriptions.length === 0) {
-          // Mark as sent even if no subscriptions (to avoid retrying)
           await db
             .update(notificationEvent)
             .set({ sent: true, updatedAt: new Date() })
@@ -64,7 +58,6 @@ export async function POST(request: NextRequest) {
           continue;
         }
 
-        // Send to all user's subscriptions
         const pushPromises = subscriptions.map(async (subscription) => {
           try {
             const payload = JSON.stringify({
@@ -90,7 +83,6 @@ export async function POST(request: NextRequest) {
           } catch (error) {
             console.error(`Failed to send to subscription ${subscription.id}:`, error);
             
-            // If subscription is invalid, remove it
             if (error instanceof webpush.WebPushError && error.statusCode === 410) {
               await db
                 .delete(pushSubscription)
@@ -101,7 +93,6 @@ export async function POST(request: NextRequest) {
 
         await Promise.allSettled(pushPromises);
 
-        // Mark notification as sent
         await db
           .update(notificationEvent)
           .set({ sent: true, updatedAt: new Date() })

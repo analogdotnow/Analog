@@ -25,10 +25,8 @@ self.addEventListener("notificationclick", function (event) {
   event.notification.close();
 
   if (event.action) {
-    // Handle specific actions if needed
     console.log("Action clicked:", event.action);
   } else {
-    // Default action - focus or open the app
     event.waitUntil(
       clients.matchAll({ type: "window" }).then(function (clientList) {
         for (let i = 0; i < clientList.length; i++) {

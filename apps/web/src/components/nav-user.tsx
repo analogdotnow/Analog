@@ -6,6 +6,7 @@ import { ChevronsUpDown, LogOut, Plus, UserRound, Bell, BellOff, Send, Clock } f
 import { useTheme } from "next-themes";
 import { useState } from "react";
 import { toast } from "sonner";
+import { Switch } from "@/components/ui/switch";
 
 import { authClient } from "@repo/auth/client";
 
@@ -33,10 +34,14 @@ export function NavUser() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [isSending, setIsSending] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [localSubscriptionState, setLocalSubscriptionState] = useState<boolean | null>(null);
 
   const { data: user, isLoading } = useCurrentUser();
   const { theme, setTheme } = useTheme();
   const { isSupported, isSubscribed, isLoading: notificationsLoading, subscribe, unsubscribe } = useNotifications();
+
+  const subState = localSubscriptionState !== null ? localSubscriptionState : isSubscribed;
 
   const toggleTheme = () => {
     if (theme === "dark") {
@@ -46,11 +51,19 @@ export function NavUser() {
     }
   };
 
-  const toggleNotifications = () => {
-    if (isSubscribed) {
-      unsubscribe();
-    } else {
-      subscribe();
+  const toggleNotifications = async () => {
+    setLocalSubscriptionState(!subState);
+    setDropdownOpen(false);
+    
+    try {
+      if (subState) {
+        await unsubscribe();
+      } else {
+        await subscribe();
+      }
+    } catch (error) {
+      setLocalSubscriptionState(subState);
+      console.error("Failed to toggle notifications:", error);
     }
   };
 
@@ -120,7 +133,7 @@ export function NavUser() {
   return (
     <SidebarMenu>
       <SidebarMenuItem>
-        <DropdownMenu>
+        <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
@@ -145,6 +158,7 @@ export function NavUser() {
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
+            key={`dropdown-${subState}-${notificationsLoading}`}
             className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
             side="top"
             align="start"
@@ -179,8 +193,11 @@ export function NavUser() {
                   Add account
                 </DropdownMenuItem>
               </AddAccountDialog>
-              {isSupported && (
-                <>
+            </DropdownMenuGroup>
+            {isSupported && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuGroup>
                   <DropdownMenuItem 
                     onSelect={(e) => {
                       e.preventDefault();
@@ -188,10 +205,10 @@ export function NavUser() {
                     }}
                     disabled={notificationsLoading}
                   >
-                    {isSubscribed ? <BellOff /> : <Bell />}
-                    {isSubscribed ? "Disable" : "Enable"} notifications
+                    {subState ? <BellOff /> : <Bell />}
+                    {subState ? "Disable" : "Enable"} notifications
                   </DropdownMenuItem>
-                  {isSubscribed && (
+                  {subState && (
                     <>
                       <DropdownMenuItem 
                         onSelect={(e) => {
@@ -215,9 +232,9 @@ export function NavUser() {
                       </DropdownMenuItem>
                     </>
                   )}
-                </>
-              )}
-            </DropdownMenuGroup>
+                </DropdownMenuGroup>
+              </>
+            )}
             <DropdownMenuItem
               onClick={async () =>
                 await authClient.signOut({

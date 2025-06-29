@@ -18,7 +18,6 @@ export const pushRouter = createTRPCRouter({
       const userId = ctx.user.id;
       const { endpoint, p256dh, auth } = input;
 
-      // Check if subscription already exists
       const existing = await ctx.db
         .select()
         .from(pushSubscription)
@@ -26,7 +25,6 @@ export const pushRouter = createTRPCRouter({
         .limit(1);
 
       if (existing.length > 0) {
-        // Update existing subscription
         await ctx.db
           .update(pushSubscription)
           .set({
@@ -39,7 +37,6 @@ export const pushRouter = createTRPCRouter({
         return { success: true, updated: true };
       }
 
-      // Create new subscription
       await ctx.db.insert(pushSubscription).values({
         id: nanoid(),
         userId,
