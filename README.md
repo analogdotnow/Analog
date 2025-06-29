@@ -33,25 +33,34 @@ Ensure you have the following installed:
 
 3.  **Configure environment variables**:
     Copy the example environment file:
+
     ```bash
     cp .env.example .env
     ```
+
     Then, open the newly created `.env` file. You will find default values for `DATABASE_URL` and `BETTER_AUTH_URL`. You need to set the following:
     - `BETTER_AUTH_SECRET`: Generate a secure secret by running `openssl rand -hex 32` in your terminal.
-    - `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`:
-      1.  Create a Google project in the [Google Cloud Console](https://console.cloud.google.com/).
-      2.  Follow [step 1 in the Better Auth documentation](https://www.better-auth.com/docs/authentication/google) to set up Google OAuth credentials.
-      3.  Enable the Google Calendar API by visiting [Google Cloud Console APIs](https://console.cloud.google.com/apis/library/calendar-json.googleapis.com) and enabling it for your project.
-      4.  Add test user emails:
-          - Locate the Google OAuth [`Audience`](https://console.cloud.google.com/auth/audience) tab.
-          - Under 'Test users', click on 'Add Users'
-          - Add your email(s) in the textbox and click 'Save'.
-    - `MICROSOFT_CLIENT_ID` and `MICROSOFT_CLIENT_SECRET`:
-      1. Go to the [Microsoft Azure Portal](https://portal.azure.com/), then navigate to Microsoft Entra ID → App registrations.
-      2. Register a new application and set the redirect URI (`http://localhost:3000/api/auth/callback/microsoft`).
-      3. Copy the Application (client) ID and create a new client secret under Certificates & secrets.
-      4. Go to API permissions, click + Add a permission, choose Microsoft Graph → Delegated permissions, and add:
-         - `Calendars.Read`, `Calendars.ReadWrite`, `User.Read`, `offline_access`
+      <br/><br/>
+
+4.  **Set up Google OAuth**:
+
+- `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`:
+  1. Create a Google project in the [Google Cloud Console](https://console.cloud.google.com/).
+  2. Follow [step 1 in the Better Auth documentation](https://www.better-auth.com/docs/authentication/google) to set up Google OAuth credentials.
+  3. Enable the Google Calendar API by visiting [Google Cloud Console APIs](https://console.cloud.google.com/apis/library/calendar-json.googleapis.com) and enabling it for your project.
+  4. Add yourself as test user:
+     - Locate the Google OAuth [`Audience`](https://console.cloud.google.com/auth/audience) tab.
+     - Under 'Test users', click on 'Add Users'.
+     - Add your email(s) in the textbox and click on 'Save'.
+
+5. **Set up Microsoft OAuth** (optional):
+
+- `MICROSOFT_CLIENT_ID` and `MICROSOFT_CLIENT_SECRET`:
+  1. Go to the [Microsoft Azure Portal](https://portal.azure.com/), then navigate to Microsoft Entra ID → App registrations.
+  2. Register a new application and set the redirect URI (`http://localhost:3000/api/auth/callback/microsoft`).
+  3. Copy the Application (client) ID and create a new client secret under Certificates & secrets.
+  4. Go to API permissions, click + Add a permission, choose Microsoft Graph → Delegated permissions, and add:
+     - `Calendars.Read`, `Calendars.ReadWrite`, `User.Read`, `offline_access`
 
 ### Database Setup
 
@@ -65,10 +74,10 @@ Analog uses PostgreSQL with Drizzle ORM. You can run the database using Docker:
 
     This command uses `docker-compose.yml` to spin up a PostgreSQL container.
 
-2.  **Run database migrations**:
-    Once the database container is running and healthy, apply the migrations:
+2.  **Initialize the database**:
+    Once the database container is running and healthy, initialize the database:
     ```bash
-    bun run db:migrate
+    bun run db:push
     ```
 
 ### Running the Application
