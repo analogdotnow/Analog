@@ -47,7 +47,7 @@ Ensure you have the following installed:
       2. Register a new application and set the redirect URI (`http://localhost:3000/api/auth/callback/microsoft`).
       3. Copy the Application (client) ID and create a new client secret under Certificates & secrets.
       4. Go to API permissions, click + Add a permission, choose Microsoft Graph → Delegated permissions, and add:
-          - `Calendars.Read`, `Calendars.ReadWrite`, `User.Read`, `offline_access`
+         - `Calendars.Read`, `Calendars.ReadWrite`, `User.Read`, `offline_access`
 
 ### Database Setup
 
