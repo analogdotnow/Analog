@@ -89,7 +89,7 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
   }
 
   async events(
-    calendarId: string,
+    calendar: Calendar,
     timeMin: Temporal.ZonedDateTime,
     timeMax: Temporal.ZonedDateTime,
   ): Promise<CalendarEvent[]> {
@@ -98,7 +98,7 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
       const endTime = timeMax.withTimeZone("UTC").toInstant().toString();
 
       const response = await this.graphClient
-        .api(`${calendarPath(calendarId)}/events`)
+        .api(`${calendarPath(calendar.id)}/events`)
         .filter(
           `start/dateTime ge '${startTime}' and end/dateTime le '${endTime}'`,
         )
@@ -107,24 +107,24 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
         .get();
 
       return (response.value as MicrosoftEvent[]).map((event: MicrosoftEvent) =>
-        parseMicrosoftEvent({ event, accountId: this.accountId, calendarId }),
+        parseMicrosoftEvent({ event, accountId: this.accountId, calendar }),
       );
     });
   }
 
   async createEvent(
-    calendarId: string,
+    calendar: Calendar,
     event: CreateEventInput,
   ): Promise<CalendarEvent> {
     return this.withErrorHandler("createEvent", async () => {
       const createdEvent = (await this.graphClient
-        .api(calendarPath(calendarId))
+        .api(calendarPath(calendar.id))
         .post(toMicrosoftEvent(event))) as MicrosoftEvent;
 
       return parseMicrosoftEvent({
         event: createdEvent,
         accountId: this.accountId,
-        calendarId,
+        calendar,
       });
     });
   }
@@ -138,19 +138,19 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
    * @returns The updated transformed Event object
    */
   async updateEvent(
-    calendarId: string,
+    calendar: Calendar,
     eventId: string,
     event: UpdateEventInput,
   ): Promise<CalendarEvent> {
     return this.withErrorHandler("updateEvent", async () => {
       const updatedEvent = (await this.graphClient
-        .api(`${calendarPath(calendarId)}/events/${eventId}`)
+        .api(`${calendarPath(calendar.id)}/events/${eventId}`)
         .patch(toMicrosoftEvent(event))) as MicrosoftEvent;
 
       return parseMicrosoftEvent({
         event: updatedEvent,
         accountId: this.accountId,
-        calendarId,
+        calendar,
       });
     });
   }

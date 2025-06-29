@@ -39,6 +39,7 @@ function createEvent({
     allDay: false,
     color: undefined,
     ...calendar,
+    readOnly: false,
   };
 
   return newEvent;

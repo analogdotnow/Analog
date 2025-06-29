@@ -33,7 +33,7 @@ export const eventsRouter = createTRPCRouter({
           const providerEvents = await Promise.all(
             requestedCalendars.map(async (calendar) => {
               const events = await client.events(
-                calendar.id,
+                calendar,
                 input.timeMin,
                 input.timeMax,
               );
@@ -77,7 +77,18 @@ export const eventsRouter = createTRPCRouter({
         });
       }
 
-      const event = await provider.client.createEvent(input.calendarId, {
+      const calendars = await provider.client.calendars();
+
+      const calendar = calendars.find((c) => c.id === input.calendarId);
+
+      if (!calendar) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: `Calendar not found for accountId: ${input.accountId}`,
+        });
+      }
+
+      const event = await provider.client.createEvent(calendar, {
         ...input,
       });
 
@@ -97,8 +108,19 @@ export const eventsRouter = createTRPCRouter({
         });
       }
 
+      const calendars = await provider.client.calendars();
+
+      const calendar = calendars.find((c) => c.id === input.calendarId);
+
+      if (!calendar) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: `Calendar not found for accountId: ${input.accountId}`,
+        });
+      }
+
       const event = await provider.client.updateEvent(
-        input.calendarId,
+        calendar,
         input.id,
         input,
       );

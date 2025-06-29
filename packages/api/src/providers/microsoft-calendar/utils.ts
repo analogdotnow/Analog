@@ -93,13 +93,13 @@ function parseDateTime(dateTime: string, timeZone: string) {
 
 interface ParseMicrosoftEventOptions {
   accountId: string;
-  calendarId: string;
+  calendar: Calendar;
   event: MicrosoftEvent;
 }
 
 export function parseMicrosoftEvent({
   accountId,
-  calendarId,
+  calendar,
   event,
 }: ParseMicrosoftEventOptions): CalendarEvent {
   const { start, end, isAllDay } = event;
@@ -126,7 +126,8 @@ export function parseMicrosoftEvent({
     color: undefined,
     providerId: "microsoft",
     accountId,
-    calendarId,
+    calendarId: calendar.id,
+    readOnly: calendar.readOnly,
     metadata: {
       ...(event.originalStartTimeZone
         ? {
@@ -189,6 +190,7 @@ export function parseMicrosoftCalendar({
     primary: calendar.isDefaultCalendar as boolean,
     accountId,
     color: calendar.hexColor as string,
+    readOnly: !calendar.canEdit,
   };
 }
 

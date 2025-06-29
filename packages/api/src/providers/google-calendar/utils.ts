@@ -53,13 +53,13 @@ function parseDateTime({ dateTime, timeZone }: GoogleCalendarDateTime) {
 }
 
 interface ParsedGoogleCalendarEventOptions {
-  calendarId: string;
+  calendar: Calendar;
   accountId: string;
   event: GoogleCalendarEvent;
 }
 
 export function parseGoogleCalendarEvent({
-  calendarId,
+  calendar,
   accountId,
   event,
 }: ParsedGoogleCalendarEventOptions): CalendarEvent {
@@ -83,7 +83,8 @@ export function parseGoogleCalendarEvent({
     url: event.htmlLink,
     providerId: "google",
     accountId,
-    calendarId,
+    calendarId: calendar.id,
+    readOnly: calendar.readOnly,
   };
 }
 
@@ -120,7 +121,7 @@ export function parseGoogleCalendarCalendarListEntry({
     // location: entry.location,
     timeZone: entry.timeZone,
     primary: entry.primary!,
-    // readOnly: entry.accessRole === "reader",
+    readOnly: entry.accessRole === "reader",
 
     providerId: "google",
     accountId,
