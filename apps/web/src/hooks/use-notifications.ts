@@ -81,8 +81,7 @@ export function useNotifications() {
       });
 
       toast.success("Push notifications enabled");
-    } catch (error) {
-      console.error("Failed to subscribe:", error);
+    } catch {
       toast.error("Failed to enable push notifications");
     } finally {
       setIsLoading(false);
@@ -107,8 +106,7 @@ export function useNotifications() {
       }
 
       toast.success("Push notifications disabled");
-    } catch (error) {
-      console.error("Failed to unsubscribe:", error);
+    } catch {
       toast.error("Failed to disable push notifications");
     } finally {
       setIsLoading(false);

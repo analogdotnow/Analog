@@ -89,7 +89,7 @@ export function NavUser() {
       } else {
         toast.error(result.error || "Failed to send notification");
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to send test notification");
     } finally {
       setIsSending(false);
@@ -119,7 +119,7 @@ export function NavUser() {
       } else {
         toast.error(result.error || "Failed to create reminder");
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to create test reminder");
     } finally {
       setIsSending(false);

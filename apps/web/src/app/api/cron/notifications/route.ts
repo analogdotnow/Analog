@@ -4,7 +4,7 @@ import webpush from "web-push";
 import { env } from "@repo/env/server";
 import { db } from "@repo/db";
 import { notificationEvent, pushSubscription } from "@repo/db/schema";
-import { eq, and, lte, gte } from "drizzle-orm";
+import { eq, and, lte } from "drizzle-orm";
 
 webpush.setVapidDetails(
   "mailto:notifications@analog.com",
@@ -20,7 +20,6 @@ export async function POST(request: NextRequest) {
     }
 
     const now = new Date();
-    const fiveMinutesFromNow = new Date(now.getTime() + 5 * 60 * 1000);
 
     const dueNotifications = await db
       .select()
@@ -28,8 +27,7 @@ export async function POST(request: NextRequest) {
       .where(
         and(
           eq(notificationEvent.sent, false),
-          gte(notificationEvent.reminderTime, now),
-          lte(notificationEvent.reminderTime, fiveMinutesFromNow)
+          lte(notificationEvent.reminderTime, now)
         )
       );
 
