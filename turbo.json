@@ -17,7 +17,11 @@
         "SIMPLE_ANALYTICS_HOSTNAME",
         "NEXT_PUBLIC_SIMPLE_ANALYTICS_HOSTNAME",
         "MICROSOFT_CLIENT_ID",
-        "MICROSOFT_CLIENT_SECRET"
+        "MICROSOFT_CLIENT_SECRET",
+        "VAPID_PUBLIC_KEY",
+        "VAPID_PRIVATE_KEY",
+        "CRON_SECRET",
+        "NEXT_PUBLIC_VAPID_PUBLIC_KEY"
       ],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
@@ -37,7 +41,11 @@
         "SIMPLE_ANALYTICS_HOSTNAME",
         "NEXT_PUBLIC_SIMPLE_ANALYTICS_HOSTNAME",
         "MICROSOFT_CLIENT_ID",
-        "MICROSOFT_CLIENT_SECRET"
+        "MICROSOFT_CLIENT_SECRET",
+        "VAPID_PUBLIC_KEY",
+        "VAPID_PRIVATE_KEY",
+        "CRON_SECRET",
+        "NEXT_PUBLIC_VAPID_PUBLIC_KEY"
       ]
     },
     "lint": {
