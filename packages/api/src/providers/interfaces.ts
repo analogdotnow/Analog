@@ -16,11 +16,12 @@ export interface Calendar {
   primary: boolean;
   accountId: string;
   color?: string;
+  readOnly: boolean;
 }
 
 export interface CalendarEvent {
   id: string;
-  title: string;
+  title?: string;
   description?: string;
   start: Temporal.PlainDate | Temporal.Instant | Temporal.ZonedDateTime;
   end: Temporal.PlainDate | Temporal.Instant | Temporal.ZonedDateTime;
@@ -30,6 +31,7 @@ export interface CalendarEvent {
   attendees?: Attendee[];
   url?: string;
   color?: string;
+  readOnly: boolean;
   providerId: string;
   accountId: string;
   calendarId: string;
@@ -60,16 +62,16 @@ export interface CalendarProvider {
   ): Promise<Calendar>;
   deleteCalendar(calendarId: string): Promise<void>;
   events(
-    calendarId: string,
+    calendar: Calendar,
     timeMin: Temporal.ZonedDateTime,
     timeMax: Temporal.ZonedDateTime,
   ): Promise<CalendarEvent[]>;
   createEvent(
-    calendarId: string,
+    calendar: Calendar,
     event: CreateEventInput,
   ): Promise<CalendarEvent>;
   updateEvent(
-    calendarId: string,
+    calendar: Calendar,
     eventId: string,
     event: UpdateEventInput,
   ): Promise<CalendarEvent>;

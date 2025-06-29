@@ -134,6 +134,7 @@ export function useCalendarActions() {
             calendarId: newEvent.calendarId,
             providerId: defaultAccountData.account.providerId,
             accountId: defaultAccountData.account.id,
+            readOnly: false,
           };
 
           return {
