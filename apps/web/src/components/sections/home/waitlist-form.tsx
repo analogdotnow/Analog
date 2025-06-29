@@ -52,9 +52,13 @@ function useWaitlistCount() {
 
 interface WaitlistFormProps {
   className?: string;
+  alignment?: "left" | "center" | "right";
 }
 
-export function WaitlistForm({ className }: WaitlistFormProps) {
+export function WaitlistForm({
+  className,
+  alignment = "center",
+}: WaitlistFormProps) {
   const { register, handleSubmit } = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -67,6 +71,12 @@ export function WaitlistForm({ className }: WaitlistFormProps) {
   function joinWaitlist({ email }: FormSchema) {
     waitlist.mutate({ email });
   }
+
+  const alignmentClasses = {
+    left: "justify-start",
+    center: "justify-center",
+    right: "justify-end",
+  };
 
   return (
     <div
@@ -86,27 +96,36 @@ export function WaitlistForm({ className }: WaitlistFormProps) {
           </p>
         </div>
       ) : (
-        <form
-          className="mx-auto flex w-full max-w-lg flex-col gap-3 sm:flex-row"
-          onSubmit={handleSubmit(joinWaitlist)}
-        >
-          <Input
-            placeholder="example@0.email"
-            className="h-11 w-full rounded-md px-4 text-base font-medium outline outline-neutral-200 placeholder:font-medium placeholder:text-muted-foreground md:text-base"
-            {...register("email")}
-          />
-          <Button
-            className="h-11 w-full pr-3 pl-4 text-base sm:w-fit"
-            type="submit"
+        <div className={cn("flex w-full", alignmentClasses[alignment])}>
+          <form
+            className="flex w-full max-w-lg flex-col gap-3 sm:flex-row"
+            onSubmit={handleSubmit(joinWaitlist)}
           >
-            Join Waitlist <ChevronRight className="h-5 w-5" />
-          </Button>
-        </form>
+            <Input
+              placeholder="example@0.email"
+              className="h-11 w-full rounded-md px-4 text-base font-medium outline outline-neutral-200 placeholder:font-medium placeholder:text-muted-foreground md:text-base"
+              {...register("email")}
+            />
+            <Button
+              className="h-11 w-full pr-3 pl-4 text-base sm:w-fit"
+              type="submit"
+            >
+              Join Waitlist <ChevronRight className="h-5 w-5" />
+            </Button>
+          </form>
+        </div>
       )}
 
-      <div className="relative flex flex-row items-center justify-center gap-2">
-        <span className="size-2 rounded-full bg-green-600 dark:bg-green-400" />
-        <span className="absolute left-0 size-2 rounded-full bg-green-600 blur-xs dark:bg-green-400" />
+      <div
+        className={cn(
+          "relative flex w-full flex-row items-center gap-2",
+          alignmentClasses[alignment],
+        )}
+      >
+        <span className="relative flex items-center justify-center">
+          <span className="z-10 size-2 rounded-full bg-green-600 dark:bg-green-400" />
+          <span className="absolute top-1/2 left-1/2 z-0 size-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-green-600 blur-xs dark:bg-green-400" />
+        </span>
         <span className="text-sm text-green-600 sm:text-base dark:text-green-400">
           <NumberFlow value={waitlist.count} /> people already joined
         </span>
