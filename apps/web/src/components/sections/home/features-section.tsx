@@ -9,36 +9,42 @@ const features = [
     title: "Smart Scheduling",
     description:
       "Intelligent event management with natural language input and AI-powered suggestions.",
+    gradient: "from-blue-500/20 to-cyan-500/20",
   },
   {
     icon: Users,
     title: "Team Collaboration",
     description:
       "Seamlessly coordinate with your team through shared calendars and real-time updates.",
+    gradient: "from-emerald-500/20 to-teal-500/20",
   },
   {
     icon: Zap,
     title: "Lightning Fast",
     description:
       "Built for speed with instant sync across all your devices and integrations.",
+    gradient: "from-yellow-500/20 to-orange-500/20",
   },
   {
     icon: Shield,
     title: "Privacy First",
     description:
       "Your data stays yours. No tracking, no ads, complete control over your information.",
+    gradient: "from-purple-500/20 to-pink-500/20",
   },
   {
     icon: Code,
     title: "Open Source",
     description:
       "Transparent, auditable, and community-driven. Contribute and customize as you need.",
+    gradient: "from-indigo-500/20 to-blue-500/20",
   },
   {
     icon: Heart,
     title: "Built with Love",
     description:
       "Crafted by developers who believe in the power of open collaboration.",
+    gradient: "from-red-500/20 to-pink-500/20",
   },
 ];
 
@@ -85,16 +91,25 @@ export function FeaturesSection() {
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
             {features.map((feature, index) => (
               <AnimatedGroup key={index} variants={transitionVariants}>
-                <div className="group rounded-xl border border-border/50 bg-card/50 p-6 transition-all duration-300 hover:bg-card/80 hover:shadow-lg">
-                  <div className="mb-4 flex items-center gap-4">
-                    <div className="rounded-lg bg-primary/10 p-2 transition-colors group-hover:bg-primary/20">
-                      <feature.icon className="h-6 w-6 text-primary" />
+                <div className="group relative overflow-hidden rounded-2xl border border-border/50 bg-card/50 p-8 transition-all duration-500 hover:bg-card/80 hover:shadow-xl hover:shadow-primary/5">
+                  {/* Gradient background on hover */}
+                  <div
+                    className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 transition-opacity duration-500 group-hover:opacity-100`}
+                  />
+
+                  <div className="relative">
+                    <div className="mb-6 flex items-center gap-4">
+                      <div className="rounded-xl bg-primary/10 p-3 transition-all duration-300 group-hover:scale-110 group-hover:bg-primary/20">
+                        <feature.icon className="h-6 w-6 text-primary transition-colors" />
+                      </div>
+                      <h3 className="text-xl font-semibold transition-colors group-hover:text-primary">
+                        {feature.title}
+                      </h3>
                     </div>
-                    <h3 className="text-lg font-semibold">{feature.title}</h3>
+                    <p className="leading-relaxed text-muted-foreground transition-colors group-hover:text-foreground/80">
+                      {feature.description}
+                    </p>
                   </div>
-                  <p className="leading-relaxed text-muted-foreground">
-                    {feature.description}
-                  </p>
                 </div>
               </AnimatedGroup>
             ))}

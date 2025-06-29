@@ -3,6 +3,8 @@ import { Header } from "@/components/header";
 import { CTASection } from "@/components/sections/home/cta-section";
 import { FeaturesSection } from "@/components/sections/home/features-section";
 import { Hero } from "@/components/sections/home/hero";
+import { StatsSection } from "@/components/sections/home/stats-section";
+import { TestimonialsSection } from "@/components/sections/home/testimonials-section";
 import { WhyOpensourceSection } from "@/components/sections/home/why-opensource-section";
 
 // Required for tRPC prefetching
@@ -17,7 +19,9 @@ export default function Home() {
           <Hero />
         </main>
       </div>
+      <StatsSection />
       <FeaturesSection />
+      <TestimonialsSection />
       <WhyOpensourceSection />
       <CTASection />
       <Footer />
