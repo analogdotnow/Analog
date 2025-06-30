@@ -199,9 +199,9 @@ export function EventDialog({
         ),
       end: allDay
         ? Temporal.PlainDate.from({
-          year: start.getFullYear(),
-          month: start.getMonth() + 1,
-          day: start.getDate(),
+          year: end.getFullYear(),
+          month: end.getMonth() + 1,
+          day: end.getDate(),
         })
         : Temporal.Instant.from(end.toISOString()).toZonedDateTimeISO(
           timeZone,
