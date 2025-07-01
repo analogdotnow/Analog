@@ -53,10 +53,15 @@ export const calendarsRouter = createTRPCRouter({
       );
 
       const calendars = await account?.client.calendars();
-      const calendar = calendars?.find((calendar) => calendar.id === input.calendarId);
+      const calendar = calendars?.find(
+        (calendar) => calendar.id === input.calendarId,
+      );
 
       if (!account || !calendar) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Calendar not found" });
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Calendar not found",
+        });
       }
 
       await ctx.db

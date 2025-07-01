@@ -99,7 +99,10 @@ function DefaultCalendarPicker() {
         Default Calendar
       </Label>
       <Select value={defaultCalendarId} onValueChange={handleChange}>
-        <SelectTrigger id="default-calendar" className="w-fit max-w-full min-w-48">
+        <SelectTrigger
+          id="default-calendar"
+          className="w-fit max-w-full min-w-48"
+        >
           <SelectValue placeholder="Select default calendar" />
         </SelectTrigger>
         <SelectContent>

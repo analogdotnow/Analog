@@ -52,6 +52,8 @@ const weekDays = [
   "sunday",
 ] as const;
 
+type WeekDay = (typeof weekDays)[number];
+
 function ThemePicker() {
   const { theme, setTheme } = useTheme();
 
@@ -89,28 +91,25 @@ function ThemePicker() {
 
 function StartOfWeekPicker() {
   const [calendarSettings, setCalendarSettings] = useCalendarSettings();
-
-  const startOfWeekId = useId();
-
+  const value = weekDays[calendarSettings.weekStartsOn - 1];
+  console.log(calendarSettings.weekStartsOn, value);
   return (
     <div className="w-48">
-      <Label htmlFor={startOfWeekId} className="sr-only">
+      <Label htmlFor="settings-start-of-week" className="sr-only">
         Start of week
       </Label>
       <Select
         value={weekDays[calendarSettings.weekStartsOn - 1]}
-        onValueChange={(value: string) => {
-          const dayNumber = weekDays.indexOf(
-            value as (typeof weekDays)[number],
-          );
+        onValueChange={(value: WeekDay) => {
+          const weekStartsOn = weekDays.indexOf(value) + 1;
 
           setCalendarSettings((prev) => ({
             ...prev,
-            weekStartsOn: dayNumber as 1 | 2 | 3 | 4 | 5 | 6 | 7,
+            weekStartsOn: weekStartsOn as 1 | 2 | 3 | 4 | 5 | 6 | 7,
           }));
         }}
       >
-        <SelectTrigger id={startOfWeekId}>
+        <SelectTrigger id="settings-start-of-week">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -130,12 +129,11 @@ function StartOfWeekPicker() {
 function TimeFormatPicker() {
   const [calendarSettings, setCalendarSettings] = useCalendarSettings();
 
-  const timeFormatId = useId();
   const time = React.useRef(new Date());
 
   return (
     <div className="w-48">
-      <Label htmlFor={timeFormatId} className="sr-only">
+      <Label htmlFor="settings-time-format" className="sr-only">
         Time format
       </Label>
       <Select
@@ -147,19 +145,15 @@ function TimeFormatPicker() {
           }));
         }}
       >
-        <SelectTrigger id={timeFormatId}>
+        <SelectTrigger id="settings-time-format">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
           <SelectItem className="tabular-nums" value="24h">
-            <span className="flex items-center gap-2">
-              {format(time.current, "HH:mm")}
-              <span className="text-xs text-muted-foreground">24h</span>
-            </span>
+            {format(time.current, "HH:mm")}
           </SelectItem>
           <SelectItem className="tabular-nums" value="12h">
-            <span>{format(time.current, "h:mm a")}</span>
-            <span className="ml-auto text-xs text-muted-foreground">12h</span>
+            {format(time.current, "h:mm a")}
           </SelectItem>
         </SelectContent>
       </Select>
