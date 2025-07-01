@@ -1,6 +1,9 @@
 import "server-only";
+import { eq } from "drizzle-orm";
+
 import { auth, type Account, type User } from "@repo/auth/server";
 import { db } from "@repo/db";
+import { user as userTable } from "@repo/db/schema";
 
 async function withAccessToken(account: Account, headers: Headers) {
   const { accessToken } = await auth.api.getAccessToken({
@@ -21,20 +24,32 @@ async function withAccessToken(account: Account, headers: Headers) {
 export async function getDefaultAccount(user: User, headers: Headers) {
   const defaultAccountId = user.defaultAccountId;
 
-  if (!defaultAccountId) {
-    throw new Error("No default account found");
+  if (defaultAccountId) {
+    const defaultAccount = await db.query.account.findFirst({
+      where: (table, { eq, and }) =>
+        and(eq(table.userId, user.id), eq(table.id, defaultAccountId)),
+    });
+
+    return await withAccessToken(defaultAccount!, headers);
   }
 
-  const defaultAccount = await db.query.account.findFirst({
-    where: (table, { eq, and }) =>
-      and(eq(table.userId, user.id), eq(table.id, defaultAccountId)),
+  const account = await db.transaction(async (tx) => {
+    const account = await tx.query.account.findFirst({
+      where: (table, { eq }) => eq(table.userId, user.id),
+      orderBy: (table, { desc }) => desc(table.createdAt),
+    });
+
+    await tx
+      .update(userTable)
+      .set({
+        defaultAccountId: account!.id,
+      })
+      .where(eq(userTable.id, user.id));
+
+    return account!;
   });
 
-  if (!defaultAccount) {
-    throw new Error("No default account found");
-  }
-
-  return await withAccessToken(defaultAccount, headers);
+  return await withAccessToken(account, headers);
 }
 
 export async function getAccounts(user: User, headers: Headers) {

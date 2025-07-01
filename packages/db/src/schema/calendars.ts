@@ -20,6 +20,8 @@ export const calendars = pgTable(
     primary: boolean("primary").default(false).notNull(),
     color: text("color"),
 
+    calendarId: text("calendar_id").notNull(),
+
     syncToken: text("sync_token"),
 
     providerId: text("provider_id", {

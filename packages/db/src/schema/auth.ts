@@ -20,9 +20,10 @@ export const user = pgTable("user", {
   defaultAccountId: text().references((): AnyPgColumn => account.id, {
     onDelete: "set null",
   }),
-  defaultCalendarId: text().references((): AnyPgColumn => account.id, {
-    onDelete: "set null",
-  }),
+  defaultCalendarId: text(),
+  // .references((): AnyPgColumn => calendars.id, {
+  //   onDelete: "set null",
+  // }),
   createdAt: timestamp().defaultNow().notNull(),
   updatedAt: timestamp().defaultNow().notNull(),
 });

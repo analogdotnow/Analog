@@ -54,13 +54,12 @@ function DefaultCalendarSection() {
 }
 
 function DefaultCalendarPicker() {
-  const id = React.useId();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
   const query = useQuery(trpc.calendars.list.queryOptions());
   const mutation = useMutation(
-    trpc.calendars.setDefaultId.mutationOptions({
+    trpc.calendars.setDefault.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: trpc.calendars.pathKey() });
       },
@@ -96,11 +95,11 @@ function DefaultCalendarPicker() {
 
   return (
     <div className="space-y-2">
-      <Label htmlFor={id} className="sr-only">
+      <Label htmlFor="default-calendar" className="sr-only">
         Default Calendar
       </Label>
       <Select value={defaultCalendarId} onValueChange={handleChange}>
-        <SelectTrigger id={id} className="w-fit max-w-full min-w-48">
+        <SelectTrigger id="default-calendar" className="w-fit max-w-full min-w-48">
           <SelectValue placeholder="Select default calendar" />
         </SelectTrigger>
         <SelectContent>
@@ -126,11 +125,6 @@ function DefaultCalendarPicker() {
                       }
                     />
                     {calendar.name}
-                    {/* {calendar.primary ? (
-                      <span className="text-xs text-muted-foreground">
-                        (primary)
-                      </span>
-                    ) : null} */}
                     {calendar.readOnly ? (
                       <span className="text-xs text-muted-foreground">
                         (read-only)
@@ -224,7 +218,7 @@ function AccountListItem({ account }: AccountListItemProps) {
   const queryClient = useQueryClient();
 
   const mutation = useMutation(
-    trpc.accounts.disconnect.mutationOptions({
+    trpc.accounts.unlink.mutationOptions({
       onSuccess: () => {
         // toast.success("Account disconnected");
         queryClient.invalidateQueries({ queryKey: trpc.accounts.pathKey() });

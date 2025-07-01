@@ -1,3 +1,4 @@
+import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 
@@ -18,7 +19,11 @@ export const calendarsRouter = createTRPCRouter({
         id: account.id,
         providerId: account.providerId,
         name: account.email,
-        calendars,
+        calendars: calendars.map((calendar) => ({
+          ...calendar,
+          default: calendar.id === ctx.user.defaultCalendarId,
+        })),
+        default: ctx.user.defaultAccountId === account.id,
       };
     });
 
@@ -30,21 +35,12 @@ export const calendarsRouter = createTRPCRouter({
       accounts,
     };
   }),
-
-  getDefaultId: protectedProcedure.query(async ({ ctx }) => {
-    // We would need to remove this later probably
-    // Because we can just get the default calendar from the better auth session
-
-    const foundUser = await ctx.db.query.user.findFirst({
-      where: (table, { eq }) => eq(table.id, ctx.user.id),
-    });
-
+  getDefault: protectedProcedure.query(async ({ ctx }) => {
     return {
-      defaultCalendarId: foundUser?.defaultCalendarId ?? null,
+      defaultCalendarId: ctx.user.defaultCalendarId ?? null,
     };
   }),
-
-  setDefaultId: protectedProcedure
+  setDefault: calendarProcedure
     .input(
       z.object({
         calendarId: z.string(),
@@ -52,10 +48,21 @@ export const calendarsRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      const account = await ctx.providers.find(
+        (provider) => provider.account.id === input.accountId,
+      );
+
+      const calendars = await account?.client.calendars();
+      const calendar = calendars?.find((calendar) => calendar.id === input.calendarId);
+
+      if (!account || !calendar) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Calendar not found" });
+      }
+
       await ctx.db
         .update(user)
         .set({
-          defaultCalendarId: input.calendarId,
+          defaultCalendarId: calendar.id,
           defaultAccountId: input.accountId,
         })
         .where(eq(user.id, ctx.user.id));

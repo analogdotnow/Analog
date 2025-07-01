@@ -43,13 +43,13 @@ const themes = [
 
 // Array where index represents the day number (0-6) and value is the day name
 const weekDays = [
-  "sunday",
   "monday",
   "tuesday",
   "wednesday",
   "thursday",
   "friday",
   "saturday",
+  "sunday",
 ] as const;
 
 function ThemePicker() {
@@ -103,6 +103,7 @@ function StartOfWeekPicker() {
           const dayNumber = weekDays.indexOf(
             value as (typeof weekDays)[number],
           );
+
           setCalendarSettings((prev) => ({
             ...prev,
             weekStartsOn: dayNumber as 1 | 2 | 3 | 4 | 5 | 6 | 7,
@@ -113,13 +114,13 @@ function StartOfWeekPicker() {
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="sunday">Sunday</SelectItem>
           <SelectItem value="monday">Monday</SelectItem>
           <SelectItem value="tuesday">Tuesday</SelectItem>
           <SelectItem value="wednesday">Wednesday</SelectItem>
           <SelectItem value="thursday">Thursday</SelectItem>
           <SelectItem value="friday">Friday</SelectItem>
           <SelectItem value="saturday">Saturday</SelectItem>
+          <SelectItem value="sunday">Sunday</SelectItem>
         </SelectContent>
       </Select>
     </div>
