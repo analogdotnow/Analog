@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { ArrowRight, Star } from "lucide-react";
 import { Variants } from "motion/react";
 
@@ -73,13 +72,13 @@ export function CTASection() {
               Already convinced? Help us build the future of calendar apps.
             </p>
             <div className="flex flex-col justify-center gap-4 sm:flex-row">
-              <Link href="https://github.com/analogdotnow/analog">
+              <a href="https://github.com/analogdotnow/analog">
                 <Button variant="outline" size="lg" className="group">
                   <GitHub className="mr-2 h-4 w-4 fill-primary transition-transform group-hover:scale-110" />
                   Contribute on GitHub
                   <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </Button>
-              </Link>
+              </a>
             </div>
           </div>
         </AnimatedGroup>
