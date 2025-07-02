@@ -15,7 +15,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { providers, type ProviderId } from "@/lib/constants";
-import { cn } from "@/lib/utils";
+import { cn, getBrowserTimezone } from "@/lib/utils";
 
 interface SignInFormProps {
   redirectUrl?: string;
@@ -29,6 +29,9 @@ export function SignInForm({ redirectUrl = "/calendar" }: SignInFormProps) {
       {
         provider: providerId,
         callbackURL: redirectUrl,
+        query: {
+          timeZone: getBrowserTimezone(),
+        },
       },
       {
         onRequest: () => {
