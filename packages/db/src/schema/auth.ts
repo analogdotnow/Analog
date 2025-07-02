@@ -29,7 +29,7 @@ export const session = pgTable("session", {
 export const account = pgTable("account", {
   id: text().primaryKey(),
   accountId: text().notNull(),
-  providerId: text({ enum: ["google", "microsoft"] }).notNull(),
+  providerId: text({ enum: ["google", "microsoft", "zoom"] }).notNull(),
   name: text().notNull().default(""),
   email: text().notNull().default(""),
   image: text(),

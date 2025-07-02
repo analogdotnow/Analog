@@ -1,8 +1,8 @@
 import { account } from "@repo/db/schema";
 
+import { GoogleMeetProvider, ZoomProvider } from "./conferencing";
 import { GoogleCalendarProvider } from "./google-calendar";
-import type { CalendarProvider, MeetingProvider } from "./interfaces";
-import { GoogleMeetProvider, ZoomProvider } from "./meeting-providers";
+import type { CalendarProvider, ConferencingProvider } from "./interfaces";
 import { MicrosoftCalendarProvider } from "./microsoft-calendar";
 
 const supportedProviders = {
@@ -10,7 +10,7 @@ const supportedProviders = {
   microsoft: MicrosoftCalendarProvider,
 } as const;
 
-const supportedMeetingProviders = {
+const supportedConferencingProviders = {
   google: GoogleMeetProvider,
   zoom: ZoomProvider,
 } as const;
@@ -22,7 +22,7 @@ export function accountToProvider(
     throw new Error("Invalid account");
   }
 
-  const Provider = supportedProviders[activeAccount.providerId];
+  const Provider = supportedProviders[activeAccount.providerId as keyof typeof supportedProviders];
 
   if (!Provider) {
     throw new Error("Provider not supported");
@@ -34,21 +34,22 @@ export function accountToProvider(
   });
 }
 
-export function accountToMeetingProvider(
+export function accountToConferencingProvider(
   activeAccount: typeof account.$inferSelect,
   providerId: "google" | "zoom",
-): MeetingProvider {
+): ConferencingProvider {
   if (!activeAccount.accessToken || !activeAccount.refreshToken) {
     throw new Error("Invalid account");
   }
 
-  const Provider = supportedMeetingProviders[providerId];
+  const Provider = supportedConferencingProviders[providerId];
 
   if (!Provider) {
-    throw new Error("Meeting provider not supported");
+    throw new Error("Conferencing provider not supported");
   }
 
   return new Provider({
     accessToken: activeAccount.accessToken,
+    accountId: activeAccount.accountId,
   });
 }

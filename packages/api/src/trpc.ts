@@ -59,7 +59,9 @@ export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
 export const calendarProcedure = protectedProcedure.use(
   async ({ ctx, next }) => {
     try {
-      const accounts = await getAccounts(ctx.user, ctx.headers);
+      const accounts = (await getAccounts(ctx.user, ctx.headers)).filter(
+        (account) => account.providerId !== "zoom"
+      );
 
       const providers = accounts.map((account) => ({
         account,

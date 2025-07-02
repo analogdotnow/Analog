@@ -26,6 +26,12 @@ export const GOOGLE_OAUTH_SCOPES = [
   "https://www.googleapis.com/auth/calendar",
 ];
 
+export const ZOOM_OAUTH_SCOPES = [
+  "user:read:user",
+  "meeting:write:meeting",
+  "offline_access",
+];
+
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "pg",
@@ -34,7 +40,7 @@ export const auth = betterAuth({
     accountLinking: {
       enabled: true,
       allowDifferentEmails: true,
-      trustedProviders: ["google", "microsoft"],
+      trustedProviders: ["google", "microsoft", "zoom"],
     },
   },
   user: {
@@ -115,6 +121,12 @@ export const auth = betterAuth({
       clientId: env.MICROSOFT_CLIENT_ID,
       clientSecret: env.MICROSOFT_CLIENT_SECRET,
       scope: MICROSOFT_OAUTH_SCOPES,
+      overrideUserInfoOnSignIn: true,
+    },
+    zoom: {
+      clientId: env.ZOOM_CLIENT_ID,
+      clientSecret: env.ZOOM_CLIENT_SECRET,
+      scope: ZOOM_OAUTH_SCOPES,
       overrideUserInfoOnSignIn: true,
     },
   },
