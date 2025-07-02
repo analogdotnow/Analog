@@ -16,13 +16,13 @@ import {
 } from "@/components/ui/card";
 import { providers, type ProviderId } from "@/lib/constants";
 import {
-  cn,
   getBrowserDateFormat,
   getBrowserLocale,
   getBrowserTimezone,
   getWeekStartsOn,
   uses24HourClock,
-} from "@/lib/utils";
+} from "@/lib/localization";
+import { cn } from "@/lib/utils";
 
 interface SignInFormProps {
   redirectUrl?: string;
