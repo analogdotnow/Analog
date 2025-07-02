@@ -12,10 +12,12 @@
   },
   "peerDependencies": {
     "@trpc/server": "^11.4.2",
-    "better-auth": "1.2.9-beta.8",
+    "better-auth": "1.2.12",
     "next": "^15.3.2",
     "server-only": "^0.0.1",
     "superjson": "^2.2.2",
+    "superjson-temporal": "^0.3.1",
+    "temporal-zod": "^0.3.1",
     "zod": "^3.25.12"
   },
   "dependencies": {

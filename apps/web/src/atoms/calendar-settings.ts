@@ -6,12 +6,6 @@ export interface CalendarSettings {
   weekStartsOn: 1 | 2 | 3 | 4 | 5 | 6 | 7;
   use12Hour: boolean;
   defaultTimeZone: string;
-  defaultCalendar: {
-    calendarId: string;
-    accountId: string;
-    providerId: "google" | "microsoft";
-    timeZone: string;
-  };
   defaultEventDuration: number;
 }
 
@@ -21,13 +15,7 @@ export const calendarSettingsAtom = atomWithStorage<CalendarSettings>(
     locale: "en-GB",
     weekStartsOn: 1,
     use12Hour: false,
-    defaultTimeZone: "Europe/Amsterdam",
-    defaultCalendar: {
-      calendarId: "primary",
-      accountId: "",
-      providerId: "google",
-      timeZone: "Europe/Amsterdam",
-    },
+    defaultTimeZone: "Asia/Oral",
     defaultEventDuration: 60,
   },
 );

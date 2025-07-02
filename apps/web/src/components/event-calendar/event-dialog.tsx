@@ -305,6 +305,10 @@ export function EventDialog({
   }, []); // Empty dependency array ensures this only runs once
 
   const handleSave = () => {
+    if (event?.readOnly) {
+      return;
+    }
+
     const start = new Date(startDate);
     const end = new Date(endDate);
 
@@ -367,6 +371,7 @@ export function EventDialog({
       calendarId: event?.calendarId ?? "primary",
       providerId: event?.providerId ?? defaultAccount.providerId,
       accountId: event?.accountId ?? defaultAccount.id,
+      readOnly: false,
     });
   };
 

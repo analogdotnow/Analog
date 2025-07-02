@@ -110,5 +110,6 @@ export function toCalendarEvent({
     color: undefined,
     providerId,
     accountId,
+    readOnly: false,
   };
 }
