@@ -34,6 +34,20 @@ export interface CalendarEvent {
   accountId: string;
   calendarId: string;
   metadata?: Record<string, unknown>;
+  conferenceData?: {
+    entryPoints: EntryPoint[];
+    conferenceId: string;
+    conferenceSolution: {
+      name: string;
+    };
+  };
+}
+
+export interface EntryPoint {
+  entryPointType: "video" | "phone";
+  uri: string;
+  label: string;
+  passcode: string;
 }
 
 export interface Attendee {
@@ -82,4 +96,50 @@ export interface CalendarProvider {
       comment?: string;
     },
   ): Promise<void>;
+}
+
+export interface MeetingProvider {
+  providerId: "zoom" | "google";
+  createMeeting(options: CreateMeetingOptions): Promise<Meeting>;
+  updateMeeting(
+    meetingId: string,
+    options: UpdateMeetingOptions,
+  ): Promise<Meeting>;
+  deleteMeeting(meetingId: string): Promise<void>;
+  getMeeting(meetingId: string): Promise<Meeting>;
+}
+
+export interface Meeting {
+  id: string;
+  joinUrl: string;
+  hostUrl?: string;
+  password?: string;
+  dialInNumbers?: string[];
+  providerId: string;
+  settings?: Record<string, unknown>;
+}
+
+export interface CreateMeetingOptions {
+  title: string;
+  startTime: Temporal.ZonedDateTime;
+  duration: number; // minutes
+  timezone: string;
+  settings?: MeetingSettings;
+}
+
+export interface UpdateMeetingOptions {
+  title?: string;
+  startTime?: Temporal.ZonedDateTime;
+  duration?: number;
+  timezone?: string;
+  settings?: MeetingSettings;
+}
+
+export interface MeetingSettings {
+  waitingRoom?: boolean;
+  muteOnEntry?: boolean;
+  allowRecording?: boolean;
+  requirePassword?: boolean;
+  // Provider-specific settings can be added via additional properties
+  [key: string]: unknown;
 }

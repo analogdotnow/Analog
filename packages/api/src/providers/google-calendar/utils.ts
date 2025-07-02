@@ -84,6 +84,7 @@ export function parseGoogleCalendarEvent({
     providerId: "google",
     accountId,
     calendarId,
+    conferenceData: parseGoogleCalendarConferenceData(event.conferenceData),
   };
 }
 
@@ -160,6 +161,47 @@ function parseGoogleCalendarAttendeeType(
   }
 
   return "required";
+}
+
+function parseGoogleCalendarConferenceData(
+  conferenceData: GoogleCalendarEvent["conferenceData"],
+): CalendarEvent["conferenceData"] {
+  if (!conferenceData?.entryPoints?.length || !conferenceData.conferenceId) {
+    return undefined;
+  }
+
+  // Filter and map entry points to match our interface
+  const entryPoints = conferenceData.entryPoints
+    .filter(
+      (entry) =>
+        entry.entryPointType &&
+        entry.uri &&
+        (entry.entryPointType === "video" || entry.entryPointType === "phone"),
+    )
+    .map((entry) => ({
+      entryPointType: entry.entryPointType as "video" | "phone",
+      uri: entry.uri!,
+      label: entry.label || entry.uri!,
+      passcode:
+        entry.accessCode ||
+        entry.passcode ||
+        entry.meetingCode ||
+        entry.password ||
+        entry.pin ||
+        "",
+    }));
+
+  if (entryPoints.length === 0) {
+    return undefined;
+  }
+
+  return {
+    entryPoints,
+    conferenceId: conferenceData.conferenceId,
+    conferenceSolution: {
+      name: conferenceData.conferenceSolution?.name || "Google Meet",
+    },
+  };
 }
 
 export function parseGoogleCalendarAttendee(
