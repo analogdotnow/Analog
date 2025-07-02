@@ -15,7 +15,9 @@
   },
   "dependencies": {
     "@repo/db": "workspace:*",
-    "@repo/env": "workspace:*"
+    "@repo/env": "workspace:*",
+    "@upstash/redis": "^1.35.0",
+    "ioredis": "^5.3.2"
   },
   "devDependencies": {
     "@microsoft/microsoft-graph-types": "^2.40.0",
