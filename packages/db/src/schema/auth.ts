@@ -21,6 +21,7 @@ export const user = pgTable("user", {
     onDelete: "set null",
   }),
   defaultCalendarId: text(),
+  timeZone: text("time_zone").notNull().default("UTC"),
   // .references((): AnyPgColumn => calendars.id, {
   //   onDelete: "set null",
   // }),

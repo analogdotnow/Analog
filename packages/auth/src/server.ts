@@ -60,6 +60,11 @@ export const auth = betterAuth({
         required: false,
         input: false,
       },
+      timeZone: {
+        type: "string",
+        required: false,
+        input: false,
+      },
     },
   },
   databaseHooks: {
@@ -70,6 +75,7 @@ export const auth = betterAuth({
         after: createProviderHandler,
       },
     },
+    user: {},
   },
   socialProviders: {
     google: {
