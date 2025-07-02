@@ -70,24 +70,6 @@ export function Footer() {
             </h3>
             <WaitlistForm alignment="left" />
           </div>
-          {/* <div>
-            <h3 className="text-sm font-semibold text-foreground">
-              Stay Updated
-            </h3>
-            <p className="mt-4 text-sm text-muted-foreground">
-              Get the latest updates and early access to new features.
-            </p>
-            <div className="mt-4 flex">
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="flex-1 rounded-l-md border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/20 focus:outline-none"
-              />
-              <Button size="sm" className="rounded-l-none">
-                Subscribe
-              </Button>
-            </div>
-          </div> */}
         </div>
 
         {/* Bottom section */}
@@ -97,17 +79,8 @@ export function Footer() {
               <span>
                 © {new Date().getFullYear()} Analog. All rights reserved.
               </span>
-              {/* <div className="flex space-x-4">
-                {footerLinks.legal.map((link) => (
-                  <Link
-                    key={link.name}
-                    href={link.href}
-                    className="transition-colors hover:text-foreground"
-                  >
-                    {link.name}
-                  </Link>
-                ))}
-              </div> */}
+
+              {/* TODO: Add legal links */}
             </div>
 
             <div className="flex items-center space-x-2 text-sm text-muted-foreground">

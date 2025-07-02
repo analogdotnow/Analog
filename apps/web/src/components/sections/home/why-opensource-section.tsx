@@ -1,35 +1,10 @@
-import { Eye, Github, Lock, Users } from "lucide-react";
+import Link from "next/link";
 import { Variants } from "motion/react";
 
+import { GitHub } from "@/components/icons/github";
 import { AnimatedGroup } from "@/components/ui/animated-group";
 import { Button } from "@/components/ui/button";
-
-const benefits = [
-  {
-    icon: Eye,
-    title: "Transparency",
-    description:
-      "Every line of code is open for review. No hidden features or data collection.",
-  },
-  {
-    icon: Lock,
-    title: "Security",
-    description:
-      "Community-driven security audits and rapid vulnerability fixes.",
-  },
-  {
-    icon: Users,
-    title: "Community",
-    description:
-      "Join thousands of developers contributing to make Analog better.",
-  },
-  {
-    icon: Github,
-    title: "Freedom",
-    description:
-      "Deploy your own instance, modify features, or contribute back to the project.",
-  },
-];
+import { benefits } from "@/lib/constants/benefits";
 
 const transitionVariants: Record<string, Variants> = {
   container: {
@@ -77,7 +52,9 @@ export function WhyOpensourceSection() {
               <AnimatedGroup key={index} variants={transitionVariants}>
                 <div className="flex items-start gap-4 rounded-xl border border-border/50 bg-background p-6">
                   <div className="rounded-lg bg-primary/10 p-3">
-                    <benefit.icon className="h-6 w-6 text-primary" />
+                    <benefit.icon
+                      className={`h-6 w-6 text-primary ${benefit.title === "Freedom" ? "fill-primary" : ""}`}
+                    />
                   </div>
                   <div>
                     <h3 className="mb-2 text-lg font-semibold">
@@ -93,13 +70,20 @@ export function WhyOpensourceSection() {
           </div>
 
           <div className="text-center">
-            <Button size="lg" className="mr-4 mb-4">
-              <Github className="mr-2 h-5 w-5" />
-              View on GitHub
-            </Button>
-            <Button variant="outline" size="lg">
-              Learn More
-            </Button>
+            <Link
+              href="https://github.com/analog-calendar/analog"
+              target="_blank"
+            >
+              <Button size="lg" className="mr-4 mb-4">
+                <GitHub className="mr-2" />
+                View on GitHub
+              </Button>
+            </Link>
+            <Link href="https://discord.gg/K3AsABDKUm" target="_blank">
+              <Button variant="outline" size="lg">
+                Join the Community
+              </Button>
+            </Link>
           </div>
         </AnimatedGroup>
       </div>

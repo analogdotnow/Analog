@@ -51,7 +51,7 @@ export function CTASection() {
                 <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
               </div>
               <span className="text-sm font-medium text-muted-foreground">
-                Join thousands of developers
+                Join our growing community
               </span>
             </div>
             <h2 className="mb-6 font-satoshi text-3xl font-semibold md:text-4xl lg:text-5xl">

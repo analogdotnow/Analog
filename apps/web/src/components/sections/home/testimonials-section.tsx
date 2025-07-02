@@ -2,30 +2,7 @@ import { Quote } from "lucide-react";
 import { Variants } from "motion/react";
 
 import { AnimatedGroup } from "@/components/ui/animated-group";
-
-const testimonials = [
-  {
-    quote:
-      "Analog has completely transformed how I manage my schedule. The open-source nature gives me peace of mind about my data.",
-    author: "Sarah Chen",
-    role: "Senior Developer",
-    company: "TechCorp",
-  },
-  {
-    quote:
-      "Finally, a calendar that doesn't spy on me. The interface is clean, fast, and exactly what I needed.",
-    author: "Marcus Rodriguez",
-    role: "Product Manager",
-    company: "StartupXYZ",
-  },
-  {
-    quote:
-      "As a developer, I love being able to contribute to the tools I use daily. Analog is the future of calendar apps.",
-    author: "Alex Thompson",
-    role: "Full Stack Engineer",
-    company: "DevStudio",
-  },
-];
+import { testimonials } from "@/lib/constants/testimonials";
 
 const transitionVariants: Record<string, Variants> = {
   container: {
@@ -81,7 +58,9 @@ export function TestimonialsSection() {
                       <span className="text-sm font-semibold text-primary">
                         {testimonial.author
                           .split(" ")
-                          .map((n) => n[0])
+                          .filter((n) => n.length > 0)
+                          .map((n) => n[0]?.toUpperCase())
+                          .filter(Boolean)
                           .join("")}
                       </span>
                     </div>

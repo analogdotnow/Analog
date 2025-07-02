@@ -2,33 +2,7 @@ import { Github, Shield, Users, Zap } from "lucide-react";
 import { Variants } from "motion/react";
 
 import { AnimatedGroup } from "@/components/ui/animated-group";
-
-const stats = [
-  {
-    icon: Github,
-    value: "2.4k+",
-    label: "GitHub Stars",
-    description: "Community support",
-  },
-  {
-    icon: Users,
-    value: "15k+",
-    label: "Active Users",
-    description: "Worldwide adoption",
-  },
-  {
-    icon: Zap,
-    value: "99.9%",
-    label: "Uptime",
-    description: "Reliable performance",
-  },
-  {
-    icon: Shield,
-    value: "100%",
-    label: "Open Source",
-    description: "Transparent code",
-  },
-];
+import { stats } from "@/lib/constants/stats";
 
 const transitionVariants: Record<string, Variants> = {
   container: {
@@ -66,7 +40,9 @@ export function StatsSection() {
               <AnimatedGroup key={index} variants={transitionVariants}>
                 <div className="text-center">
                   <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
-                    <stat.icon className="h-8 w-8 text-primary" />
+                    <stat.icon
+                      className={`h-8 w-8 text-primary ${stat.label === "GitHub Stars" ? "fill-primary" : ""}`}
+                    />
                   </div>
                   <div className="mb-2 font-satoshi text-3xl font-bold text-foreground md:text-4xl">
                     {stat.value}
