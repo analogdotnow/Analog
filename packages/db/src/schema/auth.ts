@@ -1,6 +1,7 @@
 import { relations } from "drizzle-orm";
 import {
   boolean,
+  integer,
   pgTable,
   text,
   timestamp,
@@ -22,6 +23,10 @@ export const user = pgTable("user", {
   }),
   defaultCalendarId: text(),
   timeZone: text("time_zone").notNull().default("UTC"),
+  locale: text().notNull().default("en-US"),
+  dateFormat: text("date_format").notNull().default("MDY"),
+  weekStartsOn: integer("week_starts_on").notNull().default(1),
+  use24Hour: boolean("use24_hour").notNull().default(false),
   // .references((): AnyPgColumn => calendars.id, {
   //   onDelete: "set null",
   // }),
