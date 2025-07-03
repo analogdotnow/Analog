@@ -1,9 +1,10 @@
+import { Account, auth } from "@repo/auth/server";
 import { db } from "@repo/db";
 import { GoogleCalendar } from "@repo/google-calendar";
-import { eq } from "drizzle-orm";
-import { calendars, events, account as accounts } from "@repo/db/schema";
-import { parseGoogleCalendarEvent, parseGoogleCalendarCalendarListEntry } from "./utils";
-import { Temporal } from "temporal-polyfill";
+
+import { parseHeaders } from "./channels/headers";
+import { handleCalendarListMessage } from "./channels/calendars";
+import { handleEventsMessage } from "./channels/events";
 
 const DEFAULT_TTL = "3600";
 
@@ -13,14 +14,18 @@ interface SubscribeCalendarListOptions {
   webhookUrl: string;
 }
 
-export async function subscribeCalendarList({ client, subscriptionId, webhookUrl }: SubscribeCalendarListOptions) {
+export async function subscribeCalendarList({
+  client,
+  subscriptionId,
+  webhookUrl,
+}: SubscribeCalendarListOptions) {
   const response = await client.users.me.calendarList.watch({
     id: subscriptionId,
     type: "web_hook",
     address: webhookUrl,
     params: {
-      ttl: DEFAULT_TTL
-    }
+      ttl: DEFAULT_TTL,
+    },
   });
 
   return {
@@ -38,14 +43,19 @@ interface SubscribeEventsOptions {
   webhookUrl: string;
 }
 
-export async function subscribeEvents({ client, calendarId, subscriptionId, webhookUrl }: SubscribeEventsOptions) {
+export async function subscribeEvents({
+  client,
+  calendarId,
+  subscriptionId,
+  webhookUrl,
+}: SubscribeEventsOptions) {
   const response = await client.calendars.events.watch(calendarId, {
     id: subscriptionId,
     type: "web_hook",
     address: webhookUrl,
     params: {
-      ttl: DEFAULT_TTL
-    }
+      ttl: DEFAULT_TTL,
+    },
   });
 
   return {
@@ -63,223 +73,90 @@ interface UnsubscribeOptions {
   resourceId: string;
 }
 
-export async function unsubscribe({ client, subscriptionId, resourceId }: UnsubscribeOptions) {
+export async function unsubscribe({
+  client,
+  subscriptionId,
+  resourceId,
+}: UnsubscribeOptions) {
   await client.stopWatching.stopWatching({
     id: subscriptionId,
     resourceId,
   });
 }
 
-// Utility: parse the `X-Goog-Channel-Token` header. We expect a base64 encoded JSON string
-// of the shape: { type: "google.calendar-list" | "google.calendar-events", accountId: string, calendarId?: string }
-function parseToken(token?: string | null):
-  | ({
-      type: "google.calendar-list" | "google.calendar-events";
-      accountId: string;
-      calendarId?: string;
-    })
-  | null {
-  if (!token) return null;
-
-  try {
-    const decoded = Buffer.from(token, "base64").toString("utf8");
-    return JSON.parse(decoded);
-  } catch {
-    return null;
-  }
+interface FindChannelOptions {
+  channelId: string;
 }
 
-// Helper to convert Temporal.* values to javascript Date for database persistence
-function temporalToDate(
-  value: Temporal.PlainDate | Temporal.Instant | Temporal.ZonedDateTime,
-): Date {
-  if (value instanceof Temporal.Instant) {
-    return new Date(value.epochMilliseconds);
-  }
-
-  if (value instanceof Temporal.ZonedDateTime) {
-    return new Date(value.toInstant().epochMilliseconds);
-  }
-
-  // Temporal.PlainDate
-  return new Date(value.toString());
+async function findChannel({ channelId }: FindChannelOptions) {
+  return await db.query.channel.findFirst({
+    where: (table, { eq }) => eq(table.id, channelId),
+  });
 }
 
-export async function handleCalendarListMessage(request: Request) {
-  const token = parseToken(request.headers.get("X-Goog-Channel-Token"));
-  if (!token || token.type !== "google.calendar-list") {
-    return;
-  }
+export async function withAccessToken(account: Account) {
+  const { accessToken } = await auth.api.getAccessToken({
+    body: {
+      providerId: account.providerId,
+      accountId: account.id,
+      userId: account.userId,
+    },
+  });
 
-  // Locate account so that we can talk to Google on its behalf
-  const [accountRow] = await db
-    .select()
-    .from(accounts)
-    .where(eq(accounts.id, token.accountId));
-
-  if (!accountRow?.accessToken) return;
-
-  const client = new GoogleCalendar({ accessToken: accountRow.accessToken });
-
-  // Fetch latest calendar list
-  const { items } = await client.users.me.calendarList.list();
-  if (!items) return;
-
-  // Upsert calendars
-  for (const item of items) {
-    if (!item.id) continue;
-
-    // Use utils parser to transform API response into internal Calendar type
-    const parsedCalendar = parseGoogleCalendarCalendarListEntry({
-      accountId: accountRow.id,
-      entry: item,
-    });
-
-    const values = {
-      id: parsedCalendar.id,
-      name: parsedCalendar.name,
-      description: parsedCalendar.description ?? null,
-      timeZone: parsedCalendar.timeZone ?? null,
-      primary: parsedCalendar.primary,
-      color: parsedCalendar.color ?? null,
-      calendarId: parsedCalendar.id,
-      providerId: "google" as const,
-      accountId: parsedCalendar.accountId,
-      updatedAt: new Date(),
-    };
-
-    const calendarIdStr = parsedCalendar.id;
-
-    const existing = await db.query.calendars.findFirst({
-      where: (table, { eq }) => eq(table.id, calendarIdStr),
-    });
-
-    if (existing) {
-      await db.update(calendars).set(values).where(eq(calendars.id, calendarIdStr));
-    } else {
-      await db.insert(calendars).values({
-        ...values,
-        createdAt: new Date(),
-      });
-    }
-  }
-}
-
-export async function handleEventsMessage(request: Request) {
-  const token = parseToken(request.headers.get("X-Goog-Channel-Token"));
-  if (!token || token.type !== "google.calendar-events" || !token.calendarId) {
-    return;
-  }
-
-  const calendarId = token.calendarId;
-
-  // Locate account & calendar rows
-  const [accountRow] = await db
-    .select()
-    .from(accounts)
-    .where(eq(accounts.id, token.accountId));
-  if (!accountRow?.accessToken) return;
-
-  const [calendarRow] = await db
-    .select()
-    .from(calendars)
-    .where(eq(calendars.id, calendarId));
-
-  const client = new GoogleCalendar({ accessToken: accountRow.accessToken });
-
-  const listParams: Record<string, unknown> = {
-    singleEvents: true,
-    showDeleted: true,
-    maxResults: 2500,
+  return {
+    ...account,
+    accessToken: accessToken ?? account.accessToken,
   };
+}
 
-  if (calendarRow?.syncToken) {
-    listParams["syncToken"] = calendarRow.syncToken;
+interface FindAccountOptions {
+  accountId: string;
+}
+
+async function findAccount({ accountId }: FindAccountOptions) {
+  const account = await db.query.account.findFirst({
+    where: (table, { eq }) => eq(table.id, accountId),
+  });
+
+  if (!account) {
+    throw new Error(`Account ${accountId} not found`);
   }
 
-  const response = await client.calendars.events.list(calendarId, listParams);
-
-  // Persist nextSyncToken if present
-  if (response.nextSyncToken) {
-    await db
-      .update(calendars)
-      .set({ syncToken: response.nextSyncToken, updatedAt: new Date() })
-      .where(eq(calendars.id, calendarId));
-  }
-
-  const items = response.items ?? [];
-  if (items.length === 0) return;
-
-  const calendarObj = {
-    id: calendarId,
-    name: calendarRow?.name ?? "",
-    readOnly: calendarRow?.primary === false,
-    providerId: "google" as const,
-    accountId: accountRow.id,
-    timeZone: calendarRow?.timeZone ?? undefined,
-    primary: Boolean(calendarRow?.primary),
-    color: calendarRow?.color ?? null,
-  } as const;
-
-  for (const event of items) {
-    if (event.status === "cancelled") {
-      // Delete locally
-      await db.delete(events).where(eq(events.id, event.id!));
-      continue;
-    }
-
-    const parsed = parseGoogleCalendarEvent({
-      calendar: calendarObj as any, // minimal calendar satisfies function
-      accountId: accountRow.id,
-      event,
-    });
-
-    const values = { 
-      id: parsed.id,
-      title: parsed.title,
-      description: parsed.description ?? null,
-      start: temporalToDate(parsed.start),
-      startTimeZone: "timeZone" in parsed.start ? (parsed.start as any).timeZone : null,
-      end: temporalToDate(parsed.end),
-      endTimeZone: "timeZone" in parsed.end ? (parsed.end as any).timeZone : null,
-      allDay: parsed.allDay,
-      location: parsed.location ?? null,
-      status: parsed.status ?? null,
-      url: parsed.url ?? null,
-      calendarId: calendarId,
-      providerId: "google" as const,
-      accountId: accountRow.id,
-    
-      } as const;
-
-    const existingEvent = await db.query.events.findFirst({
-      where: (table, { eq }) => eq(table.id, parsed.id),
-    });
-
-    await db.insert(events).values(values).onConflictDoUpdate({
-        target: [events.id],
-        set: {
-          ...values,
-        },
-      });
-  }
+  return await withAccessToken(account);
 }
 
 export async function handler() {
   const POST = async (request: Request) => {
-    // Quick health-check: Google expects a 2xx response to acknowledge.
+    const headers = await parseHeaders({ headers: request.headers });
 
-    // Decide which handler to invoke based on the token header
-    const token = parseToken(request.headers.get("X-Goog-Channel-Token"));
-
-    if (!token) {
-      return new Response("Missing or invalid channel token", { status: 202 });
+    if (!headers) {
+      return new Response("Missing or invalid headers", { status: 400 });
     }
 
-    if (token.type === "google.calendar-list") {
-      await handleCalendarListMessage(request);
-    } else if (token.type === "google.calendar-events") {
-      await handleEventsMessage(request);
+    if (headers.resourceState === "sync") {
+      return new Response("OK", { status: 200 });
+    }
+
+    const channel = await findChannel({ channelId: headers.id });
+
+    if (!channel) {
+      return new Response("Channel not found", { status: 404 });
+    }
+
+    const account = await findAccount({ accountId: channel.accountId });
+
+    if (!account.accessToken) {
+      return new Response("Failed to obtain a valid access token", {
+        status: 500,
+      });
+    }
+
+    if (channel.type === "google.calendar") {
+      await handleCalendarListMessage({ channel, headers, account: account as Account & { accessToken: string } });
+    } else if (channel.type === "google.event") {
+      await handleEventsMessage({ channel, headers, account: account as Account & { accessToken: string } });
+    } else {
+      return new Response("Invalid channel type", { status: 400 });
     }
 
     return new Response(null, { status: 204 });

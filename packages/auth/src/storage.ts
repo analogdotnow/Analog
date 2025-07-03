@@ -1,5 +1,6 @@
-import { SecondaryStorage } from "better-auth";
 import { Redis } from "@upstash/redis";
+import { SecondaryStorage } from "better-auth";
+
 import { env } from "@repo/env/server";
 
 const redis = new Redis({
@@ -22,5 +23,5 @@ export const secondaryStorage: SecondaryStorage = {
   },
   delete: async (key) => {
     await redis.del(key);
-  }
-}
+  },
+};
