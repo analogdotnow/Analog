@@ -12,10 +12,10 @@ export interface CalendarSettings {
 export const calendarSettingsAtom = atomWithStorage<CalendarSettings>(
   "analog-calendar-settings",
   {
-    locale: "en-GB",
+    locale: "en-US",
     weekStartsOn: 1,
     use12Hour: false,
-    defaultTimeZone: "Asia/Oral",
+    defaultTimeZone: "UTC",
     defaultEventDuration: 60,
   },
 );

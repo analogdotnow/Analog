@@ -23,7 +23,7 @@ import { useTRPC } from "@/lib/trpc/client";
 
 type Event = RouterOutputs["events"]["list"]["events"][number];
 
-export function useCalendarActions() {
+export function useCalendar() {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const { currentDate } = useCalendarState();
@@ -94,6 +94,18 @@ export function useCalendarActions() {
 
   const transformedEvents = useMemo(() => {
     if (!data?.events) return [];
+
+    // if (selectedEvents.length === 0) {
+    //   return events;
+    // }
+    //
+    // setSelectedEvents(selectedEvents.reduce<CalendarEvent[]>((acc, event) => {
+    //   const found = events.find((e) => e.id === event.id);
+    //   if (found) {
+    //     acc.push(found);
+    //   }
+    //   return acc;
+    // }, []));
 
     return data.events.map((event): CalendarEvent => {
       return {

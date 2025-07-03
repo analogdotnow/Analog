@@ -35,7 +35,7 @@ function VisibleCalendars({ calendars }: VisibleCalendarProps) {
         ?.slice(0, calendars.length > 3 ? 3 : calendars.length)
         .map((calendar) => (
           <div
-            key={calendar.id}
+            key={`${calendar.accountId}.${calendar.id}`}
             className="size-4 rounded-full bg-(--calendar-color) ring-2 ring-background group-hover/trigger:ring-border"
             style={
               {

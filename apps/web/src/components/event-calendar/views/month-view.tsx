@@ -1,6 +1,12 @@
 "use client";
 
-import { createContext, useCallback, useContext, useMemo } from "react";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useRef,
+} from "react";
 import {
   eachDayOfInterval,
   endOfMonth,
@@ -57,6 +63,8 @@ interface MonthViewContextType {
   eventCollection: EventCollectionForMonth;
   onEventClick: (event: CalendarEvent, e: React.MouseEvent) => void;
   onEventCreate: (startTime: Date) => void;
+  containerRef: React.RefObject<HTMLDivElement | null>;
+  onEventUpdate: (event: CalendarEvent) => void;
 }
 
 const MonthViewContext = createContext<MonthViewContextType | null>(null);
@@ -76,6 +84,7 @@ interface MonthViewProps {
   events: CalendarEvent[];
   onEventSelect: (event: CalendarEvent) => void;
   onEventCreate: (startTime: Date) => void;
+  onEventUpdate: (event: CalendarEvent) => void;
 }
 
 export function MonthView({
@@ -83,6 +92,7 @@ export function MonthView({
   events,
   onEventSelect,
   onEventCreate,
+  onEventUpdate,
 }: MonthViewProps) {
   const { days, weeks } = useMemo(() => {
     const monthStart = startOfMonth(currentDate);
@@ -99,6 +109,8 @@ export function MonthView({
 
     return { days: allDays, weeks: weeksResult };
   }, [currentDate]);
+
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
   const handleEventClick = useCallback(
     (event: CalendarEvent, e: React.MouseEvent) => {
@@ -119,13 +131,15 @@ export function MonthView({
     eventCollection,
     onEventClick: handleEventClick,
     onEventCreate,
+    containerRef,
+    onEventUpdate,
   };
 
   return (
     <MonthViewContext.Provider value={contextValue}>
       <div data-slot="month-view" className="contents">
         <MonthViewHeader />
-        <MonthViewWeeks />
+        <MonthViewWeeks ref={containerRef} />
       </div>
     </MonthViewContext.Provider>
   );
@@ -137,7 +151,7 @@ function MonthViewHeader() {
 
   return (
     <div
-      className="grid border-b border-border/70 transition-[grid-template-columns] duration-200 ease-linear"
+      className="grid justify-items-stretch border-b border-border/70 transition-[grid-template-columns] duration-200 ease-linear"
       style={{ gridTemplateColumns }}
     >
       {WEEKDAYS.map((day, index) => {
@@ -148,7 +162,7 @@ function MonthViewHeader() {
           <div
             key={day}
             className={cn(
-              "overflow-hidden py-2 text-center text-sm text-muted-foreground/70",
+              "relative py-2 text-center text-sm text-muted-foreground/70",
               !isDayVisible && "w-0",
             )}
             style={{ visibility: isDayVisible ? "visible" : "hidden" }}
@@ -161,37 +175,55 @@ function MonthViewHeader() {
   );
 }
 
-function MonthViewWeeks() {
-  const { weeks, gridTemplateColumns } = useMonthViewContext();
+type MonthViewWeekProps = React.ComponentProps<"div">;
 
-  return (
-    <div className="grid h-[calc(100%-37px)] flex-1 auto-rows-fr">
-      {weeks.map((week, weekIndex) => (
-        <div
-          key={`week-${weekIndex}`}
-          className="grid transition-[grid-template-columns] duration-200 ease-linear [&:last-child>*]:border-b-0"
-          style={{ gridTemplateColumns }}
-        >
-          {week.map((day, dayIndex) => (
-            <MonthViewDay
-              key={day.toString()}
-              day={day}
-              weekIndex={weekIndex}
-              dayIndex={dayIndex}
-            />
-          ))}
-        </div>
-      ))}
-    </div>
-  );
-}
+const MonthViewWeeks = React.forwardRef<HTMLDivElement, MonthViewWeekProps>(
+  ({ className, ...props }, ref) => {
+    const { weeks, gridTemplateColumns } = useMonthViewContext();
+
+    const rows = weeks.length;
+
+    return (
+      <div
+        ref={ref}
+        className={cn(
+          "grid h-[calc(100%-37px)] flex-1 auto-rows-fr",
+          className,
+        )}
+        {...props}
+      >
+        {weeks.map((week, weekIndex) => (
+          <div
+            key={`week-${weekIndex}`}
+            className="grid transition-[grid-template-columns] duration-200 ease-linear [&:last-child>*]:border-b-0"
+            style={{ gridTemplateColumns }}
+          >
+            {week.map((day, dayIndex) => (
+              <MonthViewDay
+                key={day.toString()}
+                day={day}
+                rows={rows}
+                weekIndex={weekIndex}
+                dayIndex={dayIndex}
+              />
+            ))}
+          </div>
+        ))}
+      </div>
+    );
+  },
+);
+
+MonthViewWeeks.displayName = "MonthViewWeeks";
 
 function MonthViewDay({
   day,
+  rows,
   weekIndex,
   dayIndex,
 }: {
   day: Date;
+  rows: number;
   weekIndex: number;
   dayIndex: number;
 }) {
@@ -214,7 +246,7 @@ function MonthViewDay({
   return (
     <div
       className={cn(
-        "group overflow-hidden border-r border-b border-border/70 last:border-r-0 data-outside-cell:bg-muted/25 data-outside-cell:text-muted-foreground/70",
+        "group border-r border-b border-border/70 last:border-r-0 data-outside-cell:bg-muted/25 data-outside-cell:text-muted-foreground/70",
         !isDayVisible && "w-0",
       )}
       data-today={isToday(day) || undefined}
@@ -222,10 +254,14 @@ function MonthViewDay({
       style={{ visibility: isDayVisible ? "visible" : "hidden" }}
     >
       <DroppableCell id={cellId} date={day} onClick={handleDayClick}>
-        <div className="mt-1 inline-flex size-6 items-center justify-center rounded-full text-sm group-data-today:bg-primary group-data-today:text-primary-foreground">
+        <div className="mt-1 ml-0.5 inline-flex size-6 items-center justify-center rounded-full text-sm group-data-today:bg-primary group-data-today:text-primary-foreground">
           {format(day, "d")}
         </div>
-        <MonthViewDayEvents day={day} isReferenceCell={isReferenceCell} />
+        <MonthViewDayEvents
+          day={day}
+          rows={rows}
+          isReferenceCell={isReferenceCell}
+        />
       </DroppableCell>
     </div>
   );
@@ -233,9 +269,11 @@ function MonthViewDay({
 
 function MonthViewDayEvents({
   day,
+  rows,
   isReferenceCell,
 }: {
   day: Date;
+  rows: number;
   isReferenceCell: boolean;
 }) {
   const { eventCollection } = useMonthViewContext();
@@ -262,7 +300,7 @@ function MonthViewDayEvents({
   return (
     <div
       ref={isReferenceCell ? contentRef : null}
-      className="min-h-[calc((var(--event-height)+var(--event-gap))*2)] sm:min-h-[calc((var(--event-height)+var(--event-gap))*3)] lg:min-h-[calc((var(--event-height)+var(--event-gap))*4)]"
+      className="min-h-[calc((var(--event-height)+var(--event-gap))*2)] space-y-0.5 sm:min-h-[calc((var(--event-height)+var(--event-gap))*3)] lg:min-h-[calc((var(--event-height)+var(--event-gap))*4)]"
     >
       {sortEventsForDisplay(allDayEvents).map((event, index) => {
         const isHidden = Boolean(visibleCount && index >= visibleCount);
@@ -271,9 +309,10 @@ function MonthViewDayEvents({
 
         return (
           <MonthViewEvent
-            key={event.id}
+            key={`${event.accountId}-${event.calendarId}-${event.id}`}
             event={event}
             day={day}
+            rows={rows}
             isHidden={isHidden}
           />
         );
@@ -293,13 +332,15 @@ function MonthViewDayEvents({
 function MonthViewEvent({
   event,
   day,
+  rows,
   isHidden,
 }: {
   event: CalendarEvent;
   day: Date;
+  rows: number;
   isHidden: boolean;
 }) {
-  const { onEventClick } = useMonthViewContext();
+  const { onEventClick, onEventUpdate, containerRef } = useMonthViewContext();
   const { isFirstDay, isLastDay } = useMemo(
     () => getEventSpanInfoForDay(event, day),
     [event, day],
@@ -353,9 +394,12 @@ function MonthViewEvent({
       <DraggableEvent
         event={event}
         view="month"
+        rows={rows}
         onClick={(e) => onEventClick(event, e)}
+        onEventUpdate={onEventUpdate}
         isFirstDay={isFirstDay}
         isLastDay={isSingleDay ? true : isLastDay}
+        containerRef={containerRef}
       />
     </div>
   );
@@ -376,7 +420,7 @@ function MonthViewMoreEventsPopover({
     <Popover modal>
       <PopoverTrigger asChild>
         <button
-          className="mt-[var(--event-gap)] flex h-[var(--event-height)] w-full items-center overflow-hidden px-1 text-left text-[10px] text-muted-foreground backdrop-blur-md transition outline-none select-none hover:bg-muted/50 hover:text-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 sm:px-2 sm:text-xs"
+          className="mt-[var(--event-gap)] flex h-[var(--event-height)] w-full items-center px-1 text-left text-[10px] text-muted-foreground backdrop-blur-md transition outline-none select-none hover:bg-muted/50 hover:text-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 sm:px-2 sm:text-xs"
           onClick={(e) => e.stopPropagation()}
         >
           <span>
@@ -404,7 +448,7 @@ function MonthViewMoreEventsPopover({
 
               return (
                 <EventItem
-                  key={event.id}
+                  key={`${event.accountId}-${event.calendarId}-${event.id}`}
                   onClick={(e) => onEventClick(event, e)}
                   event={event}
                   view="month"

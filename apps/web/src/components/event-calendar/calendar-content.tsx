@@ -1,5 +1,7 @@
 "use client";
 
+import { useRef } from "react";
+
 import { AgendaView } from "@/components/event-calendar/views/agenda-view";
 import { DayView } from "@/components/event-calendar/views/day-view";
 import { MonthView } from "@/components/event-calendar/views/month-view";
@@ -11,14 +13,17 @@ interface CalendarContentProps {
   events: CalendarEvent[];
   onEventSelect: (event: CalendarEvent) => void;
   onEventCreate: (startTime: Date) => void;
+  onEventUpdate: (event: CalendarEvent) => void;
 }
 
 export function CalendarContent({
   events,
   onEventSelect,
   onEventCreate,
+  onEventUpdate,
 }: CalendarContentProps) {
   const { currentDate, view } = useCalendarState();
+  const headerRef = useRef<HTMLDivElement | null>(null);
 
   switch (view) {
     case "month":
@@ -28,6 +33,7 @@ export function CalendarContent({
           events={events}
           onEventSelect={onEventSelect}
           onEventCreate={onEventCreate}
+          onEventUpdate={onEventUpdate}
         />
       );
 
@@ -38,6 +44,8 @@ export function CalendarContent({
           events={events}
           onEventSelect={onEventSelect}
           onEventCreate={onEventCreate}
+          onEventUpdate={onEventUpdate}
+          headerRef={headerRef}
         />
       );
 
@@ -48,6 +56,7 @@ export function CalendarContent({
           events={events}
           onEventSelect={onEventSelect}
           onEventCreate={onEventCreate}
+          onEventUpdate={onEventUpdate}
         />
       );
 
@@ -68,6 +77,8 @@ export function CalendarContent({
           events={events}
           onEventSelect={onEventSelect}
           onEventCreate={onEventCreate}
+          onEventUpdate={onEventUpdate}
+          headerRef={headerRef}
         />
       );
   }

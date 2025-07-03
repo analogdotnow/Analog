@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useRef } from "react";
 import {
   addHours,
   areIntervalsOverlapping,
@@ -33,6 +33,7 @@ interface DayViewProps {
   events: CalendarEvent[];
   onEventSelect: (event: CalendarEvent) => void;
   onEventCreate: (startTime: Date) => void;
+  onEventUpdate: (event: CalendarEvent) => void;
 }
 
 interface PositionedEvent {
@@ -44,12 +45,53 @@ interface PositionedEvent {
   zIndex: number;
 }
 
+interface PositionedEventProps {
+  positionedEvent: PositionedEvent;
+  onEventClick: (event: CalendarEvent, e: React.MouseEvent) => void;
+  onEventUpdate: (event: CalendarEvent) => void;
+  containerRef: React.RefObject<HTMLDivElement | null>;
+}
+
+function PositionedEvent({
+  positionedEvent,
+  onEventClick,
+  onEventUpdate,
+  containerRef,
+}: PositionedEventProps) {
+  return (
+    <div
+      key={positionedEvent.event.id}
+      className="absolute z-10"
+      style={{
+        top: `${positionedEvent.top}px`,
+        height: `${positionedEvent.height}px`,
+        left: `${positionedEvent.left * 100}%`,
+        width: `${positionedEvent.width * 100}%`,
+        zIndex: positionedEvent.zIndex,
+      }}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <DraggableEvent
+        event={positionedEvent.event}
+        view="day"
+        onClick={(e) => onEventClick(positionedEvent.event, e)}
+        onEventUpdate={onEventUpdate}
+        showTime
+        height={positionedEvent.height}
+        containerRef={containerRef}
+      />
+    </div>
+  );
+}
+
 export function DayView({
   currentDate,
   events,
   onEventSelect,
   onEventCreate,
+  onEventUpdate,
 }: DayViewProps) {
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const hours = useMemo(() => {
     const dayStart = startOfDay(currentDate);
     return eachHourOfInterval({
@@ -229,7 +271,7 @@ export function DayView({
   );
 
   return (
-    <div data-slot="day-view" className="contents">
+    <div data-slot="day-view" className="contents" ref={containerRef}>
       {showAllDaySection && (
         <div className="border-t border-border/70 bg-muted/50">
           <div className="grid grid-cols-[3rem_1fr] sm:grid-cols-[4rem_1fr]">
@@ -289,27 +331,13 @@ export function DayView({
         <div className="relative">
           {/* Positioned events */}
           {positionedEvents.map((positionedEvent) => (
-            <div
+            <PositionedEvent
               key={positionedEvent.event.id}
-              className="absolute z-10 px-0.5"
-              style={{
-                top: `${positionedEvent.top}px`,
-                height: `${positionedEvent.height}px`,
-                left: `${positionedEvent.left * 100}%`,
-                width: `${positionedEvent.width * 100}%`,
-                zIndex: positionedEvent.zIndex,
-              }}
-            >
-              <div className="size-full">
-                <DraggableEvent
-                  event={positionedEvent.event}
-                  view="day"
-                  onClick={(e) => handleEventClick(positionedEvent.event, e)}
-                  showTime
-                  height={positionedEvent.height}
-                />
-              </div>
-            </div>
+              positionedEvent={positionedEvent}
+              onEventClick={handleEventClick}
+              onEventUpdate={onEventUpdate}
+              containerRef={containerRef}
+            />
           ))}
 
           {/* Current time indicator */}
