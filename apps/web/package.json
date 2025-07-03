@@ -64,6 +64,7 @@
     "react-day-picker": "^9.7.0",
     "react-dom": "^19.1.0",
     "react-hotkeys-hook": "^5.1.0",
+    "remeda": "^2.23.1",
     "rrule-temporal": "^0.2.7",
     "sonner": "^2.0.5",
     "superjson": "^2.2.2",
