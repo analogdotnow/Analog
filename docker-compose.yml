@@ -11,7 +11,7 @@ services:
     ports:
       - 5432:5432
     volumes:
-      - ./postgres_data/data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     networks:
       - analog_network
     healthcheck:
@@ -38,6 +38,8 @@ services:
       SRH_MODE: env
       SRH_TOKEN: upstash-local-token
       SRH_CONNECTION_STRING: "redis://redis:6379"
+    env_file:
+      - .env
     networks:
       - analog_network
     restart: unless-stopped
