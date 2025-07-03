@@ -16,7 +16,7 @@ import {
 import { useCalendar } from "./use-calendar-actions";
 
 // Types for optimistic reducer actions
-type OptimisticAction =
+export type Action =
   | { type: "update"; event: CalendarEvent }
   | { type: "delete"; eventId: string };
 
@@ -30,7 +30,7 @@ export function useEventOperations(onOperationComplete?: () => void) {
   // Optimistic state handling to reflect changes instantly in the UI
   const [optimisticEvents, applyOptimistic] = useOptimistic(
     events,
-    (state: CalendarEvent[], action: OptimisticAction) => {
+    (state: CalendarEvent[], action: Action) => {
       if (action.type === "delete") {
         return state.filter((e) => e.id !== action.eventId);
       }
@@ -150,6 +150,14 @@ export function useEventOperations(onOperationComplete?: () => void) {
     setSelectedEvents([]);
   }, [setSelectedEvents]);
 
+  const dispatchAction = useCallback((action: Action) => {
+    if (action.type === "update") {
+      handleEventSave(action.event);
+    } else if (action.type === "delete") {
+      handleEventDelete(action.eventId);
+    }
+  }, [handleEventSave, handleEventDelete]);
+
   // Derive optimistic selected events from optimistic events - this ensures perfect sync
   const optimisticSelectedEvents = useMemo(() => {
     return selectedEvents.reduce<SelectedEvents>((acc, selectedEvent) => {
@@ -173,5 +181,6 @@ export function useEventOperations(onOperationComplete?: () => void) {
     handleEventSelect,
     handleDialogClose,
     handleEventCreate,
+    dispatchAction,
   };
 }

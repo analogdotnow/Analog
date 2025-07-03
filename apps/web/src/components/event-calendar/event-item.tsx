@@ -7,7 +7,7 @@ import { Temporal } from "temporal-polyfill";
 import { toDate } from "@repo/temporal";
 
 import { useCalendarSettings } from "@/atoms";
-import { type CalendarEvent } from "@/components/event-calendar";
+import type{ CalendarEvent } from "@/components/event-calendar";
 import {
   getBorderRadiusClasses,
   getContentPaddingClasses,

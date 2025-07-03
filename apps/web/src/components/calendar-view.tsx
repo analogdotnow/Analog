@@ -10,6 +10,7 @@ import {
   EventHeight,
   WeekCellsHeight,
 } from "@/components/event-calendar";
+import type { Action } from "@/components/event-calendar/hooks/use-event-operations";
 import {
   filterPastEvents,
   filterVisibleEvents,
@@ -29,6 +30,7 @@ interface CalendarContentProps {
   onEventCreate: (draft: DraftEvent) => void;
   scrollContainerRef: React.RefObject<HTMLDivElement | null>;
   onEventUpdate: (event: CalendarEvent) => void;
+  dispatchAction: (action: Action) => void;
   headerRef: React.RefObject<HTMLDivElement | null>;
 }
 
@@ -37,6 +39,7 @@ function CalendarContent({
   onEventSelect,
   onEventCreate,
   onEventUpdate,
+  dispatchAction,
   scrollContainerRef,
   headerRef,
 }: CalendarContentProps) {
@@ -58,6 +61,7 @@ function CalendarContent({
           onEventSelect={onEventSelect}
           onEventCreate={onEventCreate}
           onEventUpdate={onEventUpdate}
+          dispatchAction={dispatchAction}
         />
       );
 
@@ -69,6 +73,7 @@ function CalendarContent({
           onEventSelect={onEventSelect}
           onEventCreate={onEventCreate}
           onEventUpdate={onEventUpdate}
+          dispatchAction={dispatchAction}
           headerRef={headerRef}
         />
       );
@@ -81,6 +86,7 @@ function CalendarContent({
           onEventSelect={onEventSelect}
           onEventCreate={onEventCreate}
           onEventUpdate={onEventUpdate}
+          dispatchAction={dispatchAction}
         />
       );
 
@@ -102,6 +108,7 @@ function CalendarContent({
           onEventSelect={onEventSelect}
           onEventCreate={onEventCreate}
           onEventUpdate={onEventUpdate}
+          dispatchAction={dispatchAction}
           headerRef={headerRef}
         />
       );
@@ -114,6 +121,7 @@ interface CalendarViewProps {
   handleEventCreate: (draft: DraftEvent) => void;
   handleEventSelect: (event: CalendarEvent) => void;
   handleEventMove: (event: CalendarEvent) => void;
+  dispatchAction: (action: Action) => void;
 }
 
 export function CalendarView({
@@ -122,6 +130,7 @@ export function CalendarView({
   handleEventSelect,
   handleEventMove,
   handleEventCreate,
+  dispatchAction,
 }: CalendarViewProps) {
   const viewPreferences = useViewPreferences();
   const [calendarVisibility] = useCalendarsVisibility();
@@ -176,6 +185,7 @@ export function CalendarView({
           onEventSelect={handleEventSelect}
           onEventUpdate={handleEventMove}
           onEventCreate={handleEventCreate}
+          dispatchAction={dispatchAction}
           scrollContainerRef={scrollContainerRef}
           headerRef={headerRef}
         />

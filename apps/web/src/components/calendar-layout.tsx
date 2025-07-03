@@ -30,6 +30,7 @@ function IsolatedCalendarLayout() {
     handleEventSelect,
     handleEventSave,
     handleEventCreate,
+    dispatchAction,
   } = useEventOperations();
 
   return (
@@ -42,6 +43,7 @@ function IsolatedCalendarLayout() {
             handleEventMove={handleEventMove}
             handleEventSelect={handleEventSelect}
             handleEventCreate={handleEventCreate}
+            dispatchAction={dispatchAction}
           />
         </div>
       </SidebarInset>

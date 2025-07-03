@@ -10,6 +10,9 @@ import {
 import { Temporal } from "temporal-polyfill";
 
 import { CalendarEvent, EventItem } from "@/components/event-calendar";
+import { EventContextMenu } from "@/components/event-context-menu";
+import { ContextMenuTrigger } from "@/components/ui/context-menu";
+import type { Action } from "./hooks/use-event-operations";
 
 interface DraggableEventProps {
   event: CalendarEvent;
@@ -17,6 +20,7 @@ interface DraggableEventProps {
   showTime?: boolean;
   onClick?: (e: React.MouseEvent) => void;
   onEventUpdate: (event: CalendarEvent) => void;
+  dispatchAction: (action: Action) => void;
   setIsDragging?: (isDragging: boolean) => void;
   height?: number;
   isMultiDay?: boolean;
@@ -57,7 +61,7 @@ export function DraggableEvent({
   onClick,
   onEventUpdate,
   height: initialHeight,
-  multiDayWidth,
+  dispatchAction,
   isFirstDay = true,
   isLastDay = true,
   "aria-hidden": ariaHidden,
@@ -240,28 +244,32 @@ export function DraggableEvent({
         className="size-full touch-none"
         style={{ transform, height, top, zIndex }}
       >
-        <EventItem
-          event={event}
-          view={view}
-          showTime={showTime}
-          isFirstDay={isFirstDay}
-          isLastDay={isLastDay}
-          onClick={onClick}
-          onMouseDown={onClick}
-          // onTouchStart={handleTouchStart}
-          aria-hidden={ariaHidden}
-        >
-          {!event.readOnly ? (
-            <>
-              <motion.div
-                className="absolute inset-x-0 inset-y-2 touch-pan-x touch-pan-y"
-                onPanStart={onDragStart}
-                onPan={onDrag}
-                onPanEnd={onDragEnd}
-              />
-            </>
-          ) : null}
-        </EventItem>
+        <EventContextMenu event={event} dispatchAction={dispatchAction}>
+          <ContextMenuTrigger>
+            <EventItem
+              event={event}
+              view={view}
+              showTime={showTime}
+              isFirstDay={isFirstDay}
+              isLastDay={isLastDay}
+              onClick={onClick}
+              onMouseDown={onClick}
+              // onTouchStart={handleTouchStart}
+              aria-hidden={ariaHidden}
+            >
+              {!event.readOnly ? (
+                <>
+                  <motion.div
+                    className="absolute inset-x-0 inset-y-2 touch-pan-x touch-pan-y"
+                    onPanStart={onDragStart}
+                    onPan={onDrag}
+                    onPanEnd={onDragEnd}
+                  />
+                </>
+              ) : null}
+            </EventItem>
+          </ContextMenuTrigger>
+        </EventContextMenu>
       </motion.div>
     );
   }
@@ -272,40 +280,44 @@ export function DraggableEvent({
       className="size-full touch-none"
       style={{ transform, height: height, zIndex }}
     >
-      <EventItem
-        event={event}
-        view={view}
-        showTime={showTime}
-        isFirstDay={isFirstDay}
-        isLastDay={isLastDay}
-        onClick={onClick}
-        onMouseDown={onClick}
-        // onTouchStart={handleTouchStart}
-        aria-hidden={ariaHidden}
-      >
-        {!event.readOnly ? (
-          <>
-            <motion.div
-              className="absolute inset-x-0 top-0 h-1 cursor-row-resize touch-pan-y"
-              onPanStart={onResizeTopStart}
-              onPan={onResizeTop}
-              onPanEnd={onResizeTopEnd}
-            />
-            <motion.div
-              className="absolute inset-x-0 bottom-0 h-1 cursor-row-resize touch-pan-y"
-              onPanStart={onResizeBottomStart}
-              onPan={onResizeBottom}
-              onPanEnd={onResizeBottomEnd}
-            />
-            <motion.div
-              className="absolute inset-x-0 inset-y-2 touch-pan-x touch-pan-y"
-              onPanStart={onDragStart}
-              onPan={onDrag}
-              onPanEnd={onDragEnd}
-            />
-          </>
-        ) : null}
-      </EventItem>
+      <EventContextMenu event={event} dispatchAction={dispatchAction}>
+        <ContextMenuTrigger>
+          <EventItem
+            event={event}
+            view={view}
+            showTime={showTime}
+            isFirstDay={isFirstDay}
+            isLastDay={isLastDay}
+            onClick={onClick}
+            onMouseDown={onClick}
+            // onTouchStart={handleTouchStart}
+            aria-hidden={ariaHidden}
+          >
+            {!event.readOnly ? (
+              <>
+                <motion.div
+                  className="absolute inset-x-0 top-0 h-1 cursor-row-resize touch-pan-y"
+                  onPanStart={onResizeTopStart}
+                  onPan={onResizeTop}
+                  onPanEnd={onResizeTopEnd}
+                />
+                <motion.div
+                  className="absolute inset-x-0 bottom-0 h-1 cursor-row-resize touch-pan-y"
+                  onPanStart={onResizeBottomStart}
+                  onPan={onResizeBottom}
+                  onPanEnd={onResizeBottomEnd}
+                />
+                <motion.div
+                  className="absolute inset-x-0 inset-y-2 touch-pan-x touch-pan-y"
+                  onPanStart={onDragStart}
+                  onPan={onDrag}
+                  onPanEnd={onDragEnd}
+                />
+              </>
+            ) : null}
+          </EventItem>
+        </ContextMenuTrigger>
+      </EventContextMenu>
     </motion.div>
   );
 }

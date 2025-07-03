@@ -26,6 +26,7 @@ import {
 } from "@/components/event-calendar";
 import { EndHour, StartHour } from "@/components/event-calendar/constants";
 import { useCurrentTimeIndicator } from "@/components/event-calendar/hooks";
+import type { Action } from "@/components/event-calendar/hooks/use-event-operations";
 import { isMultiDayEvent } from "@/components/event-calendar/utils";
 import { DraftEvent } from "@/lib/interfaces";
 import { cn } from "@/lib/utils";
@@ -37,6 +38,7 @@ interface DayViewProps {
   onEventSelect: (event: CalendarEvent) => void;
   onEventCreate: (draft: DraftEvent) => void;
   onEventUpdate: (event: CalendarEvent) => void;
+  dispatchAction: (action: Action) => void;
 }
 
 interface PositionedEvent {
@@ -52,6 +54,7 @@ interface PositionedEventProps {
   positionedEvent: PositionedEvent;
   onEventClick: (event: CalendarEvent, e: React.MouseEvent) => void;
   onEventUpdate: (event: CalendarEvent) => void;
+  dispatchAction: (action: Action) => void;
   containerRef: React.RefObject<HTMLDivElement | null>;
 }
 
@@ -59,6 +62,7 @@ function PositionedEvent({
   positionedEvent,
   onEventClick,
   onEventUpdate,
+  dispatchAction,
   containerRef,
 }: PositionedEventProps) {
   const [isDragging, setIsDragging] = React.useState(false);
@@ -81,6 +85,7 @@ function PositionedEvent({
         view="day"
         onClick={(e) => onEventClick(positionedEvent.event, e)}
         onEventUpdate={onEventUpdate}
+        dispatchAction={dispatchAction}
         showTime
         height={positionedEvent.height}
         containerRef={containerRef}
@@ -96,6 +101,7 @@ export function DayView({
   onEventSelect,
   onEventCreate,
   onEventUpdate,
+  dispatchAction,
 }: DayViewProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const hours = useMemo(() => {
@@ -342,6 +348,7 @@ export function DayView({
               positionedEvent={positionedEvent}
               onEventClick={handleEventClick}
               onEventUpdate={onEventUpdate}
+              dispatchAction={dispatchAction}
               containerRef={containerRef}
             />
           ))}
