@@ -100,25 +100,12 @@ export function toGoogleCalendarEvent(
     ...("id" in event ? { id: event.id } : {}),
     start: toGoogleCalendarDate(event.start),
     end: toGoogleCalendarDate(event.end),
-    conferenceDataVersion: 1, // This ensures the conference data is created, DO NOT REMOVE
+    summary: event.title,
+    description: event.description,
+    location: event.location,
+    conferenceData: event.conferenceData,
+    ...(event.conferenceData !== undefined ? { conferenceDataVersion: 1 } : {}),
   };
-
-  // Only include fields that are actually provided to avoid overwriting with undefined
-  if (event.title !== undefined) {
-    result.summary = event.title;
-  }
-
-  if (event.description !== undefined) {
-    result.description = event.description;
-  }
-
-  if (event.location !== undefined) {
-    result.location = event.location;
-  }
-
-  if (event.conferenceData !== undefined) {
-    result.conferenceData = event.conferenceData;
-  }
 
   return result;
 }
