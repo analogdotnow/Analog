@@ -92,14 +92,35 @@ export function parseGoogleCalendarEvent({
 export function toGoogleCalendarEvent(
   event: CreateEventInput | UpdateEventInput,
 ): GoogleCalendarEventCreateParams {
-  return {
+  console.log({
+    conferenceData: JSON.stringify(event.conferenceData, null, 2),
+  });
+
+  const result: GoogleCalendarEventCreateParams = {
     ...("id" in event ? { id: event.id } : {}),
-    summary: event.title,
-    description: event.description,
-    location: event.location,
     start: toGoogleCalendarDate(event.start),
     end: toGoogleCalendarDate(event.end),
+    conferenceDataVersion: 1, // This ensures the conference data is created, DO NOT REMOVE
   };
+
+  // Only include fields that are actually provided to avoid overwriting with undefined
+  if (event.title !== undefined) {
+    result.summary = event.title;
+  }
+
+  if (event.description !== undefined) {
+    result.description = event.description;
+  }
+
+  if (event.location !== undefined) {
+    result.location = event.location;
+  }
+
+  if (event.conferenceData !== undefined) {
+    result.conferenceData = event.conferenceData;
+  }
+
+  return result;
 }
 
 interface ParsedGoogleCalendarCalendarListEntryOptions {
@@ -183,13 +204,13 @@ function parseGoogleCalendarConferenceData(
     .map((entry) => ({
       entryPointType: entry.entryPointType as "video" | "phone",
       uri: entry.uri!,
-      label: entry.label || entry.uri!,
+      label: entry.label ?? entry.uri!,
       passcode:
-        entry.accessCode ||
-        entry.passcode ||
-        entry.meetingCode ||
-        entry.password ||
-        entry.pin ||
+        entry.passcode ??
+        entry.password ??
+        entry.accessCode ??
+        entry.meetingCode ??
+        entry.pin ??
         "",
     }));
 
@@ -198,7 +219,12 @@ function parseGoogleCalendarConferenceData(
   }
 
   return {
-    entryPoints,
+    entryPoints: entryPoints.map((entry) => ({
+      entryPointType: entry.entryPointType,
+      uri: entry.uri,
+      meetingCode: entry.passcode,
+      password: entry.passcode,
+    })),
     conferenceId: conferenceData.conferenceId,
     conferenceSolution: {
       name: conferenceData.conferenceSolution?.name || "Google Meet",

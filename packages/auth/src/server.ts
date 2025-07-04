@@ -27,8 +27,11 @@ export const GOOGLE_OAUTH_SCOPES = [
 ];
 
 export const ZOOM_OAUTH_SCOPES = [
-  "user:read:user",
-  "meeting:write:meeting",
+  "user:read",
+  "calendar:read",
+  "calendar:write",
+  "meeting:read",
+  "meeting:write",
   "offline_access",
 ];
 

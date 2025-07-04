@@ -60,7 +60,7 @@ export const calendarProcedure = protectedProcedure.use(
   async ({ ctx, next }) => {
     try {
       const accounts = (await getAccounts(ctx.user, ctx.headers)).filter(
-        (account) => account.providerId !== "zoom"
+        (account) => account.providerId !== "zoom",
       );
 
       const providers = accounts.map((account) => ({

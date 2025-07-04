@@ -139,11 +139,15 @@ export class GoogleCalendarProvider implements CalendarProvider {
         },
       );
 
+      const googleEventUpdate = toGoogleCalendarEvent(event);
+
       const updatedEvent = await this.client.calendars.events.update(eventId, {
         ...existingEvent,
         calendarId: calendar.id,
-        ...toGoogleCalendarEvent(event),
+        ...googleEventUpdate,
       });
+
+      console.log({ updatedEvent: JSON.stringify(updatedEvent, null, 2) });
 
       return parseGoogleCalendarEvent({
         calendar,

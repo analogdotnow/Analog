@@ -40,3 +40,15 @@ export function getPrimaryBrowserLocale() {
   }
   return navigator.language;
 }
+
+export function getConferencingProviderId(uri: string) {
+  if (uri.includes("google")) {
+    return "google";
+  }
+
+  if (uri.includes("zoom")) {
+    return "zoom";
+  }
+
+  return "none";
+}

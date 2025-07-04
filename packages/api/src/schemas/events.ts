@@ -5,6 +5,40 @@ import {
 } from "temporal-zod";
 import { z } from "zod";
 
+const conferenceEntryPointSchema = z.object({
+  entryPointType: z.enum(["video", "phone"]),
+  meetingCode: z.string(),
+  password: z.string(),
+  uri: z.string(),
+});
+
+const conferenceSchema = z.object({
+  conferenceId: z.string().optional(),
+  conferenceSolution: z
+    .object({
+      iconUri: z.string().optional(),
+      key: z
+        .object({
+          type: z.string().optional(),
+        })
+        .optional(),
+      name: z.string().optional(),
+    })
+    .optional(),
+  createRequest: z
+    .object({
+      requestId: z.string().optional(),
+      status: z.object({ statusCode: z.string().optional() }).optional(),
+      conferenceSolutionKey: z
+        .object({ type: z.string().optional() })
+        .optional(),
+    })
+    .optional(),
+  entryPoints: z.array(conferenceEntryPointSchema).optional(),
+  notes: z.string().optional(),
+  parameters: z.record(z.unknown()).optional(),
+});
+
 const microsoftMetadataSchema = z.object({
   originalStartTimeZone: z
     .object({
@@ -39,10 +73,12 @@ export const createEventInputSchema = z.object({
   accountId: z.string(),
   calendarId: z.string(),
   metadata: z.union([microsoftMetadataSchema, googleMetadataSchema]).optional(),
+  conferenceData: conferenceSchema.optional(),
 });
 
 export const updateEventInputSchema = createEventInputSchema.extend({
   id: z.string(),
+  conferenceData: conferenceSchema.optional(),
   metadata: z.union([microsoftMetadataSchema, googleMetadataSchema]).optional(),
 });
 

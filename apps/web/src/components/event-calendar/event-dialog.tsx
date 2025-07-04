@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { RiCalendarLine, RiDeleteBinLine } from "@remixicon/react";
+import { useMutation } from "@tanstack/react-query";
 import { format, isBefore } from "date-fns";
 import { toast } from "sonner";
 import { Temporal } from "temporal-polyfill";
@@ -43,9 +44,8 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useAccounts, useDefaultAccount } from "@/hooks/accounts";
-import { cn } from "@/lib/utils";
-import { useMutation } from "@tanstack/react-query";
 import { useTRPC } from "@/lib/trpc/client";
+import { cn, getConferencingProviderId } from "@/lib/utils";
 
 interface EventDialogProps {
   event: CalendarEvent | null;
@@ -76,7 +76,7 @@ function useConferencingActions() {
    */
   const createConference = useCallback(
     async (params: {
-      providerId: Exclude<MeetingProviderId, "none">;
+      providerId: MeetingProviderId;
       accountId: string;
       agenda: string;
       startTime: string;
@@ -91,7 +91,10 @@ function useConferencingActions() {
         throw new Error("Selected account not found or not linked");
       }
 
-      if (account.providerId !== params.providerId) {
+      if (
+        params.providerId !== "none" &&
+        account.providerId !== params.providerId
+      ) {
         throw new Error("Account provider mismatch with selected provider");
       }
 
@@ -126,37 +129,22 @@ export function EventDialog({
   const [error, setError] = useState<string | null>(null);
   const [startDateOpen, setStartDateOpen] = useState(false);
   const [endDateOpen, setEndDateOpen] = useState(false);
+  const [meetingProviderId, setMeetingProviderId] =
+    useState<MeetingProviderId>("none");
+  const [conferenceLink, setConferenceLink] = useState<string | null>(null);
 
   const defaultAccount = useDefaultAccount();
   const settings = useCalendarSettings();
   const { accounts } = useAccounts();
   const { createConference, creatingConference } = useConferencingActions();
 
-  const [meetingProviderId, setMeetingProviderId] = useState<MeetingProviderId>(
-    "none",
-  );
-  const [conferenceLink, setConferenceLink] = useState<string | null>(null);
-
-  const availableMeetingProviders = useMemo<MeetingProviderId[]>(() => {
-    const providers: MeetingProviderId[] = ["none"];
-
-    if (accounts?.some((a) => a.providerId === "google")) {
-      providers.push("google");
-    }
-
-    if (accounts?.some((a) => a.providerId === "zoom")) {
-      providers.push("zoom");
-    }
-
-    return providers;
-  }, [accounts]);
-
   /**
-   * Handle provider change from the UI. When a provider is selected we try to
-   * create the conferencing resource immediately. For Google Meet we need an
-   * existing calendar event (because it attaches the conference to the event)
-   * so we only attempt creation if an `event?.id` is present (i.e. editing an
-   * existing event).
+   * Handle provider change from the UI. When a provider is selected we check
+   * if the user has the required account connected. If not, we show a toast.
+   * For providers that are connected, we try to create the conferencing resource
+   * immediately. For Google Meet we need an existing calendar event (because it
+   * attaches the conference to the event) so we only attempt creation if an
+   * `event?.id` is present (i.e. editing an existing event).
    */
   const handleMeetingProviderChange = useCallback(
     async (provider: MeetingProviderId) => {
@@ -166,15 +154,60 @@ export function EventDialog({
       setConferenceLink(null);
 
       if (provider === "none") {
+        // Handle removing conference data
+        if (event?.id && event?.calendarId && event?.accountId) {
+          try {
+            const buildDateWithTime = (date: Date, time: string): string => {
+              const [h, m] = time.split(":").map(Number);
+              const d = new Date(date);
+              d.setHours(h || 0, m || 0, 0, 0);
+              return d.toISOString();
+            };
+
+            const startISO = buildDateWithTime(startDate, startTime);
+            const endISO = buildDateWithTime(endDate, endTime);
+
+            await createConference({
+              providerId: provider,
+              accountId: event.accountId,
+              agenda: title || "Meeting",
+              startTime: startISO,
+              endTime: endISO,
+              timeZone: settings.defaultTimeZone,
+              calendarId: event.calendarId,
+              eventId: event.id,
+            });
+          } catch (error) {
+            console.error("Failed to remove conference data:", error);
+          }
+        }
+        return;
+      }
+
+      // Check if user has the required account connected
+      const hasRequiredAccount = accounts?.some(
+        (a) => a.providerId === provider,
+      );
+
+      if (!hasRequiredAccount) {
+        toast.error(
+          `Please connect a ${provider === "google" ? "Google" : "Zoom"} account to use ${provider === "google" ? "Google Meet" : "Zoom"}`,
+        );
+        // Reset back to "none" since they can't use this provider
+        setMeetingProviderId("none");
+        return;
+      }
+
+      // For Google Meet, we need an existing event
+      if (provider === "google" && (!event?.id || !event?.calendarId)) {
+        toast.info(
+          "Google Meet link will be generated after the event is saved.",
+        );
         return;
       }
 
       try {
-        // Build ISO datetimes from current form state
-        const buildDateWithTime = (
-          date: Date,
-          time: string,
-        ): string => {
+        const buildDateWithTime = (date: Date, time: string): string => {
           const [h, m] = time.split(":").map(Number);
           const d = new Date(date);
           d.setHours(h || 0, m || 0, 0, 0);
@@ -184,38 +217,33 @@ export function EventDialog({
         const startISO = buildDateWithTime(startDate, startTime);
         const endISO = buildDateWithTime(endDate, endTime);
 
-        // Only attempt to create Google Meet if we have eventId & calendarId
-        if (
-          provider === "google" &&
-          (!event?.id || !event?.calendarId)
-        ) {
-          // Defer creation until event has been saved
-          toast.info(
-            "Google Meet link will be generated after the event is saved.",
-          );
-          return;
+        // Find the appropriate account to use
+        let accountId: string | undefined;
+
+        if (event?.accountId) {
+          const eventAccount = accounts?.find((a) => a.id === event.accountId);
+          if (eventAccount?.providerId === provider) {
+            accountId = event.accountId;
+          }
         }
 
-        // Determine accountId to use
-        let accountId: string | undefined = event?.accountId;
+        if (
+          !accountId &&
+          defaultAccount &&
+          defaultAccount.providerId === provider
+        ) {
+          accountId = defaultAccount.id;
+        }
 
         if (!accountId) {
-          // Prefer default account if it matches provider
-          if (defaultAccount && defaultAccount.providerId === provider) {
-            accountId = defaultAccount.id;
-          } else {
-            // Fallback to first account with that provider
-            const fallbackAccount = accounts?.find(
-              (a) => a.providerId === provider,
-            );
-            accountId = fallbackAccount?.id;
-          }
+          accountId = accounts?.find((a) => a.providerId === provider)?.id;
         }
 
         if (!accountId) {
           toast.error(
-            `No ${provider === "google" ? "Google" : "Zoom"} account linked`,
+            `No ${provider === "google" ? "Google" : "Zoom"} account found`,
           );
+          setMeetingProviderId("none");
           return;
         }
 
@@ -231,16 +259,28 @@ export function EventDialog({
         });
 
         const link = conferenceData?.entryPoints?.[0]?.uri ?? null;
-        console.log({link, conferenceData})
+        console.log({ link, conferenceData });
         setConferenceLink(link);
       } catch (error) {
         console.error(error);
         toast.error(
           error instanceof Error ? error.message : "Failed to create meeting",
         );
+        setMeetingProviderId("none");
       }
     },
-    [createConference, accounts, defaultAccount, endDate, endTime, event, settings.defaultTimeZone, startDate, startTime, title],
+    [
+      createConference,
+      accounts,
+      defaultAccount,
+      endDate,
+      endTime,
+      event,
+      settings.defaultTimeZone,
+      startDate,
+      startTime,
+      title,
+    ],
   );
 
   useEffect(() => {
@@ -263,6 +303,18 @@ export function EventDialog({
       setEndTime(formatTimeForInput(end));
       setAllDay(event.allDay || false);
       setLocation(event.location || "");
+
+      // Initialize conference state from event data
+      if (event.conferenceData?.entryPoints?.[0]?.uri) {
+        setConferenceLink(event.conferenceData.entryPoints[0].uri);
+        setMeetingProviderId(
+          getConferencingProviderId(event.conferenceData.entryPoints[0].uri),
+        );
+      } else {
+        setConferenceLink(null);
+        setMeetingProviderId("none");
+      }
+
       setError(null); // Reset error when opening dialog
     } else {
       resetForm();
@@ -278,6 +330,8 @@ export function EventDialog({
     setEndTime(`${DefaultEndHour}:00`);
     setAllDay(false);
     setLocation("");
+    setMeetingProviderId("none");
+    setConferenceLink(null);
     setError(null);
   };
 
@@ -371,6 +425,7 @@ export function EventDialog({
       calendarId: event?.calendarId ?? "primary",
       providerId: event?.providerId ?? defaultAccount.providerId,
       accountId: event?.accountId ?? defaultAccount.id,
+      conferenceData: event?.conferenceData,
       readOnly: false,
     });
   };
@@ -568,7 +623,7 @@ export function EventDialog({
             />
           </div>
 
-          <div className="*:not-first:mt-1.5">
+          <div className="overflow-hidden *:not-first:mt-1.5">
             <Label htmlFor="conferencing">Conferencing</Label>
             <Select
               value={meetingProviderId}
@@ -579,7 +634,7 @@ export function EventDialog({
                 <SelectValue placeholder="Select provider" />
               </SelectTrigger>
               <SelectContent>
-                {availableMeetingProviders.map((p) => (
+                {["none", "google", "zoom"].map((p) => (
                   <SelectItem key={p} value={p}>
                     {p === "none"
                       ? "None"
@@ -592,7 +647,7 @@ export function EventDialog({
             </Select>
 
             {conferenceLink && (
-              <p className="mt-1 text-sm truncate">
+              <p className="mt-1 truncate text-sm">
                 <a
                   href={conferenceLink}
                   target="_blank"
