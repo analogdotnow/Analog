@@ -147,8 +147,6 @@ export class GoogleCalendarProvider implements CalendarProvider {
         ...googleEventUpdate,
       });
 
-      console.log({ updatedEvent: JSON.stringify(updatedEvent, null, 2) });
-
       return parseGoogleCalendarEvent({
         calendar,
         accountId: this.accountId,

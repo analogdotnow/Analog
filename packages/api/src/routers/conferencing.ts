@@ -4,7 +4,7 @@ import { z } from "zod";
 
 import { accountToConferencingProvider, accountToProvider } from "../providers";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
-import { getAccounts } from "../utils/accounts";
+import { getAccounts, getDefaultAccount } from "../utils/accounts";
 
 export const conferencingRouter = createTRPCRouter({
   create: protectedProcedure
@@ -13,6 +13,7 @@ export const conferencingRouter = createTRPCRouter({
         calendarId: z.string().optional(),
         eventId: z.string().optional(),
         accountId: z.string(),
+        calendarAccountId: z.string().optional(),
         providerId: z.enum(["google", "zoom", "none"]).default("none"),
         agenda: z.string().default("Meeting"),
         startTime: z.string(),
@@ -49,12 +50,11 @@ export const conferencingRouter = createTRPCRouter({
                   end,
                 });
               }
-            } catch (err) {
-              console.error(
-                "Failed to remove conference data from event",
-                input.eventId,
-                err,
-              );
+            } catch {
+              throw new TRPCError({
+                code: "INTERNAL_SERVER_ERROR",
+                message: "Failed to remove conference data from event",
+              });
             }
           }
         }
@@ -89,42 +89,61 @@ export const conferencingRouter = createTRPCRouter({
         input.eventId &&
         conferenceData
       ) {
-        for (const calendarAccount of accounts.filter(
-          (a) => a.providerId !== "zoom",
-        )) {
-          try {
-            const calendarProvider = accountToProvider(calendarAccount);
-            const calendars = await calendarProvider.calendars();
-            const calendar = calendars.find((c) => c.id === input.calendarId);
+        let targetAccountId =
+          input.calendarAccountId ?? ctx.user.defaultAccountId;
 
-            if (!calendar) {
-              continue;
-            }
+        if (!targetAccountId) {
+          targetAccountId = accounts.find((a) => a.providerId !== "zoom")?.id;
+        }
 
-            const startInstant = Temporal.Instant.from(input.startTime);
-            const endInstant = Temporal.Instant.from(input.endTime);
-            const tz = input.timeZone ?? calendar.timeZone ?? "UTC";
+        if (!targetAccountId) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "No calendar account found",
+          });
+        }
 
-            const start = startInstant.toZonedDateTimeISO(tz);
-            const end = endInstant.toZonedDateTimeISO(tz);
+        const calendarAccount = accounts.find((a) => a.id === targetAccountId);
 
-            await calendarProvider.updateEvent(calendar, input.eventId, {
-              id: input.eventId,
-              accountId: calendarAccount.id,
-              calendarId: calendar.id,
-              conferenceData,
-              start,
-              end,
-            });
+        if (!calendarAccount) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Calendar account not found",
+          });
+        }
 
-            break;
-          } catch (err) {
-            console.error(
-              "Failed to patch event with conference data via account",
-              calendarAccount.id,
-              err,
-            );
-          }
+        const calendarProvider = accountToProvider(calendarAccount);
+        const calendars = await calendarProvider.calendars();
+        const calendar = calendars.find((c) => c.id === input.calendarId);
+
+        if (!calendar) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Calendar not found",
+          });
+        }
+
+        const startInstant = Temporal.Instant.from(input.startTime);
+        const endInstant = Temporal.Instant.from(input.endTime);
+        const tz = input.timeZone ?? calendar.timeZone ?? "UTC";
+
+        const start = startInstant.toZonedDateTimeISO(tz);
+        const end = endInstant.toZonedDateTimeISO(tz);
+
+        try {
+          await calendarProvider.updateEvent(calendar, input.eventId, {
+            id: input.eventId,
+            accountId: calendarAccount.id,
+            calendarId: calendar.id,
+            conferenceData,
+            start,
+            end,
+          });
+        } catch (err) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to update event with conference data",
+          });
         }
       }
 

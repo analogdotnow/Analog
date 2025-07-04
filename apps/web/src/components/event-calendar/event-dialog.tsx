@@ -78,6 +78,7 @@ function useConferencingActions() {
     async (params: {
       providerId: MeetingProviderId;
       accountId: string;
+      calendarAccountId?: string;
       agenda: string;
       startTime: string;
       endTime: string;
@@ -138,6 +139,13 @@ export function EventDialog({
   const { accounts } = useAccounts();
   const { createConference, creatingConference } = useConferencingActions();
 
+  const buildDateWithTime = (date: Date, time: string): string => {
+    const [h, m] = time.split(":").map(Number);
+    const d = new Date(date);
+    d.setHours(h || 0, m || 0, 0, 0);
+    return d.toISOString();
+  };
+
   /**
    * Handle provider change from the UI. When a provider is selected we check
    * if the user has the required account connected. If not, we show a toast.
@@ -157,19 +165,13 @@ export function EventDialog({
         // Handle removing conference data
         if (event?.id && event?.calendarId && event?.accountId) {
           try {
-            const buildDateWithTime = (date: Date, time: string): string => {
-              const [h, m] = time.split(":").map(Number);
-              const d = new Date(date);
-              d.setHours(h || 0, m || 0, 0, 0);
-              return d.toISOString();
-            };
-
             const startISO = buildDateWithTime(startDate, startTime);
             const endISO = buildDateWithTime(endDate, endTime);
 
             await createConference({
               providerId: provider,
               accountId: event.accountId,
+              calendarAccountId: event.accountId,
               agenda: title || "Meeting",
               startTime: startISO,
               endTime: endISO,
@@ -250,6 +252,7 @@ export function EventDialog({
         const conferenceData = await createConference({
           providerId: provider,
           accountId,
+          calendarAccountId: event?.accountId,
           agenda: title || "Meeting",
           startTime: startISO,
           endTime: endISO,
@@ -259,10 +262,8 @@ export function EventDialog({
         });
 
         const link = conferenceData?.entryPoints?.[0]?.uri ?? null;
-        console.log({ link, conferenceData });
         setConferenceLink(link);
       } catch (error) {
-        console.error(error);
         toast.error(
           error instanceof Error ? error.message : "Failed to create meeting",
         );

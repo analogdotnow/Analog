@@ -42,13 +42,27 @@ export function getPrimaryBrowserLocale() {
 }
 
 export function getConferencingProviderId(uri: string) {
-  if (uri.includes("google")) {
-    return "google";
-  }
+  try {
+    const url = new URL(uri);
+    const hostname = url.hostname.toLowerCase();
 
-  if (uri.includes("zoom")) {
-    return "zoom";
-  }
+    if (
+      hostname.includes("meet.google.com") ||
+      hostname.includes("hangouts.google.com")
+    ) {
+      return "google";
+    }
 
-  return "none";
+    if (hostname.includes("zoom.us") || hostname.includes("zoom.com")) {
+      return "zoom";
+    }
+
+    return "none";
+  } catch {
+    // Fallback to string matching for non-URL strings
+    const lowerUri = uri.toLowerCase();
+    if (lowerUri.includes("google")) return "google";
+    if (lowerUri.includes("zoom")) return "zoom";
+    return "none";
+  }
 }
