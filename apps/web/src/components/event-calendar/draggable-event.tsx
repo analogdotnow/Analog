@@ -17,6 +17,7 @@ interface DraggableEventProps {
   showTime?: boolean;
   onClick?: (e: React.MouseEvent) => void;
   onEventUpdate: (event: CalendarEvent) => void;
+  setIsDragging?: (isDragging: boolean) => void;
   height?: number;
   isMultiDay?: boolean;
   multiDayWidth?: number;
@@ -61,6 +62,7 @@ export function DraggableEvent({
   "aria-hidden": ariaHidden,
   containerRef,
   rows,
+  setIsDragging,
 }: DraggableEventProps) {
   const dragRef = React.useRef<HTMLDivElement>(null);
 
@@ -81,10 +83,8 @@ export function DraggableEvent({
     height.set(initialHeight ?? "100%");
   }, [initialHeight, height]);
 
-  const [isDragging, setIsDragging] = React.useState(false);
-
   const onDragStart = () => {
-    setIsDragging(true);
+    setIsDragging?.(true);
   };
 
   const onDrag = (event: PointerEvent, info: PanInfo) => {
@@ -93,7 +93,7 @@ export function DraggableEvent({
   };
 
   const onDragEnd = (_e: PointerEvent, info: PanInfo) => {
-    setIsDragging(false);
+    setIsDragging?.(false);
     top.set(0);
     left.set(0);
 
