@@ -4,10 +4,12 @@ import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { ChevronsUpDown, LogOut, Plus, Settings } from "lucide-react";
 import { useTheme } from "next-themes";
+import { toast } from "sonner";
 
 import { authClient } from "@repo/auth/client";
 
 import { AddAccountDialog } from "@/components/add-account-dialog";
+import { Zoom } from "@/components/icons";
 import { SettingsDialog } from "@/components/settings-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -31,14 +33,33 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useCurrentUser } from "@/hooks/accounts";
+import { useAccounts, useCurrentUser } from "@/hooks/accounts";
 
 export function NavUser() {
   const router = useRouter();
   const queryClient = useQueryClient();
 
   const { data: user, isLoading } = useCurrentUser();
+  const { accounts } = useAccounts();
   const { theme, setTheme } = useTheme();
+
+  const hasGoogleAccount = accounts?.some((acc) => acc.providerId === "google");
+  const hasMicrosoftAccount = accounts?.some(
+    (acc) => acc.providerId === "microsoft",
+  );
+
+  const hasZoomAccount = accounts?.some((acc) => acc.providerId === "zoom");
+
+  const handleLinkZoom = async () => {
+    try {
+      await authClient.linkSocial({
+        provider: "zoom",
+        callbackURL: "/calendar",
+      });
+    } catch {
+      toast.error("Failed to link Zoom account");
+    }
+  };
 
   if (isLoading) {
     return <NavUserSkeleton />;
@@ -108,6 +129,12 @@ export function NavUser() {
                   Connect an account
                 </DropdownMenuItem>
               </AddAccountDialog>
+              {(hasGoogleAccount || hasMicrosoftAccount) && !hasZoomAccount && (
+                <DropdownMenuItem onClick={handleLinkZoom}>
+                  <Zoom />
+                  Connect Zoom
+                </DropdownMenuItem>
+              )}
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuSub>
