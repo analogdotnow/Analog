@@ -73,11 +73,11 @@ export function parseDraftEvent({
     title: event.title ?? "",
     start: toZonedDateTime({
       date: event.start,
-      defaultTimeZone: defaultCalendar.timeZone ?? defaultTimeZone,
+      defaultTimeZone: defaultCalendar?.timeZone ?? defaultTimeZone,
     }),
     end: toZonedDateTime({
       date: event.end,
-      defaultTimeZone: defaultCalendar.timeZone ?? defaultTimeZone,
+      defaultTimeZone: defaultCalendar?.timeZone ?? defaultTimeZone,
     }),
     description: event.description ?? "",
     isAllDay: event.allDay ?? false,
@@ -90,10 +90,10 @@ export function parseDraftEvent({
         name: attendee.name ?? "",
       })) ?? [],
     calendar: {
-      accountId: event.accountId ?? defaultCalendar.accountId,
-      calendarId: event.calendarId ?? defaultCalendar.id,
+      accountId: event?.accountId ?? defaultCalendar?.accountId,
+      calendarId: event?.calendarId ?? defaultCalendar?.id,
     },
-    providerId: event.providerId ?? defaultCalendar.providerId,
+    providerId: event?.providerId ?? defaultCalendar?.providerId,
   };
 }
 
