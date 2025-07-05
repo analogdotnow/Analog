@@ -5,38 +5,16 @@ import {
 } from "temporal-zod";
 import { z } from "zod";
 
-const conferenceEntryPointSchema = z.object({
-  entryPointType: z.enum(["video", "phone"]),
-  meetingCode: z.string(),
-  password: z.string(),
-  uri: z.string(),
-});
-
 const conferenceSchema = z.object({
-  conferenceId: z.string().optional(),
-  conferenceSolution: z
-    .object({
-      iconUri: z.string().optional(),
-      key: z
-        .object({
-          type: z.string().optional(),
-        })
-        .optional(),
-      name: z.string().optional(),
-    })
-    .optional(),
-  createRequest: z
-    .object({
-      requestId: z.string().optional(),
-      status: z.object({ statusCode: z.string().optional() }).optional(),
-      conferenceSolutionKey: z
-        .object({ type: z.string().optional() })
-        .optional(),
-    })
-    .optional(),
-  entryPoints: z.array(conferenceEntryPointSchema).optional(),
+  id: z.string().optional(),
+  name: z.string().optional(),
+  joinUrl: z.string().url().optional(),
+  hostUrl: z.string().url().optional(),
+  meetingCode: z.string().optional(),
+  password: z.string().optional(),
+  phoneNumbers: z.array(z.string()).optional(),
   notes: z.string().optional(),
-  parameters: z.record(z.unknown()).optional(),
+  extra: z.record(z.unknown()).optional(),
 });
 
 const microsoftMetadataSchema = z.object({

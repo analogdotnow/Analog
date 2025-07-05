@@ -92,10 +92,6 @@ export function parseGoogleCalendarEvent({
 export function toGoogleCalendarEvent(
   event: CreateEventInput | UpdateEventInput,
 ): GoogleCalendarEventCreateParams {
-  console.log({
-    conferenceData: JSON.stringify(event.conferenceData, null, 2),
-  });
-
   const result: GoogleCalendarEventCreateParams = {
     ...("id" in event ? { id: event.id } : {}),
     start: toGoogleCalendarDate(event.start),
@@ -103,8 +99,6 @@ export function toGoogleCalendarEvent(
     summary: event.title,
     description: event.description,
     location: event.location,
-    conferenceData: event.conferenceData,
-    ...(event.conferenceData !== undefined ? { conferenceDataVersion: 1 } : {}),
   };
 
   return result;
@@ -176,46 +170,34 @@ function parseGoogleCalendarAttendeeType(
 function parseGoogleCalendarConferenceData(
   conferenceData: GoogleCalendarEvent["conferenceData"],
 ): CalendarEvent["conferenceData"] {
-  if (!conferenceData?.entryPoints?.length || !conferenceData.conferenceId) {
+  if (!conferenceData?.entryPoints?.length) {
     return undefined;
   }
 
-  // Filter and map entry points to match our interface
-  const entryPoints = conferenceData.entryPoints
-    .filter(
-      (entry) =>
-        entry.entryPointType &&
-        entry.uri &&
-        (entry.entryPointType === "video" || entry.entryPointType === "phone"),
-    )
-    .map((entry) => ({
-      entryPointType: entry.entryPointType as "video" | "phone",
-      uri: entry.uri!,
-      label: entry.label ?? entry.uri!,
-      passcode:
-        entry.passcode ??
-        entry.password ??
-        entry.accessCode ??
-        entry.meetingCode ??
-        entry.pin ??
-        "",
-    }));
+  const videoEntry = conferenceData.entryPoints.find(
+    (e) => e.entryPointType === "video" && e.uri,
+  );
 
-  if (entryPoints.length === 0) {
+  const phoneNumbers = conferenceData.entryPoints
+    .filter((e) => e.entryPointType === "phone" && e.uri)
+    .map((e) => e.uri as string);
+
+  if (!videoEntry) {
     return undefined;
   }
 
   return {
-    entryPoints: entryPoints.map((entry) => ({
-      entryPointType: entry.entryPointType,
-      uri: entry.uri,
-      meetingCode: entry.passcode,
-      password: entry.passcode,
-    })),
-    conferenceId: conferenceData.conferenceId,
-    conferenceSolution: {
-      name: conferenceData.conferenceSolution?.name || "Google Meet",
-    },
+    id: conferenceData.conferenceId,
+    name: conferenceData.conferenceSolution?.name ?? "Google Meet",
+    joinUrl: videoEntry.uri!,
+    meetingCode:
+      videoEntry.meetingCode ??
+      videoEntry.passcode ??
+      videoEntry.password ??
+      "",
+    phoneNumbers: phoneNumbers.length ? phoneNumbers : undefined,
+    password:
+      videoEntry.passcode ?? videoEntry.password ?? videoEntry.meetingCode,
   };
 }
 

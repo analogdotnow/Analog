@@ -100,27 +100,30 @@ export interface ConferencingProvider {
 }
 
 export interface Conference {
-  conferenceId?: string;
-  conferenceSolution?: {
-    iconUri?: string;
-    key?: {
-      type?: string;
-    };
-    name?: string;
-  };
-  createRequest?: {
-    requestId?: string;
-    status?: { statusCode?: string };
-    conferenceSolutionKey?: { type?: string };
-  };
-  entryPoints?: ConferenceEntryPoint[];
-  notes?: string;
-  parameters?: Record<string, unknown>;
-}
+  /** Provider-specific meeting identifier (e.g. Google Meet code, Zoom UUID). */
+  id?: string;
 
-export interface ConferenceEntryPoint {
-  entryPointType: "video" | "phone";
-  meetingCode: string;
-  password: string;
-  uri: string;
+  /** Human-friendly provider or meeting name (e.g. "Google Meet", "Teams"). */
+  name?: string;
+
+  /** Primary join URL for participants (video URL). */
+  joinUrl?: string;
+
+  /** Host-only URL when the provider differentiates (e.g. Zoom start_url). */
+  hostUrl?: string;
+
+  /** Meeting code or numeric ID displayed to users. */
+  meetingCode?: string;
+
+  /** Password / pass-code if required to join. */
+  password?: string;
+
+  /** One or more dial-in phone numbers (E.164 / plain). */
+  phoneNumbers?: string[];
+
+  /** Additional free-form notes such as SIP information. */
+  notes?: string;
+
+  /** Provider-specific extra fields preserved for debugging / extensions. */
+  extra?: Record<string, unknown>;
 }

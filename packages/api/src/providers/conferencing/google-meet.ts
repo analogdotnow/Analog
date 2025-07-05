@@ -58,7 +58,23 @@ export class GoogleMeetProvider implements ConferencingProvider {
         throw new Error("Failed to create conference data");
       }
 
-      return updatedEvent.conferenceData as Conference;
+      const conferenceData = updatedEvent.conferenceData;
+
+      const videoEntry = conferenceData.entryPoints?.find(
+        (e) => e.entryPointType === "video" && e.uri,
+      );
+      const phoneNumbers = conferenceData.entryPoints
+        ?.filter((e) => e.entryPointType === "phone" && e.uri)
+        .map((e) => e.uri as string);
+
+      return {
+        id: conferenceData.conferenceId,
+        name: conferenceData.conferenceSolution?.name || "Google Meet",
+        joinUrl: videoEntry?.uri,
+        meetingCode: videoEntry?.meetingCode ?? conferenceData.conferenceId,
+        phoneNumbers:
+          phoneNumbers && phoneNumbers.length ? phoneNumbers : undefined,
+      } as Conference;
     });
   }
 
