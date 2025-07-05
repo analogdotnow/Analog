@@ -31,7 +31,6 @@ export function AgendaView({
 
   const handleEventClick = (event: CalendarEvent, e: React.MouseEvent) => {
     e.stopPropagation();
-    console.log("Agenda view event clicked:", event);
     onEventSelect(event);
   };
 

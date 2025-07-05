@@ -33,7 +33,7 @@ export function toGoogleCalendarDate(
   }
 
   return {
-    dateTime: value.toInstant().toString(),
+    dateTime: value.toString({ timeZoneName: "never", offset: "auto" }),
     timeZone: value.timeZoneId,
   };
 }

@@ -2,8 +2,8 @@ import { useUpdateEffect, type Measures } from "@react-hookz/web";
 import { SparklesIcon } from "lucide-react";
 import { motion, type MotionProps } from "motion/react";
 
-import { useFieldContext } from "@/components/event-form/hooks/form-context";
-import { useExpandingInput } from "@/components/event-form/hooks/use-expanding-input";
+import { useExpandingInput } from "@/components/event-form/ai-input/hooks/use-expanding-input";
+import { useFieldContext } from "@/components/event-form/form";
 import { BorderTrail } from "@/components/ui/border-trail";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
