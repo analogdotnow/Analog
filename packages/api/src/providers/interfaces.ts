@@ -36,6 +36,7 @@ export interface CalendarEvent {
   accountId: string;
   calendarId: string;
   metadata?: Record<string, unknown>;
+  conferenceData?: Conference;
 }
 
 export interface Attendee {
@@ -84,4 +85,42 @@ export interface CalendarProvider {
       comment?: string;
     },
   ): Promise<void>;
+}
+
+export interface ConferencingProvider {
+  providerId: "zoom" | "google";
+  createConferencing(
+    agenda: string,
+    startTime: string,
+    endTime: string,
+    timeZone?: string,
+    calendarId?: string,
+    eventId?: string,
+  ): Promise<Conference>;
+}
+
+export interface Conference {
+  conferenceId?: string;
+  conferenceSolution?: {
+    iconUri?: string;
+    key?: {
+      type?: string;
+    };
+    name?: string;
+  };
+  createRequest?: {
+    requestId?: string;
+    status?: { statusCode?: string };
+    conferenceSolutionKey?: { type?: string };
+  };
+  entryPoints?: ConferenceEntryPoint[];
+  notes?: string;
+  parameters?: Record<string, unknown>;
+}
+
+export interface ConferenceEntryPoint {
+  entryPointType: "video" | "phone";
+  meetingCode: string;
+  password: string;
+  uri: string;
 }

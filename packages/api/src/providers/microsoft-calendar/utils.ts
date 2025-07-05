@@ -16,6 +16,7 @@ import type {
   AttendeeStatus,
   Calendar,
   CalendarEvent,
+  EntryPoint,
 } from "../interfaces";
 import { mapWindowsToIanaTimeZone } from "./windows-timezones";
 
@@ -128,6 +129,7 @@ export function parseMicrosoftEvent({
     accountId,
     calendarId: calendar.id,
     readOnly: calendar.readOnly,
+    conferenceData: parseMicrosoftConferenceData(event),
     metadata: {
       ...(event.originalStartTimeZone
         ? {
@@ -198,6 +200,12 @@ export function calendarPath(calendarId: string) {
   return calendarId === "primary"
     ? "/me/calendar"
     : `/me/calendars/${calendarId}`;
+}
+
+function parseMicrosoftConferenceData(
+  event: MicrosoftEvent,
+): CalendarEvent["conferenceData"] {
+  return undefined;
 }
 
 export function eventResponseStatusPath(
