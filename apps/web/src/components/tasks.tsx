@@ -3,7 +3,7 @@
 import { Fragment, useCallback, useMemo, useRef, useState } from "react";
 import { useResizeObserver } from "@react-hookz/web";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Plus, Calendar, X } from "lucide-react";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -23,8 +23,14 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTRPC } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { format } from "date-fns";
 
-export type TaskItem = {
+export type Task = {
   id: string;
   title?: string;
   categoryId?: string;
@@ -64,12 +70,12 @@ export function Tasks() {
   }
 
   // Helper to group and sort tasks by category
-  function getGroupedCategories(tasks: TaskItem[]) {
+  function getGroupedCategories(tasks: Task[]) {
     const grouped = tasks.reduce((acc, task) => {
       const categoryId = task.categoryId || "";
       (acc[categoryId] ||= []).push(task);
       return acc;
-    }, {} as Record<string, TaskItem[]>);
+    }, {} as Record<string, Task[]>);
 
     return Object.keys(grouped)
       .sort((a, b) => {
@@ -105,8 +111,8 @@ export function Tasks() {
                           {category.title}
                         </SidebarGroupLabel>
                         <SidebarMenu>
-                          {(category.tasks ?? []).map((item: TaskItem) => (
-                            <ItemWithToggle
+                          {(category.tasks ?? []).map((item: Task) => (
+                            <TaskItem
                               key={item.id}
                               item={item}
                               accountId={account.id}
@@ -114,6 +120,10 @@ export function Tasks() {
                               updateTaskMutation={updateTaskMutation}
                             />
                           ))}
+                          <AddTask 
+                            accountId={account.id} 
+                            categories={groupedCategories.map(cat => ({ id: cat.id, title: cat.title }))} 
+                          />
                         </SidebarMenu>
                       </div>
                     ))}
@@ -184,8 +194,8 @@ function AccountName({ name }: { name: string }) {
   );
 }
 
-function ItemWithToggle({ item, accountId, categoryId, updateTaskMutation }: {
-  item: TaskItem,
+function TaskItem({ item, accountId, categoryId, updateTaskMutation }: {
+  item: Task,
   accountId: string,
   categoryId: string,
   updateTaskMutation: any;
@@ -239,6 +249,147 @@ function ItemWithToggle({ item, accountId, categoryId, updateTaskMutation }: {
             })}
           >
             {item.title}
+          </span>
+        </div>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
+  );
+}
+
+function AddTask({ accountId, categories }: {
+  accountId: string,
+  categories: { id: string; title: string }[],
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [taskTitle, setTaskTitle] = useState("");
+  const [taskDescription, setTaskDescription] = useState("");
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+
+  const createTaskMutation = useMutation(
+    trpc.tasks.createTask.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: trpc.tasks.list.queryKey() });
+        setIsOpen(false);
+        setTaskTitle("");
+        setTaskDescription("");
+        setSelectedDate(new Date());
+        setSelectedCategory("");
+      },
+    })
+  );
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!taskTitle.trim() || !selectedCategory) return;
+
+    createTaskMutation.mutate({
+      accountId,
+      categoryId: selectedCategory,
+      task: {
+        title: taskTitle.trim(),
+        notes: taskDescription.trim() || undefined,
+        due: selectedDate?.toISOString(),
+        status: "needsAction",
+      },
+    });
+  };
+
+  const handleCancel = () => {
+    setIsOpen(false);
+    setTaskTitle("");
+    setTaskDescription("");
+    setSelectedDate(new Date());
+    setSelectedCategory("");
+  };
+
+  if (isOpen) {
+    return (
+      <SidebarMenuItem className="group/item">
+        <div className="space-y-2 p-2 relative">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={handleCancel}
+            className="absolute top-0 right-0 h-6 w-6 p-0"
+          >
+            <X className="h-3 w-3" />
+          </Button>
+          <form onSubmit={handleSubmit} className="space-y-2">
+            <Input
+              value={taskTitle}
+              onChange={(e) => setTaskTitle(e.target.value)}
+              placeholder="New Task"
+              className="w-full"
+              autoFocus
+            />
+            <Input
+              value={taskDescription}
+              onChange={(e) => setTaskDescription(e.target.value)}
+              placeholder="Notes"
+              className="w-full"
+            />
+            <div className="flex items-center gap-2">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="justify-start text-left font-normal"
+                  >
+                    <Calendar className="mr-2 h-4 w-4" />
+                    {selectedDate ? format(selectedDate, "dd MMM") : "Pick date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <CalendarComponent
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={setSelectedDate}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger className="flex-1">
+                  <SelectValue placeholder="Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((category) => (
+                    <SelectItem key={category.id} value={category.id}>
+                      {category.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            <Button
+              type="submit"
+              size="sm"
+              className="h-8 w-8 p-0"
+              disabled={!taskTitle.trim() || !selectedCategory || createTaskMutation.isPending}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+            </div>
+          </form>
+        </div>
+      </SidebarMenuItem>
+    );
+  }
+
+  return (
+    <SidebarMenuItem className="group/item">
+      <SidebarMenuButton
+        onClick={() => setIsOpen(true)}
+        className="hover:bg-neutral-600/20"
+      >
+        <div className="relative flex items-center">
+          <Plus className="h-4 w-4 mr-2" />
+          <span className="line-clamp-1 block select-none">
+            Add task
           </span>
         </div>
       </SidebarMenuButton>
