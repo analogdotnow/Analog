@@ -92,7 +92,7 @@ export function WaitlistForm({ className }: WaitlistFormProps) {
         >
           <Input
             placeholder="example@0.email"
-            className="h-11 w-full rounded-md bg-white px-4 text-base font-medium outline outline-neutral-200 placeholder:font-medium placeholder:text-muted-foreground md:text-base"
+            className="h-11 w-full rounded-md px-4 text-base font-medium outline outline-neutral-200 placeholder:font-medium placeholder:text-muted-foreground md:text-base"
             {...register("email")}
           />
           <Button

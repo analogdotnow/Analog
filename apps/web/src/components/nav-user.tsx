@@ -1,8 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronsUpDown, LogOut, Plus, UserRound } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { ChevronsUpDown, LogOut, Plus, Settings } from "lucide-react";
 import { useTheme } from "next-themes";
 import { toast } from "sonner";
 
@@ -10,6 +10,7 @@ import { authClient } from "@repo/auth/client";
 
 import { AddAccountDialog } from "@/components/add-account-dialog";
 import { Zoom } from "@/components/icons";
+import { SettingsDialog } from "@/components/settings-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -17,7 +18,13 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuPortal,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -26,36 +33,22 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useTRPC } from "@/lib/trpc/client";
-
-function useUser() {
-  const trpc = useTRPC();
-  return useQuery(trpc.user.me.queryOptions());
-}
-
-function useAccounts() {
-  const trpc = useTRPC();
-  return useQuery(trpc.accounts.list.queryOptions());
-}
+import { useAccounts, useCurrentUser } from "@/hooks/accounts";
 
 export function NavUser() {
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  const { data: user, isLoading } = useUser();
-  const { data: accounts } = useAccounts();
+  const { data: user, isLoading } = useCurrentUser();
+  const { accounts } = useAccounts();
   const { theme, setTheme } = useTheme();
 
-  const hasGoogleAccount = accounts?.accounts?.some(
-    (acc) => acc.providerId === "google",
-  );
-  const hasMicrosoftAccount = accounts?.accounts?.some(
+  const hasGoogleAccount = accounts?.some((acc) => acc.providerId === "google");
+  const hasMicrosoftAccount = accounts?.some(
     (acc) => acc.providerId === "microsoft",
   );
 
-  const hasZoomAccount = accounts?.accounts?.some(
-    (acc) => acc.providerId === "zoom",
-  );
+  const hasZoomAccount = accounts?.some((acc) => acc.providerId === "zoom");
 
   const handleLinkZoom = async () => {
     try {
@@ -65,14 +58,6 @@ export function NavUser() {
       });
     } catch {
       toast.error("Failed to link Zoom account");
-    }
-  };
-
-  const toggleTheme = () => {
-    if (theme === "dark") {
-      setTheme("light");
-    } else {
-      setTheme("dark");
     }
   };
 
@@ -132,14 +117,16 @@ export function NavUser() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <UserRound />
-                Account
-              </DropdownMenuItem>
+              <SettingsDialog>
+                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                  <Settings />
+                  Settings
+                </DropdownMenuItem>
+              </SettingsDialog>
               <AddAccountDialog>
                 <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                   <Plus />
-                  Add account
+                  Connect an account
                 </DropdownMenuItem>
               </AddAccountDialog>
               {(hasGoogleAccount || hasMicrosoftAccount) && !hasZoomAccount && (
@@ -149,6 +136,31 @@ export function NavUser() {
                 </DropdownMenuItem>
               )}
             </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger className="ps-8">
+                Theme
+              </DropdownMenuSubTrigger>
+              <DropdownMenuPortal>
+                <DropdownMenuSubContent className="min-w-64">
+                  <DropdownMenuRadioGroup
+                    value={theme}
+                    onValueChange={setTheme}
+                  >
+                    <DropdownMenuRadioItem value="system">
+                      Automatic (system)
+                    </DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="light">
+                      Light
+                    </DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="dark">
+                      Dark
+                    </DropdownMenuRadioItem>
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuSubContent>
+              </DropdownMenuPortal>
+            </DropdownMenuSub>
+            <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={async () =>
                 await authClient.signOut({
@@ -164,11 +176,6 @@ export function NavUser() {
               <LogOut />
               Log out
             </DropdownMenuItem>
-            {/* <DropdownMenuItem onClick={toggleTheme}>
-              <Sun className="h-[1.2rem] w-[1.2rem] scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
-              <Moon className="absolute h-[1.2rem] w-[1.2rem] scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" />
-              App theme
-            </DropdownMenuItem> */}
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>

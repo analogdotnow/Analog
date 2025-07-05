@@ -1,12 +1,19 @@
 import { Temporal } from "temporal-polyfill";
 
 import { CreateEventInput, UpdateEventInput } from "../../schemas/events";
-import { Calendar, CalendarEvent } from "../interfaces";
+import {
+  Attendee,
+  AttendeeStatus,
+  Calendar,
+  CalendarEvent,
+} from "../interfaces";
 import {
   GoogleCalendarCalendarListEntry,
   GoogleCalendarDate,
   GoogleCalendarDateTime,
   GoogleCalendarEvent,
+  GoogleCalendarEventAttendee,
+  GoogleCalendarEventAttendeeResponseStatus,
   GoogleCalendarEventCreateParams,
 } from "./interfaces";
 
@@ -26,7 +33,7 @@ export function toGoogleCalendarDate(
   }
 
   return {
-    dateTime: value.toInstant().toString(),
+    dateTime: value.toString({ timeZoneName: "never", offset: "auto" }),
     timeZone: value.timeZoneId,
   };
 }
@@ -46,13 +53,13 @@ function parseDateTime({ dateTime, timeZone }: GoogleCalendarDateTime) {
 }
 
 interface ParsedGoogleCalendarEventOptions {
-  calendarId: string;
+  calendar: Calendar;
   accountId: string;
   event: GoogleCalendarEvent;
 }
 
 export function parseGoogleCalendarEvent({
-  calendarId,
+  calendar,
   accountId,
   event,
 }: ParsedGoogleCalendarEventOptions): CalendarEvent {
@@ -72,10 +79,12 @@ export function parseGoogleCalendarEvent({
     allDay: isAllDay,
     location: event.location,
     status: event.status,
+    attendees: event.attendees?.map(parseGoogleCalendarAttendee) ?? [],
     url: event.htmlLink,
     providerId: "google",
     accountId,
-    calendarId,
+    calendarId: calendar.id,
+    readOnly: calendar.readOnly,
   };
 }
 
@@ -112,10 +121,60 @@ export function parseGoogleCalendarCalendarListEntry({
     // location: entry.location,
     timeZone: entry.timeZone,
     primary: entry.primary!,
-    // readOnly: entry.accessRole === "reader",
+    readOnly:
+      entry.accessRole === "reader" || entry.accessRole === "freeBusyReader",
 
     providerId: "google",
     accountId,
     color: entry.backgroundColor,
+  };
+}
+
+export function toGoogleCalendarAttendeeResponseStatus(
+  status: AttendeeStatus,
+): GoogleCalendarEventAttendeeResponseStatus {
+  if (status === "unknown") {
+    return "needsAction";
+  }
+
+  return status;
+}
+
+function parseGoogleCalendarAttendeeStatus(
+  status: GoogleCalendarEventAttendeeResponseStatus,
+): AttendeeStatus {
+  if (status === "needsAction") {
+    return "unknown";
+  }
+
+  return status;
+}
+
+function parseGoogleCalendarAttendeeType(
+  attendee: GoogleCalendarEventAttendee,
+): "required" | "optional" | "resource" {
+  if (attendee.resource) {
+    return "resource";
+  }
+
+  if (attendee.optional) {
+    return "optional";
+  }
+
+  return "required";
+}
+
+export function parseGoogleCalendarAttendee(
+  attendee: GoogleCalendarEventAttendee,
+): Attendee {
+  return {
+    id: attendee.id,
+    email: attendee.email,
+    name: attendee.displayName,
+    status: parseGoogleCalendarAttendeeStatus(
+      attendee.responseStatus as GoogleCalendarEventAttendeeResponseStatus,
+    ),
+    type: parseGoogleCalendarAttendeeType(attendee),
+    additionalGuests: attendee.additionalGuests,
   };
 }

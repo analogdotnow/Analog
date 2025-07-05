@@ -1,307 +1,186 @@
 "use client";
 
-import { useMemo } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-import { Temporal } from "temporal-polyfill";
+import { useEffect, useMemo, useRef } from "react";
+import { useHotkeysContext } from "react-hotkeys-hook";
 
-import { compareTemporal, toInstant } from "@repo/temporal";
+import { useCalendarsVisibility, useViewPreferences } from "@/atoms";
+import {
+  CalendarHeader,
+  EventGap,
+  EventHeight,
+  WeekCellsHeight,
+} from "@/components/event-calendar";
+import {
+  filterPastEvents,
+  filterVisibleEvents,
+} from "@/components/event-calendar/utils";
+import { AgendaView } from "@/components/event-calendar/views/agenda-view";
+import { DayView } from "@/components/event-calendar/views/day-view";
+import { MonthView } from "@/components/event-calendar/views/month-view";
+import { WeekView } from "@/components/event-calendar/views/week-view";
+import { useCalendarState } from "@/hooks/use-calendar-state";
+import { CalendarEvent, DraftEvent } from "@/lib/interfaces";
+import { cn } from "@/lib/utils";
+import { useScrollToCurrentTime } from "./event-calendar/week-view/use-scroll-to-current-time";
 
-import { EventCalendar, type CalendarEvent } from "@/components/event-calendar";
-import { RouterOutputs } from "@/lib/trpc";
-import { useTRPC } from "@/lib/trpc/client";
-import { useCalendarSettings } from "./event-calendar/hooks/use-calendar-settings";
+interface CalendarContentProps {
+  events: CalendarEvent[];
+  onEventSelect: (event: CalendarEvent) => void;
+  onEventCreate: (draft: DraftEvent) => void;
+  scrollContainerRef: React.RefObject<HTMLDivElement | null>;
+  onEventUpdate: (event: CalendarEvent) => void;
+  headerRef: React.RefObject<HTMLDivElement | null>;
+}
+
+function CalendarContent({
+  events,
+  onEventSelect,
+  onEventCreate,
+  onEventUpdate,
+  scrollContainerRef,
+  headerRef,
+}: CalendarContentProps) {
+  const { currentDate, view } = useCalendarState();
+
+  const scrollToCurrentTime = useScrollToCurrentTime({ scrollContainerRef });
+
+  useEffect(() => {
+    scrollToCurrentTime();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  switch (view) {
+    case "month":
+      return (
+        <MonthView
+          currentDate={currentDate}
+          events={events}
+          onEventSelect={onEventSelect}
+          onEventCreate={onEventCreate}
+          onEventUpdate={onEventUpdate}
+        />
+      );
+
+    case "week":
+      return (
+        <WeekView
+          currentDate={currentDate}
+          events={events}
+          onEventSelect={onEventSelect}
+          onEventCreate={onEventCreate}
+          onEventUpdate={onEventUpdate}
+          headerRef={headerRef}
+        />
+      );
+
+    case "day":
+      return (
+        <DayView
+          currentDate={currentDate}
+          events={events}
+          onEventSelect={onEventSelect}
+          onEventCreate={onEventCreate}
+          onEventUpdate={onEventUpdate}
+        />
+      );
+
+    case "agenda":
+      return (
+        <AgendaView
+          currentDate={currentDate}
+          events={events}
+          onEventSelect={onEventSelect}
+        />
+      );
+
+    default:
+      // Fallback to week view for unknown view types
+      return (
+        <WeekView
+          currentDate={currentDate}
+          events={events}
+          onEventSelect={onEventSelect}
+          onEventCreate={onEventCreate}
+          onEventUpdate={onEventUpdate}
+          headerRef={headerRef}
+        />
+      );
+  }
+}
 
 interface CalendarViewProps {
   className?: string;
+  events: CalendarEvent[];
+  handleEventCreate: (draft: DraftEvent) => void;
+  handleEventSelect: (event: CalendarEvent) => void;
+  handleEventMove: (event: CalendarEvent) => void;
 }
 
-const CALENDAR_CONFIG = {
-  TIME_RANGE_DAYS_PAST: 30,
-  TIME_RANGE_DAYS_FUTURE: 60,
-  DEFAULT_CALENDAR_ID: "primary",
-};
+export function CalendarView({
+  className,
+  events,
+  handleEventSelect,
+  handleEventMove,
+  handleEventCreate,
+}: CalendarViewProps) {
+  const viewPreferences = useViewPreferences();
+  const [calendarVisibility] = useCalendarsVisibility();
+  // const isDragging = useAtomValue(isDraggingAtom);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
 
-type Event = RouterOutputs["events"]["list"]["events"][number];
+  // Enable edge auto scroll when dragging events
+  // useEdgeAutoScroll(scrollContainerRef, { active: isDragging, headerRef });
 
-function useCalendarActions() {
-  const trpc = useTRPC();
-  const queryClient = useQueryClient();
-
-  const { data: defaultAccountData } = useQuery(
-    trpc.accounts.getDefault.queryOptions(),
-  );
-
-  const { defaultTimeZone } = useCalendarSettings();
-
-  const timeMin = useMemo(
+  const filteredEvents = useMemo(
     () =>
-      Temporal.Now.plainDateISO()
-        .subtract({
-          days: CALENDAR_CONFIG.TIME_RANGE_DAYS_PAST,
-        })
-        .toZonedDateTime({
-          timeZone: defaultTimeZone,
-        }),
-    [defaultTimeZone],
-  );
-  const timeMax = useMemo(
-    () =>
-      Temporal.Now.plainDateISO()
-        .add({
-          days: CALENDAR_CONFIG.TIME_RANGE_DAYS_FUTURE,
-        })
-        .toZonedDateTime({
-          timeZone: defaultTimeZone,
-        }),
-    [defaultTimeZone],
+      filterVisibleEvents(
+        filterPastEvents(events, viewPreferences.showPastEvents),
+        calendarVisibility.hiddenCalendars,
+      ),
+    [
+      events,
+      viewPreferences.showPastEvents,
+      calendarVisibility.hiddenCalendars,
+    ],
   );
 
-  const eventsQueryKey = useMemo(
-    () => trpc.events.list.queryOptions({ timeMin, timeMax }).queryKey,
-    [trpc.events.list, timeMin, timeMax],
-  );
+  const { enableScope } = useHotkeysContext();
 
-  const { data } = useQuery(
-    trpc.events.list.queryOptions({
-      timeMin,
-      timeMax,
-    }),
-  );
-
-  const transformedEvents = useMemo(() => {
-    if (!data?.events) return [];
-
-    return data.events.map((event): CalendarEvent => {
-      return {
-        ...event,
-        start: event.start,
-        end: event.end,
-        color: event.color,
-      };
-    });
-  }, [data]);
-
-  const { mutate: createEvent, isPending: isCreating } = useMutation(
-    trpc.events.create.mutationOptions({
-      onMutate: async (newEvent) => {
-        if (!defaultAccountData) {
-          toast.error("No default account available, sign in again.");
-          return;
-        }
-
-        await queryClient.cancelQueries({ queryKey: eventsQueryKey });
-
-        const previousEvents = queryClient.getQueryData(eventsQueryKey);
-
-        queryClient.setQueryData(eventsQueryKey, (old) => {
-          if (!old) return old;
-
-          const tempEvent: Event = {
-            id: `temp-${Date.now()}`,
-            title: newEvent.title!,
-            description: newEvent.description,
-            start: newEvent.start,
-            end: newEvent.end,
-            allDay: newEvent.allDay || false,
-            location: newEvent.location,
-            color: newEvent.color,
-            status: undefined,
-            url: undefined,
-            calendarId: newEvent.calendarId,
-            providerId: defaultAccountData.account.providerId,
-            accountId: defaultAccountData.account.id,
-          };
-
-          return {
-            ...old,
-            events: [...(old.events || []), tempEvent].sort(
-              (a, b) =>
-                toInstant({ value: a.start, timeZone: "UTC" })
-                  .epochMilliseconds -
-                toInstant({ value: b.start, timeZone: "UTC" })
-                  .epochMilliseconds,
-            ),
-          };
-        });
-
-        return { previousEvents };
-      },
-      onError: (err, _, context) => {
-        // TODO: error message
-
-        if (context?.previousEvents) {
-          queryClient.setQueryData(eventsQueryKey, context.previousEvents);
-        }
-      },
-      onSuccess: () => {},
-      onSettled: () => {
-        queryClient.invalidateQueries({ queryKey: eventsQueryKey });
-      },
-    }),
-  );
-
-  const { mutate: updateEvent, isPending: isUpdating } = useMutation(
-    trpc.events.update.mutationOptions({
-      onMutate: async (updatedEvent) => {
-        await queryClient.cancelQueries({ queryKey: eventsQueryKey });
-
-        const previousEvents = queryClient.getQueryData(eventsQueryKey);
-
-        queryClient.setQueryData(eventsQueryKey, (old) => {
-          if (!old) return old;
-
-          return {
-            ...old,
-            events: old.events
-              .map((event) =>
-                event.id === updatedEvent.id
-                  ? {
-                      ...event,
-                      title: updatedEvent.title ?? event.title,
-                      description:
-                        updatedEvent.description ?? event.description,
-                      start: updatedEvent.start ?? event.start,
-                      end: updatedEvent.end ?? event.end,
-                      allDay: updatedEvent.allDay ?? event.allDay,
-                      location: updatedEvent.location ?? event.location,
-                      accountId: event.accountId,
-                      providerId: event.providerId,
-                      calendarId: event.calendarId,
-                    }
-                  : event,
-              )
-              .sort((a, b) => compareTemporal(a.start, b.start)),
-          };
-        });
-
-        return { previousEvents };
-      },
-      onError: (error, _, context) => {
-        // TODO: error message
-
-        if (context?.previousEvents) {
-          queryClient.setQueryData(eventsQueryKey, context.previousEvents);
-        }
-      },
-      onSuccess: () => {},
-      onSettled: () => {
-        queryClient.invalidateQueries({ queryKey: eventsQueryKey });
-      },
-    }),
-  );
-
-  const { mutate: deleteEvent, isPending: isDeleting } = useMutation(
-    trpc.events.delete.mutationOptions({
-      onMutate: async ({ eventId }) => {
-        await queryClient.cancelQueries({ queryKey: eventsQueryKey });
-
-        const previousEvents = queryClient.getQueryData(eventsQueryKey);
-
-        queryClient.setQueryData(eventsQueryKey, (old) => {
-          if (!old) return old;
-
-          return {
-            ...old,
-            events: old.events.filter((event) => event.id !== eventId),
-          };
-        });
-
-        return { previousEvents };
-      },
-      onError: (error, _, context) => {
-        // TODO: error message
-
-        if (context?.previousEvents) {
-          queryClient.setQueryData(eventsQueryKey, context.previousEvents);
-        }
-      },
-      onSuccess: () => {},
-      onSettled: () => {
-        queryClient.invalidateQueries({ queryKey: eventsQueryKey });
-      },
-    }),
-  );
-
-  return {
-    events: transformedEvents,
-    createEvent,
-    updateEvent,
-    deleteEvent,
-    isCreating,
-    isUpdating,
-    isDeleting,
-  };
-}
-
-function useDefaultAccount() {
-  const trpc = useTRPC();
-
-  const { data } = useQuery(trpc.accounts.getDefault.queryOptions());
-
-  return data?.account;
-}
-
-export function CalendarView({ className }: CalendarViewProps) {
-  const defaultAccount = useDefaultAccount();
-
-  const { events, createEvent, updateEvent, deleteEvent } =
-    useCalendarActions();
-
-  const handleEventAdd = (event: CalendarEvent) => {
-    if (!defaultAccount) {
-      toast.error("No default account available, sign in again.");
-      return;
-    }
-
-    createEvent({
-      accountId: defaultAccount.id,
-      calendarId: CALENDAR_CONFIG.DEFAULT_CALENDAR_ID,
-      title: event.title,
-      start: event.start,
-      end: event.end,
-      allDay: event.allDay,
-      description: event.description,
-      location: event.location,
-    });
-  };
-
-  const handleEventUpdate = (updatedEvent: CalendarEvent) => {
-    updateEvent({
-      accountId: updatedEvent.accountId,
-      calendarId: updatedEvent.calendarId,
-      id: updatedEvent.id,
-      title: updatedEvent.title,
-      start: updatedEvent.start,
-      end: updatedEvent.end,
-      allDay: updatedEvent.allDay,
-      description: updatedEvent.description,
-      location: updatedEvent.location,
-    });
-  };
-
-  const handleEventDelete = (eventId: string) => {
-    const eventToDelete = events.find((event) => event.id === eventId);
-
-    if (!eventToDelete) {
-      console.error(`Event with id ${eventId} not found`);
-      return;
-    }
-
-    deleteEvent({
-      accountId: eventToDelete.accountId,
-      calendarId: eventToDelete.calendarId,
-      eventId,
-    });
-  };
+  useEffect(() => {
+    enableScope("calendar");
+  }, [enableScope]);
 
   return (
-    <EventCalendar
-      events={events}
-      onEventAdd={handleEventAdd}
-      onEventUpdate={handleEventUpdate}
-      onEventDelete={handleEventDelete}
-      className={className}
-    />
+    <div
+      className={cn(
+        "relative flex flex-col overflow-auto has-data-[slot=month-view]:flex-1",
+        className,
+      )}
+      style={
+        {
+          "--event-height": `${EventHeight}px`,
+          "--event-gap": `${EventGap}px`,
+          "--week-cells-height": `${WeekCellsHeight}px`,
+        } as React.CSSProperties
+      }
+    >
+      <CalendarHeader ref={headerRef} />
+
+      <div
+        className="scrollbar-hidden grow overflow-x-hidden overflow-y-auto"
+        ref={scrollContainerRef}
+      >
+        <CalendarContent
+          events={filteredEvents}
+          onEventSelect={handleEventSelect}
+          onEventUpdate={handleEventMove}
+          onEventCreate={handleEventCreate}
+          scrollContainerRef={scrollContainerRef}
+          headerRef={headerRef}
+        />
+      </div>
+      {/* <SignalView className="absolute bottom-8 left-1/2 -translate-x-1/2" /> */}
+    </div>
   );
 }
