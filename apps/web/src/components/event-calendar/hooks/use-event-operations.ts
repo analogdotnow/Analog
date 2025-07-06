@@ -150,13 +150,16 @@ export function useEventOperations(onOperationComplete?: () => void) {
     setSelectedEvents([]);
   }, [setSelectedEvents]);
 
-  const dispatchAction = useCallback((action: Action) => {
-    if (action.type === "update") {
-      handleEventSave(action.event);
-    } else if (action.type === "delete") {
-      handleEventDelete(action.eventId);
-    }
-  }, [handleEventSave, handleEventDelete]);
+  const dispatchAction = useCallback(
+    (action: Action) => {
+      if (action.type === "update") {
+        handleEventSave(action.event);
+      } else if (action.type === "delete") {
+        handleEventDelete(action.eventId);
+      }
+    },
+    [handleEventSave, handleEventDelete],
+  );
 
   // Derive optimistic selected events from optimistic events - this ensures perfect sync
   const optimisticSelectedEvents = useMemo(() => {

@@ -29,6 +29,7 @@ import {
   useGridLayout,
   type EventCollectionForWeek,
 } from "@/components/event-calendar/hooks";
+import type { Action } from "@/components/event-calendar/hooks/use-event-operations";
 import { useMultiDayOverflow } from "@/components/event-calendar/hooks/use-multi-day-overflow";
 import { OverflowIndicator } from "@/components/event-calendar/overflow-indicator";
 import {
@@ -42,7 +43,6 @@ import {
 import { DraftEvent } from "@/lib/interfaces";
 import { cn } from "@/lib/utils";
 import { createDraftEvent } from "@/lib/utils/calendar";
-import type { Action } from "@/components/event-calendar/hooks/use-event-operations";
 
 interface WeekViewContextType {
   allDays: Date[];

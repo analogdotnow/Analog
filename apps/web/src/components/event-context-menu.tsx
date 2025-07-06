@@ -31,7 +31,7 @@ function CalendarRadioItem({
       data-slot="context-menu-radio-item"
       className={cn(
         "peer relative size-3 shrink-0 rounded-[4px] outline-hidden",
-        "focus-visible:border-ring focus-visible:ring-[1px] focus-visible:ring-ring/50 ring-offset-popover ring-offset-2",
+        "ring-offset-2 ring-offset-popover focus-visible:border-ring focus-visible:ring-[1px] focus-visible:ring-ring/50",
         "aria-invalid:border-destructive aria-invalid:ring-destructive/20 data-[state=checked]:border-primary",
         "bg-(--calendar-color) disabled:bg-muted",
         disabled && "bg-(--calendar-color)/50",
@@ -41,7 +41,6 @@ function CalendarRadioItem({
       {...props}
     >
       <span className="pointer-events-none absolute inset-0 flex size-3 items-center justify-center">
-        
         <ContextMenuPrimitive.ItemIndicator>
           <CheckIcon
             className="size-2.5 stroke-white/80 dark:stroke-black/60"
@@ -97,7 +96,11 @@ interface EventContextMenuProps {
   dispatchAction: (action: Action) => void;
 }
 
-export function EventContextMenu({ event, children, dispatchAction }: EventContextMenuProps) {
+export function EventContextMenu({
+  event,
+  children,
+  dispatchAction,
+}: EventContextMenuProps) {
   const responseStatus = React.useMemo(() => {
     return event.attendees?.find((attendee) => attendee.email === " ")?.status;
   }, [event]);
