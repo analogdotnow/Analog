@@ -216,12 +216,10 @@ function WeekViewAllDaySection() {
     () => startOfWeek(currentDate, { weekStartsOn: 0 }),
     [currentDate],
   );
-  const weekEnd = useMemo(
-    () => allDays[allDays.length - 1]!,
-    [allDays],
-  );
-  const allDayEvents =
-    eventCollection.type === "week" ? eventCollection.allDayEvents : [];
+  const weekEnd = useMemo(() => allDays[allDays.length - 1]!, [allDays]);
+  const allDayEvents = useMemo(() => {
+    return eventCollection.type === "week" ? eventCollection.allDayEvents : [];
+  }, [eventCollection]);
 
   // Use overflow hook for all-day events
   const overflow = useMultiDayOverflow({
@@ -323,7 +321,7 @@ function WeekViewAllDaySection() {
         >
           {/* Skip the time column */}
           <div />
-          
+
           {/* Render only visible events */}
           {overflow.capacityInfo.visibleLanes.map((lane, y) =>
             lane.map((evt) => {
@@ -414,6 +412,7 @@ function WeekViewPositionedEvent({
         onEventUpdate={onEventUpdate}
         setIsDragging={setIsDragging}
         zIndex={isDragging ? 99999 : undefined}
+        rows={1}
       />
     </div>
   );
