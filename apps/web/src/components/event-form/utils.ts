@@ -7,12 +7,12 @@ import { FormValues } from "./form";
 
 interface CreateDefaultEvent {
   settings: CalendarSettings;
-  calendar?: Calendar;
+  defaultCalendar: Calendar;
 }
 
 export function createDefaultEvent({
   settings,
-  calendar,
+  defaultCalendar: calendar,
 }: CreateDefaultEvent): FormValues {
   const timeZone = calendar?.timeZone ?? settings.defaultTimeZone;
   const now = Temporal.Now.zonedDateTimeISO(timeZone);
@@ -31,10 +31,10 @@ export function createDefaultEvent({
     repeat: {},
     attendees: [],
     calendar: {
-      accountId: calendar?.accountId ?? "default",
-      calendarId: calendar?.id ?? "default",
+      accountId: calendar.accountId,
+      calendarId: calendar.id,
     },
-    providerId: (calendar?.providerId ?? "google") as "google" | "microsoft",
+    providerId: calendar.providerId,
   };
 }
 
@@ -60,24 +60,24 @@ function toZonedDateTime({
 
 interface ParseDraftEventOptions {
   event: DraftEvent;
-  defaultTimeZone: string;
   defaultCalendar: Calendar;
+  settings: CalendarSettings;
 }
 
 export function parseDraftEvent({
   event,
   defaultCalendar,
-  defaultTimeZone,
+  settings,
 }: ParseDraftEventOptions): FormValues {
   return {
     title: event.title ?? "",
     start: toZonedDateTime({
       date: event.start,
-      defaultTimeZone: defaultCalendar?.timeZone ?? defaultTimeZone,
+      defaultTimeZone: defaultCalendar.timeZone ?? settings.defaultTimeZone,
     }),
     end: toZonedDateTime({
       date: event.end,
-      defaultTimeZone: defaultCalendar?.timeZone ?? defaultTimeZone,
+      defaultTimeZone: defaultCalendar.timeZone ?? settings.defaultTimeZone,
     }),
     description: event.description ?? "",
     isAllDay: event.allDay ?? false,
@@ -90,10 +90,10 @@ export function parseDraftEvent({
         name: attendee.name ?? "",
       })) ?? [],
     calendar: {
-      accountId: event?.accountId ?? defaultCalendar?.accountId,
-      calendarId: event?.calendarId ?? defaultCalendar?.id,
+      accountId: event?.accountId ?? defaultCalendar.accountId,
+      calendarId: event?.calendarId ?? defaultCalendar.id,
     },
-    providerId: event?.providerId ?? defaultCalendar?.providerId,
+    providerId: event?.providerId ?? defaultCalendar.providerId,
   };
 }
 

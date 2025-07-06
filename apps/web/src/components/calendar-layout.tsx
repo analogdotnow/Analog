@@ -1,10 +1,14 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
+
 import { AppSidebar } from "@/components/app-sidebar";
 import { CalendarView } from "@/components/calendar-view";
 import { useEventOperations } from "@/components/event-calendar";
+import { EventForm } from "@/components/event-form/event-form";
 import { RightSidebar } from "@/components/right-sidebar";
 import { SidebarInset } from "@/components/ui/sidebar";
+import { useTRPC } from "@/lib/trpc/client";
 
 export function CalendarLayout() {
   return (
@@ -16,6 +20,9 @@ export function CalendarLayout() {
 }
 
 function IsolatedCalendarLayout() {
+  const trpc = useTRPC();
+  const query = useQuery(trpc.calendars.list.queryOptions());
+
   const {
     events,
     selectedEvents,
@@ -38,12 +45,13 @@ function IsolatedCalendarLayout() {
           />
         </div>
       </SidebarInset>
-      <RightSidebar
-        variant="inset"
-        side="right"
-        selectedEvent={selectedEvents[0]}
-        handleEventSave={handleEventSave}
-      />
+      <RightSidebar variant="inset" side="right">
+        <EventForm
+          selectedEvent={selectedEvents[0]}
+          handleEventSave={handleEventSave}
+          defaultCalendar={query.data?.defaultCalendar}
+        />
+      </RightSidebar>
     </>
   );
 }
