@@ -14,6 +14,7 @@ import {
   GoogleCalendarEvent,
   GoogleCalendarEventAttendee,
   GoogleCalendarEventAttendeeResponseStatus,
+  GoogleCalendarEventConferenceData,
   GoogleCalendarEventCreateParams,
 } from "./interfaces";
 
@@ -99,6 +100,93 @@ export function toGoogleCalendarEvent(
     location: event.location,
     start: toGoogleCalendarDate(event.start),
     end: toGoogleCalendarDate(event.end),
+    conferenceData: event.conferenceData
+      ? toGoogleCalendarConferenceData(event.conferenceData)
+      : undefined,
+  };
+}
+
+function toGoogleCalendarConferenceData(
+  conferenceData: NonNullable<CreateEventInput["conferenceData"]>,
+): GoogleCalendarEventConferenceData {
+  const entryPoints: GoogleCalendarEventConferenceData["entryPoints"] = [];
+
+  if (conferenceData.joinUrl) {
+    const videoEntryPoint: (typeof entryPoints)[0] = {
+      entryPointType: "video",
+      uri: conferenceData.joinUrl,
+    };
+
+    if (conferenceData.meetingCode) {
+      videoEntryPoint.meetingCode = conferenceData.meetingCode;
+      videoEntryPoint.accessCode = conferenceData.meetingCode;
+    }
+
+    if (conferenceData.password) {
+      videoEntryPoint.password = conferenceData.password;
+      videoEntryPoint.passcode = conferenceData.password;
+    }
+
+    if (conferenceData.joinUrl) {
+      try {
+        const url = new URL(conferenceData.joinUrl);
+        videoEntryPoint.label = url.hostname + url.pathname;
+      } catch {
+        videoEntryPoint.label = conferenceData.joinUrl;
+      }
+    }
+
+    entryPoints.push(videoEntryPoint);
+  }
+
+  if (conferenceData.phoneNumbers?.length) {
+    conferenceData.phoneNumbers.forEach((phoneNumber) => {
+      const phoneEntryPoint: (typeof entryPoints)[0] = {
+        entryPointType: "phone",
+        uri: phoneNumber.startsWith("tel:")
+          ? phoneNumber
+          : `tel:${phoneNumber}`,
+        label: phoneNumber,
+      };
+
+      if (conferenceData.meetingCode) {
+        phoneEntryPoint.accessCode = conferenceData.meetingCode;
+        phoneEntryPoint.pin = conferenceData.meetingCode;
+      }
+
+      entryPoints.push(phoneEntryPoint);
+    });
+  }
+
+  let conferenceSolutionType = "hangoutsMeet"; // Default to Google Meet
+  if (conferenceData.name) {
+    const lowerName = conferenceData.name.toLowerCase();
+    conferenceSolutionType = lowerName.includes("google")
+      ? "hangoutsMeet"
+      : "addOn";
+  }
+
+  return {
+    conferenceId: conferenceData.id,
+    conferenceSolution: {
+      name: conferenceData.name ?? "Google Meet",
+      key: {
+        type: conferenceSolutionType,
+      },
+    },
+    entryPoints: entryPoints.length > 0 ? entryPoints : undefined,
+    ...(conferenceData.extra && {
+      parameters: {
+        addOnParameters: {
+          parameters: Object.fromEntries(
+            Object.entries(conferenceData.extra).map(([key, value]) => [
+              key,
+              String(value),
+            ]),
+          ),
+        },
+      },
+    }),
   };
 }
 
