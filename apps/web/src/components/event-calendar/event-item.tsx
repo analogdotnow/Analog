@@ -1,10 +1,7 @@
 "use client";
 
-import React, { useMemo } from "react";
-import type { DraggableAttributes } from "@dnd-kit/core";
-import type { SyntheticListenerMap } from "@dnd-kit/core/dist/hooks/utilities";
-import { differenceInMinutes, format, getMinutes, isPast } from "date-fns";
-import { motion } from "motion/react";
+import * as React from "react";
+import { differenceInMinutes, isPast } from "date-fns";
 import { Temporal } from "temporal-polyfill";
 
 import { toDate } from "@repo/temporal";
@@ -27,8 +24,6 @@ interface EventWrapperProps {
   className?: string;
   children: React.ReactNode;
   isEventInPast: boolean;
-  dndListeners?: SyntheticListenerMap;
-  dndAttributes?: DraggableAttributes;
   onMouseDown?: (e: React.MouseEvent) => void;
   onTouchStart?: (e: React.TouchEvent) => void;
 }
@@ -98,11 +93,11 @@ export function EventItem({
   onTouchStart,
 }: EventItemProps) {
   // Use the provided currentTime (for dragging) or the event's actual time
-  const displayStart = useMemo(() => {
+  const displayStart = React.useMemo(() => {
     return currentTime || toDate({ value: event.start, timeZone: "UTC" });
   }, [currentTime, event.start]);
 
-  const displayEnd = useMemo(() => {
+  const displayEnd = React.useMemo(() => {
     return currentTime
       ? new Date(
           new Date(currentTime).getTime() +
@@ -113,7 +108,7 @@ export function EventItem({
   }, [currentTime, event.start, event.end]);
 
   // Calculate event duration in minutes
-  const durationMinutes = useMemo(() => {
+  const durationMinutes = React.useMemo(() => {
     return differenceInMinutes(displayEnd, displayStart);
   }, [displayStart, displayEnd]);
 

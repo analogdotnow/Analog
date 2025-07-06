@@ -14,3 +14,4 @@ export { useGridLayout } from "./use-grid-layout";
 // Utility hooks
 export { useCurrentTimeIndicator } from "./use-current-time-indicator";
 export { useEventVisibility } from "./use-event-visibility";
+export { useMultiDayOverflow } from "./use-multi-day-overflow";

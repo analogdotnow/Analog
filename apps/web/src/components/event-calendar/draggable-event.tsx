@@ -26,6 +26,7 @@ interface DraggableEventProps {
   "aria-hidden"?: boolean | "true" | "false";
   containerRef: React.RefObject<HTMLDivElement | null>;
   rows?: number;
+  zIndex?: number;
 }
 
 interface IsMultiDayEventOptions {
@@ -63,6 +64,7 @@ export function DraggableEvent({
   containerRef,
   rows,
   setIsDragging,
+  zIndex,
 }: DraggableEventProps) {
   const dragRef = React.useRef<HTMLDivElement>(null);
 
@@ -118,7 +120,7 @@ export function DraggableEvent({
           rows,
       );
 
-      const start = current.start.add({ days: columnDelta + rowDelta * 5 });
+      const start = current.start.add({ days: columnDelta + rowDelta * 7 });
       const end = start.add(duration);
 
       onEventUpdate?.({ ...current, start, end });
@@ -235,8 +237,8 @@ export function DraggableEvent({
     return (
       <motion.div
         ref={dragRef}
-        className="z-[9999] size-full touch-none"
-        style={{ transform, height, top }}
+        className="size-full touch-none"
+        style={{ transform, height, top, zIndex }}
       >
         <EventItem
           event={event}
@@ -267,8 +269,8 @@ export function DraggableEvent({
   return (
     <motion.div
       ref={dragRef}
-      className="z-[9999] size-full touch-none"
-      style={{ transform, height: height }}
+      className="size-full touch-none"
+      style={{ transform, height: height, zIndex }}
     >
       <EventItem
         event={event}
