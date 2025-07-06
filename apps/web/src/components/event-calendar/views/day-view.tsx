@@ -61,6 +61,8 @@ function PositionedEvent({
   onEventUpdate,
   containerRef,
 }: PositionedEventProps) {
+  const [isDragging, setIsDragging] = React.useState(false);
+
   return (
     <div
       key={positionedEvent.event.id}
@@ -70,7 +72,7 @@ function PositionedEvent({
         height: `${positionedEvent.height}px`,
         left: `${positionedEvent.left * 100}%`,
         width: `${positionedEvent.width * 100}%`,
-        zIndex: positionedEvent.zIndex,
+        zIndex: isDragging ? 9999 : positionedEvent.zIndex,
       }}
       onClick={(e) => e.stopPropagation()}
     >
@@ -82,6 +84,7 @@ function PositionedEvent({
         showTime
         height={positionedEvent.height}
         containerRef={containerRef}
+        setIsDragging={setIsDragging}
       />
     </div>
   );
