@@ -22,7 +22,6 @@ export const GOOGLE_OAUTH_SCOPES = [
   "email",
   "profile",
   "openid",
-  "https://mail.google.com/",
   "https://www.googleapis.com/auth/calendar",
 ];
 
