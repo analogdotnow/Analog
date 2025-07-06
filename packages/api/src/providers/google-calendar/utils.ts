@@ -182,22 +182,20 @@ function parseGoogleCalendarConferenceData(
     .filter((e) => e.entryPointType === "phone" && e.uri)
     .map((e) => e.uri as string);
 
-  if (!videoEntry) {
+  if (!videoEntry?.uri) {
     return undefined;
   }
+
+  const accessCode =
+    videoEntry.meetingCode ?? videoEntry.passcode ?? videoEntry.password;
 
   return {
     id: conferenceData.conferenceId,
     name: conferenceData.conferenceSolution?.name ?? "Google Meet",
     joinUrl: videoEntry.uri!,
-    meetingCode:
-      videoEntry.meetingCode ??
-      videoEntry.passcode ??
-      videoEntry.password ??
-      "",
+    meetingCode: accessCode ?? "",
     phoneNumbers: phoneNumbers.length ? phoneNumbers : undefined,
-    password:
-      videoEntry.passcode ?? videoEntry.password ?? videoEntry.meetingCode,
+    password: accessCode,
   };
 }
 
