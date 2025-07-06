@@ -92,16 +92,14 @@ export function parseGoogleCalendarEvent({
 export function toGoogleCalendarEvent(
   event: CreateEventInput | UpdateEventInput,
 ): GoogleCalendarEventCreateParams {
-  const result: GoogleCalendarEventCreateParams = {
+  return {
     ...("id" in event ? { id: event.id } : {}),
-    start: toGoogleCalendarDate(event.start),
-    end: toGoogleCalendarDate(event.end),
     summary: event.title,
     description: event.description,
     location: event.location,
+    start: toGoogleCalendarDate(event.start),
+    end: toGoogleCalendarDate(event.end),
   };
-
-  return result;
 }
 
 interface ParsedGoogleCalendarCalendarListEntryOptions {
