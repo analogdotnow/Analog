@@ -10,7 +10,7 @@ import {
 import { Temporal } from "temporal-polyfill";
 
 import { CalendarEvent, EventItem } from "@/components/event-calendar";
-import { EventContextMenu } from "@/components/event-context-menu";
+import { EventContextMenu } from "@/components/event-calendar/event-context-menu";
 import { ContextMenuTrigger } from "@/components/ui/context-menu";
 import type { Action } from "./hooks/use-event-operations";
 
