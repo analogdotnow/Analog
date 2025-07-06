@@ -46,9 +46,9 @@ export const conferencingRouter = createTRPCRouter({
       }
 
       const conferencingAccount = ctx.accounts.find(
-        (a) => a.providerId === "zoom",
+        (a) => a.providerId === input.providerId,
       );
-
+      
       if (!conferencingAccount) {
         throw new TRPCError({
           code: "NOT_FOUND",
