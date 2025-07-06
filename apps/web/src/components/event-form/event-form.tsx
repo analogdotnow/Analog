@@ -22,7 +22,7 @@ import { Switch } from "@/components/ui/switch";
 import { Calendar, CalendarEvent, DraftEvent } from "@/lib/interfaces";
 import { useTRPC } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
-import { isDraftEvent } from "@/lib/utils/calendar";
+import { createEventId, isDraftEvent } from "@/lib/utils/calendar";
 import {
   AttendeeList,
   AttendeeListInput,
@@ -31,7 +31,7 @@ import {
 import { CalendarField } from "./calendar-field";
 import { DateInputSection } from "./date-input-section";
 import { DescriptionField } from "./description-field";
-import { defaultValues, formSchema, useAppForm } from "./form";
+import { FormValues, defaultValues, formSchema, useAppForm } from "./form";
 import { RepeatSelect } from "./repeat-select";
 
 interface EventFormProps {
@@ -50,9 +50,12 @@ function getDefaultValues({
   event,
   defaultCalendar,
   settings,
-}: GetDefaultValuesOptions) {
+}: GetDefaultValuesOptions): FormValues {
   if (!defaultCalendar) {
-    return defaultValues;
+    return {
+      ...defaultValues,
+      id: createEventId(),
+    };
   }
 
   if (!event) {

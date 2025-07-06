@@ -23,6 +23,7 @@ export function createDefaultEvent({
   });
 
   return {
+    id: createEventId(),
     title: "",
     start,
     end: start.add(duration),
@@ -70,6 +71,7 @@ export function parseDraftEvent({
   settings,
 }: ParseDraftEventOptions): FormValues {
   return {
+    id: event?.id ?? createEventId(),
     title: event.title ?? "",
     start: toZonedDateTime({
       date: event.start,
@@ -115,7 +117,8 @@ export function parseCalendarEvent({
     defaultTimeZone: settings.defaultTimeZone,
   });
 
-  const formValues: FormValues = {
+  return {
+    id: event.id,
     title: event.title ?? "",
     start: start,
     end: end,
@@ -135,8 +138,6 @@ export function parseCalendarEvent({
     },
     providerId: event.providerId,
   };
-
-  return formValues;
 }
 
 interface ToCalendarEvent {
@@ -152,7 +153,7 @@ export function toCalendarEvent({
 }: ToCalendarEvent): CalendarEvent {
   return {
     ...event,
-    id: event?.id ?? createEventId(),
+    id: event?.id ?? values.id,
     title: values.title,
     description: values.description,
     allDay: values.isAllDay,
