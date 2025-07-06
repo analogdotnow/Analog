@@ -174,10 +174,8 @@ export function toMicrosoftEvent(event: CreateEventInput | UpdateEventInput) {
     location: event.location ? { displayName: event.location } : undefined,
   };
 
-  // If a conference payload is provided, instruct Graph to create an online meeting.
   if (event.conferenceData) {
     payload["isOnlineMeeting"] = true;
-    payload["onlineMeetingProvider"] = "teamsForBusiness";
   }
 
   return payload;
