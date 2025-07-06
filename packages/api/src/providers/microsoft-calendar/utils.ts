@@ -157,7 +157,7 @@ export function parseMicrosoftEvent({
 export function toMicrosoftEvent(event: CreateEventInput | UpdateEventInput) {
   const metadata = event.metadata as MicrosoftEventMetadata | undefined;
 
-  const payload: Record<string, unknown> = {
+  const payload: MicrosoftEvent = {
     subject: event.title,
     body: event.description
       ? { contentType: "text", content: event.description }
@@ -176,6 +176,14 @@ export function toMicrosoftEvent(event: CreateEventInput | UpdateEventInput) {
 
   if (event.conferenceData) {
     payload["isOnlineMeeting"] = true;
+    payload["onlineMeeting"] = {
+      conferenceId: event.conferenceData.id,
+      joinUrl: event.conferenceData.joinUrl,
+      phones: event.conferenceData.phoneNumbers?.map((number) => ({
+        number,
+      })),
+    };
+    payload["onlineMeetingProvider"] = "unknown";
   }
 
   return payload;
