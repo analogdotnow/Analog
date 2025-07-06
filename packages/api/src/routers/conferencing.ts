@@ -3,6 +3,7 @@ import { Temporal } from "temporal-polyfill";
 import { z } from "zod";
 
 import { accountToConferencingProvider } from "../providers";
+import { Conference } from "../providers/interfaces";
 import { calendarProcedure, createTRPCRouter } from "../trpc";
 
 export const conferencingRouter = createTRPCRouter({
@@ -56,22 +57,22 @@ export const conferencingRouter = createTRPCRouter({
         });
       }
 
-      const conferencingProvider = accountToConferencingProvider(
-        conferencingAccount,
-        conferencingAccount.providerId as "google" | "zoom",
-      );
+      let conferenceData: Conference | undefined = undefined;
+      if (input.providerId !== "none" && conferencingAccount) {
+        const conferencingProvider = accountToConferencingProvider(
+          conferencingAccount,
+          input.providerId as "google" | "zoom",
+        );
 
-      const conferenceData =
-        input.providerId !== "none"
-          ? await conferencingProvider.createConferencing(
-              input.agenda,
-              input.startTime,
-              input.endTime,
-              input.timeZone,
-              input.calendarId,
-              input.eventId,
-            )
-          : undefined;
+        conferenceData = await conferencingProvider.createConferencing(
+          input.agenda,
+          input.startTime,
+          input.endTime,
+          input.timeZone,
+          input.calendarId,
+          input.eventId,
+        );
+      }
 
       const startInstant = Temporal.Instant.from(input.startTime);
       const endInstant = Temporal.Instant.from(input.endTime);
