@@ -9,13 +9,16 @@ export interface CalendarSettings {
   defaultEventDuration: number;
 }
 
+export const defaultTimeZone =
+  Intl.DateTimeFormat().resolvedOptions().timeZone ?? "UTC";
+
 export const calendarSettingsAtom = atomWithStorage<CalendarSettings>(
   "analog-calendar-settings",
   {
     locale: "en-US",
     weekStartsOn: 1,
     use12Hour: false,
-    defaultTimeZone: "Europe/Amsterdam",
+    defaultTimeZone,
     defaultEventDuration: 60,
   },
 );

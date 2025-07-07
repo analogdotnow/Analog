@@ -127,11 +127,16 @@ export function EventItem({
 
     // For short events (less than 45 minutes), only show start time
     if (durationMinutes < 120) {
-      return formatTime({ value: start, use12Hour, locale });
+      return formatTime({
+        value: start,
+        use12Hour,
+        locale,
+        timeZone: defaultTimeZone,
+      });
     }
 
     // For longer events, show both start and end time
-    return `${formatTime({ value: start, use12Hour, locale })}`;
+    return `${formatTime({ value: start, use12Hour, locale, timeZone: defaultTimeZone })}`;
   }, [
     event.start,
     event.end,

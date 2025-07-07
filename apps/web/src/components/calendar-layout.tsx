@@ -1,7 +1,13 @@
 "use client";
 
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useAtom } from "jotai";
 
+import {
+  calendarSettingsAtom,
+  defaultTimeZone,
+} from "@/atoms/calendar-settings";
 import { AppSidebar } from "@/components/app-sidebar";
 import { CalendarView } from "@/components/calendar-view";
 import { useEventOperations } from "@/components/event-calendar";
@@ -11,6 +17,15 @@ import { SidebarInset } from "@/components/ui/sidebar";
 import { useTRPC } from "@/lib/trpc/client";
 
 export function CalendarLayout() {
+  const [, setSettings] = useAtom(calendarSettingsAtom);
+
+  useEffect(() => {
+    setSettings((prev) => ({
+      ...prev,
+      defaultTimeZone,
+    }));
+  }, [setSettings]);
+
   return (
     <>
       <AppSidebar variant="inset" side="left" />
