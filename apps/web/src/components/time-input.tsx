@@ -191,6 +191,8 @@ export function TimeInput({
     setInput(formatTime({ value, use12Hour, locale }));
   }, [value, use12Hour, locale]);
 
+  const [isOpen, setIsOpen] = React.useState(false);
+
   const onComplete = React.useCallback(
     (newValue: string) => {
       const date = parseDate(newValue);
@@ -209,34 +211,22 @@ export function TimeInput({
 
       onChange(parsedZonedDateTime);
       setInput(formatTime({ value: parsedZonedDateTime, use12Hour, locale }));
+      setIsOpen(false);
     },
     [use12Hour, locale, value, onChange],
   );
 
   const onInputChange = React.useCallback(
     (newValue: string) => {
-      const date = parseDate(newValue);
-
-      if (!date) {
-        setInput(newValue);
-        return;
-      }
-
-      const parsedZonedDateTime = value.withPlainTime({
-        hour: date.getHours(),
-        minute: date.getMinutes(),
-        second: date.getSeconds(),
-        millisecond: date.getMilliseconds(),
-      });
-
-      onChange(parsedZonedDateTime);
-      setInput(formatTime({ value: parsedZonedDateTime, use12Hour, locale }));
+      setInput(newValue);
     },
-    [use12Hour, locale, value, onChange],
+    [],
   );
 
   return (
     <Combobox
+      open={isOpen}
+      setOpen={setIsOpen}
       value={input}
       setValue={(value) => {
         startTransition(() => {

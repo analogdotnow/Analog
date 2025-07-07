@@ -100,12 +100,16 @@ export function DateInput({
       const date = parseDate(newValue);
 
       if (!date || (minDate && date < minDate)) {
+        const date = toDate({ value, timeZone: value.timeZoneId });
+        setDate(date);
+        setMonth(date);
+        setInput(formatDate({ date, locale }));
         return;
       }
 
       onComplete(date);
     },
-    [onComplete, minDate],
+    [minDate, onComplete, value, locale],
   );
 
   const onInputChange = React.useCallback((newValue: string) => {
