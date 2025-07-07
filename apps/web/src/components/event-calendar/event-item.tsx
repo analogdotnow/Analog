@@ -218,7 +218,7 @@ export function EventItem({
         <div
           className={cn(
             durationMinutes < 45 ? "items-center" : "flex-col",
-            "relative flex w-full min-w-0 flex-col items-stretch gap-y-1",
+            "pointer-events-none relative flex w-full min-w-0 flex-col items-stretch gap-y-1",
           )}
         >
           {durationMinutes < 45 ? (
