@@ -31,6 +31,7 @@ export function useMultiDayOverflow({
   timeZone = "UTC",
   eventHeight = EventHeight,
   eventGap = EventGap,
+  minVisibleLanes,
 }: UseMultiDayOverflowOptions): UseMultiDayOverflowResult {
   const containerRef = React.useRef<HTMLDivElement | null>(null);
   const observerRef = React.useRef<ResizeObserver | null>(null);
@@ -62,7 +63,7 @@ export function useMultiDayOverflow({
     }
 
     observerRef.current.observe(containerRef.current);
-    console.log(JSON.stringify(events, null, 2));
+
     return () => {
       if (observerRef.current) {
         observerRef.current.disconnect();
@@ -73,7 +74,9 @@ export function useMultiDayOverflow({
   // Calculate capacity and organize events
   const capacityInfo = organizeEventsWithOverflow(
     events,
-    availableHeight,
+    minVisibleLanes
+      ? Math.max(minVisibleLanes * (eventHeight + eventGap), availableHeight)
+      : availableHeight,
     timeZone,
     eventHeight,
     eventGap,

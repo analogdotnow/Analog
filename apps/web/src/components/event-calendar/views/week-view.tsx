@@ -5,18 +5,18 @@ import {
   addHours,
   eachDayOfInterval,
   eachHourOfInterval,
-  endOfWeek,
   format,
   getHours,
   isSameDay,
   isToday,
+  isWithinInterval,
   startOfDay,
   startOfWeek,
   subDays,
 } from "date-fns";
 import { Temporal } from "temporal-polyfill";
 
-import { toDate, toDateWeekStartsOn } from "@repo/temporal";
+import { toDate } from "@repo/temporal";
 
 import { useCalendarSettings, useViewPreferences } from "@/atoms";
 import {
@@ -37,6 +37,7 @@ import { OverflowIndicator } from "@/components/event-calendar/overflow-indicato
 import {
   filterDaysByWeekendPreference,
   getGridPosition,
+  getWeekDays,
   isWeekend,
   placeIntoLanes,
   type PositionedEvent,
@@ -89,15 +90,9 @@ export function WeekView({
   headerRef,
   ...props
 }: WeekViewProps) {
-  const settings = useCalendarSettings();
   const viewPreferences = useViewPreferences();
 
-  const allDays = useMemo(() => {
-    const weekStartsOn = toDateWeekStartsOn(settings.weekStartsOn);
-    const weekStart = startOfWeek(currentDate, { weekStartsOn });
-    const weekEnd = endOfWeek(currentDate, { weekStartsOn });
-    return eachDayOfInterval({ start: weekStart, end: weekEnd });
-  }, [currentDate, settings.weekStartsOn]);
+  const allDays = useMemo(() => getWeekDays(currentDate), [currentDate]);
 
   const visibleDays = useMemo(
     () => filterDaysByWeekendPreference(allDays, viewPreferences.showWeekends),
@@ -225,19 +220,75 @@ function WeekViewAllDaySection() {
   const viewPreferences = useViewPreferences();
   const settings = useCalendarSettings();
 
-  const weekStart = useMemo(() => {
-    const weekStartsOn = toDateWeekStartsOn(settings.weekStartsOn);
-    return startOfWeek(currentDate, { weekStartsOn });
-  }, [currentDate, settings.weekStartsOn]);
+  const weekStart = useMemo(
+    () => startOfWeek(currentDate, { weekStartsOn: 0 }),
+    [currentDate],
+  );
   const weekEnd = useMemo(() => allDays[allDays.length - 1]!, [allDays]);
   const allDayEvents = useMemo(() => {
-    return eventCollection.type === "week" ? eventCollection.allDayEvents : [];
-  }, [eventCollection]);
+    const events =
+      eventCollection.type === "week" ? eventCollection.allDayEvents : [];
+
+    // If weekends are hidden, filter out events that only occur on weekends
+    if (!viewPreferences.showWeekends) {
+      return events.filter((event) => {
+        const eventStart = toDate({
+          value: event.start,
+          timeZone: settings.defaultTimeZone,
+        });
+        let eventEnd = toDate({
+          value: event.end,
+          timeZone: settings.defaultTimeZone,
+        });
+
+        // All-day events have an exclusive end; subtract one day so the final day is included
+        if (event.allDay) {
+          eventEnd = subDays(eventEnd, 1);
+        }
+
+        // Get all days that this event spans within the week
+        const eventDays = eachDayOfInterval({
+          start: eventStart < weekStart ? weekStart : eventStart,
+          end: eventEnd > weekEnd ? weekEnd : eventEnd,
+        });
+
+        // Check if event has at least one day that's not a weekend
+        const hasNonWeekendDay = eventDays.some((day: Date) => !isWeekend(day));
+
+        return hasNonWeekendDay;
+      });
+    }
+
+    return events.filter((event) => {
+      const eventStart = toDate({
+        value: event.start,
+        timeZone: settings.defaultTimeZone,
+      });
+      let eventEnd = toDate({
+        value: event.end,
+        timeZone: settings.defaultTimeZone,
+      });
+
+      // All-day events have an exclusive end; subtract one day so the final day is included
+      if (event.allDay) {
+        eventEnd = subDays(eventEnd, 1);
+      }
+
+      return isWithinInterval(eventStart, { start: weekStart, end: weekEnd }) || isWithinInterval(eventEnd, { start: weekStart, end: weekEnd });
+    });
+  }, [
+    eventCollection,
+    viewPreferences.showWeekends,
+    settings.defaultTimeZone,
+    weekStart,
+    weekEnd,
+  ]);
 
   // Use overflow hook for all-day events
   const overflow = useMultiDayOverflow({
     events: allDayEvents,
     timeZone: settings.defaultTimeZone,
+    minVisibleLanes: 10,
   });
 
   // Calculate how many lanes multi-day events occupy for this week
@@ -412,7 +463,7 @@ function WeekViewPositionedEvent({
       className="pointer-events-auto my-[1px] min-w-0"
       style={{
         // Add 1 to colStart to account for the time column
-        gridColumn: `${colStart + 1} / span ${span}`,
+        gridColumn: `${colStart + 2} / span ${span}`,
         gridRow: y + 1,
         position: isDragging ? "relative" : "static",
         zIndex: isDragging ? 99999 : "auto",
@@ -420,15 +471,16 @@ function WeekViewPositionedEvent({
     >
       <DraggableEvent
         event={evt}
-        view="week"
+        view="month"
+        containerRef={containerRef}
         isFirstDay={isFirstDay}
         isLastDay={isLastDay}
-        containerRef={containerRef}
         onClick={(e) => onEventClick(evt, e)}
         onEventUpdate={onEventUpdate}
         dispatchAction={dispatchAction}
         setIsDragging={setIsDragging}
         zIndex={isDragging ? 99999 : undefined}
+        rows={1}
       />
     </div>
   );

@@ -21,7 +21,7 @@ import {
 } from "date-fns";
 import { Temporal } from "temporal-polyfill";
 
-import { toDate, toDateWeekStartsOn } from "@repo/temporal";
+import { toDate } from "@repo/temporal";
 
 import {
   CalendarSettings,
@@ -44,14 +44,16 @@ import { useMultiDayOverflow } from "@/components/event-calendar/hooks/use-multi
 import { OverflowIndicator } from "@/components/event-calendar/overflow-indicator";
 import {
   getGridPosition,
+  getWeekDays,
   isWeekend,
+  isWeekendIndex,
   placeIntoLanes,
 } from "@/components/event-calendar/utils";
 import { DraftEvent } from "@/lib/interfaces";
 import { cn, groupArrayIntoChunks } from "@/lib/utils";
 import { createDraftEvent } from "@/lib/utils/calendar";
 
-const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 interface MonthViewContextType {
   currentDate: Date;
@@ -98,11 +100,10 @@ export function MonthView({
 }: MonthViewProps) {
   const settings = useCalendarSettings();
   const { days, weeks } = useMemo(() => {
-    const weekStartsOn = toDateWeekStartsOn(settings.weekStartsOn);
     const monthStart = startOfMonth(currentDate);
     const monthEnd = endOfMonth(monthStart);
-    const calendarStart = startOfWeek(monthStart, { weekStartsOn });
-    const calendarEnd = endOfWeek(monthEnd, { weekStartsOn });
+    const calendarStart = startOfWeek(monthStart, { weekStartsOn: 0 });
+    const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 0 });
 
     const allDays = eachDayOfInterval({
       start: calendarStart,
@@ -112,7 +113,7 @@ export function MonthView({
     const weeksResult = groupArrayIntoChunks(allDays, 7);
 
     return { days: allDays, weeks: weeksResult };
-  }, [currentDate, settings.weekStartsOn]);
+  }, [currentDate]);
 
   const containerRef = useRef<HTMLDivElement | null>(null);
 
@@ -124,10 +125,7 @@ export function MonthView({
     [onEventSelect],
   );
 
-  // Use the first week from the computed month calendar to derive the layout.
-  // This ensures the column order respects the "start of week" setting and that
-  // weekend visibility is calculated from the actual `Date` objects.
-  const gridTemplateColumns = useGridLayout(weeks[0] ?? []);
+  const gridTemplateColumns = useGridLayout(getWeekDays(new Date()));
   const eventCollection = useEventCollection(events, days, "month");
 
   const contextValue: MonthViewContextType = {
@@ -148,10 +146,7 @@ export function MonthView({
   return (
     <MonthViewContext.Provider value={contextValue}>
       <div data-slot="month-view" className="contents min-w-0">
-        <MonthViewHeader
-          style={{ gridTemplateColumns }}
-          weekStartsOn={settings.weekStartsOn}
-        />
+        <MonthViewHeader style={{ gridTemplateColumns }} />
         <div
           ref={containerRef}
           className="grid h-[calc(100%-37px)] min-w-0 flex-1 auto-rows-fr overflow-hidden"
@@ -182,42 +177,19 @@ export function MonthView({
   );
 }
 
-type MonthViewHeaderProps = React.ComponentProps<"div"> & {
-  /**
-   * 1 = Monday … 7 = Sunday (matching Temporal / ISO numbering that the settings use)
-   */
-  weekStartsOn: 1 | 2 | 3 | 4 | 5 | 6 | 7;
-};
+type MonthViewHeaderProps = React.ComponentProps<"div">;
 
-/**
- * Given the configured start-of-week (1 = Mon … 7 = Sun) and the column index (0-based)
- * within that week, return `true` if the column corresponds to a weekend (Saturday/Sunday).
- */
-function isWeekendColumn(index: number, weekStartsOn: number): boolean {
-  // Translate the column index back to the day number (1-based, 1 = Mon … 7 = Sun).
-  // Example:
-  //   weekStartsOn = 1 (Mon)  →  index 5 → (1 + 5 - 1) % 7 + 1 = 6 (Sat)
-  //   weekStartsOn = 7 (Sun)  →  index 0 → 7 (Sun)
-  const dayNumber = ((weekStartsOn - 1 + index) % 7) + 1; // 1…7
-  // Day 6 = Saturday, Day 7 = Sunday.
-  return dayNumber === 6 || dayNumber === 7;
-}
-
-function MonthViewHeader({ weekStartsOn, ...props }: MonthViewHeaderProps) {
+function MonthViewHeader(props: MonthViewHeaderProps) {
   const viewPreferences = useViewPreferences();
-
-  const weekDays = WEEKDAYS.slice(weekStartsOn - 1).concat(
-    WEEKDAYS.slice(0, weekStartsOn - 1),
-  );
 
   return (
     <div
       className="grid justify-items-stretch border-b border-border/70 transition-[grid-template-columns] duration-200 ease-linear"
       {...props}
     >
-      {weekDays.map((day, index) => {
+      {WEEKDAYS.map((day, index) => {
         const isDayVisible =
-          viewPreferences.showWeekends || !isWeekendColumn(index, weekStartsOn);
+          viewPreferences.showWeekends || !isWeekendIndex(index);
 
         return (
           <div
@@ -262,6 +234,7 @@ function MonthViewWeek({
   containerRef,
 }: MonthViewWeekItemProps) {
   const weekRef = useRef<HTMLDivElement>(null);
+  const viewPreferences = useViewPreferences();
   const weekStart = week[0]!;
   const weekEnd = week[6]!;
 
@@ -290,11 +263,33 @@ function MonthViewWeek({
       eventEnd = subDays(eventEnd, 1);
     }
 
-    return (
+    // Check if event is within the week range
+    const isInWeek =
       (eventStart >= weekStart && eventStart <= weekEnd) ||
       (eventEnd >= weekStart && eventEnd <= weekEnd) ||
-      (eventStart < weekStart && eventEnd > weekEnd)
-    );
+      (eventStart < weekStart && eventEnd > weekEnd);
+
+    if (!isInWeek) {
+      return false;
+    }
+
+    // If weekends are hidden, exclude events that only occur on weekends
+    if (!viewPreferences.showWeekends) {
+      // Get all days that this event spans within the week
+      const eventDays = eachDayOfInterval({
+        start: eventStart < weekStart ? weekStart : eventStart,
+        end: eventEnd > weekEnd ? weekEnd : eventEnd,
+      });
+
+      // Check if event has at least one day that's not a weekend
+      const hasNonWeekendDay = eventDays.some((day) => !isWeekend(day));
+
+      if (!hasNonWeekendDay) {
+        return false;
+      }
+    }
+
+    return true;
   });
 
   // Use overflow hook to manage event display
