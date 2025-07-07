@@ -200,7 +200,11 @@ function ConnectedAccountsSection() {
   );
 }
 
-function AccountIcon({ provider }: { provider: "google" | "microsoft" | "zoom" }) {
+function AccountIcon({
+  provider,
+}: {
+  provider: "google" | "microsoft" | "zoom";
+}) {
   switch (provider) {
     case "google":
       return <Google className="size-4" />;
