@@ -241,7 +241,7 @@ export function DraggableEvent({
     return (
       <motion.div
         ref={dragRef}
-        className="size-full touch-none"
+        className="@container/event size-full touch-none"
         style={{ transform, height, top, zIndex }}
       >
         <EventContextMenu event={event} dispatchAction={dispatchAction}>
@@ -277,7 +277,7 @@ export function DraggableEvent({
   return (
     <motion.div
       ref={dragRef}
-      className="size-full touch-none"
+      className="@container/event size-full touch-none"
       style={{ transform, height: height, zIndex }}
     >
       <EventContextMenu event={event} dispatchAction={dispatchAction}>
@@ -296,22 +296,22 @@ export function DraggableEvent({
             {!event.readOnly ? (
               <>
                 <motion.div
-                  className="absolute inset-x-0 top-0 h-1 cursor-row-resize touch-pan-y"
+                  className="absolute inset-0 touch-pan-x touch-pan-y"
+                  onPanStart={onDragStart}
+                  onPan={onDrag}
+                  onPanEnd={onDragEnd}
+                />
+                <motion.div
+                  className="absolute inset-x-0 top-0 h-[min(15%,_0.25rem)] cursor-row-resize touch-pan-y"
                   onPanStart={onResizeTopStart}
                   onPan={onResizeTop}
                   onPanEnd={onResizeTopEnd}
                 />
                 <motion.div
-                  className="absolute inset-x-0 bottom-0 h-1 cursor-row-resize touch-pan-y"
+                  className="absolute inset-x-0 bottom-0 h-[min(15%,_0.25rem)] cursor-row-resize touch-pan-y"
                   onPanStart={onResizeBottomStart}
                   onPan={onResizeBottom}
                   onPanEnd={onResizeBottomEnd}
-                />
-                <motion.div
-                  className="absolute inset-x-0 inset-y-2 touch-pan-x touch-pan-y"
-                  onPanStart={onDragStart}
-                  onPan={onDrag}
-                  onPanEnd={onDragEnd}
                 />
               </>
             ) : null}

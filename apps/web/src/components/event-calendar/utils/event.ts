@@ -290,6 +290,7 @@ function calculateEventLayout(
   // If events start within close proximity (handled by grouping), split available space equally
   if (eventsInGroup > 1) {
     const equalWidth = availableWidth / eventsInGroup;
+
     return {
       width: equalWidth,
       left: leftOffset + groupIndex * equalWidth,
@@ -336,13 +337,19 @@ function positionEventsForDay(
     let assignedGroup = false;
     for (const group of eventGroups) {
       if (group.length > 0) {
-        const { start: groupStart } = getAdjustedEventTimes(group[0]!, day);
+        const { start: groupStart, end: groupEnd } = getAdjustedEventTimes(
+          group[0]!,
+          day,
+        );
         const groupStartHourValue =
           getHours(groupStart) + getMinutes(groupStart) / 60;
 
+        const groupEndTime = getHours(groupEnd) + getMinutes(groupEnd) / 60;
+
         if (
           Math.abs(startHourValue - groupStartHourValue) <=
-          proximityThresholdHours
+            proximityThresholdHours &&
+          startHourValue < groupEndTime // Only add if event starts before group ends
         ) {
           group.push(event);
           assignedGroup = true;

@@ -153,6 +153,9 @@ export function EventItem({
   //   return null;
   // }
 
+  const displayTitle =
+    event.title && event.title.length ? event.title : "(untitled)";
+
   if (view === "month") {
     return (
       <EventWrapper
@@ -180,7 +183,7 @@ export function EventItem({
           {!isFirstDay ? <div className="b h-lh" /> : null}
           {
             <span className="pointer-events-none truncate text-[color-mix(in_oklab,var(--foreground),var(--calendar-color)_80%)]">
-              {event.title ?? "(untitled)"}{" "}
+              {displayTitle}{" "}
               {!event.allDay && isFirstDay && (
                 <span className="truncate font-normal text-[color-mix(in_oklab,var(--foreground),var(--calendar-color)_80%)] tabular-nums opacity-70 sm:text-[11px]">
                   {eventTime}
@@ -202,7 +205,7 @@ export function EventItem({
         onClick={onClick}
         className={cn(
           "relative flex gap-x-1.5 py-1 ps-1 pe-2 ring-1 ring-background/80",
-
+          durationMinutes < 45 && "pe-1",
           view === "week" ? "text-[10px] sm:text-xs" : "text-xs",
           className,
         )}
@@ -215,17 +218,19 @@ export function EventItem({
         <div
           className={cn(
             durationMinutes < 45 ? "items-center" : "flex-col",
-            "flex min-w-0 flex-col items-stretch gap-y-1.5",
+            "relative flex w-full min-w-0 flex-col items-stretch gap-y-1",
           )}
         >
           {durationMinutes < 45 ? (
-            <div className="pointer-events-none truncate text-[color-mix(in_oklab,var(--foreground),var(--calendar-color)_80%)]">
-              {event.title ?? "(untitled)"}{" "}
-              {showTime ? (
-                <span className="text-[color-mix(in_oklab,var(--foreground),var(--calendar-color)_80%)] tabular-nums opacity-70">
-                  {eventTime}
-                </span>
-              ) : null}
+            <div
+              className={cn(
+                "pointer-events-none absolute top-1/2 right-[1px] left-0 flex -translate-y-1/2 items-center justify-between text-[color-mix(in_oklab,var(--foreground),var(--calendar-color)_80%)]",
+                durationMinutes < 30 && "text-[10px]",
+              )}
+            >
+              <span className="line-clamp-1 overflow-hidden rounded-sm">
+                {displayTitle}
+              </span>
             </div>
           ) : (
             <>
@@ -265,7 +270,7 @@ export function EventItem({
       onTouchStart={onTouchStart}
     >
       <div className="pointer-events-none text-sm font-medium">
-        {event.title ?? "(untitled)"}
+        {displayTitle}
       </div>
       <div className="pointer-events-none text-xs opacity-70">
         {event.allDay ? (

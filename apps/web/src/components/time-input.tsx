@@ -216,12 +216,9 @@ export function TimeInput({
     [use12Hour, locale, value, onChange],
   );
 
-  const onInputChange = React.useCallback(
-    (newValue: string) => {
-      setInput(newValue);
-    },
-    [],
-  );
+  const onInputChange = React.useCallback((newValue: string) => {
+    setInput(newValue);
+  }, []);
 
   return (
     <Combobox
