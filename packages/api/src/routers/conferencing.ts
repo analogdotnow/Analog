@@ -85,6 +85,8 @@ export const conferencingRouter = createTRPCRouter({
         id: input.eventId,
         accountId: input.calendarAccountId,
         calendarId: input.calendarId,
+        providerId: provider.account.providerId,
+        readOnly: calendar.readOnly,
         start,
         end,
         conferenceData,
