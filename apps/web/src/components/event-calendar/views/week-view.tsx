@@ -274,7 +274,10 @@ function WeekViewAllDaySection() {
         eventEnd = subDays(eventEnd, 1);
       }
 
-      return isWithinInterval(eventStart, { start: weekStart, end: weekEnd }) || isWithinInterval(eventEnd, { start: weekStart, end: weekEnd });
+      return (
+        isWithinInterval(eventStart, { start: weekStart, end: weekEnd }) ||
+        isWithinInterval(eventEnd, { start: weekStart, end: weekEnd })
+      );
     });
   }, [
     eventCollection,
