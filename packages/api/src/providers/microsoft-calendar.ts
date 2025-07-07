@@ -120,7 +120,7 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
   ): Promise<CalendarEvent> {
     return this.withErrorHandler("createEvent", async () => {
       const createdEvent = (await this.graphClient
-        .api(calendarPath(calendar.id))
+        .api(`${calendarPath(calendar.id)}/events`)
         .post(toMicrosoftEvent(event))) as MicrosoftEvent;
 
       return parseMicrosoftEvent({
