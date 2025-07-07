@@ -102,12 +102,6 @@ export function NavUser() {
                   Settings
                 </DropdownMenuItem>
               </SettingsDialog>
-              <AddAccountDialog>
-                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                  <Plus />
-                  Connect an account
-                </DropdownMenuItem>
-              </AddAccountDialog>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuSub>
