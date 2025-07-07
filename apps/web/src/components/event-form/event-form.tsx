@@ -4,7 +4,10 @@ import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { RepeatIcon } from "lucide-react";
 
-import { useCalendarSettings } from "@/atoms/calendar-settings";
+import {
+  CalendarSettings,
+  useCalendarSettings,
+} from "@/atoms/calendar-settings";
 import {
   createDefaultEvent,
   parseCalendarEvent,
@@ -16,10 +19,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
-import { CalendarEvent, DraftEvent } from "@/lib/interfaces";
+import { Calendar, CalendarEvent, DraftEvent } from "@/lib/interfaces";
 import { useTRPC } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
-import { isDraftEvent } from "@/lib/utils/calendar";
+import { createEventId, isDraftEvent } from "@/lib/utils/calendar";
 import {
   AttendeeList,
   AttendeeListInput,
@@ -28,37 +31,63 @@ import {
 import { CalendarField } from "./calendar-field";
 import { DateInputSection } from "./date-input-section";
 import { DescriptionField } from "./description-field";
-import { formSchema, useAppForm } from "./form";
+import { FormValues, defaultValues, formSchema, useAppForm } from "./form";
 import { RepeatSelect } from "./repeat-select";
 
 interface EventFormProps {
-  event?: CalendarEvent | DraftEvent;
+  selectedEvent?: CalendarEvent | DraftEvent;
   handleEventSave: (event: CalendarEvent) => void;
+  defaultCalendar?: Calendar;
 }
 
-export function EventForm({ event, handleEventSave }: EventFormProps) {
+interface GetDefaultValuesOptions {
+  event?: CalendarEvent | DraftEvent;
+  defaultCalendar?: Calendar;
+  settings: CalendarSettings;
+}
+
+function getDefaultValues({
+  event,
+  defaultCalendar,
+  settings,
+}: GetDefaultValuesOptions): FormValues {
+  if (!defaultCalendar) {
+    return {
+      ...defaultValues,
+      id: createEventId(),
+    };
+  }
+
+  if (!event) {
+    return createDefaultEvent({ settings, defaultCalendar });
+  }
+
+  if (isDraftEvent(event)) {
+    return parseDraftEvent({
+      event,
+      defaultCalendar,
+      settings,
+    });
+  }
+
+  return parseCalendarEvent({ event, settings });
+}
+
+export function EventForm({
+  selectedEvent,
+  handleEventSave,
+  defaultCalendar,
+}: EventFormProps) {
   const settings = useCalendarSettings();
-  const disabled = event?.readOnly;
 
   const trpc = useTRPC();
   const query = useQuery(trpc.calendars.list.queryOptions());
 
-  const defaultCalendar = React.useMemo(() => {
-    return query.data?.accounts
-      .flatMap((a) => a.calendars)
-      .find((c) => c.id === query.data?.defaultCalendarId);
-  }, [query.data]);
+  const [event, setEvent] = React.useState(selectedEvent);
+  const disabled = event?.readOnly;
 
   const form = useAppForm({
-    defaultValues: event
-      ? isDraftEvent(event)
-        ? parseDraftEvent({
-            event,
-            defaultCalendar: defaultCalendar!,
-            defaultTimeZone: settings.defaultTimeZone,
-          })
-        : parseCalendarEvent({ event, settings })
-      : createDefaultEvent({ settings, calendar: defaultCalendar }),
+    defaultValues: getDefaultValues({ event, defaultCalendar, settings }),
     validators: {
       onBlur: formSchema,
     },
@@ -71,8 +100,7 @@ export function EventForm({ event, handleEventSave }: EventFormProps) {
         return;
       }
 
-      const calendarEvent = toCalendarEvent({ values: value, event, calendar });
-      handleEventSave(calendarEvent);
+      handleEventSave(toCalendarEvent({ values: value, event, calendar }));
     },
     listeners: {
       onBlur: async ({ formApi }) => {
@@ -86,8 +114,15 @@ export function EventForm({ event, handleEventSave }: EventFormProps) {
   });
 
   React.useEffect(() => {
+    // If the form is modified and the event changes, keep the modified values
+    if (form.state.isDirty && selectedEvent?.id === event?.id) {
+      return;
+    }
+
+    setEvent(selectedEvent);
+
     form.reset();
-  }, [event, form]);
+  }, [selectedEvent, event, form]);
 
   return (
     <form

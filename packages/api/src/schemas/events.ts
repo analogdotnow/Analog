@@ -41,6 +41,7 @@ export const dateInputSchema = z.union([
 ]);
 
 export const createEventInputSchema = z.object({
+  id: z.string(),
   title: z.string().optional(),
   start: dateInputSchema,
   end: dateInputSchema,
@@ -50,6 +51,8 @@ export const createEventInputSchema = z.object({
   color: z.string().optional(),
   accountId: z.string(),
   calendarId: z.string(),
+  providerId: z.enum(["google", "microsoft"]),
+  readOnly: z.boolean(),
   metadata: z.union([microsoftMetadataSchema, googleMetadataSchema]).optional(),
   conferenceData: conferenceSchema.optional(),
 });

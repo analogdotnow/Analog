@@ -2,17 +2,17 @@ import { Temporal } from "temporal-polyfill";
 
 import { CalendarSettings } from "@/atoms/calendar-settings";
 import { Calendar, CalendarEvent, DraftEvent } from "@/lib/interfaces";
-import { roundTo15Minutes } from "@/lib/utils/calendar";
+import { createEventId, roundTo15Minutes } from "@/lib/utils/calendar";
 import { FormValues } from "./form";
 
 interface CreateDefaultEvent {
   settings: CalendarSettings;
-  calendar?: Calendar;
+  defaultCalendar: Calendar;
 }
 
 export function createDefaultEvent({
   settings,
-  calendar,
+  defaultCalendar: calendar,
 }: CreateDefaultEvent): FormValues {
   const timeZone = calendar?.timeZone ?? settings.defaultTimeZone;
   const now = Temporal.Now.zonedDateTimeISO(timeZone);
@@ -23,6 +23,7 @@ export function createDefaultEvent({
   });
 
   return {
+    id: createEventId(),
     title: "",
     start,
     end: start.add(duration),
@@ -31,10 +32,10 @@ export function createDefaultEvent({
     repeat: {},
     attendees: [],
     calendar: {
-      accountId: calendar?.accountId ?? "default",
-      calendarId: calendar?.id ?? "default",
+      accountId: calendar.accountId,
+      calendarId: calendar.id,
     },
-    providerId: (calendar?.providerId ?? "google") as "google" | "microsoft",
+    providerId: calendar.providerId,
   };
 }
 
@@ -60,24 +61,25 @@ function toZonedDateTime({
 
 interface ParseDraftEventOptions {
   event: DraftEvent;
-  defaultTimeZone: string;
   defaultCalendar: Calendar;
+  settings: CalendarSettings;
 }
 
 export function parseDraftEvent({
   event,
   defaultCalendar,
-  defaultTimeZone,
+  settings,
 }: ParseDraftEventOptions): FormValues {
   return {
+    id: event?.id ?? createEventId(),
     title: event.title ?? "",
     start: toZonedDateTime({
       date: event.start,
-      defaultTimeZone: defaultCalendar?.timeZone ?? defaultTimeZone,
+      defaultTimeZone: defaultCalendar.timeZone ?? settings.defaultTimeZone,
     }),
     end: toZonedDateTime({
       date: event.end,
-      defaultTimeZone: defaultCalendar?.timeZone ?? defaultTimeZone,
+      defaultTimeZone: defaultCalendar.timeZone ?? settings.defaultTimeZone,
     }),
     description: event.description ?? "",
     isAllDay: event.allDay ?? false,
@@ -90,10 +92,10 @@ export function parseDraftEvent({
         name: attendee.name ?? "",
       })) ?? [],
     calendar: {
-      accountId: event?.accountId ?? defaultCalendar?.accountId,
-      calendarId: event?.calendarId ?? defaultCalendar?.id,
+      accountId: event?.accountId ?? defaultCalendar.accountId,
+      calendarId: event?.calendarId ?? defaultCalendar.id,
     },
-    providerId: event?.providerId ?? defaultCalendar?.providerId,
+    providerId: event?.providerId ?? defaultCalendar.providerId,
   };
 }
 
@@ -115,7 +117,8 @@ export function parseCalendarEvent({
     defaultTimeZone: settings.defaultTimeZone,
   });
 
-  const formValues: FormValues = {
+  return {
+    id: event.id,
     title: event.title ?? "",
     start: start,
     end: end,
@@ -133,10 +136,8 @@ export function parseCalendarEvent({
       accountId: event.accountId ?? "",
       calendarId: event.calendarId ?? "",
     },
-    providerId: event.providerId as "google" | "microsoft",
+    providerId: event.providerId,
   };
-
-  return formValues;
 }
 
 interface ToCalendarEvent {
@@ -152,13 +153,13 @@ export function toCalendarEvent({
 }: ToCalendarEvent): CalendarEvent {
   return {
     ...event,
-    id: event?.id ?? `draft-${crypto.randomUUID()}`,
+    id: event?.id ?? values.id,
     title: values.title,
     description: values.description,
     allDay: values.isAllDay,
     calendarId: values.calendar.calendarId,
     accountId: values.calendar.accountId,
-    providerId: values.providerId as "google" | "microsoft",
+    providerId: values.providerId,
     start: values.isAllDay ? values.start.toPlainDate() : values.start,
     end: values.isAllDay ? values.end.toPlainDate() : values.end,
     color: calendar?.color ?? undefined,

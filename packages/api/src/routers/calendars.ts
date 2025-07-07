@@ -21,17 +21,38 @@ export const calendarsRouter = createTRPCRouter({
         name: account.email,
         calendars: calendars.map((calendar) => ({
           ...calendar,
-          default: calendar.id === ctx.user.defaultCalendarId,
         })),
-        default: ctx.user.defaultAccountId === account.id,
       };
     });
 
     const accounts = await Promise.all(promises);
 
+    const defaultAccount =
+      ctx.accounts.find(
+        (account) => account.id === ctx.user.defaultAccountId,
+      ) ?? ctx.accounts.at(0)!;
+
+    const calendars = accounts.flatMap((account) => account.calendars);
+
+    const defaultCalendar =
+      calendars.find(
+        (calendar) => calendar.id === ctx.user.defaultCalendarId,
+      ) ??
+      calendars.find(
+        (calendar) =>
+          calendar.accountId === defaultAccount.accountId && calendar.primary,
+      );
+
+    if (!defaultCalendar) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Default calendar not found",
+      });
+    }
+
     return {
-      defaultCalendarId: ctx.user.defaultCalendarId,
-      defaultAccountId: ctx.user.defaultAccountId,
+      defaultCalendar,
+      defaultAccount,
       accounts,
     };
   }),

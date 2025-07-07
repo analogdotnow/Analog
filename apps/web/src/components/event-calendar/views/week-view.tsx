@@ -3,7 +3,9 @@
 import React, { createContext, useContext, useMemo, useRef } from "react";
 import {
   addHours,
+  eachDayOfInterval,
   eachHourOfInterval,
+  endOfWeek,
   format,
   getHours,
   isSameDay,
@@ -14,7 +16,7 @@ import {
 } from "date-fns";
 import { Temporal } from "temporal-polyfill";
 
-import { toDate } from "@repo/temporal";
+import { toDate, toDateWeekStartsOn } from "@repo/temporal";
 
 import { useCalendarSettings, useViewPreferences } from "@/atoms";
 import {
@@ -29,10 +31,14 @@ import {
   useGridLayout,
   type EventCollectionForWeek,
 } from "@/components/event-calendar/hooks";
+import type { Action } from "@/components/event-calendar/hooks/use-event-operations";
+import { useMultiDayOverflow } from "@/components/event-calendar/hooks/use-multi-day-overflow";
+import { OverflowIndicator } from "@/components/event-calendar/overflow-indicator";
 import {
   filterDaysByWeekendPreference,
-  getWeekDays,
+  getGridPosition,
   isWeekend,
+  placeIntoLanes,
   type PositionedEvent,
 } from "@/components/event-calendar/utils";
 import { DraftEvent } from "@/lib/interfaces";
@@ -49,6 +55,7 @@ interface WeekViewContextType {
   onEventClick: (event: CalendarEvent, e: React.MouseEvent) => void;
   onEventCreate: (draft: DraftEvent) => void;
   onEventUpdate: (event: CalendarEvent) => void;
+  dispatchAction: (action: Action) => void;
   containerRef: React.RefObject<HTMLDivElement | null>;
 }
 
@@ -68,6 +75,7 @@ interface WeekViewProps extends React.ComponentProps<"div"> {
   onEventSelect: (event: CalendarEvent) => void;
   onEventCreate: (draft: DraftEvent) => void;
   onEventUpdate: (event: CalendarEvent) => void;
+  dispatchAction: (action: Action) => void;
   headerRef: React.RefObject<HTMLDivElement | null>;
 }
 
@@ -77,12 +85,19 @@ export function WeekView({
   onEventSelect,
   onEventCreate,
   onEventUpdate,
+  dispatchAction,
   headerRef,
   ...props
 }: WeekViewProps) {
+  const settings = useCalendarSettings();
   const viewPreferences = useViewPreferences();
 
-  const allDays = useMemo(() => getWeekDays(currentDate), [currentDate]);
+  const allDays = useMemo(() => {
+    const weekStartsOn = toDateWeekStartsOn(settings.weekStartsOn);
+    const weekStart = startOfWeek(currentDate, { weekStartsOn });
+    const weekEnd = endOfWeek(currentDate, { weekStartsOn });
+    return eachDayOfInterval({ start: weekStart, end: weekEnd });
+  }, [currentDate, settings.weekStartsOn]);
 
   const visibleDays = useMemo(
     () => filterDaysByWeekendPreference(allDays, viewPreferences.showWeekends),
@@ -118,6 +133,7 @@ export function WeekView({
     onEventClick: handleEventClick,
     onEventCreate,
     onEventUpdate,
+    dispatchAction,
     containerRef,
   };
 
@@ -204,33 +220,47 @@ function WeekViewAllDaySection() {
     containerRef,
     onEventUpdate,
     onEventCreate,
+    dispatchAction,
   } = useWeekViewContext();
   const viewPreferences = useViewPreferences();
   const settings = useCalendarSettings();
 
-  const weekStart = useMemo(
-    () => startOfWeek(currentDate, { weekStartsOn: 0 }),
-    [currentDate],
-  );
-  const allDayEvents =
-    eventCollection.type === "week" ? eventCollection.allDayEvents : [];
+  const weekStart = useMemo(() => {
+    const weekStartsOn = toDateWeekStartsOn(settings.weekStartsOn);
+    return startOfWeek(currentDate, { weekStartsOn });
+  }, [currentDate, settings.weekStartsOn]);
+  const weekEnd = useMemo(() => allDays[allDays.length - 1]!, [allDays]);
+  const allDayEvents = useMemo(() => {
+    return eventCollection.type === "week" ? eventCollection.allDayEvents : [];
+  }, [eventCollection]);
 
-  // if (allDayEvents.length === 0) {
-  //   return null;
-  // }
+  // Use overflow hook for all-day events
+  const overflow = useMultiDayOverflow({
+    events: allDayEvents,
+    timeZone: settings.defaultTimeZone,
+  });
+
+  // Calculate how many lanes multi-day events occupy for this week
+  const multiDayLaneCount = useMemo(() => {
+    if (allDayEvents.length === 0) return 0;
+    const lanes = placeIntoLanes(allDayEvents, settings.defaultTimeZone);
+    return lanes.length;
+  }, [allDayEvents, settings.defaultTimeZone]);
 
   return (
     <div className="border-b border-border/70 [--calendar-height:100%]">
       <div
-        className="grid transition-[grid-template-columns] duration-200 ease-linear"
+        className="relative grid transition-[grid-template-columns] duration-200 ease-linear"
         style={{ gridTemplateColumns }}
       >
+        {/* Time column */}
         <div className="relative flex min-h-7 flex-col justify-center border-r border-border/70">
           <span className="w-16 max-w-full ps-2 text-right text-[10px] text-muted-foreground/70 sm:ps-4 sm:text-xs">
             All day
           </span>
         </div>
 
+        {/* Day cells */}
         {allDays.map((day) => {
           const isDayVisible = viewPreferences.showWeekends || !isWeekend(day);
           const visibleDayIndex = visibleDays.findIndex(
@@ -238,31 +268,21 @@ function WeekViewAllDaySection() {
           );
           const isLastVisibleDay =
             isDayVisible && visibleDayIndex === visibleDays.length - 1;
-          const dayAllDayEvents = allDayEvents.filter((event) => {
+
+          // Filter overflow events to only show those that start on this day
+          const dayOverflowEvents = overflow.overflowEvents.filter((event) => {
             const eventStart = toDate({
               value: event.start,
               timeZone: settings.defaultTimeZone,
             });
-            const eventEnd = toDate({
-              value: event.end,
-              timeZone: settings.defaultTimeZone,
-            });
-            // if (event.allDay && !isSameDay(day, eventEnd)) {
-            //   return false;
-            // }
-
-            return (
-              isSameDay(day, eventStart) ||
-              (day > eventStart && day < eventEnd) ||
-              isSameDay(day, eventEnd)
-            );
+            return isSameDay(eventStart, day);
           });
 
           return (
             <div
               key={day.toString()}
               className={cn(
-                "relative grid auto-cols-fr space-y-[1px] border-r border-border/70",
+                "relative border-r border-border/70",
                 isLastVisibleDay && "border-r-0",
                 isDayVisible ? "" : "w-0",
               )}
@@ -280,72 +300,143 @@ function WeekViewAllDaySection() {
                 onEventCreate(createDraftEvent({ start, end }));
               }}
             >
-              {dayAllDayEvents.map((event) => {
-                const eventStart = toDate({
-                  value: event.start,
-                  timeZone: settings.defaultTimeZone,
-                });
-                const eventEnd = toDate({
-                  value: event.end,
-                  timeZone: settings.defaultTimeZone,
-                });
-                const isFirstDay = isSameDay(day, eventStart);
-                const isLastDay = isSameDay(day, eventEnd);
-                // const isFirstVisibleDay =
-                //   dayIndex === 0 && isBefore(eventStart, weekStart);
-                // const shouldShowTitle = isFirstDay || isFirstVisibleDay;
-                // const isSingleDay = event.allDay
-                //   ? isSameDay(eventStart, subDays(eventEnd, 1))
-                //   : isSameDay(eventStart, eventEnd);
+              {/* Reserve space for multi-day events */}
+              <div
+                className="min-h-7"
+                style={{
+                  paddingTop: `${multiDayLaneCount * 28}px`, // 24px event height + 4px gap
+                }}
+                ref={overflow.containerRef}
+              />
 
-                if (event.allDay && isLastDay) {
-                  return null;
-                }
-
-                return (
-                  <div
-                    className="relative z-[9999] w-full min-w-0"
-                    key={`spanning-${event.id}-${event.accountId}`}
-                  >
-                    <DraggableEvent
-                      // className={cn(!isSingleDay && !isFirstDay && "opacity-0")}
-                      onClick={(e) => onEventClick(event, e)}
-                      event={event}
-                      view="month"
-                      isFirstDay={isFirstDay}
-                      isLastDay={
-                        event.allDay
-                          ? isSameDay(day, subDays(eventEnd, 1))
-                          : isLastDay
-                      }
-                      containerRef={containerRef}
-                      onEventUpdate={onEventUpdate}
-                    >
-                      {/* <div
-                        className={cn(
-                          "truncate",
-                          !shouldShowTitle && "invisible",
-                        )}
-                        aria-hidden={!shouldShowTitle}
-                      >
-                        {event.title}
-                      </div> */}
-                    </DraggableEvent>
-                  </div>
-                );
-              })}
+              {/* Show overflow indicator for this day if there are overflow events that start on this day */}
+              {dayOverflowEvents.length > 0 && (
+                <div className="absolute bottom-1 left-1/2 z-20 -translate-x-1/2 transform">
+                  <OverflowIndicator
+                    count={dayOverflowEvents.length}
+                    events={dayOverflowEvents}
+                    date={day}
+                    onEventSelect={(event) =>
+                      onEventClick(event, {} as React.MouseEvent)
+                    }
+                    className="rounded-md border border-border bg-background px-2 py-1 text-xs font-medium text-foreground shadow-md transition-colors hover:bg-muted/80"
+                  />
+                </div>
+              )}
             </div>
           );
         })}
+
+        {/* Multi-day event overlay */}
+        <div
+          className="pointer-events-none absolute inset-x-0 top-0 bottom-0 grid min-w-0 auto-rows-max"
+          style={{ gridTemplateColumns }}
+        >
+          {/* Skip the time column */}
+          <div />
+
+          {/* Render only visible events */}
+          {overflow.capacityInfo.visibleLanes.map((lane, y) =>
+            lane.map((evt) => {
+              return (
+                <WeekViewPositionedEvent
+                  key={evt.id}
+                  y={y}
+                  evt={evt}
+                  weekStart={weekStart}
+                  weekEnd={weekEnd}
+                  settings={settings}
+                  onEventClick={onEventClick}
+                  onEventUpdate={onEventUpdate}
+                  dispatchAction={dispatchAction}
+                  containerRef={containerRef}
+                />
+              );
+            }),
+          )}
+        </div>
       </div>
+    </div>
+  );
+}
+
+interface WeekViewPositionedEventProps {
+  y: number;
+  evt: CalendarEvent;
+  weekStart: Date;
+  weekEnd: Date;
+  settings: ReturnType<typeof useCalendarSettings>;
+  onEventClick: (event: CalendarEvent, e: React.MouseEvent) => void;
+  onEventUpdate: (event: CalendarEvent) => void;
+  dispatchAction: (action: Action) => void;
+  containerRef: React.RefObject<HTMLDivElement | null>;
+}
+
+function WeekViewPositionedEvent({
+  y,
+  evt,
+  weekStart,
+  weekEnd,
+  settings,
+  onEventClick,
+  onEventUpdate,
+  dispatchAction,
+  containerRef,
+}: WeekViewPositionedEventProps) {
+  const { colStart, span } = getGridPosition(
+    evt,
+    weekStart,
+    weekEnd,
+    settings.defaultTimeZone,
+  );
+
+  // Calculate actual first/last day based on event dates
+  const eventStart = toDate({
+    value: evt.start,
+    timeZone: settings.defaultTimeZone,
+  });
+  let eventEnd = toDate({ value: evt.end, timeZone: settings.defaultTimeZone });
+  if (evt.allDay) {
+    eventEnd = subDays(eventEnd, 1);
+  }
+
+  // For single-day events, ensure they are properly marked as first and last day
+  const isFirstDay = eventStart >= weekStart;
+  const isLastDay = eventEnd <= weekEnd;
+
+  const [isDragging, setIsDragging] = React.useState(false);
+
+  return (
+    <div
+      key={evt.id}
+      className="pointer-events-auto my-[1px] min-w-0"
+      style={{
+        // Add 1 to colStart to account for the time column
+        gridColumn: `${colStart + 1} / span ${span}`,
+        gridRow: y + 1,
+        position: isDragging ? "relative" : "static",
+        zIndex: isDragging ? 99999 : "auto",
+      }}
+    >
+      <DraggableEvent
+        event={evt}
+        view="week"
+        isFirstDay={isFirstDay}
+        isLastDay={isLastDay}
+        containerRef={containerRef}
+        onClick={(e) => onEventClick(evt, e)}
+        onEventUpdate={onEventUpdate}
+        dispatchAction={dispatchAction}
+        setIsDragging={setIsDragging}
+        zIndex={isDragging ? 99999 : undefined}
+      />
     </div>
   );
 }
 
 function WeekViewTimeColumn() {
   const { hours } = useWeekViewContext();
-
-  const timeFormat = "24";
+  const { use12Hour } = useCalendarSettings();
 
   return (
     <div className="grid auto-cols-fr border-r border-border/70">
@@ -355,10 +446,8 @@ function WeekViewTimeColumn() {
           className="relative min-h-[var(--week-cells-height)] border-b border-border/70 last:border-b-0"
         >
           {index > 0 && (
-            <span className="absolute -top-3 left-0 flex h-6 w-20 max-w-full items-center justify-end bg-background pe-2 text-[10px] font-medium text-muted-foreground/70 sm:pe-4 sm:text-xs">
-              {timeFormat === "24"
-                ? format(hour, "HH:mm")
-                : format(hour, "h aa")}
+            <span className="absolute -top-3 left-0 flex h-6 w-20 max-w-full items-center justify-end bg-background pe-2 text-[10px] font-medium text-muted-foreground/70 tabular-nums sm:pe-4 sm:text-xs">
+              {use12Hour ? format(hour, "h aaa") : format(hour, "HH:mm")}
             </span>
           )}
         </div>
@@ -371,6 +460,7 @@ interface PositionedEventProps {
   positionedEvent: PositionedEvent;
   onEventClick: (event: CalendarEvent, e: React.MouseEvent) => void;
   onEventUpdate: (event: CalendarEvent) => void;
+  dispatchAction: (action: Action) => void;
   containerRef: React.RefObject<HTMLDivElement | null>;
 }
 
@@ -378,6 +468,7 @@ function PositionedEvent({
   positionedEvent,
   onEventClick,
   onEventUpdate,
+  dispatchAction,
   containerRef,
 }: PositionedEventProps) {
   const [isDragging, setIsDragging] = React.useState(false);
@@ -400,6 +491,7 @@ function PositionedEvent({
         view="week"
         onClick={(e) => onEventClick(positionedEvent.event, e)}
         onEventUpdate={onEventUpdate}
+        dispatchAction={dispatchAction}
         showTime
         height={positionedEvent.height}
         containerRef={containerRef}
@@ -417,6 +509,7 @@ function WeekViewDayColumns() {
     currentDate,
     onEventClick,
     onEventUpdate,
+    dispatchAction,
     containerRef,
     hours,
   } = useWeekViewContext();
@@ -459,6 +552,7 @@ function WeekViewDayColumns() {
                 positionedEvent={positionedEvent}
                 onEventClick={onEventClick}
                 onEventUpdate={onEventUpdate}
+                dispatchAction={dispatchAction}
                 containerRef={containerRef}
               />
             ))}

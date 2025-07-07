@@ -78,7 +78,7 @@ export const accountsRouter = createTRPCRouter({
         where: (table, { eq }) => eq(table.userId, ctx.user.id),
       });
 
-      const account = await ctx.providers.find(
+      const account = ctx.providers.find(
         (provider) => provider.account.id === newDefaultAccount?.id,
       );
       const calendars = await account?.client.calendars();

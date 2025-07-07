@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -14,18 +14,12 @@ interface DroppableCellProps {
 }
 
 function DroppableCellComponent({
-  id,
-  date,
-  time,
   children,
   className,
   onClick,
 }: DroppableCellProps) {
   return (
-    <div
-      onClick={onClick}
-      className={cn("flex h-full flex-col gap-0.5", className)}
-    >
+    <div onClick={onClick} className={cn("h-full flex-col gap-0.5", className)}>
       {children}
     </div>
   );

@@ -10,6 +10,7 @@ export { DroppableCell } from "./droppable-cell";
 export { EventDialog } from "./event-dialog";
 export { EventItem } from "./event-item";
 export { EventsPopup } from "./events-popup";
+export { OverflowIndicator } from "./overflow-indicator";
 
 export * from "./constants";
 export * from "./hooks";

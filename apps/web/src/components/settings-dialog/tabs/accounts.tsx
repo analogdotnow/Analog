@@ -79,8 +79,6 @@ function DefaultCalendarPicker() {
     );
   }
 
-  const defaultCalendarId = query.data.defaultCalendarId ?? undefined;
-
   const handleChange = (value: string) => {
     const accountId = query.data.accounts.find((account) =>
       account.calendars.some((calendar) => calendar.id === value),
@@ -98,7 +96,10 @@ function DefaultCalendarPicker() {
       <Label htmlFor="default-calendar" className="sr-only">
         Default Calendar
       </Label>
-      <Select value={defaultCalendarId} onValueChange={handleChange}>
+      <Select
+        value={query.data.defaultCalendar.id}
+        onValueChange={handleChange}
+      >
         <SelectTrigger
           id="default-calendar"
           className="w-fit max-w-full min-w-48"
