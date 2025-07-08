@@ -46,17 +46,10 @@ export const defaultValues: FormValues = {
   title: "",
   start: Temporal.Now.zonedDateTimeISO(),
   end: Temporal.Now.zonedDateTimeISO().add({ hours: 2 }),
-  isAllDay: true,
+  isAllDay: false,
   description: "",
   repeat: {},
-  attendees: [
-    {
-      name: "",
-      email: "",
-      status: "unknown",
-      type: "required",
-    },
-  ],
+  attendees: [],
   calendar: {
     accountId: "",
     calendarId: "",
