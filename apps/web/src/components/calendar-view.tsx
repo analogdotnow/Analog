@@ -174,7 +174,7 @@ export function CalendarView({
         } as React.CSSProperties
       }
     >
-      <CalendarHeader ref={headerRef} />
+      <CalendarHeader ref={headerRef} viewPreferences={viewPreferences} />
 
       <div
         className="scrollbar-hidden grow overflow-x-hidden overflow-y-auto"

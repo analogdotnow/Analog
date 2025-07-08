@@ -2,9 +2,10 @@
 
 import { AnimatePresence, Variant, motion } from "motion/react";
 
+import type { ViewPreferences } from "@/atoms/view-preferences";
 import { cn } from "@/lib/utils";
 import { CalendarView } from "./types";
-import { getViewTitleData } from "./utils";
+import { getViewTitleData, getWeekNumber } from "./utils";
 
 const variants: Record<string, Variant> = {
   exit: {
@@ -31,6 +32,7 @@ interface CalendarViewTitleProps {
   view: CalendarView;
   className?: string;
   prevDate?: Date;
+  viewPreferences: ViewPreferences;
 }
 
 /**
@@ -38,27 +40,9 @@ interface CalendarViewTitleProps {
  */
 
 export function CalendarViewTitle(props: CalendarViewTitleProps) {
-  const { currentDate, view, className } = props;
+  const { currentDate, view, className, viewPreferences } = props;
   const titleData = getViewTitleData(currentDate, view);
-
-  if (view === "day") {
-    return (
-      <motion.h2
-        className={className}
-        key={titleData.full}
-        variants={variants}
-        transition={{ duration: 0.25, ease: "easeInOut" }}
-      >
-        <span className="min-[480px]:hidden" aria-hidden="true">
-          {titleData.short}
-        </span>
-        <span className="max-[479px]:hidden min-md:hidden" aria-hidden="true">
-          {titleData.medium}
-        </span>
-        <span className="max-md:hidden">{titleData.full}</span>
-      </motion.h2>
-    );
-  }
+  const weekNumber = getWeekNumber(currentDate, view);
 
   return (
     <div className="relative h-8 w-full">
@@ -66,7 +50,7 @@ export function CalendarViewTitle(props: CalendarViewTitleProps) {
         <motion.h2
           key={titleData.full}
           className={cn(
-            "absolute inset-0 flex items-center justify-start transition-all",
+            "absolute inset-0 flex items-center justify-start gap-2 transition-all",
             className,
           )}
           variants={variants}
@@ -78,6 +62,11 @@ export function CalendarViewTitle(props: CalendarViewTitleProps) {
             {titleData.short}
           </span>
           <span className="max-md:hidden">{titleData.full}</span>
+          {viewPreferences.showWeekNumbers && weekNumber && (
+            <span className="mt-1 text-sm text-muted-foreground">
+              Week {weekNumber}
+            </span>
+          )}
         </motion.h2>
       </AnimatePresence>
     </div>

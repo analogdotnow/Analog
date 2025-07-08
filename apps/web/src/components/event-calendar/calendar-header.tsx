@@ -2,6 +2,7 @@
 
 import { usePrevious } from "@react-hookz/web";
 
+import type { ViewPreferences } from "@/atoms/view-preferences";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useCalendarState } from "@/hooks/use-calendar-state";
 import { cn } from "@/lib/utils";
@@ -10,9 +11,15 @@ import { CalendarNavigation } from "./calendar-navigation";
 import { CalendarViewMenu } from "./calendar-view-menu";
 import { CalendarViewTitle } from "./calendar-view-title";
 
-type CalendarHeaderProps = React.ComponentProps<"header">;
+type CalendarHeaderProps = React.ComponentProps<"header"> & {
+  viewPreferences: ViewPreferences;
+};
 
-export function CalendarHeader({ className, ref }: CalendarHeaderProps) {
+export function CalendarHeader({
+  className,
+  ref,
+  viewPreferences,
+}: CalendarHeaderProps) {
   const { currentDate, view, setView } = useCalendarState();
   const prevDate = usePrevious(currentDate);
 
@@ -31,6 +38,7 @@ export function CalendarHeader({ className, ref }: CalendarHeaderProps) {
           currentDate={currentDate}
           view={view}
           className="text-sm font-medium sm:text-lg md:text-xl"
+          viewPreferences={viewPreferences}
         />
       </div>
 
