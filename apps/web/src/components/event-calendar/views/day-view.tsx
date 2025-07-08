@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useRef } from "react";
 import {
   addHours,
   areIntervalsOverlapping,
@@ -12,6 +12,7 @@ import {
   isSameDay,
   startOfDay,
 } from "date-fns";
+import { Temporal } from "temporal-polyfill";
 
 import { toDate } from "@repo/temporal";
 
@@ -25,14 +26,19 @@ import {
 } from "@/components/event-calendar";
 import { EndHour, StartHour } from "@/components/event-calendar/constants";
 import { useCurrentTimeIndicator } from "@/components/event-calendar/hooks";
+import type { Action } from "@/components/event-calendar/hooks/use-event-operations";
 import { isMultiDayEvent } from "@/components/event-calendar/utils";
+import { DraftEvent } from "@/lib/interfaces";
 import { cn } from "@/lib/utils";
+import { createDraftEvent } from "@/lib/utils/calendar";
 
 interface DayViewProps {
   currentDate: Date;
   events: CalendarEvent[];
   onEventSelect: (event: CalendarEvent) => void;
-  onEventCreate: (startTime: Date) => void;
+  onEventCreate: (draft: DraftEvent) => void;
+  onEventUpdate: (event: CalendarEvent) => void;
+  dispatchAction: (action: Action) => void;
 }
 
 interface PositionedEvent {
@@ -44,12 +50,60 @@ interface PositionedEvent {
   zIndex: number;
 }
 
+interface PositionedEventProps {
+  positionedEvent: PositionedEvent;
+  onEventClick: (event: CalendarEvent, e: React.MouseEvent) => void;
+  onEventUpdate: (event: CalendarEvent) => void;
+  dispatchAction: (action: Action) => void;
+  containerRef: React.RefObject<HTMLDivElement | null>;
+}
+
+function PositionedEvent({
+  positionedEvent,
+  onEventClick,
+  onEventUpdate,
+  dispatchAction,
+  containerRef,
+}: PositionedEventProps) {
+  const [isDragging, setIsDragging] = React.useState(false);
+
+  return (
+    <div
+      key={positionedEvent.event.id}
+      className="absolute z-10"
+      style={{
+        top: `${positionedEvent.top}px`,
+        height: `${positionedEvent.height}px`,
+        left: `${positionedEvent.left * 100}%`,
+        width: `${positionedEvent.width * 100}%`,
+        zIndex: isDragging ? 9999 : positionedEvent.zIndex,
+      }}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <DraggableEvent
+        event={positionedEvent.event}
+        view="day"
+        onClick={(e) => onEventClick(positionedEvent.event, e)}
+        onEventUpdate={onEventUpdate}
+        dispatchAction={dispatchAction}
+        showTime
+        height={positionedEvent.height}
+        containerRef={containerRef}
+        setIsDragging={setIsDragging}
+      />
+    </div>
+  );
+}
+
 export function DayView({
   currentDate,
   events,
   onEventSelect,
   onEventCreate,
+  onEventUpdate,
+  dispatchAction,
 }: DayViewProps) {
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const hours = useMemo(() => {
     const dayStart = startOfDay(currentDate);
     return eachHourOfInterval({
@@ -228,8 +282,10 @@ export function DayView({
     "day",
   );
 
+  const { use12Hour } = useCalendarSettings();
+
   return (
-    <div data-slot="day-view" className="contents">
+    <div data-slot="day-view" className="contents" ref={containerRef}>
       {showAllDaySection && (
         <div className="border-t border-border/70 bg-muted/50">
           <div className="grid grid-cols-[3rem_1fr] sm:grid-cols-[4rem_1fr]">
@@ -279,7 +335,7 @@ export function DayView({
             >
               {index > 0 && (
                 <span className="absolute -top-3 left-0 flex h-6 w-16 max-w-full items-center justify-end bg-background pe-2 text-[10px] text-muted-foreground/70 sm:pe-4 sm:text-xs">
-                  {format(hour, "h a")}
+                  {use12Hour ? format(hour, "h aaa") : format(hour, "HH:mm")}
                 </span>
               )}
             </div>
@@ -289,27 +345,14 @@ export function DayView({
         <div className="relative">
           {/* Positioned events */}
           {positionedEvents.map((positionedEvent) => (
-            <div
+            <PositionedEvent
               key={positionedEvent.event.id}
-              className="absolute z-10 px-0.5"
-              style={{
-                top: `${positionedEvent.top}px`,
-                height: `${positionedEvent.height}px`,
-                left: `${positionedEvent.left * 100}%`,
-                width: `${positionedEvent.width * 100}%`,
-                zIndex: positionedEvent.zIndex,
-              }}
-            >
-              <div className="size-full">
-                <DraggableEvent
-                  event={positionedEvent.event}
-                  view="day"
-                  onClick={(e) => handleEventClick(positionedEvent.event, e)}
-                  showTime
-                  height={positionedEvent.height}
-                />
-              </div>
-            </div>
+              positionedEvent={positionedEvent}
+              onEventClick={handleEventClick}
+              onEventUpdate={onEventUpdate}
+              dispatchAction={dispatchAction}
+              containerRef={containerRef}
+            />
           ))}
 
           {/* Current time indicator */}
@@ -353,10 +396,18 @@ export function DayView({
                           "top-[calc(var(--week-cells-height)/4*3)]",
                       )}
                       onClick={() => {
-                        const startTime = new Date(currentDate);
-                        startTime.setHours(hourValue);
-                        startTime.setMinutes(quarter * 15);
-                        onEventCreate(startTime);
+                        const start = Temporal.ZonedDateTime.from({
+                          year: currentDate.getFullYear(),
+                          month: currentDate.getMonth() + 1,
+                          day: currentDate.getDate(),
+                          hour: hourValue,
+                          minute: quarter * 15,
+                          timeZone: settings.defaultTimeZone,
+                        });
+
+                        const end = start.add({ minutes: 15 });
+
+                        onEventCreate(createDraftEvent({ start, end }));
                       }}
                     />
                   );

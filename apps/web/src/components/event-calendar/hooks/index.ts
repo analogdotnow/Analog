@@ -1,8 +1,7 @@
 // Focused logic hooks
 export { useCalendarNavigation } from "./use-calendar-navigation";
-export { useEventDialog } from "./use-event-dialog";
 export { useEventOperations } from "./use-event-operations";
-export { useCalendarActions } from "./use-calendar-actions";
+export { useCalendar as useCalendarActions } from "./use-calendar-actions";
 
 // View-specific hooks
 export {
@@ -15,3 +14,4 @@ export { useGridLayout } from "./use-grid-layout";
 // Utility hooks
 export { useCurrentTimeIndicator } from "./use-current-time-indicator";
 export { useEventVisibility } from "./use-event-visibility";
+export { useMultiDayOverflow } from "./use-multi-day-overflow";

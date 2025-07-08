@@ -46,6 +46,50 @@ export function startOfDay({
   });
 }
 
+export interface EndOfDayOptions {
+  value: Temporal.Instant | Temporal.ZonedDateTime | Temporal.PlainDate;
+  timeZone: string;
+}
+
+export function endOfDay({
+  value,
+  timeZone,
+}: EndOfDayOptions): Temporal.ZonedDateTime {
+  if (value instanceof Temporal.PlainDate) {
+    return value.toZonedDateTime({
+      timeZone,
+      plainTime: {
+        hour: 23,
+        minute: 59,
+        second: 59,
+        millisecond: 999,
+        microsecond: 999,
+        nanosecond: 999,
+      },
+    });
+  }
+
+  if (value instanceof Temporal.Instant) {
+    return value.toZonedDateTimeISO(timeZone).with({
+      hour: 23,
+      minute: 59,
+      second: 59,
+      millisecond: 999,
+      microsecond: 999,
+      nanosecond: 999,
+    });
+  }
+
+  return value.with({
+    hour: 23,
+    minute: 59,
+    second: 59,
+    millisecond: 999,
+    microsecond: 999,
+    nanosecond: 999,
+  });
+}
+
 export interface StartOfWeekOptions {
   value: Temporal.Instant | Temporal.ZonedDateTime | Temporal.PlainDate;
   timeZone: string;

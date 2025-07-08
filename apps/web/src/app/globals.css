@@ -195,6 +195,8 @@
     var(--foreground),
     var(--calendar-tint) 80%
   );
+
+  --grid-event-form: 1em minmax(0, 1fr) 1em minmax(0, 1fr);
 }
 
 @layer base {
