@@ -103,6 +103,8 @@ export function toGoogleCalendarEvent(
     conferenceData: event.conferenceData
       ? toGoogleCalendarConferenceData(event.conferenceData)
       : undefined,
+    // Required when creating/updating events with conference data
+    ...(event.conferenceData && { conferenceDataVersion: 1 }),
   };
 }
 

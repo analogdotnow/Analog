@@ -23,7 +23,7 @@ export const conferencingRouter = createTRPCRouter({
     )
     .mutation(async ({ input, ctx }) => {
       const provider = ctx.providers.find(
-        ({ account }) => account.id === input.calendarAccountId,
+        ({ account }) => account.accountId === input.calendarAccountId,
       );
 
       if (!provider) {
@@ -83,6 +83,7 @@ export const conferencingRouter = createTRPCRouter({
 
       const event = await client.updateEvent(calendar, input.eventId, {
         id: input.eventId,
+        title: input.agenda,
         accountId: input.calendarAccountId,
         calendarId: input.calendarId,
         providerId: provider.account.providerId,

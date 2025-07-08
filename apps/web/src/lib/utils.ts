@@ -41,8 +41,12 @@ export function getPrimaryBrowserLocale() {
   return navigator.language;
 }
 
-export function getConferencingProviderId(uri: string) {
+export function getConferencingProviderId(uri?: string) {
   try {
+    if (!uri) {
+      return "none";
+    }
+
     const url = new URL(uri);
     const hostname = url.hostname.toLowerCase();
 
@@ -60,9 +64,9 @@ export function getConferencingProviderId(uri: string) {
     return "none";
   } catch {
     // Fallback to string matching for non-URL strings
-    const lowerUri = uri.toLowerCase();
-    if (lowerUri.includes("google")) return "google";
-    if (lowerUri.includes("zoom")) return "zoom";
+    const lowerUri = uri?.toLowerCase();
+    if (lowerUri?.includes("google")) return "google";
+    if (lowerUri?.includes("zoom")) return "zoom";
     return "none";
   }
 }
