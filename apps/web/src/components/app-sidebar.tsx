@@ -8,7 +8,9 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
 } from "@/components/ui/sidebar";
+import { Tasks } from "./tasks/tasks";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
@@ -18,6 +20,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarGroupContent>
             <DatePicker />
           </SidebarGroupContent>
+          <SidebarGroup>
+            <SidebarGroupLabel>Tasks</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <Tasks />
+            </SidebarGroupContent>
+          </SidebarGroup>
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>

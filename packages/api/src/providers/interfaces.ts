@@ -19,6 +19,24 @@ export interface Calendar {
   readOnly: boolean;
 }
 
+export interface Category {
+  id: string;
+  provider?: string;
+  title?: string;
+  updated?: string;
+}
+
+export interface Task {
+  id: string;
+  title?: string;
+  categoryId?: string;
+  categoryTitle?: string;
+  status?: string;
+  completed?: string;
+  notes?: string;
+  due?: string;
+}
+
 export interface CalendarEvent {
   id: string;
   title?: string;
@@ -49,6 +67,10 @@ export interface Attendee {
 }
 
 export type AttendeeStatus = Attendee["status"];
+
+export interface ProviderOptions {
+  accessToken: string;
+}
 
 export interface CalendarProvider {
   providerId: "google" | "microsoft";
@@ -84,4 +106,15 @@ export interface CalendarProvider {
       comment?: string;
     },
   ): Promise<void>;
+}
+
+
+export interface TaskProvider {
+  providerId: "google" | "microsoft";
+  categories(): Promise<Category[]>;
+  tasks(): Promise<Task[]>;
+  tasksForCategory(category: Category): Promise<Task[]>;
+  createTask(category: Category, task: Omit<Task, "id">): Promise<Task>;
+  updateTask(category: Category, task: Partial<Task>): Promise<Task>;
+  deleteTask(category: Category, taskId: string): Promise<void>;
 }
