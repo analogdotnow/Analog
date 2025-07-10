@@ -1,5 +1,6 @@
 import type { Temporal } from "@js-temporal/polyfill";
 import { RRuleTemporal, type RRuleOptions } from "rrule-temporal";
+import { toText } from "rrule-temporal/totext";
 
 import type { EventOutputData } from "@/lib/schemas/event-form";
 
@@ -41,7 +42,7 @@ export function generateRRule({
 export function getRecurrenceDescription(rruleString: string): string {
   try {
     const rule = new RRuleTemporal({ rruleString });
-    return rule.toText();
+    return toText(rule);
   } catch (error) {
     console.error("Error generating recurrence description:", error);
     return "Invalid recurrence rule";
