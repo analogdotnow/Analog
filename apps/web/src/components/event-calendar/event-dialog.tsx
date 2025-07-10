@@ -44,21 +44,20 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useDefaultAccount } from "@/hooks/accounts";
 import { cn } from "@/lib/utils";
+import type { OptimisticAction } from "./hooks/use-events";
 
 interface EventDialogProps {
   event: CalendarEvent | null;
   isOpen: boolean;
   onClose: () => void;
-  onSave: (event: CalendarEvent) => void;
-  onDelete: (eventId: string) => void;
+  dispatchAction: (action: OptimisticAction) => void;
 }
 
 export function EventDialog({
   event,
   isOpen,
   onClose,
-  onSave,
-  onDelete,
+  dispatchAction,
 }: EventDialogProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -183,33 +182,36 @@ export function EventDialog({
       return;
     }
 
-    onSave({
-      id: event?.id || "",
-      title: eventTitle || "",
-      description,
-      start: allDay
-        ? Temporal.PlainDate.from(start.toISOString().split("T")[0]!)
-        : Temporal.Instant.from(start.toISOString()).toZonedDateTimeISO(
-            (event?.start as Temporal.ZonedDateTime).timeZoneId,
-          ),
-      end: allDay
-        ? Temporal.PlainDate.from(end.toISOString().split("T")[0]!)
-        : Temporal.Instant.from(end.toISOString()).toZonedDateTimeISO(
-            (event?.end as Temporal.ZonedDateTime).timeZoneId,
-          ),
-      allDay,
-      location,
-      color: event?.color,
-      calendarId: event?.calendarId ?? "primary",
-      providerId: event?.providerId ?? defaultAccount.providerId,
-      accountId: event?.accountId ?? defaultAccount.id,
-      readOnly: false,
+    dispatchAction({
+      type: "update",
+      event: {
+        id: event?.id || "",
+        title: eventTitle || "",
+        description,
+        start: allDay
+          ? Temporal.PlainDate.from(start.toISOString().split("T")[0]!)
+          : Temporal.Instant.from(start.toISOString()).toZonedDateTimeISO(
+              (event?.start as Temporal.ZonedDateTime).timeZoneId,
+            ),
+        end: allDay
+          ? Temporal.PlainDate.from(end.toISOString().split("T")[0]!)
+          : Temporal.Instant.from(end.toISOString()).toZonedDateTimeISO(
+              (event?.end as Temporal.ZonedDateTime).timeZoneId,
+            ),
+        allDay,
+        location,
+        color: event?.color,
+        calendarId: event?.calendarId ?? "primary",
+        providerId: event?.providerId ?? defaultAccount.providerId,
+        accountId: event?.accountId ?? defaultAccount.id,
+        readOnly: false,
+      },
     });
   };
 
   const handleDelete = () => {
     if (event?.id) {
-      onDelete(event.id);
+      dispatchAction({ type: "delete", eventId: event.id });
     }
   };
 

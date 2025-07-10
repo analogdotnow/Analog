@@ -8,6 +8,7 @@ import {
   CalendarSettings,
   useCalendarSettings,
 } from "@/atoms/calendar-settings";
+import type { OptimisticAction } from "@/components/event-calendar/hooks/use-events";
 import {
   createDefaultEvent,
   parseCalendarEvent,
@@ -36,7 +37,7 @@ import { RepeatSelect } from "./repeat-select";
 
 interface EventFormProps {
   selectedEvent?: CalendarEvent | DraftEvent;
-  handleEventSave: (event: CalendarEvent) => void;
+  dispatchAction: (action: OptimisticAction) => void;
   defaultCalendar?: Calendar;
 }
 
@@ -75,7 +76,7 @@ function getDefaultValues({
 
 export function EventForm({
   selectedEvent,
-  handleEventSave,
+  dispatchAction,
   defaultCalendar,
 }: EventFormProps) {
   const settings = useCalendarSettings();
@@ -100,7 +101,10 @@ export function EventForm({
         return;
       }
 
-      handleEventSave(toCalendarEvent({ values: value, event, calendar }));
+      dispatchAction({
+        type: "update",
+        event: toCalendarEvent({ values: value, event, calendar }),
+      });
     },
     listeners: {
       onBlur: async ({ formApi }) => {

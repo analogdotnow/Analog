@@ -12,15 +12,14 @@ import { Temporal } from "temporal-polyfill";
 import { CalendarEvent, EventItem } from "@/components/event-calendar";
 import { EventContextMenu } from "@/components/event-calendar/event-context-menu";
 import { ContextMenuTrigger } from "@/components/ui/context-menu";
-import type { Action } from "./hooks/use-event-operations";
+import type { OptimisticAction } from "./hooks/use-events";
 
 interface DraggableEventProps {
   event: CalendarEvent;
   view: "month" | "week" | "day";
   showTime?: boolean;
   onClick?: (e: React.MouseEvent) => void;
-  onEventUpdate: (event: CalendarEvent) => void;
-  dispatchAction: (action: Action) => void;
+  dispatchAction: (action: OptimisticAction) => void;
   setIsDragging?: (isDragging: boolean) => void;
   height?: number;
   isMultiDay?: boolean;
@@ -59,7 +58,6 @@ export function DraggableEvent({
   view,
   showTime,
   onClick,
-  onEventUpdate,
   height: initialHeight,
   dispatchAction,
   isFirstDay = true,
@@ -127,7 +125,8 @@ export function DraggableEvent({
       const start = current.start.add({ days: columnDelta + rowDelta * 7 });
       const end = start.add(duration);
 
-      onEventUpdate?.({ ...current, start, end });
+      dispatchAction({ type: "update", event: { ...current, start, end } });
+      
       return;
     }
 
@@ -145,7 +144,7 @@ export function DraggableEvent({
 
       const end = start.add(duration);
 
-      onEventUpdate?.({ ...current, start, end });
+      dispatchAction({ type: "update", event: { ...current, start, end } });
 
       return;
     }
@@ -154,7 +153,7 @@ export function DraggableEvent({
       const start = current.start.add({ days: columnDelta });
       const end = start.add(duration);
 
-      onEventUpdate?.({ ...current, start, end });
+      dispatchAction({ type: "update", event: { ...current, start, end } });
 
       return;
     }
@@ -171,7 +170,7 @@ export function DraggableEvent({
 
     const end = start.add(duration);
 
-    onEventUpdate?.({ ...current, start, end });
+    dispatchAction({ type: "update", event: { ...current, start, end } });
   };
 
   const startHeight = React.useRef(0);
@@ -206,9 +205,10 @@ export function DraggableEvent({
         roundingIncrement: 15,
         roundingMode: "halfExpand",
       });
-      onEventUpdate?.({ ...eventRef.current, start: rounded });
+
+      dispatchAction({ type: "update", event: { ...eventRef.current, start: rounded } });
     },
-    [onEventUpdate],
+    [dispatchAction],
   );
 
   const updateEndTime = React.useCallback(
@@ -223,9 +223,9 @@ export function DraggableEvent({
         roundingMode: "halfExpand",
       });
 
-      onEventUpdate?.({ ...eventRef.current, end: rounded });
+      dispatchAction({ type: "update", event: { ...eventRef.current, end: rounded } });
     },
-    [onEventUpdate],
+    [dispatchAction],
   );
 
   const onResizeTopEnd = (_: PointerEvent, info: PanInfo) => {
