@@ -47,6 +47,9 @@
     "lint": {
       "dependsOn": ["^lint"]
     },
+    "type-check": {
+      "cache": false
+    },
     "db:generate": {
       "cache": false
     },

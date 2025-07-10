@@ -5,6 +5,7 @@
     "build": "dotenv -- turbo run build",
     "dev": "dotenv -- turbo run dev",
     "lint": "turbo run lint",
+    "type-check": "turbo run type-check",
     "format": "prettier --write \"**/*.{ts,tsx,css,md}\"",
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down",
