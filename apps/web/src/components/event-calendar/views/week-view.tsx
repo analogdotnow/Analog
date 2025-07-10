@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useMemo, useRef } from "react";
+import * as React from "react";
 import {
   addHours,
   eachDayOfInterval,
@@ -45,28 +45,6 @@ import {
 import { cn } from "@/lib/utils";
 import { createDraftEvent } from "@/lib/utils/calendar";
 
-interface WeekViewContextType {
-  allDays: Date[];
-  visibleDays: Date[];
-  hours: Date[];
-  eventCollection: EventCollectionForWeek;
-  currentDate: Date;
-  gridTemplateColumns: string;
-  onEventClick: (event: CalendarEvent, e: React.MouseEvent) => void;
-  dispatchAction: (action: OptimisticAction) => void;
-  containerRef: React.RefObject<HTMLDivElement | null>;
-}
-
-const WeekViewContext = createContext<WeekViewContextType | null>(null);
-
-function useWeekViewContext() {
-  const context = useContext(WeekViewContext);
-  if (!context) {
-    throw new Error("useWeekViewContext must be used within WeekViewProvider");
-  }
-  return context;
-}
-
 interface WeekViewProps extends React.ComponentProps<"div"> {
   currentDate: Date;
   events: CalendarEvent[];
@@ -83,14 +61,14 @@ export function WeekView({
 }: WeekViewProps) {
   const viewPreferences = useViewPreferences();
 
-  const allDays = useMemo(() => getWeekDays(currentDate), [currentDate]);
+  const allDays = React.useMemo(() => getWeekDays(currentDate), [currentDate]);
 
-  const visibleDays = useMemo(
+  const visibleDays = React.useMemo(
     () => filterDaysByWeekendPreference(allDays, viewPreferences.showWeekends),
     [allDays, viewPreferences.showWeekends],
   );
 
-  const hours = useMemo(() => {
+  const hours = React.useMemo(() => {
     const dayStart = startOfDay(currentDate);
     return eachHourOfInterval({
       start: addHours(dayStart, StartHour),
@@ -108,28 +86,16 @@ export function WeekView({
   });
   const eventCollection = useEventCollection(events, visibleDays, "week");
 
-  const containerRef = useRef<HTMLDivElement>(null);
-  const contextValue: WeekViewContextType = {
-    allDays,
-    visibleDays,
-    hours,
-    eventCollection,
-    currentDate,
-    gridTemplateColumns,
-    onEventClick: handleEventClick,
-    dispatchAction,
-    containerRef,
-  };
+  const containerRef = React.useRef<HTMLDivElement>(null);
 
   return (
-    <WeekViewContext.Provider value={contextValue}>
       <div data-slot="week-view" className="isolate flex flex-col" {...props}>
         <div
           ref={headerRef}
           className="sticky top-0 z-30 bg-background/80 backdrop-blur-md"
         >
-          <WeekViewHeader />
-          <WeekViewAllDaySection />
+          <WeekViewHeader allDays={allDays} gridTemplateColumns={gridTemplateColumns} />
+          <WeekViewAllDaySection allDays={allDays} visibleDays={visibleDays} eventCollection={eventCollection} gridTemplateColumns={gridTemplateColumns} onEventClick={handleEventClick} currentDate={currentDate} containerRef={containerRef} dispatchAction={dispatchAction} />
         </div>
 
         <div
@@ -137,20 +103,23 @@ export function WeekView({
           className="isolate grid flex-1 overflow-hidden transition-[grid-template-columns] duration-200 ease-linear"
           style={{ gridTemplateColumns }}
         >
-          <WeekViewTimeColumn />
-          <WeekViewDayColumns />
+          <WeekViewTimeColumn hours={hours} />
+          <WeekViewDayColumns allDays={allDays} visibleDays={visibleDays} eventCollection={eventCollection} currentDate={currentDate} onEventClick={handleEventClick} dispatchAction={dispatchAction} containerRef={containerRef} hours={hours} />
         </div>
       </div>
-    </WeekViewContext.Provider>
   );
 }
 
-function WeekViewHeader() {
-  const { allDays, gridTemplateColumns } = useWeekViewContext();
+interface WeekViewHeaderProps {
+  allDays: Date[];
+  gridTemplateColumns: string;
+}
+
+function WeekViewHeader({ allDays, gridTemplateColumns }: WeekViewHeaderProps) {
   const viewPreferences = useViewPreferences();
   const settings = useCalendarSettings();
 
-  const timeZone = useMemo(() => {
+  const timeZone = React.useMemo(() => {
     const parts = new Intl.DateTimeFormat(settings.locale, {
       timeZoneName: "short",
       timeZone: settings.defaultTimeZone,
@@ -193,26 +162,27 @@ function WeekViewHeader() {
   );
 }
 
-function WeekViewAllDaySection() {
-  const {
-    allDays,
-    visibleDays,
-    eventCollection,
-    gridTemplateColumns,
-    onEventClick,
-    currentDate,
-    containerRef,
-    dispatchAction,
-  } = useWeekViewContext();
+interface WeekViewAllDaySectionProps {
+  allDays: Date[];
+  visibleDays: Date[];
+  eventCollection: EventCollectionForWeek;
+  gridTemplateColumns: string;
+  onEventClick: (event: CalendarEvent, e: React.MouseEvent) => void;
+  currentDate: Date;
+  containerRef: React.RefObject<HTMLDivElement | null>;
+  dispatchAction: (action: OptimisticAction) => void;
+}
+
+function WeekViewAllDaySection({ allDays, visibleDays, eventCollection, gridTemplateColumns, onEventClick, currentDate, containerRef, dispatchAction }: WeekViewAllDaySectionProps) {
   const viewPreferences = useViewPreferences();
   const settings = useCalendarSettings();
 
-  const weekStart = useMemo(
+  const weekStart = React.useMemo(
     () => startOfWeek(currentDate, { weekStartsOn: 0 }),
     [currentDate],
   );
-  const weekEnd = useMemo(() => allDays[allDays.length - 1]!, [allDays]);
-  const allDayEvents = useMemo(() => {
+  const weekEnd = React.useMemo(() => allDays[allDays.length - 1]!, [allDays]);
+  const allDayEvents = React.useMemo(() => {
     const events =
       eventCollection.type === "week" ? eventCollection.allDayEvents : [];
 
@@ -282,7 +252,7 @@ function WeekViewAllDaySection() {
   });
 
   // Calculate how many lanes multi-day events occupy for this week
-  const multiDayLaneCount = useMemo(() => {
+  const multiDayLaneCount = React.useMemo(() => {
     if (allDayEvents.length === 0) return 0;
     const lanes = placeIntoLanes(allDayEvents, settings.defaultTimeZone);
     return lanes.length;
@@ -473,8 +443,11 @@ function WeekViewPositionedEvent({
   );
 }
 
-function WeekViewTimeColumn() {
-  const { hours } = useWeekViewContext();
+interface WeekViewTimeColumnProps {
+  hours: Date[];
+}
+
+function WeekViewTimeColumn({ hours }: WeekViewTimeColumnProps) {
   const { use12Hour } = useCalendarSettings();
 
   return (
@@ -537,17 +510,18 @@ function PositionedEvent({
   );
 }
 
-function WeekViewDayColumns() {
-  const {
-    allDays,
-    visibleDays,
-    eventCollection,
-    currentDate,
-    onEventClick,
-    dispatchAction,
-    containerRef,
-    hours,
-  } = useWeekViewContext();
+interface WeekViewDayColumnsProps {
+  allDays: Date[];
+  visibleDays: Date[];
+  eventCollection: EventCollectionForWeek;
+  currentDate: Date;
+  onEventClick: (event: CalendarEvent, e: React.MouseEvent) => void;
+  dispatchAction: (action: OptimisticAction) => void;
+  containerRef: React.RefObject<HTMLDivElement | null>;
+  hours: Date[];
+}
+
+function WeekViewDayColumns({ allDays, visibleDays, eventCollection, currentDate, onEventClick, dispatchAction, containerRef, hours }: WeekViewDayColumnsProps) {
   const viewPreferences = useViewPreferences();
 
   const { currentTimePosition, currentTimeVisible } = useCurrentTimeIndicator(
@@ -603,7 +577,7 @@ function WeekViewDayColumns() {
               </div>
             )}
             <div>
-              <MemoizedWeekViewDayTimeSlots day={day} hours={hours} />
+              <MemoizedWeekViewDayTimeSlots day={day} hours={hours} dispatchAction={dispatchAction} />
             </div>
           </div>
         );
@@ -612,9 +586,13 @@ function WeekViewDayColumns() {
   );
 }
 
-function WeekViewDayTimeSlots({ day, hours }: { day: Date; hours: Date[] }) {
-  const { dispatchAction } = useWeekViewContext();
+interface WeekViewDayTimeSlotsProps {
+  day: Date;
+  hours: Date[];
+  dispatchAction: (action: OptimisticAction) => void;
+}
 
+function WeekViewDayTimeSlots({ day, hours, dispatchAction }: WeekViewDayTimeSlotsProps) {
   const settings = useCalendarSettings();
 
   return (
