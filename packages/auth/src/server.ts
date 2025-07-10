@@ -6,6 +6,7 @@ import { db } from "@repo/db";
 import type { account } from "@repo/db/schema";
 import { env } from "@repo/env/server";
 
+import { secondaryStorage } from "./secondary-storage";
 import { createProviderHandler } from "./utils/account-linking";
 
 export const MICROSOFT_OAUTH_SCOPES = [
@@ -38,6 +39,7 @@ export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "pg",
   }),
+  secondaryStorage: secondaryStorage(),
   account: {
     accountLinking: {
       enabled: true,
