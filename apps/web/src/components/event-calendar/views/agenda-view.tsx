@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import * as React from "react";
 import { RiCalendarEventLine } from "@remixicon/react";
 import { addDays, format, isToday } from "date-fns";
 
@@ -24,7 +24,7 @@ export function AgendaView({
   dispatchAction,
 }: AgendaViewProps) {
   // Show events for the next days based on constant
-  const days = useMemo(() => {
+  const days = React.useMemo(() => {
     return Array.from({ length: AgendaDaysToShow }, (_, i) =>
       addDays(new Date(currentDate), i),
     );

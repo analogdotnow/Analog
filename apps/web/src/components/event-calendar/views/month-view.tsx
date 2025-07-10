@@ -1,12 +1,6 @@
 "use client";
 
-import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useMemo,
-  useRef,
-} from "react";
+import * as React from "react";
 import {
   eachDayOfInterval,
   endOfMonth,
@@ -54,30 +48,6 @@ import { createDraftEvent } from "@/lib/utils/calendar";
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-interface MonthViewContextType {
-  currentDate: Date;
-  days: Date[];
-  weeks: Date[][];
-  gridTemplateColumns: string;
-  eventCollection: EventCollectionForMonth;
-  onEventClick: (event: CalendarEvent, e: React.MouseEvent) => void;
-  containerRef: React.RefObject<HTMLDivElement | null>;
-  dispatchAction: (action: OptimisticAction) => void;
-}
-
-const MonthViewContext = createContext<MonthViewContextType | null>(null);
-MonthViewContext.displayName = "MonthViewContext";
-
-function useMonthViewContext() {
-  const context = useContext(MonthViewContext);
-  if (!context) {
-    throw new Error(
-      "useMonthViewContext must be used within MonthViewProvider",
-    );
-  }
-  return context;
-}
-
 interface MonthViewProps {
   currentDate: Date;
   events: CalendarEvent[];
@@ -90,7 +60,7 @@ export function MonthView({
   dispatchAction,
 }: MonthViewProps) {
   const settings = useCalendarSettings();
-  const { days, weeks } = useMemo(() => {
+  const { days, weeks } = React.useMemo(() => {
     const monthStart = startOfMonth(currentDate);
     const monthEnd = endOfMonth(monthStart);
     const calendarStart = startOfWeek(monthStart, { weekStartsOn: 0 });
@@ -106,9 +76,9 @@ export function MonthView({
     return { days: allDays, weeks: weeksResult };
   }, [currentDate]);
 
-  const containerRef = useRef<HTMLDivElement | null>(null);
+  const containerRef = React.useRef<HTMLDivElement | null>(null);
 
-  const handleEventClick = useCallback(
+  const handleEventClick = React.useCallback(
     (event: CalendarEvent, e: React.MouseEvent) => {
       e.stopPropagation();
       dispatchAction({ type: "select", event });
@@ -119,21 +89,9 @@ export function MonthView({
   const gridTemplateColumns = useGridLayout(getWeekDays(new Date()));
   const eventCollection = useEventCollection(events, days, "month");
 
-  const contextValue: MonthViewContextType = {
-    currentDate,
-    days,
-    weeks,
-    gridTemplateColumns,
-    eventCollection,
-    onEventClick: handleEventClick,
-    containerRef,
-    dispatchAction,
-  };
-
   const rows = weeks.length;
 
   return (
-    <MonthViewContext.Provider value={contextValue}>
       <div data-slot="month-view" className="contents min-w-0">
         <MonthViewHeader style={{ gridTemplateColumns }} />
         <div
@@ -156,12 +114,12 @@ export function MonthView({
                 containerRef={
                   containerRef as React.RefObject<HTMLDivElement | null>
                 }
+                currentDate={currentDate}
               />
             );
           })}
         </div>
       </div>
-    </MonthViewContext.Provider>
   );
 }
 
@@ -206,6 +164,7 @@ interface MonthViewWeekItemProps {
   dispatchAction: (action: OptimisticAction) => void;
   settings: CalendarSettings;
   containerRef: React.RefObject<HTMLDivElement | null>;
+  currentDate: Date;
 }
 
 function MonthViewWeek({
@@ -218,8 +177,9 @@ function MonthViewWeek({
   dispatchAction,
   settings,
   containerRef,
+  currentDate,
 }: MonthViewWeekItemProps) {
-  const weekRef = useRef<HTMLDivElement>(null);
+  const weekRef = React.useRef<HTMLDivElement>(null);
   const viewPreferences = useViewPreferences();
   const weekStart = week[0]!;
   const weekEnd = week[6]!;
@@ -285,7 +245,7 @@ function MonthViewWeek({
   });
 
   // Calculate how many lanes multi-day events occupy for this week
-  const multiDayLaneCount = useMemo(() => {
+  const multiDayLaneCount = React.useMemo(() => {
     if (weekEvents.length === 0) return 0;
     const lanes = placeIntoLanes(weekEvents, settings.defaultTimeZone);
     return lanes.length;
@@ -308,6 +268,8 @@ function MonthViewWeek({
           dayIndex={dayIndex}
           multiDayLaneCount={multiDayLaneCount}
           overflow={overflow}
+          dispatchAction={dispatchAction}
+          currentDate={currentDate}
         />
       ))}
 
@@ -348,14 +310,15 @@ interface MonthViewDayProps {
   dayIndex: number;
   multiDayLaneCount: number;
   overflow: ReturnType<typeof useMultiDayOverflow>;
+  dispatchAction: (action: OptimisticAction) => void;
+  currentDate: Date;
 }
 
-function MonthViewDay({ day, overflow }: MonthViewDayProps) {
-  const { currentDate, dispatchAction } = useMonthViewContext();
+function MonthViewDay({ day, overflow, dispatchAction, currentDate }: MonthViewDayProps) {
   const viewPreferences = useViewPreferences();
   const settings = useCalendarSettings();
 
-  const handleDayClick = useCallback(() => {
+  const handleDayClick = React.useCallback(() => {
     const start = Temporal.ZonedDateTime.from({
       year: day.getFullYear(),
       month: day.getMonth() + 1,

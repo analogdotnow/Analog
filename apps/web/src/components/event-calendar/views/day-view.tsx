@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useRef } from "react";
+import * as React from "react";
 import {
   addHours,
   areIntervalsOverlapping,
@@ -89,8 +89,8 @@ function PositionedEvent({
 }
 
 export function DayView({ currentDate, events, dispatchAction }: DayViewProps) {
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const hours = useMemo(() => {
+  const containerRef = React.useRef<HTMLDivElement | null>(null);
+  const hours = React.useMemo(() => {
     const dayStart = startOfDay(currentDate);
     return eachHourOfInterval({
       start: addHours(dayStart, StartHour),
@@ -100,7 +100,7 @@ export function DayView({ currentDate, events, dispatchAction }: DayViewProps) {
 
   const settings = useCalendarSettings();
 
-  const dayEvents = useMemo(() => {
+  const dayEvents = React.useMemo(() => {
     return events
       .filter((event) => {
         const eventStart = toDate({
@@ -131,7 +131,7 @@ export function DayView({ currentDate, events, dispatchAction }: DayViewProps) {
   }, [currentDate, events, settings.defaultTimeZone]);
 
   // Filter all-day events
-  const allDayEvents = useMemo(() => {
+  const allDayEvents = React.useMemo(() => {
     return dayEvents.filter((event) => {
       // Include explicitly marked all-day events or multi-day events
       return event.allDay || isMultiDayEvent(event);
@@ -139,7 +139,7 @@ export function DayView({ currentDate, events, dispatchAction }: DayViewProps) {
   }, [dayEvents]);
 
   // Get only single-day time-based events
-  const timeEvents = useMemo(() => {
+  const timeEvents = React.useMemo(() => {
     return dayEvents.filter((event) => {
       // Exclude all-day events and multi-day events
       return !event.allDay && !isMultiDayEvent(event);
@@ -147,7 +147,7 @@ export function DayView({ currentDate, events, dispatchAction }: DayViewProps) {
   }, [dayEvents]);
 
   // Process events to calculate positions
-  const positionedEvents = useMemo(() => {
+  const positionedEvents = React.useMemo(() => {
     const result: PositionedEvent[] = [];
     const dayStart = startOfDay(currentDate);
 

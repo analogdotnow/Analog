@@ -115,42 +115,6 @@ export function useEventOperations(onOperationComplete?: () => void) {
     ],
   );
 
-  const handleEventMove = useCallback(
-    (updatedEvent: CalendarEvent) => {
-      // Optimistically move event in UI
-      startTransition(() =>
-        applyOptimistic({ type: "update", event: updatedEvent }),
-      );
-
-      updateEvent(updatedEvent);
-      showEventMovedToast(updatedEvent);
-    },
-    [applyOptimistic, startTransition, updateEvent],
-  );
-
-  const handleEventSelect = useCallback(
-    (event: CalendarEvent) => {
-      setSelectedEvents([]);
-      setSelectedEvents((prev) => {
-        const filtered = prev.filter((e) => e.id !== event.id);
-        return [event, ...filtered];
-      });
-    },
-    [setSelectedEvents],
-  );
-
-  const handleEventCreate = useCallback(
-    (draft: DraftEvent) => {
-      setSelectedEvents([]);
-      setSelectedEvents((prev) => [draft, ...prev]);
-    },
-    [setSelectedEvents],
-  );
-
-  const handleDialogClose = useCallback(() => {
-    setSelectedEvents([]);
-  }, [setSelectedEvents]);
-
   const dispatchAction = useCallback(
     (action: OptimisticAction) => {
       if (action.type === "draft" || action.type === "select") {
@@ -183,12 +147,6 @@ export function useEventOperations(onOperationComplete?: () => void) {
     events: optimisticEvents,
     selectedEvents: optimisticSelectedEvents,
     isPending,
-    handleEventSave,
-    handleEventDelete,
-    handleEventMove,
-    handleEventSelect,
-    handleDialogClose,
-    handleEventCreate,
     dispatchAction,
   };
 }
