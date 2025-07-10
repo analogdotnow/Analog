@@ -39,7 +39,7 @@ import {
   useGridLayout,
   type EventCollectionForMonth,
 } from "@/components/event-calendar/hooks";
-import type { Action } from "@/components/event-calendar/hooks/use-event-operations";
+import type { OptimisticAction } from "@/components/event-calendar/hooks/use-events";
 import { useMultiDayOverflow } from "@/components/event-calendar/hooks/use-multi-day-overflow";
 import { OverflowIndicator } from "@/components/event-calendar/overflow-indicator";
 import {
@@ -49,7 +49,6 @@ import {
   isWeekendIndex,
   placeIntoLanes,
 } from "@/components/event-calendar/utils";
-import { DraftEvent } from "@/lib/interfaces";
 import { cn, groupArrayIntoChunks } from "@/lib/utils";
 import { createDraftEvent } from "@/lib/utils/calendar";
 
@@ -62,10 +61,8 @@ interface MonthViewContextType {
   gridTemplateColumns: string;
   eventCollection: EventCollectionForMonth;
   onEventClick: (event: CalendarEvent, e: React.MouseEvent) => void;
-  onEventCreate: (draft: DraftEvent) => void;
   containerRef: React.RefObject<HTMLDivElement | null>;
-  onEventUpdate: (event: CalendarEvent) => void;
-  dispatchAction: (action: Action) => void;
+  dispatchAction: (action: OptimisticAction) => void;
 }
 
 const MonthViewContext = createContext<MonthViewContextType | null>(null);
@@ -84,18 +81,12 @@ function useMonthViewContext() {
 interface MonthViewProps {
   currentDate: Date;
   events: CalendarEvent[];
-  onEventSelect: (event: CalendarEvent) => void;
-  onEventCreate: (draft: DraftEvent) => void;
-  onEventUpdate: (event: CalendarEvent) => void;
-  dispatchAction: (action: Action) => void;
+  dispatchAction: (action: OptimisticAction) => void;
 }
 
 export function MonthView({
   currentDate,
   events,
-  onEventSelect,
-  onEventCreate,
-  onEventUpdate,
   dispatchAction,
 }: MonthViewProps) {
   const settings = useCalendarSettings();
@@ -120,9 +111,9 @@ export function MonthView({
   const handleEventClick = useCallback(
     (event: CalendarEvent, e: React.MouseEvent) => {
       e.stopPropagation();
-      onEventSelect(event);
+      dispatchAction({ type: "select", event });
     },
-    [onEventSelect],
+    [dispatchAction],
   );
 
   const gridTemplateColumns = useGridLayout(getWeekDays(new Date()));
@@ -135,9 +126,7 @@ export function MonthView({
     gridTemplateColumns,
     eventCollection,
     onEventClick: handleEventClick,
-    onEventCreate,
     containerRef,
-    onEventUpdate,
     dispatchAction,
   };
 
@@ -162,7 +151,6 @@ export function MonthView({
                 gridTemplateColumns={gridTemplateColumns}
                 eventCollection={eventCollection}
                 onEventClick={handleEventClick}
-                onEventUpdate={onEventUpdate}
                 dispatchAction={dispatchAction}
                 settings={settings}
                 containerRef={
@@ -215,8 +203,7 @@ interface MonthViewWeekItemProps {
   gridTemplateColumns: string;
   eventCollection: EventCollectionForMonth;
   onEventClick: (event: CalendarEvent, e: React.MouseEvent) => void;
-  onEventUpdate: (event: CalendarEvent) => void;
-  dispatchAction: (action: Action) => void;
+  dispatchAction: (action: OptimisticAction) => void;
   settings: CalendarSettings;
   containerRef: React.RefObject<HTMLDivElement | null>;
 }
@@ -228,7 +215,6 @@ function MonthViewWeek({
   gridTemplateColumns,
   eventCollection,
   onEventClick,
-  onEventUpdate,
   dispatchAction,
   settings,
   containerRef,
@@ -344,7 +330,6 @@ function MonthViewWeek({
                 weekEnd={weekEnd}
                 settings={settings}
                 onEventClick={onEventClick}
-                onEventUpdate={onEventUpdate}
                 dispatchAction={dispatchAction}
                 containerRef={containerRef}
               />
@@ -366,7 +351,7 @@ interface MonthViewDayProps {
 }
 
 function MonthViewDay({ day, overflow }: MonthViewDayProps) {
-  const { currentDate, onEventCreate, onEventClick } = useMonthViewContext();
+  const { currentDate, dispatchAction } = useMonthViewContext();
   const viewPreferences = useViewPreferences();
   const settings = useCalendarSettings();
 
@@ -382,8 +367,8 @@ function MonthViewDay({ day, overflow }: MonthViewDayProps) {
 
     const end = start.add({ days: 1 });
 
-    onEventCreate(createDraftEvent({ start, end }));
-  }, [day, onEventCreate, settings.defaultTimeZone]);
+    dispatchAction({ type: "draft", event: createDraftEvent({ start, end }) });
+  }, [day, dispatchAction, settings.defaultTimeZone]);
 
   if (!day) return null;
 
@@ -437,9 +422,7 @@ function MonthViewDay({ day, overflow }: MonthViewDayProps) {
               count={dayOverflowEvents.length}
               events={dayOverflowEvents}
               date={day}
-              onEventSelect={(event) =>
-                onEventClick(event, {} as React.MouseEvent)
-              }
+              dispatchAction={dispatchAction}
               className=""
             />
           </div>
@@ -456,8 +439,7 @@ interface PositionedEventProps {
   weekEnd: Date;
   settings: CalendarSettings;
   onEventClick: (event: CalendarEvent, e: React.MouseEvent) => void;
-  onEventUpdate: (event: CalendarEvent) => void;
-  dispatchAction: (action: Action) => void;
+  dispatchAction: (action: OptimisticAction) => void;
   containerRef: React.RefObject<HTMLDivElement | null>;
   rows: number;
 }
@@ -468,7 +450,6 @@ function PositionedEvent({
   weekEnd,
   settings,
   onEventClick,
-  onEventUpdate,
   dispatchAction,
   containerRef,
   rows,
@@ -514,7 +495,6 @@ function PositionedEvent({
         isFirstDay={isFirstDay}
         isLastDay={isLastDay}
         onClick={(e) => onEventClick(evt, e)}
-        onEventUpdate={onEventUpdate}
         dispatchAction={dispatchAction}
         setIsDragging={setIsDragging}
         zIndex={isDragging ? 99999 : undefined}

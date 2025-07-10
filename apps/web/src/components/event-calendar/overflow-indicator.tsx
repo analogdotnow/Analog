@@ -7,6 +7,7 @@ import { XIcon } from "lucide-react";
 import { toDate } from "@repo/temporal";
 
 import { EventItem, type CalendarEvent } from "@/components/event-calendar";
+import type { OptimisticAction } from "@/components/event-calendar/hooks/use-events";
 import {
   Popover,
   PopoverContent,
@@ -18,7 +19,7 @@ interface OverflowIndicatorProps {
   count: number;
   events: CalendarEvent[];
   date: Date;
-  onEventSelect: (event: CalendarEvent) => void;
+  dispatchAction: (action: OptimisticAction) => void;
   gridColumn?: string;
   className?: string;
 }
@@ -27,14 +28,14 @@ export function OverflowIndicator({
   count,
   events,
   date,
-  onEventSelect,
+  dispatchAction,
   gridColumn,
   className,
 }: OverflowIndicatorProps) {
   const [open, setOpen] = useState(false);
 
   const handleEventClick = (event: CalendarEvent) => {
-    onEventSelect(event);
+    dispatchAction({ type: "select", event });
     setOpen(false);
   };
 

@@ -9,18 +9,19 @@ import {
   CalendarEvent,
   EventItem,
 } from "@/components/event-calendar";
+import type { OptimisticAction } from "@/components/event-calendar/hooks/use-events";
 import { getAllEventsForDay } from "@/components/event-calendar/utils";
 
 interface AgendaViewProps {
   currentDate: Date;
   events: CalendarEvent[];
-  onEventSelect: (event: CalendarEvent) => void;
+  dispatchAction: (action: OptimisticAction) => void;
 }
 
 export function AgendaView({
   currentDate,
   events,
-  onEventSelect,
+  dispatchAction,
 }: AgendaViewProps) {
   // Show events for the next days based on constant
   const days = useMemo(() => {
@@ -31,7 +32,7 @@ export function AgendaView({
 
   const handleEventClick = (event: CalendarEvent, e: React.MouseEvent) => {
     e.stopPropagation();
-    onEventSelect(event);
+    dispatchAction({ type: "select", event });
   };
 
   // Check if there are any days with events

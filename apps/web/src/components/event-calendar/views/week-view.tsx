@@ -31,7 +31,7 @@ import {
   useGridLayout,
   type EventCollectionForWeek,
 } from "@/components/event-calendar/hooks";
-import type { Action } from "@/components/event-calendar/hooks/use-event-operations";
+import type { OptimisticAction } from "@/components/event-calendar/hooks/use-events";
 import { useMultiDayOverflow } from "@/components/event-calendar/hooks/use-multi-day-overflow";
 import { OverflowIndicator } from "@/components/event-calendar/overflow-indicator";
 import {
@@ -42,7 +42,6 @@ import {
   placeIntoLanes,
   type PositionedEvent,
 } from "@/components/event-calendar/utils";
-import { DraftEvent } from "@/lib/interfaces";
 import { cn } from "@/lib/utils";
 import { createDraftEvent } from "@/lib/utils/calendar";
 
@@ -54,9 +53,7 @@ interface WeekViewContextType {
   currentDate: Date;
   gridTemplateColumns: string;
   onEventClick: (event: CalendarEvent, e: React.MouseEvent) => void;
-  onEventCreate: (draft: DraftEvent) => void;
-  onEventUpdate: (event: CalendarEvent) => void;
-  dispatchAction: (action: Action) => void;
+  dispatchAction: (action: OptimisticAction) => void;
   containerRef: React.RefObject<HTMLDivElement | null>;
 }
 
@@ -73,19 +70,13 @@ function useWeekViewContext() {
 interface WeekViewProps extends React.ComponentProps<"div"> {
   currentDate: Date;
   events: CalendarEvent[];
-  onEventSelect: (event: CalendarEvent) => void;
-  onEventCreate: (draft: DraftEvent) => void;
-  onEventUpdate: (event: CalendarEvent) => void;
-  dispatchAction: (action: Action) => void;
+  dispatchAction: (action: OptimisticAction) => void;
   headerRef: React.RefObject<HTMLDivElement | null>;
 }
 
 export function WeekView({
   currentDate,
   events,
-  onEventSelect,
-  onEventCreate,
-  onEventUpdate,
   dispatchAction,
   headerRef,
   ...props
@@ -109,7 +100,7 @@ export function WeekView({
 
   const handleEventClick = (event: CalendarEvent, e: React.MouseEvent) => {
     e.stopPropagation();
-    onEventSelect(event);
+    dispatchAction({ type: "select", event });
   };
 
   const gridTemplateColumns = useGridLayout(allDays, {
@@ -126,8 +117,6 @@ export function WeekView({
     currentDate,
     gridTemplateColumns,
     onEventClick: handleEventClick,
-    onEventCreate,
-    onEventUpdate,
     dispatchAction,
     containerRef,
   };
@@ -213,8 +202,6 @@ function WeekViewAllDaySection() {
     onEventClick,
     currentDate,
     containerRef,
-    onEventUpdate,
-    onEventCreate,
     dispatchAction,
   } = useWeekViewContext();
   const viewPreferences = useViewPreferences();
@@ -351,7 +338,10 @@ function WeekViewAllDaySection() {
 
                 const end = start.add({ days: 1 });
 
-                onEventCreate(createDraftEvent({ start, end }));
+                dispatchAction({
+                  type: "draft",
+                  event: createDraftEvent({ start, end }),
+                });
               }}
             >
               {/* Reserve space for multi-day events */}
@@ -370,9 +360,7 @@ function WeekViewAllDaySection() {
                     count={dayOverflowEvents.length}
                     events={dayOverflowEvents}
                     date={day}
-                    onEventSelect={(event) =>
-                      onEventClick(event, {} as React.MouseEvent)
-                    }
+                    dispatchAction={dispatchAction}
                     className="rounded-md border border-border bg-background px-2 py-1 text-xs font-medium text-foreground shadow-md transition-colors hover:bg-muted/80"
                   />
                 </div>
@@ -401,7 +389,6 @@ function WeekViewAllDaySection() {
                   weekEnd={weekEnd}
                   settings={settings}
                   onEventClick={onEventClick}
-                  onEventUpdate={onEventUpdate}
                   dispatchAction={dispatchAction}
                   containerRef={containerRef}
                 />
@@ -421,8 +408,7 @@ interface WeekViewPositionedEventProps {
   weekEnd: Date;
   settings: ReturnType<typeof useCalendarSettings>;
   onEventClick: (event: CalendarEvent, e: React.MouseEvent) => void;
-  onEventUpdate: (event: CalendarEvent) => void;
-  dispatchAction: (action: Action) => void;
+  dispatchAction: (action: OptimisticAction) => void;
   containerRef: React.RefObject<HTMLDivElement | null>;
 }
 
@@ -433,7 +419,6 @@ function WeekViewPositionedEvent({
   weekEnd,
   settings,
   onEventClick,
-  onEventUpdate,
   dispatchAction,
   containerRef,
 }: WeekViewPositionedEventProps) {
@@ -479,7 +464,6 @@ function WeekViewPositionedEvent({
         isFirstDay={isFirstDay}
         isLastDay={isLastDay}
         onClick={(e) => onEventClick(evt, e)}
-        onEventUpdate={onEventUpdate}
         dispatchAction={dispatchAction}
         setIsDragging={setIsDragging}
         zIndex={isDragging ? 99999 : undefined}
@@ -514,15 +498,13 @@ function WeekViewTimeColumn() {
 interface PositionedEventProps {
   positionedEvent: PositionedEvent;
   onEventClick: (event: CalendarEvent, e: React.MouseEvent) => void;
-  onEventUpdate: (event: CalendarEvent) => void;
-  dispatchAction: (action: Action) => void;
+  dispatchAction: (action: OptimisticAction) => void;
   containerRef: React.RefObject<HTMLDivElement | null>;
 }
 
 function PositionedEvent({
   positionedEvent,
   onEventClick,
-  onEventUpdate,
   dispatchAction,
   containerRef,
 }: PositionedEventProps) {
@@ -545,7 +527,6 @@ function PositionedEvent({
         event={positionedEvent.event}
         view="week"
         onClick={(e) => onEventClick(positionedEvent.event, e)}
-        onEventUpdate={onEventUpdate}
         dispatchAction={dispatchAction}
         showTime
         height={positionedEvent.height}
@@ -563,7 +544,6 @@ function WeekViewDayColumns() {
     eventCollection,
     currentDate,
     onEventClick,
-    onEventUpdate,
     dispatchAction,
     containerRef,
     hours,
@@ -606,7 +586,6 @@ function WeekViewDayColumns() {
                 key={positionedEvent.event.id}
                 positionedEvent={positionedEvent}
                 onEventClick={onEventClick}
-                onEventUpdate={onEventUpdate}
                 dispatchAction={dispatchAction}
                 containerRef={containerRef}
               />
@@ -634,8 +613,7 @@ function WeekViewDayColumns() {
 }
 
 function WeekViewDayTimeSlots({ day, hours }: { day: Date; hours: Date[] }) {
-  // TODO: replace context
-  const { onEventCreate } = useWeekViewContext();
+  const { dispatchAction } = useWeekViewContext();
 
   const settings = useCalendarSettings();
 
@@ -675,7 +653,10 @@ function WeekViewDayTimeSlots({ day, hours }: { day: Date; hours: Date[] }) {
 
                     const end = start.add({ minutes: 15 });
 
-                    onEventCreate(createDraftEvent({ start, end }));
+                    dispatchAction({
+                      type: "draft",
+                      event: createDraftEvent({ start, end }),
+                    });
                   }}
                 />
               );

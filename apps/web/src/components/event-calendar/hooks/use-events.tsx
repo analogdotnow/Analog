@@ -1,11 +1,25 @@
 import { useCallback, useMemo, useOptimistic, useTransition } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useAtom } from "jotai";
 import * as R from "remeda";
+import { Temporal } from "temporal-polyfill";
 
-import { compareTemporal } from "@repo/temporal";
+import {
+  compareTemporal,
+  endOfDay,
+  endOfWeek,
+  startOfDay,
+  startOfWeek,
+} from "@repo/temporal";
 
-import { SelectedEvents, selectedEventsAtom } from "@/atoms";
+import {
+  SelectedEvents,
+  selectedEventsAtom,
+  useCalendarSettings,
+} from "@/atoms";
+import { useCalendarState } from "@/hooks/use-calendar-state";
 import { DraftEvent } from "@/lib/interfaces";
+import { useTRPC } from "@/lib/trpc/client";
 import { CalendarEvent } from "../types";
 import {
   showEventAddedToast,
@@ -13,16 +27,85 @@ import {
   showEventMovedToast,
   showEventUpdatedToast,
 } from "../utils";
-import { useCalendar } from "./use-calendar-actions";
-import { OptimisticAction } from "./use-events";
+import { useCalendarMutations } from "./use-calendar-mutations";
 
-// Types for optimistic reducer actions
-export type Action =
+export type OptimisticAction =
+  | { type: "draft"; event: DraftEvent }
+  | { type: "update"; event: CalendarEvent }
+  | { type: "select"; event: CalendarEvent }
+  | { type: "unselect"; eventId: string }
+  | { type: "delete"; eventId: string };
+
+export type EventAction =
   | { type: "update"; event: CalendarEvent }
   | { type: "delete"; eventId: string };
 
-export function useEventOperations(onOperationComplete?: () => void) {
-  const { events, createEvent, updateEvent, deleteEvent } = useCalendar();
+export function useEvents() {
+  const trpc = useTRPC();
+  const { currentDate } = useCalendarState();
+
+  const { defaultTimeZone, weekStartsOn } = useCalendarSettings();
+
+  const timeMin = useMemo(() => {
+    const base = Temporal.PlainDate.from(
+      currentDate.toISOString().split("T")[0]!,
+    )
+      .subtract({
+        days: 30,
+      })
+      .toZonedDateTime({
+        timeZone: defaultTimeZone,
+      });
+
+    const start = startOfWeek({
+      value: base,
+      timeZone: defaultTimeZone,
+      weekStartsOn,
+    });
+
+    return startOfDay({
+      value: start,
+      timeZone: defaultTimeZone,
+    });
+  }, [defaultTimeZone, currentDate, weekStartsOn]);
+
+  const timeMax = useMemo(() => {
+    const base = Temporal.PlainDate.from(
+      currentDate.toISOString().split("T")[0]!,
+    )
+      .add({
+        days: 30,
+      })
+      .toZonedDateTime({
+        timeZone: defaultTimeZone,
+      });
+
+    const start = endOfWeek({
+      value: base,
+      timeZone: defaultTimeZone,
+      weekStartsOn,
+    });
+
+    return endOfDay({
+      value: start,
+      timeZone: defaultTimeZone,
+    });
+  }, [defaultTimeZone, currentDate, weekStartsOn]);
+
+  const query = useQuery(
+    trpc.events.list.queryOptions({
+      timeMin,
+      timeMax,
+    }),
+  );
+
+  return query;
+}
+
+export function useOptimisticEvents(onOperationComplete?: () => void) {
+  const query = useEvents();
+  const { createMutation, updateMutation, deleteMutation } =
+    useCalendarMutations();
   const [selectedEvents, setSelectedEvents] = useAtom(selectedEventsAtom);
 
   // Transition state for concurrent UI feedback
@@ -30,8 +113,8 @@ export function useEventOperations(onOperationComplete?: () => void) {
 
   // Optimistic state handling to reflect changes instantly in the UI
   const [optimisticEvents, applyOptimistic] = useOptimistic(
-    events,
-    (state: CalendarEvent[], action: Action) => {
+    query.data?.events ?? [],
+    (state: CalendarEvent[], action: EventAction) => {
       if (action.type === "delete") {
         return state.filter((e) => e.id !== action.eventId);
       }
@@ -52,14 +135,14 @@ export function useEventOperations(onOperationComplete?: () => void) {
     },
   );
 
-  const handleEventSave = useCallback(
+  const updateEvent = useCallback(
     (event: CalendarEvent) => {
       const exists = optimisticEvents.find((e) => e.id === event.id);
 
       if (!exists) {
         startTransition(() => applyOptimistic({ type: "update", event }));
 
-        createEvent(event);
+        createMutation.mutate(event);
         showEventAddedToast(event);
         onOperationComplete?.();
         return;
@@ -68,21 +151,21 @@ export function useEventOperations(onOperationComplete?: () => void) {
       // Optimistically update UI
       startTransition(() => applyOptimistic({ type: "update", event }));
 
-      updateEvent(event);
+      updateMutation.mutate(event);
       showEventUpdatedToast(event);
 
       onOperationComplete?.();
     },
     [
       applyOptimistic,
-      createEvent,
+      createMutation,
       onOperationComplete,
       optimisticEvents,
-      updateEvent,
+      updateMutation,
     ],
   );
 
-  const handleEventDelete = useCallback(
+  const deleteEvent = useCallback(
     (eventId: string) => {
       const deletedEvent = optimisticEvents.find((e) => e.id === eventId);
 
@@ -97,7 +180,7 @@ export function useEventOperations(onOperationComplete?: () => void) {
       // Optimistically remove event from UI
       startTransition(() => applyOptimistic({ type: "delete", eventId }));
 
-      deleteEvent({
+      deleteMutation.mutate({
         accountId: deletedEvent.accountId,
         calendarId: deletedEvent.calendarId,
         eventId,
@@ -108,38 +191,38 @@ export function useEventOperations(onOperationComplete?: () => void) {
     [
       applyOptimistic,
       optimisticEvents,
-      deleteEvent,
+      deleteMutation,
       onOperationComplete,
       startTransition,
       setSelectedEvents,
     ],
   );
 
-  const handleEventMove = useCallback(
+  const moveEvent = useCallback(
     (updatedEvent: CalendarEvent) => {
       // Optimistically move event in UI
       startTransition(() =>
         applyOptimistic({ type: "update", event: updatedEvent }),
       );
 
-      updateEvent(updatedEvent);
+      updateMutation.mutate(updatedEvent);
       showEventMovedToast(updatedEvent);
     },
-    [applyOptimistic, startTransition, updateEvent],
+    [applyOptimistic, startTransition, updateMutation],
   );
 
-  const handleEventSelect = useCallback(
+  const selectEvent = useCallback(
     (event: CalendarEvent) => {
       setSelectedEvents([]);
-      setSelectedEvents((prev) => {
-        const filtered = prev.filter((e) => e.id !== event.id);
-        return [event, ...filtered];
-      });
+      setSelectedEvents((prev) => [
+        event,
+        ...prev.filter((e) => e.id !== event.id),
+      ]);
     },
     [setSelectedEvents],
   );
 
-  const handleEventCreate = useCallback(
+  const draftEvent = useCallback(
     (draft: DraftEvent) => {
       setSelectedEvents([]);
       setSelectedEvents((prev) => [draft, ...prev]);
@@ -147,7 +230,7 @@ export function useEventOperations(onOperationComplete?: () => void) {
     [setSelectedEvents],
   );
 
-  const handleDialogClose = useCallback(() => {
+  const clearSelectedEvents = useCallback(() => {
     setSelectedEvents([]);
   }, [setSelectedEvents]);
 
@@ -158,12 +241,12 @@ export function useEventOperations(onOperationComplete?: () => void) {
       } else if (action.type === "unselect") {
         setSelectedEvents([]);
       } else if (action.type === "update") {
-        handleEventSave(action.event);
+        updateEvent(action.event);
       } else if (action.type === "delete") {
-        handleEventDelete(action.eventId);
+        deleteEvent(action.eventId);
       }
     },
-    [handleEventSave, handleEventDelete, setSelectedEvents],
+    [updateEvent, deleteEvent, setSelectedEvents],
   );
 
   // Derive optimistic selected events from optimistic events - this ensures perfect sync
@@ -183,12 +266,12 @@ export function useEventOperations(onOperationComplete?: () => void) {
     events: optimisticEvents,
     selectedEvents: optimisticSelectedEvents,
     isPending,
-    handleEventSave,
-    handleEventDelete,
-    handleEventMove,
-    handleEventSelect,
-    handleDialogClose,
-    handleEventCreate,
+    updateEvent,
+    deleteEvent,
+    moveEvent,
+    selectEvent,
+    clearSelectedEvents,
+    draftEvent,
     dispatchAction,
   };
 }

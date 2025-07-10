@@ -10,7 +10,7 @@ import {
   EventHeight,
   WeekCellsHeight,
 } from "@/components/event-calendar";
-import type { Action } from "@/components/event-calendar/hooks/use-event-operations";
+import type { OptimisticAction } from "@/components/event-calendar/hooks/use-events";
 import {
   filterPastEvents,
   filterVisibleEvents,
@@ -26,19 +26,13 @@ import { useScrollToCurrentTime } from "./event-calendar/week-view/use-scroll-to
 
 interface CalendarContentProps {
   events: CalendarEvent[];
-  onEventSelect: (event: CalendarEvent) => void;
-  onEventCreate: (draft: DraftEvent) => void;
   scrollContainerRef: React.RefObject<HTMLDivElement | null>;
-  onEventUpdate: (event: CalendarEvent) => void;
-  dispatchAction: (action: Action) => void;
+  dispatchAction: (action: OptimisticAction) => void;
   headerRef: React.RefObject<HTMLDivElement | null>;
 }
 
 function CalendarContent({
   events,
-  onEventSelect,
-  onEventCreate,
-  onEventUpdate,
   dispatchAction,
   scrollContainerRef,
   headerRef,
@@ -58,9 +52,6 @@ function CalendarContent({
         <MonthView
           currentDate={currentDate}
           events={events}
-          onEventSelect={onEventSelect}
-          onEventCreate={onEventCreate}
-          onEventUpdate={onEventUpdate}
           dispatchAction={dispatchAction}
         />
       );
@@ -70,9 +61,6 @@ function CalendarContent({
         <WeekView
           currentDate={currentDate}
           events={events}
-          onEventSelect={onEventSelect}
-          onEventCreate={onEventCreate}
-          onEventUpdate={onEventUpdate}
           dispatchAction={dispatchAction}
           headerRef={headerRef}
         />
@@ -83,9 +71,6 @@ function CalendarContent({
         <DayView
           currentDate={currentDate}
           events={events}
-          onEventSelect={onEventSelect}
-          onEventCreate={onEventCreate}
-          onEventUpdate={onEventUpdate}
           dispatchAction={dispatchAction}
         />
       );
@@ -95,7 +80,7 @@ function CalendarContent({
         <AgendaView
           currentDate={currentDate}
           events={events}
-          onEventSelect={onEventSelect}
+          dispatchAction={dispatchAction}
         />
       );
 
@@ -105,9 +90,6 @@ function CalendarContent({
         <WeekView
           currentDate={currentDate}
           events={events}
-          onEventSelect={onEventSelect}
-          onEventCreate={onEventCreate}
-          onEventUpdate={onEventUpdate}
           dispatchAction={dispatchAction}
           headerRef={headerRef}
         />
@@ -118,18 +100,12 @@ function CalendarContent({
 interface CalendarViewProps {
   className?: string;
   events: CalendarEvent[];
-  handleEventCreate: (draft: DraftEvent) => void;
-  handleEventSelect: (event: CalendarEvent) => void;
-  handleEventMove: (event: CalendarEvent) => void;
-  dispatchAction: (action: Action) => void;
+  dispatchAction: (action: OptimisticAction) => void;
 }
 
 export function CalendarView({
   className,
   events,
-  handleEventSelect,
-  handleEventMove,
-  handleEventCreate,
   dispatchAction,
 }: CalendarViewProps) {
   const viewPreferences = useViewPreferences();
@@ -182,9 +158,6 @@ export function CalendarView({
       >
         <CalendarContent
           events={filteredEvents}
-          onEventSelect={handleEventSelect}
-          onEventUpdate={handleEventMove}
-          onEventCreate={handleEventCreate}
           dispatchAction={dispatchAction}
           scrollContainerRef={scrollContainerRef}
           headerRef={headerRef}
