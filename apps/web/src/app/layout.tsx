@@ -66,13 +66,6 @@ export default function RootLayout({
 }: Readonly<{ children: ReactNode }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <script
-          crossOrigin="anonymous"
-          src="//unpkg.com/react-scan/dist/auto.global.js"
-        />
-        {/* rest of your scripts go under */}
-      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${satoshi.variable} flex min-h-screen flex-col antialiased`}
       >
