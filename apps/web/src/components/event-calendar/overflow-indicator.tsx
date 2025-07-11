@@ -7,7 +7,7 @@ import { XIcon } from "lucide-react";
 import { toDate } from "@repo/temporal";
 
 import { EventItem, type CalendarEvent } from "@/components/event-calendar";
-import type { OptimisticAction } from "@/components/event-calendar/hooks/use-events";
+import type { OptimisticAction } from "@/components/event-calendar/hooks/use-optimistic-events";
 import {
   Popover,
   PopoverContent,

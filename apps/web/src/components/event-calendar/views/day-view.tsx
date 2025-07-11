@@ -26,7 +26,7 @@ import {
 } from "@/components/event-calendar";
 import { EndHour, StartHour } from "@/components/event-calendar/constants";
 import { useCurrentTimeIndicator } from "@/components/event-calendar/hooks";
-import type { OptimisticAction } from "@/components/event-calendar/hooks/use-events";
+import type { OptimisticAction } from "@/components/event-calendar/hooks/use-optimistic-events";
 import { isMultiDayEvent } from "@/components/event-calendar/utils";
 import { cn } from "@/lib/utils";
 import { createDraftEvent } from "@/lib/utils/calendar";

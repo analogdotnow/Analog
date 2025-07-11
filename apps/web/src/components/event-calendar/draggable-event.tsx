@@ -12,7 +12,7 @@ import { Temporal } from "temporal-polyfill";
 import { CalendarEvent, EventItem } from "@/components/event-calendar";
 import { EventContextMenu } from "@/components/event-calendar/event-context-menu";
 import { ContextMenuTrigger } from "@/components/ui/context-menu";
-import type { OptimisticAction } from "./hooks/use-events";
+import type { OptimisticAction } from "./hooks/use-optimistic-events";
 
 interface DraggableEventProps {
   event: CalendarEvent;
@@ -126,7 +126,7 @@ export function DraggableEvent({
       const end = start.add(duration);
 
       dispatchAction({ type: "update", event: { ...current, start, end } });
-      
+
       return;
     }
 
@@ -206,7 +206,10 @@ export function DraggableEvent({
         roundingMode: "halfExpand",
       });
 
-      dispatchAction({ type: "update", event: { ...eventRef.current, start: rounded } });
+      dispatchAction({
+        type: "update",
+        event: { ...eventRef.current, start: rounded },
+      });
     },
     [dispatchAction],
   );
@@ -223,7 +226,10 @@ export function DraggableEvent({
         roundingMode: "halfExpand",
       });
 
-      dispatchAction({ type: "update", event: { ...eventRef.current, end: rounded } });
+      dispatchAction({
+        type: "update",
+        event: { ...eventRef.current, end: rounded },
+      });
     },
     [dispatchAction],
   );

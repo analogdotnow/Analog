@@ -44,7 +44,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useDefaultAccount } from "@/hooks/accounts";
 import { cn } from "@/lib/utils";
-import type { OptimisticAction } from "./hooks/use-events";
+import type { OptimisticAction } from "./hooks/use-optimistic-events";
 
 interface EventDialogProps {
   event: CalendarEvent | null;

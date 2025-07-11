@@ -1,7 +1,5 @@
 // Focused logic hooks
 export { useCalendarNavigation } from "./use-calendar-navigation";
-export { useEventOperations } from "./use-event-operations";
-export { useCalendar as useCalendarActions } from "./use-calendar-actions";
 
 // View-specific hooks
 export {

@@ -10,7 +10,7 @@ import {
   EventHeight,
   WeekCellsHeight,
 } from "@/components/event-calendar";
-import type { OptimisticAction } from "@/components/event-calendar/hooks/use-events";
+import type { OptimisticAction } from "@/components/event-calendar/hooks/use-optimistic-events";
 import {
   filterPastEvents,
   filterVisibleEvents,
