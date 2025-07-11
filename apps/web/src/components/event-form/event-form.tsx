@@ -109,7 +109,7 @@ export function EventForm({
     },
     listeners: {
       onBlur: async ({ formApi }) => {
-        if (!formApi.state.isValid || !formApi.state.isDirty) {
+        if (!formApi.state.isValid) {
           return;
         }
 

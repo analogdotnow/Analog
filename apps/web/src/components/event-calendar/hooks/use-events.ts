@@ -159,6 +159,7 @@ export function useEvents() {
             updatedEvent,
             (a) => compareTemporal(a.start, updatedEvent.start) < 0,
           );
+
           return {
             ...prev,
             events,
