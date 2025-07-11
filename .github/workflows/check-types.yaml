@@ -1,4 +1,4 @@
-name: Check formatting
+name: Check types
 
 on:
   pull_request:
@@ -10,8 +10,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  prettier:
-    name: Prettier
+  type-check:
+    name: Type check
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -24,4 +24,4 @@ jobs:
         run: bun install -D --frozen-lockfile
 
       - name: Run Prettier to check formatting
-        run: bun run prettier --check **/*.{ts,tsx,css,md}
+        run: bun run type-check
