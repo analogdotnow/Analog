@@ -34,7 +34,7 @@ import {
   type EventCollectionForMonth,
 } from "@/components/event-calendar/hooks";
 import { useMultiDayOverflow } from "@/components/event-calendar/hooks/use-multi-day-overflow";
-import type { OptimisticAction } from "@/components/event-calendar/hooks/use-optimistic-events";
+import type { Action } from "@/components/event-calendar/hooks/use-optimistic-events";
 import { OverflowIndicator } from "@/components/event-calendar/overflow-indicator";
 import {
   getGridPosition,
@@ -51,7 +51,7 @@ const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 interface MonthViewProps {
   currentDate: Date;
   events: CalendarEvent[];
-  dispatchAction: (action: OptimisticAction) => void;
+  dispatchAction: (action: Action) => void;
 }
 
 export function MonthView({
@@ -161,7 +161,7 @@ interface MonthViewWeekItemProps {
   gridTemplateColumns: string;
   eventCollection: EventCollectionForMonth;
   onEventClick: (event: CalendarEvent, e: React.MouseEvent) => void;
-  dispatchAction: (action: OptimisticAction) => void;
+  dispatchAction: (action: Action) => void;
   settings: CalendarSettings;
   containerRef: React.RefObject<HTMLDivElement | null>;
   currentDate: Date;
@@ -310,7 +310,7 @@ interface MonthViewDayProps {
   dayIndex: number;
   multiDayLaneCount: number;
   overflow: ReturnType<typeof useMultiDayOverflow>;
-  dispatchAction: (action: OptimisticAction) => void;
+  dispatchAction: (action: Action) => void;
   currentDate: Date;
 }
 
@@ -407,7 +407,7 @@ interface PositionedEventProps {
   weekEnd: Date;
   settings: CalendarSettings;
   onEventClick: (event: CalendarEvent, e: React.MouseEvent) => void;
-  dispatchAction: (action: OptimisticAction) => void;
+  dispatchAction: (action: Action) => void;
   containerRef: React.RefObject<HTMLDivElement | null>;
   rows: number;
 }

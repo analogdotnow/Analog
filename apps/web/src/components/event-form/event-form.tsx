@@ -8,7 +8,7 @@ import {
   CalendarSettings,
   useCalendarSettings,
 } from "@/atoms/calendar-settings";
-import type { OptimisticAction } from "@/components/event-calendar/hooks/use-optimistic-events";
+import type { Action } from "@/components/event-calendar/hooks/use-optimistic-events";
 import {
   createDefaultEvent,
   parseCalendarEvent,
@@ -70,7 +70,7 @@ function getDefaultValues({
 
 interface EventFormProps {
   selectedEvent?: CalendarEvent | DraftEvent;
-  dispatchAsyncAction: (action: OptimisticAction) => Promise<void>;
+  dispatchAsyncAction: (action: Action) => Promise<void>;
   defaultCalendar?: Calendar;
 }
 

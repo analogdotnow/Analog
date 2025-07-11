@@ -8,18 +8,18 @@ import { SelectedEvents, selectedEventsAtom } from "@/atoms/selected-events";
 import type { CalendarEvent, DraftEvent } from "@/lib/interfaces";
 import { useEvents } from "./use-events";
 
-export type OptimisticAction =
+export type Action =
   | { type: "draft"; event: DraftEvent }
   | { type: "update"; event: CalendarEvent }
   | { type: "select"; event: CalendarEvent }
   | { type: "unselect"; eventId: string }
   | { type: "delete"; eventId: string };
 
-export type Action =
+export type OptimisticAction =
   | { type: "update"; event: CalendarEvent }
   | { type: "delete"; eventId: string };
 
-export function useEventOperations() {
+export function useOptimisticEvents() {
   const { events, createMutation, updateMutation, deleteMutation } =
     useEvents();
   const [selectedEvents, setSelectedEvents] = useAtom(selectedEventsAtom);
@@ -28,7 +28,7 @@ export function useEventOperations() {
 
   const [optimisticEvents, applyOptimistic] = useOptimistic(
     events,
-    (state: CalendarEvent[], action: Action) => {
+    (state: CalendarEvent[], action: OptimisticAction) => {
       if (action.type === "delete") {
         return state.filter((e) => e.id !== action.eventId);
       }
@@ -110,7 +110,7 @@ export function useEventOperations() {
   );
 
   const dispatchAction = useCallback(
-    (action: OptimisticAction) => {
+    (action: Action) => {
       if (action.type === "draft" || action.type === "select") {
         setSelectedEvents([action.event]);
       } else if (action.type === "unselect") {
@@ -125,7 +125,7 @@ export function useEventOperations() {
   );
 
   const dispatchAsyncAction = useCallback(
-    async (action: OptimisticAction) => {
+    async (action: Action) => {
       if (action.type === "update") {
         await asyncUpdateEvent(action.event);
       }

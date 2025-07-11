@@ -14,7 +14,7 @@ import { EventForm } from "@/components/event-form/event-form";
 import { RightSidebar } from "@/components/right-sidebar";
 import { SidebarInset } from "@/components/ui/sidebar";
 import { useTRPC } from "@/lib/trpc/client";
-import { useEventOperations } from "./event-calendar/hooks/use-optimistic-events";
+import { useOptimisticEvents } from "./event-calendar/hooks/use-optimistic-events";
 
 export function CalendarLayout() {
   const [, setSettings] = useAtom(calendarSettingsAtom);
@@ -39,7 +39,7 @@ function IsolatedCalendarLayout() {
   const query = useQuery(trpc.calendars.list.queryOptions());
 
   const { events, selectedEvents, dispatchAction, dispatchAsyncAction } =
-    useEventOperations();
+    useOptimisticEvents();
 
   return (
     <>

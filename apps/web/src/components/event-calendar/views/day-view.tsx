@@ -26,7 +26,7 @@ import {
 } from "@/components/event-calendar";
 import { EndHour, StartHour } from "@/components/event-calendar/constants";
 import { useCurrentTimeIndicator } from "@/components/event-calendar/hooks";
-import type { OptimisticAction } from "@/components/event-calendar/hooks/use-optimistic-events";
+import type { Action } from "@/components/event-calendar/hooks/use-optimistic-events";
 import { isMultiDayEvent } from "@/components/event-calendar/utils";
 import { cn } from "@/lib/utils";
 import { createDraftEvent } from "@/lib/utils/calendar";
@@ -34,7 +34,7 @@ import { createDraftEvent } from "@/lib/utils/calendar";
 interface DayViewProps {
   currentDate: Date;
   events: CalendarEvent[];
-  dispatchAction: (action: OptimisticAction) => void;
+  dispatchAction: (action: Action) => void;
 }
 
 interface PositionedEvent {
@@ -49,7 +49,7 @@ interface PositionedEvent {
 interface PositionedEventProps {
   positionedEvent: PositionedEvent;
   onEventClick: (event: CalendarEvent, e: React.MouseEvent) => void;
-  dispatchAction: (action: OptimisticAction) => void;
+  dispatchAction: (action: Action) => void;
   containerRef: React.RefObject<HTMLDivElement | null>;
 }
 

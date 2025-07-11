@@ -9,13 +9,13 @@ import {
   CalendarEvent,
   EventItem,
 } from "@/components/event-calendar";
-import type { OptimisticAction } from "@/components/event-calendar/hooks/use-optimistic-events";
+import type { Action } from "@/components/event-calendar/hooks/use-optimistic-events";
 import { getAllEventsForDay } from "@/components/event-calendar/utils";
 
 interface AgendaViewProps {
   currentDate: Date;
   events: CalendarEvent[];
-  dispatchAction: (action: OptimisticAction) => void;
+  dispatchAction: (action: Action) => void;
 }
 
 export function AgendaView({
