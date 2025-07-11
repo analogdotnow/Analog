@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import * as R from "remeda";
 import { toast } from "sonner";
 import { Temporal } from "temporal-polyfill";
 
@@ -9,18 +10,25 @@ import {
   endOfWeek,
   startOfDay,
   startOfWeek,
-  toInstant,
 } from "@repo/temporal";
 
 import { useCalendarSettings } from "@/atoms";
-import {
-  CALENDAR_CONFIG,
-  type CalendarEvent,
-} from "@/components/event-calendar";
 import { useCalendarState } from "@/hooks/use-calendar-state";
 import { useTRPC } from "@/lib/trpc/client";
 
-export function useCalendar() {
+const TIME_RANGE_DAYS_PAST = 30;
+const TIME_RANGE_DAYS_FUTURE = 30;
+
+function insertIntoSorted<T>(
+  array: T[],
+  item: T,
+  predicate: (value: T, index: number, data: readonly T[]) => boolean,
+) {
+  const index = R.sortedIndexWith(array, predicate);
+  return [...array.slice(0, index), item, ...array.slice(index)];
+}
+
+export function useEvents() {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const { currentDate } = useCalendarState();
@@ -32,7 +40,7 @@ export function useCalendar() {
       currentDate.toISOString().split("T")[0]!,
     )
       .subtract({
-        days: CALENDAR_CONFIG.TIME_RANGE_DAYS_PAST,
+        days: TIME_RANGE_DAYS_PAST,
       })
       .toZonedDateTime({
         timeZone: defaultTimeZone,
@@ -55,7 +63,7 @@ export function useCalendar() {
       currentDate.toISOString().split("T")[0]!,
     )
       .add({
-        days: CALENDAR_CONFIG.TIME_RANGE_DAYS_FUTURE,
+        days: TIME_RANGE_DAYS_FUTURE,
       })
       .toZonedDateTime({
         timeZone: defaultTimeZone,
@@ -78,39 +86,20 @@ export function useCalendar() {
     [trpc.events.list, timeMin, timeMax],
   );
 
-  const { data } = useQuery(
+  const query = useQuery(
     trpc.events.list.queryOptions({
       timeMin,
       timeMax,
     }),
   );
 
-  const transformedEvents = useMemo(() => {
-    if (!data?.events) return [];
+  const events = useMemo(() => {
+    if (!query.data?.events) return [];
 
-    // if (selectedEvents.length === 0) {
-    //   return events;
-    // }
-    //
-    // setSelectedEvents(selectedEvents.reduce<CalendarEvent[]>((acc, event) => {
-    //   const found = events.find((e) => e.id === event.id);
-    //   if (found) {
-    //     acc.push(found);
-    //   }
-    //   return acc;
-    // }, []));
+    return query.data.events;
+  }, [query.data]);
 
-    return data.events.map((event): CalendarEvent => {
-      return {
-        ...event,
-        start: event.start,
-        end: event.end,
-        color: event.color,
-      };
-    });
-  }, [data]);
-
-  const { mutate: createEvent, isPending: isCreating } = useMutation(
+  const createMutation = useMutation(
     trpc.events.create.mutationOptions({
       onMutate: async (newEvent) => {
         await queryClient.cancelQueries({ queryKey: eventsQueryKey });
@@ -122,15 +111,15 @@ export function useCalendar() {
             return undefined;
           }
 
+          const events = insertIntoSorted(
+            prev.events || [],
+            newEvent,
+            (a) => compareTemporal(a.start, newEvent.start) < 0,
+          );
+
           return {
             ...prev,
-            events: [...(prev.events || []), newEvent].sort(
-              (a, b) =>
-                toInstant({ value: a.start, timeZone: "UTC" })
-                  .epochMilliseconds -
-                toInstant({ value: b.start, timeZone: "UTC" })
-                  .epochMilliseconds,
-            ),
+            events,
           };
         });
 
@@ -143,14 +132,13 @@ export function useCalendar() {
           queryClient.setQueryData(eventsQueryKey, context.previousEvents);
         }
       },
-      onSuccess: () => {},
       onSettled: () => {
         queryClient.invalidateQueries({ queryKey: eventsQueryKey });
       },
     }),
   );
 
-  const { mutate: updateEvent, isPending: isUpdating } = useMutation(
+  const updateMutation = useMutation(
     trpc.events.update.mutationOptions({
       onMutate: async (updatedEvent) => {
         await queryClient.cancelQueries({ queryKey: eventsQueryKey });
@@ -162,18 +150,18 @@ export function useCalendar() {
             return prev;
           }
 
+          const withoutEvent = prev.events.filter(
+            (e) => e.id !== updatedEvent.id,
+          );
+
+          const events = insertIntoSorted(
+            withoutEvent,
+            updatedEvent,
+            (a) => compareTemporal(a.start, updatedEvent.start) < 0,
+          );
           return {
             ...prev,
-            events: prev.events
-              .map((event) =>
-                event.id === updatedEvent.id
-                  ? {
-                      ...event,
-                      ...updatedEvent,
-                    }
-                  : event,
-              )
-              .sort((a, b) => compareTemporal(a.start, b.start)),
+            events,
           };
         });
 
@@ -186,14 +174,13 @@ export function useCalendar() {
           queryClient.setQueryData(eventsQueryKey, context.previousEvents);
         }
       },
-      onSuccess: () => {},
       onSettled: () => {
         queryClient.invalidateQueries({ queryKey: eventsQueryKey });
       },
     }),
   );
 
-  const { mutate: deleteEvent, isPending: isDeleting } = useMutation(
+  const deleteMutation = useMutation(
     trpc.events.delete.mutationOptions({
       onMutate: async ({ eventId }) => {
         await queryClient.cancelQueries({ queryKey: eventsQueryKey });
@@ -220,7 +207,6 @@ export function useCalendar() {
           queryClient.setQueryData(eventsQueryKey, context.previousEvents);
         }
       },
-      onSuccess: () => {},
       onSettled: () => {
         queryClient.invalidateQueries({ queryKey: eventsQueryKey });
       },
@@ -228,12 +214,9 @@ export function useCalendar() {
   );
 
   return {
-    events: transformedEvents,
-    createEvent,
-    updateEvent,
-    deleteEvent,
-    isCreating,
-    isUpdating,
-    isDeleting,
+    events,
+    createMutation,
+    updateMutation,
+    deleteMutation,
   };
 }

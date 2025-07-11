@@ -33,8 +33,8 @@ import {
   useGridLayout,
   type EventCollectionForMonth,
 } from "@/components/event-calendar/hooks";
-import type { OptimisticAction } from "@/components/event-calendar/hooks/use-events";
 import { useMultiDayOverflow } from "@/components/event-calendar/hooks/use-multi-day-overflow";
+import type { OptimisticAction } from "@/components/event-calendar/hooks/use-optimistic-events";
 import { OverflowIndicator } from "@/components/event-calendar/overflow-indicator";
 import {
   getGridPosition,
@@ -92,34 +92,34 @@ export function MonthView({
   const rows = weeks.length;
 
   return (
-      <div data-slot="month-view" className="contents min-w-0">
-        <MonthViewHeader style={{ gridTemplateColumns }} />
-        <div
-          ref={containerRef}
-          className="grid h-[calc(100%-37px)] min-w-0 flex-1 auto-rows-fr overflow-hidden"
-          style={{ position: "relative", zIndex: 1 }}
-        >
-          {weeks.map((week, weekIndex) => {
-            return (
-              <MonthViewWeek
-                key={weekIndex}
-                week={week}
-                weekIndex={weekIndex}
-                rows={rows}
-                gridTemplateColumns={gridTemplateColumns}
-                eventCollection={eventCollection}
-                onEventClick={handleEventClick}
-                dispatchAction={dispatchAction}
-                settings={settings}
-                containerRef={
-                  containerRef as React.RefObject<HTMLDivElement | null>
-                }
-                currentDate={currentDate}
-              />
-            );
-          })}
-        </div>
+    <div data-slot="month-view" className="contents min-w-0">
+      <MonthViewHeader style={{ gridTemplateColumns }} />
+      <div
+        ref={containerRef}
+        className="grid h-[calc(100%-37px)] min-w-0 flex-1 auto-rows-fr overflow-hidden"
+        style={{ position: "relative", zIndex: 1 }}
+      >
+        {weeks.map((week, weekIndex) => {
+          return (
+            <MonthViewWeek
+              key={weekIndex}
+              week={week}
+              weekIndex={weekIndex}
+              rows={rows}
+              gridTemplateColumns={gridTemplateColumns}
+              eventCollection={eventCollection}
+              onEventClick={handleEventClick}
+              dispatchAction={dispatchAction}
+              settings={settings}
+              containerRef={
+                containerRef as React.RefObject<HTMLDivElement | null>
+              }
+              currentDate={currentDate}
+            />
+          );
+        })}
       </div>
+    </div>
   );
 }
 
@@ -314,7 +314,12 @@ interface MonthViewDayProps {
   currentDate: Date;
 }
 
-function MonthViewDay({ day, overflow, dispatchAction, currentDate }: MonthViewDayProps) {
+function MonthViewDay({
+  day,
+  overflow,
+  dispatchAction,
+  currentDate,
+}: MonthViewDayProps) {
   const viewPreferences = useViewPreferences();
   const settings = useCalendarSettings();
 

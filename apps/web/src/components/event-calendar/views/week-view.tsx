@@ -31,8 +31,8 @@ import {
   useGridLayout,
   type EventCollectionForWeek,
 } from "@/components/event-calendar/hooks";
-import type { OptimisticAction } from "@/components/event-calendar/hooks/use-events";
 import { useMultiDayOverflow } from "@/components/event-calendar/hooks/use-multi-day-overflow";
+import type { OptimisticAction } from "@/components/event-calendar/hooks/use-optimistic-events";
 import { OverflowIndicator } from "@/components/event-calendar/overflow-indicator";
 import {
   filterDaysByWeekendPreference,
@@ -89,24 +89,45 @@ export function WeekView({
   const containerRef = React.useRef<HTMLDivElement>(null);
 
   return (
-      <div data-slot="week-view" className="isolate flex flex-col" {...props}>
-        <div
-          ref={headerRef}
-          className="sticky top-0 z-30 bg-background/80 backdrop-blur-md"
-        >
-          <WeekViewHeader allDays={allDays} gridTemplateColumns={gridTemplateColumns} />
-          <WeekViewAllDaySection allDays={allDays} visibleDays={visibleDays} eventCollection={eventCollection} gridTemplateColumns={gridTemplateColumns} onEventClick={handleEventClick} currentDate={currentDate} containerRef={containerRef} dispatchAction={dispatchAction} />
-        </div>
-
-        <div
-          ref={containerRef}
-          className="isolate grid flex-1 overflow-hidden transition-[grid-template-columns] duration-200 ease-linear"
-          style={{ gridTemplateColumns }}
-        >
-          <WeekViewTimeColumn hours={hours} />
-          <WeekViewDayColumns allDays={allDays} visibleDays={visibleDays} eventCollection={eventCollection} currentDate={currentDate} onEventClick={handleEventClick} dispatchAction={dispatchAction} containerRef={containerRef} hours={hours} />
-        </div>
+    <div data-slot="week-view" className="isolate flex flex-col" {...props}>
+      <div
+        ref={headerRef}
+        className="sticky top-0 z-30 bg-background/80 backdrop-blur-md"
+      >
+        <WeekViewHeader
+          allDays={allDays}
+          gridTemplateColumns={gridTemplateColumns}
+        />
+        <WeekViewAllDaySection
+          allDays={allDays}
+          visibleDays={visibleDays}
+          eventCollection={eventCollection}
+          gridTemplateColumns={gridTemplateColumns}
+          onEventClick={handleEventClick}
+          currentDate={currentDate}
+          containerRef={containerRef}
+          dispatchAction={dispatchAction}
+        />
       </div>
+
+      <div
+        ref={containerRef}
+        className="isolate grid flex-1 overflow-hidden transition-[grid-template-columns] duration-200 ease-linear"
+        style={{ gridTemplateColumns }}
+      >
+        <WeekViewTimeColumn hours={hours} />
+        <WeekViewDayColumns
+          allDays={allDays}
+          visibleDays={visibleDays}
+          eventCollection={eventCollection}
+          currentDate={currentDate}
+          onEventClick={handleEventClick}
+          dispatchAction={dispatchAction}
+          containerRef={containerRef}
+          hours={hours}
+        />
+      </div>
+    </div>
   );
 }
 
@@ -173,7 +194,16 @@ interface WeekViewAllDaySectionProps {
   dispatchAction: (action: OptimisticAction) => void;
 }
 
-function WeekViewAllDaySection({ allDays, visibleDays, eventCollection, gridTemplateColumns, onEventClick, currentDate, containerRef, dispatchAction }: WeekViewAllDaySectionProps) {
+function WeekViewAllDaySection({
+  allDays,
+  visibleDays,
+  eventCollection,
+  gridTemplateColumns,
+  onEventClick,
+  currentDate,
+  containerRef,
+  dispatchAction,
+}: WeekViewAllDaySectionProps) {
   const viewPreferences = useViewPreferences();
   const settings = useCalendarSettings();
 
@@ -521,7 +551,16 @@ interface WeekViewDayColumnsProps {
   hours: Date[];
 }
 
-function WeekViewDayColumns({ allDays, visibleDays, eventCollection, currentDate, onEventClick, dispatchAction, containerRef, hours }: WeekViewDayColumnsProps) {
+function WeekViewDayColumns({
+  allDays,
+  visibleDays,
+  eventCollection,
+  currentDate,
+  onEventClick,
+  dispatchAction,
+  containerRef,
+  hours,
+}: WeekViewDayColumnsProps) {
   const viewPreferences = useViewPreferences();
 
   const { currentTimePosition, currentTimeVisible } = useCurrentTimeIndicator(
@@ -577,7 +616,11 @@ function WeekViewDayColumns({ allDays, visibleDays, eventCollection, currentDate
               </div>
             )}
             <div>
-              <MemoizedWeekViewDayTimeSlots day={day} hours={hours} dispatchAction={dispatchAction} />
+              <MemoizedWeekViewDayTimeSlots
+                day={day}
+                hours={hours}
+                dispatchAction={dispatchAction}
+              />
             </div>
           </div>
         );
@@ -592,7 +635,11 @@ interface WeekViewDayTimeSlotsProps {
   dispatchAction: (action: OptimisticAction) => void;
 }
 
-function WeekViewDayTimeSlots({ day, hours, dispatchAction }: WeekViewDayTimeSlotsProps) {
+function WeekViewDayTimeSlots({
+  day,
+  hours,
+  dispatchAction,
+}: WeekViewDayTimeSlotsProps) {
   const settings = useCalendarSettings();
 
   return (
