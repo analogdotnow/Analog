@@ -19,7 +19,7 @@
     "superjson": "^2.2.2",
     "superjson-temporal": "^0.3.1",
     "temporal-zod": "^0.3.1",
-    "zod": "^3.25.76"
+    "zod": "^4.0.2"
   },
   "dependencies": {
     "@microsoft/microsoft-graph-client": "^3.0.7",

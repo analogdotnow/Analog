@@ -14,7 +14,7 @@ const conferenceSchema = z.object({
   password: z.string().optional(),
   phoneNumbers: z.array(z.string()).optional(),
   notes: z.string().optional(),
-  extra: z.record(z.unknown()).optional(),
+  extra: z.record(z.string(), z.unknown()).optional(),
 });
 
 const microsoftMetadataSchema = z.object({

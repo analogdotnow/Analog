@@ -1,10 +1,10 @@
-import z from "zod";
+import { z } from "zod";
 
 const HEX_REGEX = /^#?([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/;
 
 const hexToRgbObjectSchema = z
   .string()
-  .regex(HEX_REGEX, { message: "Invalid hex color format" })
+  .regex(HEX_REGEX, { error: "Invalid hex color format" })
   .transform((rawHex) => {
     let hex = rawHex.replace(/^#/, "");
     if (hex.length === 3) {
