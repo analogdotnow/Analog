@@ -12,14 +12,14 @@ import { Temporal } from "temporal-polyfill";
 import { CalendarEvent, EventItem } from "@/components/event-calendar";
 import { EventContextMenu } from "@/components/event-calendar/event-context-menu";
 import { ContextMenuTrigger } from "@/components/ui/context-menu";
-import type { OptimisticAction } from "./hooks/use-optimistic-events";
+import type { Action } from "./hooks/use-optimistic-events";
 
 interface DraggableEventProps {
   event: CalendarEvent;
   view: "month" | "week" | "day";
   showTime?: boolean;
   onClick?: (e: React.MouseEvent) => void;
-  dispatchAction: (action: OptimisticAction) => void;
+  dispatchAction: (action: Action) => void;
   setIsDragging?: (isDragging: boolean) => void;
   height?: number;
   isMultiDay?: boolean;

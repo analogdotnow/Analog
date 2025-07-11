@@ -18,7 +18,7 @@ import { KeyboardShortcut } from "@/components/ui/keyboard-shortcut";
 import { Tooltip, TooltipContent } from "@/components/ui/tooltip";
 import { useTRPC } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
-import { OptimisticAction } from "./hooks/use-optimistic-events";
+import { Action } from "./hooks/use-optimistic-events";
 
 function CalendarRadioItem({
   className,
@@ -93,7 +93,7 @@ function EventContextMenuCalendarList({
 interface EventContextMenuProps {
   event: CalendarEvent;
   children: React.ReactNode;
-  dispatchAction: (action: OptimisticAction) => void;
+  dispatchAction: (action: Action) => void;
 }
 
 export function EventContextMenu({

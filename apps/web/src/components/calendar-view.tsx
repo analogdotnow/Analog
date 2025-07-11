@@ -10,7 +10,7 @@ import {
   EventHeight,
   WeekCellsHeight,
 } from "@/components/event-calendar";
-import type { OptimisticAction } from "@/components/event-calendar/hooks/use-optimistic-events";
+import type { Action } from "@/components/event-calendar/hooks/use-optimistic-events";
 import {
   filterPastEvents,
   filterVisibleEvents,
@@ -27,7 +27,7 @@ import { useScrollToCurrentTime } from "./event-calendar/week-view/use-scroll-to
 interface CalendarContentProps {
   events: CalendarEvent[];
   scrollContainerRef: React.RefObject<HTMLDivElement | null>;
-  dispatchAction: (action: OptimisticAction) => void;
+  dispatchAction: (action: Action) => void;
   headerRef: React.RefObject<HTMLDivElement | null>;
 }
 
@@ -100,7 +100,7 @@ function CalendarContent({
 interface CalendarViewProps {
   className?: string;
   events: CalendarEvent[];
-  dispatchAction: (action: OptimisticAction) => void;
+  dispatchAction: (action: Action) => void;
 }
 
 export function CalendarView({

@@ -44,13 +44,13 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useDefaultAccount } from "@/hooks/accounts";
 import { cn } from "@/lib/utils";
-import type { OptimisticAction } from "./hooks/use-optimistic-events";
+import type { Action } from "./hooks/use-optimistic-events";
 
 interface EventDialogProps {
   event: CalendarEvent | null;
   isOpen: boolean;
   onClose: () => void;
-  dispatchAction: (action: OptimisticAction) => void;
+  dispatchAction: (action: Action) => void;
 }
 
 export function EventDialog({

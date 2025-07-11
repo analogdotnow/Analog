@@ -7,14 +7,14 @@ import { XIcon } from "lucide-react";
 import { toDate } from "@repo/temporal";
 
 import { EventItem, type CalendarEvent } from "@/components/event-calendar";
-import type { OptimisticAction } from "@/components/event-calendar/hooks/use-optimistic-events";
+import type { Action } from "@/components/event-calendar/hooks/use-optimistic-events";
 
 interface EventsPopupProps {
   date: Date;
   events: CalendarEvent[];
   position: { top: number; left: number };
   onClose: () => void;
-  dispatchAction: (action: OptimisticAction) => void;
+  dispatchAction: (action: Action) => void;
 }
 
 export function EventsPopup({

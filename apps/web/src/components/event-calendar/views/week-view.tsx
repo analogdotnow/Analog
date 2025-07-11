@@ -32,7 +32,7 @@ import {
   type EventCollectionForWeek,
 } from "@/components/event-calendar/hooks";
 import { useMultiDayOverflow } from "@/components/event-calendar/hooks/use-multi-day-overflow";
-import type { OptimisticAction } from "@/components/event-calendar/hooks/use-optimistic-events";
+import type { Action } from "@/components/event-calendar/hooks/use-optimistic-events";
 import { OverflowIndicator } from "@/components/event-calendar/overflow-indicator";
 import {
   filterDaysByWeekendPreference,
@@ -48,7 +48,7 @@ import { createDraftEvent } from "@/lib/utils/calendar";
 interface WeekViewProps extends React.ComponentProps<"div"> {
   currentDate: Date;
   events: CalendarEvent[];
-  dispatchAction: (action: OptimisticAction) => void;
+  dispatchAction: (action: Action) => void;
   headerRef: React.RefObject<HTMLDivElement | null>;
 }
 
@@ -191,7 +191,7 @@ interface WeekViewAllDaySectionProps {
   onEventClick: (event: CalendarEvent, e: React.MouseEvent) => void;
   currentDate: Date;
   containerRef: React.RefObject<HTMLDivElement | null>;
-  dispatchAction: (action: OptimisticAction) => void;
+  dispatchAction: (action: Action) => void;
 }
 
 function WeekViewAllDaySection({
@@ -408,7 +408,7 @@ interface WeekViewPositionedEventProps {
   weekEnd: Date;
   settings: ReturnType<typeof useCalendarSettings>;
   onEventClick: (event: CalendarEvent, e: React.MouseEvent) => void;
-  dispatchAction: (action: OptimisticAction) => void;
+  dispatchAction: (action: Action) => void;
   containerRef: React.RefObject<HTMLDivElement | null>;
 }
 
@@ -501,7 +501,7 @@ function WeekViewTimeColumn({ hours }: WeekViewTimeColumnProps) {
 interface PositionedEventProps {
   positionedEvent: PositionedEvent;
   onEventClick: (event: CalendarEvent, e: React.MouseEvent) => void;
-  dispatchAction: (action: OptimisticAction) => void;
+  dispatchAction: (action: Action) => void;
   containerRef: React.RefObject<HTMLDivElement | null>;
 }
 
@@ -546,7 +546,7 @@ interface WeekViewDayColumnsProps {
   eventCollection: EventCollectionForWeek;
   currentDate: Date;
   onEventClick: (event: CalendarEvent, e: React.MouseEvent) => void;
-  dispatchAction: (action: OptimisticAction) => void;
+  dispatchAction: (action: Action) => void;
   containerRef: React.RefObject<HTMLDivElement | null>;
   hours: Date[];
 }
@@ -632,7 +632,7 @@ function WeekViewDayColumns({
 interface WeekViewDayTimeSlotsProps {
   day: Date;
   hours: Date[];
-  dispatchAction: (action: OptimisticAction) => void;
+  dispatchAction: (action: Action) => void;
 }
 
 function WeekViewDayTimeSlots({
