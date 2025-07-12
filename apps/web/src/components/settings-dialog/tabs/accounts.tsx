@@ -4,7 +4,7 @@ import { LoaderCircle } from "lucide-react";
 import { toast } from "sonner";
 
 import { AddAccountDialog } from "@/components/add-account-dialog";
-import { Google, Microsoft } from "@/components/icons";
+import { Google, Microsoft, Zoom } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
@@ -210,6 +210,8 @@ function AccountIcon({
       return <Google className="size-4" />;
     case "microsoft":
       return <Microsoft className="size-4" />;
+    case "zoom":
+      return <Zoom className="size-4" />;
     default:
       return null;
   }
