@@ -1,3 +1,4 @@
+import { detectMeetingLink } from "@analog/meeting-links";
 import type {
   Calendar as MicrosoftCalendar,
   Event as MicrosoftEvent,
@@ -11,7 +12,6 @@ import {
   MicrosoftEventMetadata,
   UpdateEventInput,
 } from "../../schemas/events";
-import { detectMeetingService } from "../conferencing/utils";
 import type {
   Attendee,
   AttendeeStatus,
@@ -110,7 +110,6 @@ export function parseMicrosoftEvent({
     throw new Error("Event start or end is missing");
   }
 
-  console.log("c", event, parseMicrosoftConference(event));
   return {
     id: event.id!,
     title: event.subject!,
@@ -177,17 +176,17 @@ export function toMicrosoftEvent(
     }),
     isAllDay: event.allDay ?? false,
     location: event.location ? { displayName: event.location } : undefined,
-    ...(event.conference && {
-      isOnlineMeeting: true,
-      onlineMeeting: {
-        conferenceId: event.conference.id,
-        joinUrl: event.conference.joinUrl,
-        phones: event.conference.phoneNumbers?.map((number) => ({
-          number,
-        })),
-      },
-      onlineMeetingProvider: "unknown",
-    }),
+    // ...(event.conference && {
+    //   isOnlineMeeting: true,
+    //   onlineMeeting: {
+    //     conferenceId: event.conference.id,
+    //     joinUrl: event.conference.joinUrl,
+    //     phones: event.conference.phoneNumbers?.map((number) => ({
+    //       number,
+    //     })),
+    //   },
+    //   onlineMeetingProvider: "unknown",
+    // }),
   };
 }
 
@@ -224,22 +223,25 @@ function parseConferenceFallback(
     return undefined;
   }
 
+  if (event.location.locationUri) {
+    const service = detectMeetingLink(event.location.locationUri);
+
+    if (service) {
+      return service;
+    }
+  }
+
   if (!event.location.displayName) {
     return undefined;
   }
 
-  const service = detectMeetingService(event.location.displayName);
+  const service = detectMeetingLink(event.location.displayName);
 
-  console.log(service, event.location.displayName);
   if (!service) {
     return undefined;
   }
 
-  return {
-    id: service.id,
-    name: service.label,
-    joinUrl: event.location.displayName,
-  };
+  return service;
 }
 
 function parseMicrosoftConference(

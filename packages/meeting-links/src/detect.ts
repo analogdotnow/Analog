@@ -1,3 +1,5 @@
+import { MeetingLink } from "./interfaces";
+
 export const meetingServices = [
   {
     id: "meet",
@@ -307,15 +309,16 @@ export const meetingServices = [
 /**
  * Return the service key that matches a URL (or `undefined` if none do).
  */
-export function detectMeetingService(url: string) {
+export function detectMeetingLink(url: string): MeetingLink | null {
   const service = meetingServices.find((service) => service.regex.test(url));
 
   if (!service) {
-    return undefined;
+    return null;
   }
 
   return {
     id: service.id,
-    label: service.label,
+    name: service.label,
+    joinUrl: url,
   };
 }

@@ -1,3 +1,4 @@
+import { detectMeetingLink } from "@analog/meeting-links";
 import { Temporal } from "temporal-polyfill";
 
 import { CreateEventInput, UpdateEventInput } from "../../schemas/events";
@@ -87,7 +88,7 @@ export function parseGoogleCalendarEvent({
     accountId,
     calendarId: calendar.id,
     readOnly: calendar.readOnly,
-    conference: parseGoogleCalendarConferenceData(event.conferenceData),
+    conference: parseGoogleCalendarConferenceData(event),
   };
 }
 
@@ -101,11 +102,11 @@ export function toGoogleCalendarEvent(
     location: event.location,
     start: toGoogleCalendarDate(event.start),
     end: toGoogleCalendarDate(event.end),
-    conferenceData: event.conference
-      ? toGoogleCalendarConferenceData(event.conference)
-      : undefined,
+    // conferenceData: event.conference
+    //   ? toGoogleCalendarConferenceData(event.conference)
+    //   : undefined,
     // Required when creating/updating events with conference data
-    ...(event.conference && { conferenceDataVersion: 1 }),
+    // ...(event.conference && { conferenceDataVersion: 1 }),
   };
 }
 
@@ -119,7 +120,7 @@ function toJoinUrl(joinUrl: string) {
   }
 }
 function toGoogleCalendarConferenceData(
-  conference: NonNullable<CreateEventInput["conference"]>,
+  conference: Conference,
 ): GoogleCalendarEventConferenceData {
   const entryPoints: GoogleCalendarEventConferenceData["entryPoints"] = [];
 
@@ -249,36 +250,121 @@ function parseGoogleCalendarAttendeeType(
   return "required";
 }
 
-function parseGoogleCalendarConferenceData(
-  conferenceData: GoogleCalendarEvent["conferenceData"],
+function parseGoogleCalendarConferenceFallback(
+  event: GoogleCalendarEvent,
 ): Conference | undefined {
-  if (!conferenceData?.entryPoints?.length) {
-    return;
-  }
-
-  const videoEntry = conferenceData.entryPoints.find(
-    (e) => e.entryPointType === "video" && e.uri,
-  );
-
-  const phoneNumbers = conferenceData.entryPoints
-    .filter((e) => e.entryPointType === "phone" && e.uri)
-    .map((e) => e.uri as string);
-
-  if (!videoEntry?.uri) {
-    return undefined;
-  }
-
-  const accessCode =
-    videoEntry.meetingCode ?? videoEntry.passcode ?? videoEntry.password;
-
-  return {
-    id: conferenceData.conferenceId,
-    name: conferenceData.conferenceSolution?.name ?? "Google Meet",
-    joinUrl: videoEntry.uri!,
-    meetingCode: accessCode ?? "",
-    phoneNumbers: phoneNumbers.length ? phoneNumbers : undefined,
-    password: accessCode,
+  // Function to extract URLs from text using a comprehensive regex
+  const extractUrls = (text: string): string[] => {
+    const urlRegex = /https?:\/\/[^\s<>"'{}|\\^`\[\]]+/gi;
+    return text.match(urlRegex) || [];
   };
+
+  // Function to check if a URL is a meeting link
+  const checkMeetingLink = (url: string): Conference | undefined => {
+    const service = detectMeetingLink(url);
+    if (service) {
+      return {
+        id: service.id,
+        name: service.name,
+        joinUrl: service.joinUrl,
+        meetingCode: "",
+      };
+    }
+    return undefined;
+  };
+
+  // 1. Check hangoutLink (legacy Google Meet)
+  if (event.hangoutLink) {
+    const service = checkMeetingLink(event.hangoutLink);
+
+    if (service) {
+      return service;
+    }
+  }
+
+  // 2. Check description for meeting links
+  if (event.description) {
+    const urls = extractUrls(event.description);
+
+    for (const url of urls) {
+      const service = checkMeetingLink(url);
+
+      if (service) {
+        return service;
+      }
+    }
+  }
+
+  // 3. Check location field
+  if (event.location) {
+    const urls = extractUrls(event.location);
+
+    for (const url of urls) {
+      const service = checkMeetingLink(url);
+
+      if (service) {
+        return service;
+      }
+    }
+  }
+
+  // 4. Check source.url
+  if (event.source?.url) {
+    const service = checkMeetingLink(event.source.url);
+
+    if (service) {
+      return service;
+    }
+  }
+
+  // 6. Check attachments
+  if (event.attachments) {
+    for (const attachment of event.attachments) {
+      if (attachment.fileUrl) {
+        const service = checkMeetingLink(attachment.fileUrl);
+        if (service) return service;
+      }
+    }
+  }
+
+  // 7. Check gadget.link (legacy)
+  if (event.gadget?.link) {
+    const service = checkMeetingLink(event.gadget.link);
+    if (service) return service;
+  }
+
+  return undefined;
+}
+
+function parseGoogleCalendarConferenceData(
+  event: GoogleCalendarEvent,
+): Conference | undefined {
+  if (event.conferenceData?.entryPoints?.length) {
+    const videoEntry = event.conferenceData.entryPoints.find(
+      (e) => e.entryPointType === "video" && e.uri,
+    );
+
+    const phoneNumbers = event.conferenceData.entryPoints
+      .filter((e) => e.entryPointType === "phone" && e.uri)
+      .map((e) => e.uri as string);
+
+    if (videoEntry?.uri) {
+      const accessCode =
+        videoEntry.meetingCode ?? videoEntry.passcode ?? videoEntry.password;
+
+      return {
+        id: event.conferenceData.conferenceId,
+        name: event.conferenceData.conferenceSolution?.name ?? "Google Meet",
+        joinUrl: videoEntry.uri,
+        meetingCode: accessCode ?? "",
+        phoneNumbers: phoneNumbers.length ? phoneNumbers : undefined,
+        password: accessCode,
+      };
+    }
+  }
+
+  // If no official conference data, fall back to searching other fields
+  return parseGoogleCalendarConferenceFallback(event);
 }
 
 export function parseGoogleCalendarAttendee(
@@ -294,33 +380,4 @@ export function parseGoogleCalendarAttendee(
     type: parseGoogleCalendarAttendeeType(attendee),
     additionalGuests: attendee.additionalGuests,
   };
-}
-
-// let meetings = [
-//     MeetingLink(service: .zoom, url: URL(string: "https://zoom.us/j/5551112222")!),
-//     MeetingLink(service: .zoom, url: URL(string: "https://any-client.zoom-x.de/j/65194487075")!),
-//     MeetingLink(service: .zoom_native, url: URL(string: "zoommtg://zoom.us/join?confno=123456789&pwd=xxxx&zc=0&browser=chrome&uname=Betty")!),
-//     MeetingLink(service: .zoom_native, url: URL(string: "zoommtg://zoom-x.de/join?confno=123456789&pwd=xxxx&zc=0&browser=chrome&uname=Betty")!),
-//     MeetingLink(service: .blackboard_collab, url: URL(string: "https://us.bbcollab.com/guest/C2419D0F68382D351B97376D6B47ABA2")!),
-//     MeetingLink(service: .blackboard_collab, url: URL(string: "https://us.bbcollab.com/invite/EFC53F2790E6E50FFCC2AFBC16CC69EE")!),
-//     MeetingLink(service: .facetime, url: URL(string: "https://facetime.apple.com/join#v=1&p=AeVKu1rGEeyppwJC8kftBg&k=FrCNneouFgL26VdnDit78WHNoGjzZyteymBi1U5I23E")!),
-//     MeetingLink(service: .slack, url: URL(string: "https://app.slack.com/huddle/T01ABCDEFGH/C02ABCDEFGH")!),
-//     MeetingLink(service: .reclaim, url: URL(string: "https://reclaim.ai/z/T01ABCDEFGH/C02ABCDEFGH")!),
-//     MeetingLink(service: .tuple, url: URL(string: "https://tuple.app/c/V1StGXR8_Z5jdHi6B")!),
-//     MeetingLink(service: .calcom, url: URL(string: "https://app.cal.com/video/1de4BmdXEb983kIUHomUnA")!),
-//     MeetingLink(service: .livekit, url: URL(string: "https://meet.livekit.io/rooms/et5r-y80t#r56ryirofs8jjfi3rnxu8ab3qhjsRn6die6mvjhwux82opmkao8bfjb9wggnr2L6")!),
-//     MeetingLink(service: .webex, url: URL(string: "https://yourmeetingsite.webex.com/meet/username")!),
-//     MeetingLink(service: .webex, url: URL(string: "https://yourmeetingsite.webex.com/yourbusinessID/j.php?MTID=aO5678eFGH")!),
-// ]
-
-function detectLinkType(link: string) {
-  const url = new URL(link);
-
-  if (url.hostname.includes("zoom.us")) {
-    return "zoom";
-  }
-
-  if (url.hostname.includes("google.com")) {
-    return "google";
-  }
 }
