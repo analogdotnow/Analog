@@ -1,15 +1,15 @@
 "use client";
 
 import { useHotkeys } from "react-hotkeys-hook";
+import { Temporal } from "temporal-polyfill";
 
+import { useCalendarSettings } from "@/atoms";
 import {
   navigateToNext,
   navigateToPrevious,
 } from "@/components/event-calendar/utils/date-time";
 import { useSidebarWithSide } from "@/components/ui/sidebar";
 import { useCalendarState } from "@/hooks/use-calendar-state";
-import { useCalendarSettings } from "@/atoms";
-import { Temporal } from "temporal-polyfill";
 import { createDraftEvent } from "../utils/calendar";
 
 export const KEYBOARD_SHORTCUTS = {
@@ -65,7 +65,6 @@ export function CalendarHotkeys() {
 
       const end = start.add({ minutes: settings.defaultEventDuration });
 
-      
       if (!rightSidebarOpen) {
         setRightSidebarOpen(true);
       }
