@@ -310,6 +310,11 @@ export const meetingServices = [
  * Return the service key that matches a URL (or `undefined` if none do).
  */
 export function detectMeetingLink(url: string): MeetingLink | null {
+  // is url
+  if (!url.startsWith("https://")) {
+    return null;
+  }
+
   const service = meetingServices.find((service) => service.regex.test(url));
 
   if (!service) {
