@@ -12,7 +12,7 @@ export type Action =
   | { type: "draft"; event: DraftEvent }
   | { type: "update"; event: CalendarEvent }
   | { type: "select"; event: CalendarEvent }
-  | { type: "unselect"; eventId: string }
+  | { type: "unselect"; eventId?: string }
   | { type: "delete"; eventId: string };
 
 export type OptimisticAction =

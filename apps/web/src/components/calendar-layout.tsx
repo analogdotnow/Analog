@@ -13,6 +13,7 @@ import { CalendarView } from "@/components/calendar-view";
 import { EventForm } from "@/components/event-form/event-form";
 import { RightSidebar } from "@/components/right-sidebar";
 import { SidebarInset } from "@/components/ui/sidebar";
+import { EventHotkeys } from "@/lib/hotkeys/event-hotkeys";
 import { useTRPC } from "@/lib/trpc/client";
 import { useOptimisticEvents } from "./event-calendar/hooks/use-optimistic-events";
 
@@ -43,6 +44,10 @@ function IsolatedCalendarLayout() {
 
   return (
     <>
+      <EventHotkeys
+        selectedEvent={selectedEvents[0]}
+        dispatchAction={dispatchAction}
+      />
       <SidebarInset className="h-full overflow-hidden">
         <div className="flex h-[calc(100dvh-1rem)]">
           <CalendarView

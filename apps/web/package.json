@@ -19,6 +19,7 @@
     "@hookform/resolvers": "^5.1.1",
     "@internationalized/date": "^3.8.2",
     "@number-flow/react": "^0.5.10",
+    "@radix-ui/react-alert-dialog": "^1.1.14",
     "@radix-ui/react-avatar": "^1.1.10",
     "@radix-ui/react-checkbox": "^1.3.2",
     "@radix-ui/react-collapsible": "^1.1.11",

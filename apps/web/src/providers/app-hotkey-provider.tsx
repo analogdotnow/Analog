@@ -11,7 +11,7 @@ interface AppHotkeyProviderProps {
 
 export function AppHotkeyProvider({ children }: AppHotkeyProviderProps) {
   return (
-    <HotkeysProvider initiallyActiveScopes={["events", "calendar", "settings"]}>
+    <HotkeysProvider initiallyActiveScopes={["event", "calendar"]}>
       <CalendarHotkeys />
       {children}
     </HotkeysProvider>
