@@ -21,7 +21,6 @@ export const KEYBOARD_SHORTCUTS = {
   PREVIOUS_PERIOD: "p",
   TODAY: "t",
   CREATE_EVENT: "c",
-  DELETE_EVENT: "meta+backspace",
 } as const;
 
 export function CalendarHotkeys() {
@@ -58,14 +57,6 @@ export function CalendarHotkeys() {
       setCurrentDate((prevDate: Date) => navigateToPrevious(prevDate, view)),
     { scopes: ["calendar"] },
   );
-
-  useHotkeys(
-    KEYBOARD_SHORTCUTS.DELETE_EVENT,
-    (selectedEvent) => {
-      dispatchAction({ type: "delete", eventId: selectedEvent.id });
-    },
-    { scopes: ["calendar"], },
-  );  
 
   useHotkeys(
     KEYBOARD_SHORTCUTS.CREATE_EVENT,
