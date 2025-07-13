@@ -57,14 +57,15 @@ export const conferencingRouter = createTRPCRouter({
         });
       }
 
-      let conferenceData: Conference | undefined = undefined;
+      let conference: Conference | undefined = undefined;
+
       if (input.providerId !== "none" && conferencingAccount) {
         const conferencingProvider = accountToConferencingProvider(
           conferencingAccount,
           input.providerId as "google" | "zoom",
         );
 
-        conferenceData = await conferencingProvider.createConferencing(
+        conference = await conferencingProvider.createConference(
           input.agenda,
           input.startTime,
           input.endTime,
@@ -90,9 +91,9 @@ export const conferencingRouter = createTRPCRouter({
         readOnly: calendar.readOnly,
         start,
         end,
-        conferenceData,
+        conference,
       });
 
-      return { conferenceData: event.conferenceData };
+      return { conference: event.conference };
     }),
 });

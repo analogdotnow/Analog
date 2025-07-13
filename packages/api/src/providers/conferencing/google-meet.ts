@@ -20,7 +20,7 @@ export class GoogleMeetProvider implements ConferencingProvider {
     });
   }
 
-  async createConferencing(
+  async createConference(
     agenda: string,
     startTime: string,
     endTime: string,
@@ -74,7 +74,7 @@ export class GoogleMeetProvider implements ConferencingProvider {
         meetingCode: videoEntry?.meetingCode ?? conferenceData.conferenceId,
         phoneNumbers:
           phoneNumbers && phoneNumbers.length ? phoneNumbers : undefined,
-      } as Conference;
+      };
     });
   }
 

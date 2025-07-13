@@ -36,7 +36,7 @@ export interface CalendarEvent {
   accountId: string;
   calendarId: string;
   metadata?: Record<string, unknown>;
-  conferenceData?: Conference;
+  conference?: Conference;
 }
 
 export interface Attendee {
@@ -89,7 +89,7 @@ export interface CalendarProvider {
 
 export interface ConferencingProvider {
   providerId: "zoom" | "google";
-  createConferencing(
+  createConference(
     agenda: string,
     startTime: string,
     endTime: string,

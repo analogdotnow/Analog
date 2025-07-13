@@ -55,12 +55,12 @@ export const createEventInputSchema = z.object({
   providerId: z.enum(["google", "microsoft", "zoom"]),
   readOnly: z.boolean(),
   metadata: z.union([microsoftMetadataSchema, googleMetadataSchema]).optional(),
-  conferenceData: conferenceSchema.optional(),
+  conference: conferenceSchema.optional(),
 });
 
 export const updateEventInputSchema = createEventInputSchema.extend({
   id: z.string(),
-  conferenceData: conferenceSchema.optional(),
+  conference: conferenceSchema.optional(),
   metadata: z.union([microsoftMetadataSchema, googleMetadataSchema]).optional(),
 });
 

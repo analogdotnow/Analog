@@ -46,9 +46,8 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
           "/me/calendars?$select=id,name,isDefaultCalendar,canEdit,hexColor,isRemovable,owner,calendarPermissions",
         )
         .get();
-      const data = response.value as MicrosoftCalendar[];
 
-      return data.map((calendar, idx) => ({
+      return (response.value as MicrosoftCalendar[]).map((calendar, idx) => ({
         ...parseMicrosoftCalendar({ calendar, accountId: this.accountId }),
         color: assignColor(idx),
       }));
@@ -57,9 +56,9 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
 
   async createCalendar(calendarData: CreateCalendarInput): Promise<Calendar> {
     return this.withErrorHandler("createCalendar", async () => {
-      const createdCalendar = (await this.graphClient
+      const createdCalendar: MicrosoftCalendar = await this.graphClient
         .api("/me/calendars")
-        .post(calendarData)) as MicrosoftCalendar;
+        .post(calendarData);
 
       return parseMicrosoftCalendar({
         calendar: createdCalendar,
@@ -73,9 +72,9 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
     calendar: UpdateCalendarInput,
   ): Promise<Calendar> {
     return this.withErrorHandler("updateCalendar", async () => {
-      const updatedCalendar = (await this.graphClient
+      const updatedCalendar: MicrosoftCalendar = await this.graphClient
         .api(calendarPath(calendarId))
-        .patch(calendar)) as MicrosoftCalendar;
+        .patch(calendar);
 
       return parseMicrosoftCalendar({
         calendar: updatedCalendar,
@@ -119,9 +118,9 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
     event: CreateEventInput,
   ): Promise<CalendarEvent> {
     return this.withErrorHandler("createEvent", async () => {
-      const createdEvent = (await this.graphClient
+      const createdEvent: MicrosoftEvent = await this.graphClient
         .api(`${calendarPath(calendar.id)}/events`)
-        .post(toMicrosoftEvent(event))) as MicrosoftEvent;
+        .post(toMicrosoftEvent(event));
 
       return parseMicrosoftEvent({
         event: createdEvent,
@@ -145,9 +144,9 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
     event: UpdateEventInput,
   ): Promise<CalendarEvent> {
     return this.withErrorHandler("updateEvent", async () => {
-      const updatedEvent = (await this.graphClient
+      const updatedEvent: MicrosoftEvent = await this.graphClient
         .api(`${calendarPath(calendar.id)}/events/${eventId}`)
-        .patch(toMicrosoftEvent(event))) as MicrosoftEvent;
+        .patch(toMicrosoftEvent(event));
 
       return parseMicrosoftEvent({
         event: updatedEvent,

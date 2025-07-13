@@ -155,11 +155,21 @@ export function EventContextMenu({
         <ContextMenuSeparator />
 
         {/* Meeting actions */}
-        <ContextMenuItem className="ps-8 font-medium" disabled>
-          Join meeting
-          <KeyboardShortcut className="ml-auto bg-transparent text-muted-foreground">
-            J
-          </KeyboardShortcut>
+        <ContextMenuItem
+          className="ps-8 font-medium"
+          disabled={!event.conference?.joinUrl}
+          asChild
+        >
+          <a
+            href={event.conference?.joinUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Join meeting
+            <KeyboardShortcut className="ml-auto bg-transparent text-muted-foreground">
+              J
+            </KeyboardShortcut>
+          </a>
         </ContextMenuItem>
 
         <ContextMenuSeparator />

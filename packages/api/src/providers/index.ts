@@ -1,6 +1,7 @@
 import { account } from "@repo/db/schema";
 
-import { GoogleMeetProvider, ZoomProvider } from "./conferencing";
+import { GoogleMeetProvider } from "./conferencing/google-meet";
+import { ZoomProvider } from "./conferencing/zoom";
 import { GoogleCalendarProvider } from "./google-calendar";
 import type { CalendarProvider, ConferencingProvider } from "./interfaces";
 import { MicrosoftCalendarProvider } from "./microsoft-calendar";

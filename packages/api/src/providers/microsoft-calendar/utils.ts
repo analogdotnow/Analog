@@ -11,11 +11,13 @@ import {
   MicrosoftEventMetadata,
   UpdateEventInput,
 } from "../../schemas/events";
+import { detectMeetingService } from "../conferencing/utils";
 import type {
   Attendee,
   AttendeeStatus,
   Calendar,
   CalendarEvent,
+  Conference,
 } from "../interfaces";
 import { mapWindowsToIanaTimeZone } from "./windows-timezones";
 
@@ -108,6 +110,7 @@ export function parseMicrosoftEvent({
     throw new Error("Event start or end is missing");
   }
 
+  console.log("c", event, parseMicrosoftConference(event));
   return {
     id: event.id!,
     title: event.subject!,
@@ -128,7 +131,7 @@ export function parseMicrosoftEvent({
     accountId,
     calendarId: calendar.id,
     readOnly: calendar.readOnly,
-    conferenceData: parseMicrosoftConferenceData(event),
+    conference: parseMicrosoftConference(event),
     metadata: {
       ...(event.originalStartTimeZone
         ? {
@@ -154,10 +157,12 @@ export function parseMicrosoftEvent({
   };
 }
 
-export function toMicrosoftEvent(event: CreateEventInput | UpdateEventInput) {
+export function toMicrosoftEvent(
+  event: CreateEventInput | UpdateEventInput,
+): MicrosoftEvent {
   const metadata = event.metadata as MicrosoftEventMetadata | undefined;
 
-  const payload: MicrosoftEvent = {
+  return {
     subject: event.title,
     body: event.description
       ? { contentType: "text", content: event.description }
@@ -172,21 +177,18 @@ export function toMicrosoftEvent(event: CreateEventInput | UpdateEventInput) {
     }),
     isAllDay: event.allDay ?? false,
     location: event.location ? { displayName: event.location } : undefined,
+    ...(event.conference && {
+      isOnlineMeeting: true,
+      onlineMeeting: {
+        conferenceId: event.conference.id,
+        joinUrl: event.conference.joinUrl,
+        phones: event.conference.phoneNumbers?.map((number) => ({
+          number,
+        })),
+      },
+      onlineMeetingProvider: "unknown",
+    }),
   };
-
-  if (event.conferenceData) {
-    payload["isOnlineMeeting"] = true;
-    payload["onlineMeeting"] = {
-      conferenceId: event.conferenceData.id,
-      joinUrl: event.conferenceData.joinUrl,
-      phones: event.conferenceData.phoneNumbers?.map((number) => ({
-        number,
-      })),
-    };
-    payload["onlineMeetingProvider"] = "unknown";
-  }
-
-  return payload;
 }
 
 interface ParseMicrosoftCalendarOptions {
@@ -215,28 +217,52 @@ export function calendarPath(calendarId: string) {
     : `/me/calendars/${calendarId}`;
 }
 
-function parseMicrosoftConferenceData(
+function parseConferenceFallback(
   event: MicrosoftEvent,
-): CalendarEvent["conferenceData"] {
-  const info = event.onlineMeeting;
-  const joinUrl = info?.joinUrl ?? event.onlineMeetingUrl;
-
-  if (!joinUrl) {
+): Conference | undefined {
+  if (!event.location) {
     return undefined;
   }
 
-  const phoneNumbers = info?.phones
+  if (!event.location.displayName) {
+    return undefined;
+  }
+
+  const service = detectMeetingService(event.location.displayName);
+
+  console.log(service, event.location.displayName);
+  if (!service) {
+    return undefined;
+  }
+
+  return {
+    id: service.id,
+    name: service.label,
+    joinUrl: event.location.displayName,
+  };
+}
+
+function parseMicrosoftConference(
+  event: MicrosoftEvent,
+): Conference | undefined {
+  const joinUrl = event.onlineMeeting?.joinUrl ?? event.onlineMeetingUrl;
+
+  if (!joinUrl) {
+    return parseConferenceFallback(event);
+  }
+
+  const phoneNumbers = event.onlineMeeting?.phones
     ?.map((p) => p.number)
     .filter((n): n is string => Boolean(n));
 
   return {
-    id: info?.conferenceId ?? undefined,
+    id: event.onlineMeeting?.conferenceId ?? undefined,
     name:
       event.onlineMeetingProvider === "teamsForBusiness"
         ? "Microsoft Teams"
         : "Online Meeting",
     joinUrl,
-    meetingCode: info?.conferenceId ?? undefined,
+    meetingCode: event.onlineMeeting?.conferenceId ?? undefined,
     phoneNumbers:
       phoneNumbers && phoneNumbers.length ? phoneNumbers : undefined,
   };

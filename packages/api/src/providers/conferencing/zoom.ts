@@ -24,7 +24,7 @@ export class ZoomProvider implements ConferencingProvider {
    * are ignored. They are forwarded inside the `context` object that is passed
    * to the error-handler for easier debugging.
    */
-  async createConferencing(
+  async createConference(
     agenda: string,
     startTime: string,
     endTime: string,
