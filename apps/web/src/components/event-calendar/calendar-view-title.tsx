@@ -1,5 +1,6 @@
 "use client";
 
+import { Niconne } from "next/font/google";
 import { AnimatePresence, Variant, motion } from "motion/react";
 
 import type { ViewPreferences } from "@/atoms/view-preferences";
@@ -58,15 +59,17 @@ export function CalendarViewTitle(props: CalendarViewTitleProps) {
           animate="animate"
           exit="exit"
         >
-          <span className="md:hidden" aria-hidden="true">
+          <span className="line-clamp-1 @md/header:hidden" aria-hidden="true">
             {titleData.short}
           </span>
-          <span className="max-md:hidden">{titleData.full}</span>
-          {viewPreferences.showWeekNumbers && weekNumber && (
-            <span className="mt-1 text-sm text-muted-foreground">
-              Week {weekNumber}
+          <span className="line-clamp-1 @max-md/header:hidden">
+            {titleData.full}
+          </span>
+          {viewPreferences.showWeekNumbers && weekNumber ? (
+            <span className="line-clamp-1 text-sm text-muted-foreground">
+              W{weekNumber}
             </span>
-          )}
+          ) : null}
         </motion.h2>
       </AnimatePresence>
     </div>

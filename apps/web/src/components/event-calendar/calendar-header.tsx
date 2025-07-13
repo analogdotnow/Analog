@@ -26,13 +26,13 @@ export function CalendarHeader({
   return (
     <header
       className={cn(
-        "flex h-12 items-center justify-between gap-2 p-2 ps-4",
+        "@container/header flex h-12 items-center justify-between gap-2 p-2 ps-4",
         className,
       )}
       ref={ref}
     >
       <div className="flex flex-1 items-center gap-1 sm:gap-4">
-        <SidebarTrigger className="-ml-1" />
+        <SidebarTrigger className="-ml-1 @max-md/header:hidden" />
         <CalendarViewTitle
           prevDate={prevDate}
           currentDate={currentDate}
