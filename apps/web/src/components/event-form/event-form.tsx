@@ -92,15 +92,35 @@ export function EventForm({
     defaultValues: getDefaultValues({ event, defaultCalendar, settings }),
     validators: {
       onBlur: formSchema,
+      onSubmit: ({ value }) => {
+        const calendar = query.data?.accounts
+          .flatMap((a) => a.calendars)
+          .find((c) => c.id === value.calendar.calendarId);
+
+        if (!calendar) {
+          return {
+            fields: {
+              calendar: "Calendar not found",
+            },
+          };
+        }
+
+        const isNewEvent = !selectedEvent || isDraftEvent(selectedEvent);
+        if (isNewEvent && value.title.trim() === "") {
+          return {
+            fields: {
+              title: "Title is required",
+            },
+          };
+        }
+
+        return undefined;
+      },
     },
     onSubmit: async ({ value }) => {
       const calendar = query.data?.accounts
         .flatMap((a) => a.calendars)
         .find((c) => c.id === value.calendar.calendarId);
-
-      if (!calendar) {
-        return;
-      }
 
       await dispatchAsyncAction({
         type: "update",
@@ -109,7 +129,7 @@ export function EventForm({
     },
     listeners: {
       onBlur: async ({ formApi }) => {
-        if (!formApi.state.isValid) {
+        if (!formApi.state.isValid || !formApi.state.isDirty) {
           return;
         }
 
@@ -153,6 +173,11 @@ export function EventForm({
                 value={field.state.value}
                 onBlur={field.handleBlur}
                 onChange={(e) => field.handleChange(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.currentTarget.blur();
+                  }
+                }}
                 placeholder="Title"
                 disabled={disabled}
               />
