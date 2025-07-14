@@ -6,7 +6,9 @@ import { SimpleAnalytics } from "@simpleanalytics/next";
 
 import ogImage from "@/assets/og-image.png";
 import { Toaster } from "@/components/ui/sonner";
+
 import "./globals.css";
+
 import { Providers } from "./providers";
 
 const geistSans = Geist({

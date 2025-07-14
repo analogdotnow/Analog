@@ -1,4 +1,5 @@
 import "server-only";
+
 import { eq } from "drizzle-orm";
 
 import { auth, type Account, type User } from "@repo/auth/server";
