@@ -1,9 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import NumberFlow from "@number-flow/react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronRight } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -11,44 +9,14 @@ import { z } from "zod/v3";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useTRPC } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
+import { useWaitlistCount } from "./use-waitlist-count";
 
 const formSchema = z.object({
   email: z.string().email(),
 });
 
 type FormSchema = z.infer<typeof formSchema>;
-
-function useWaitlistCount() {
-  const trpc = useTRPC();
-
-  const queryClient = useQueryClient();
-
-  const query = useQuery(trpc.earlyAccess.getWaitlistCount.queryOptions());
-
-  const [success, setSuccess] = useState(false);
-
-  const { mutate } = useMutation(
-    trpc.earlyAccess.joinWaitlist.mutationOptions({
-      onSuccess: () => {
-        setSuccess(true);
-
-        queryClient.setQueryData(
-          [trpc.earlyAccess.getWaitlistCount.queryKey()],
-          {
-            count: (query.data?.count ?? 0) + 1,
-          },
-        );
-      },
-      onError: () => {
-        toast.error("Something went wrong. Please try again.");
-      },
-    }),
-  );
-
-  return { count: query.data?.count ?? 0, mutate, success };
-}
 
 interface WaitlistFormProps {
   className?: string;
@@ -92,14 +60,17 @@ export function WaitlistForm({ className }: WaitlistFormProps) {
         >
           <Input
             placeholder="example@0.email"
-            className="h-11 w-full rounded-md px-4 text-base font-medium outline outline-neutral-200 placeholder:font-medium placeholder:text-muted-foreground md:text-base"
+            className="h-11 w-full rounded-lg px-4 text-base font-medium outline border-border/40 placeholder:font-medium placeholder:text-muted-foreground md:text-base"
             {...register("email")}
           />
           <Button
-            className="h-11 w-full pr-3 pl-4 text-base sm:w-fit"
+            className="h-11 w-full text-base sm:w-fit bg-neutral-100 rounded-lg"
             type="submit"
           >
-            Join Waitlist <ChevronRight className="h-5 w-5" />
+            <span className="pl-1">
+            Join Waitlist
+            </span>
+            <ChevronRight className="h-5 w-5" />
           </Button>
         </form>
       )}
