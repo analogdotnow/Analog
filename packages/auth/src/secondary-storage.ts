@@ -14,10 +14,21 @@ export function secondaryStorage(): SecondaryStorage | undefined {
   });
 
   return {
-    get: async (key) => (await client.get<string | null>(key)) ?? null,
+    get: async (key) => {
+      const value = (await client.get<string | null>(key)) ?? null;
+
+      if (typeof value === "string") {
+        return value;
+      }
+
+      return value ? JSON.stringify(value) : null;
+    },
     set: async (key, value, ttl) => {
-      if (ttl) await client.set(key, value, { ex: ttl });
-      else await client.set(key, value);
+      if (ttl) {
+        await client.set(key, value, { ex: ttl });
+      } else {
+        await client.set(key, value);
+      }
     },
     delete: async (key) => {
       await client.del(key);
