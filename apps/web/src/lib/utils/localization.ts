@@ -21,7 +21,8 @@ export function getBrowserDateFormat(): "DMY" | "MDY" | "YMD" {
     day: "numeric",
     month: "numeric",
     year: "numeric",
-  }).formatToParts(new Date(2020, 0, 1));
+  }).formatToParts(new Date());
+
   const order = parts
     .filter((p) => p.type === "day" || p.type === "month" || p.type === "year")
     .map((p) => p.type)
@@ -39,16 +40,42 @@ export function getBrowserDateFormat(): "DMY" | "MDY" | "YMD" {
   }
 }
 
+interface LocaleWithNonStandardWeekInfo extends Intl.Locale {
+  weekInfo: {
+    firstDay: number;
+  };
+}
+
+interface LocaleWithGetWeekInfo extends Intl.Locale {
+  getWeekInfo: () => {
+    firstDay: number;
+  };
+}
+
 export function getWeekStartsOn(): number {
   try {
-    // @ts-ignore
-    const info = new Intl.Locale(navigator.language).weekInfo;
-    if (info && typeof info.firstDay === "number") {
-      return info.firstDay;
+    const info = new Intl.Locale(navigator.language) as LocaleWithGetWeekInfo;
+
+    if (info && typeof info.getWeekInfo().firstDay === "number") {
+      return info.getWeekInfo().firstDay;
     }
   } catch (e) {
     // ignore
   }
+
+  try {
+    const info = new Intl.Locale(
+      navigator.language,
+    ) as LocaleWithNonStandardWeekInfo;
+
+    if (info && typeof info.weekInfo.firstDay === "number") {
+      return info.weekInfo.firstDay;
+    }
+  } catch (e) {
+    // ignore
+  }
+
+  // Fallback to Monday
   return 1;
 }
 
@@ -56,5 +83,6 @@ export function uses24HourClock(): boolean {
   const hourCycle = new Intl.DateTimeFormat(undefined, {
     hour: "numeric",
   }).resolvedOptions().hourCycle;
+
   return hourCycle === "h23" || hourCycle === "h24";
 }
