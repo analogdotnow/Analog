@@ -21,7 +21,7 @@ export function Hero() {
   prefetch(trpc.earlyAccess.getWaitlistCount.queryOptions());
 
   return (
-    <div className="flex w-full max-w-6xl flex-col gap-12 overflow-hidden md:gap-16">
+    <div className="flex w-full max-w-6xl flex-col gap-12  md:gap-16">
       <AnimatedGroup variants={transitionVariants}>
         <div className="flex flex-col gap-12 px-4 md:px-6">
           <div className="flex flex-col gap-y-4">
@@ -55,14 +55,15 @@ export function Hero() {
 
           <div className="flex flex-col items-center justify-center gap-3 text-center md:gap-6">
             <h1 className="font-satoshi text-4xl leading-tight md:text-5xl">
-              Reimagining the Calendar. <br />  organize your life with AI
+              Reimagining the Calendar, <br /> to make the most of your time
             </h1>
             <p>
-              Calendars have been the same for decades.
+              Analog is an AI native calendar that redefines what it means to use a calendar.
+              {/* Calendars have been the same for decades. */}
             </p>
-            <p className="max-w-xl text-base text-muted-foreground md:text-lg">
+            {/* <p className="max-w-xl text-base text-muted-foreground md:text-lg">
               Analog redefines what it means to use a calendar. Analog is an AI-powered calendar that understands your life, and helps you organize and save time. It's an AI-powered calendar that understands your life, and helps you organize and save time.
-            </p>
+            </p> */}
           </div>
           </div>
 
