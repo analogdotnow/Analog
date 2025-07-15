@@ -204,7 +204,7 @@ export function EventContextMenu({
         </ContextMenuItem>
 
         <ContextMenuItem
-          className="ps-8 font-medium text-red-400"
+          className="ps-8 font-medium text-red-400 hover:text-red-400 dark:hover:text-red-400"
           disabled={event.readOnly}
           onClick={handleDelete}
         >
