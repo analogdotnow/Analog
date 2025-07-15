@@ -19,15 +19,8 @@ export const aiRouter = createTRPCRouter({
       }
 
       try {
-        // Placeholder for Deepseek token generation
-        // Replace this with actual Deepseek SDK implementation
-        const tokenResult = {
-          key: env.DEEPSEEK_API_KEY,
-          // Add other token properties as needed by Deepseek
-        };
-
         return {
-          ...tokenResult,
+          key: env.DEEPSEEK_API_KEY,
           url: input.url,
         };
       } catch (error) {
