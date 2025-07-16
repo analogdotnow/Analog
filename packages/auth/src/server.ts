@@ -60,6 +60,31 @@ export const auth = betterAuth({
         required: false,
         input: false,
       },
+      timeZone: {
+        type: "string",
+        required: false,
+        input: false,
+      },
+      locale: {
+        type: "string",
+        required: false,
+        input: false,
+      },
+      dateFormat: {
+        type: "string",
+        required: false,
+        input: false,
+      },
+      weekStartsOn: {
+        type: "number",
+        required: false,
+        input: false,
+      },
+      use24Hour: {
+        type: "boolean",
+        required: false,
+        input: false,
+      },
     },
   },
   databaseHooks: {
