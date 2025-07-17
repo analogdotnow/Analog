@@ -47,6 +47,7 @@
   --calendar-green: #00c950;
   --calendar-blue: #2b7fff;
   --calendar-purple: #ad46ff;
+  --link: var(--color-blue-500);
 }
 
 .dark {
@@ -104,6 +105,7 @@
     var(--color-neutral-900) 50%
   );
   --avatar-gradient-bottom: var(--color-neutral-800);
+  --link: var(--color-blue-400);
 }
 
 @theme inline {
@@ -201,6 +203,7 @@
   --font-weight-normal: 350;
   --font-weight-medium: 400;
   --font-weight-semibold: 500;
+  --link-color: var(--link);
 }
 
 @layer base {

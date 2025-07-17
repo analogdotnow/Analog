@@ -319,7 +319,7 @@ export function EventForm({
                   name={field.name}
                   value={field.state.value}
                   onBlur={field.handleBlur}
-                  onChange={(e) => field.handleChange(e.target.value)}
+                  onChange={(value) => field.handleChange(value)}
                   disabled={disabled}
                 />
               </div>
