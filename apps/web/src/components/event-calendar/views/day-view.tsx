@@ -11,6 +11,7 @@ import {
   isSameDay,
   startOfDay,
 } from "date-fns";
+import { motion } from "motion/react";
 import { Temporal } from "temporal-polyfill";
 
 import { toDate } from "@repo/temporal";
@@ -18,7 +19,6 @@ import { toDate } from "@repo/temporal";
 import { useCalendarSettings } from "@/atoms";
 import {
   DraggableEvent,
-  DroppableCell,
   EventItem,
   WeekCellsHeight,
   type CalendarEvent,
@@ -27,8 +27,8 @@ import { EndHour, StartHour } from "@/components/event-calendar/constants";
 import { useCurrentTimeIndicator } from "@/components/event-calendar/hooks";
 import type { Action } from "@/components/event-calendar/hooks/use-optimistic-events";
 import { isMultiDayEvent } from "@/components/event-calendar/utils";
-import { cn } from "@/lib/utils";
-import { createDraftEvent } from "@/lib/utils/calendar";
+import { useDragToCreate } from "../hooks/use-drag-to-create";
+import { DragPreview } from "./event/drag-preview";
 import { Timeline } from "./timeline";
 
 interface DayViewProps {
@@ -265,6 +265,8 @@ export function DayView({ currentDate, events, dispatchAction }: DayViewProps) {
   const { currentTimePosition, currentTimeVisible, formattedTime } =
     useCurrentTimeIndicator(currentDate, "day");
 
+  const { use12Hour } = useCalendarSettings();
+
   return (
     <div data-slot="day-view" className="contents" ref={containerRef}>
       <div className="sticky top-0 z-30 border-t border-border/70 bg-background/80 backdrop-blur-md">
@@ -349,58 +351,66 @@ export function DayView({ currentDate, events, dispatchAction }: DayViewProps) {
             </div>
           )}
 
-          {/* Time grid */}
-          {hours.map((hour) => {
-            const hourValue = getHours(hour);
-            return (
-              <div
-                key={hour.toString()}
-                className="relative h-[var(--week-cells-height)] border-b border-border/70 last:border-b-0"
-              >
-                {/* Quarter-hour intervals */}
-                {[0, 1, 2, 3].map((quarter) => {
-                  const quarterHourTime = hourValue + quarter * 0.25;
-                  return (
-                    <DroppableCell
-                      key={`${hour.toString()}-${quarter}`}
-                      id={`day-cell-${currentDate.toISOString()}-${quarterHourTime}`}
-                      date={currentDate}
-                      time={quarterHourTime}
-                      className={cn(
-                        "absolute h-[calc(var(--week-cells-height)/4)] w-full",
-                        quarter === 0 && "top-0",
-                        quarter === 1 &&
-                          "top-[calc(var(--week-cells-height)/4)]",
-                        quarter === 2 &&
-                          "top-[calc(var(--week-cells-height)/4*2)]",
-                        quarter === 3 &&
-                          "top-[calc(var(--week-cells-height)/4*3)]",
-                      )}
-                      onClick={() => {
-                        const start = Temporal.ZonedDateTime.from({
-                          year: currentDate.getFullYear(),
-                          month: currentDate.getMonth() + 1,
-                          day: currentDate.getDate(),
-                          hour: hourValue,
-                          minute: quarter * 15,
-                          timeZone: settings.defaultTimeZone,
-                        });
-
-                        const end = start.add({ minutes: 15 });
-
-                        dispatchAction({
-                          type: "draft",
-                          event: createDraftEvent({ start, end }),
-                        });
-                      }}
-                    />
-                  );
-                })}
-              </div>
-            );
-          })}
+          <MemoizedDayViewTimeSlots
+            currentDate={currentDate}
+            hours={hours}
+            dispatchAction={dispatchAction}
+          />
         </div>
       </div>
     </div>
   );
 }
+
+interface DayViewTimeSlotsProps {
+  currentDate: Date;
+  hours: Date[];
+  dispatchAction: (action: Action) => void;
+}
+
+function DayViewTimeSlots({
+  currentDate,
+  hours,
+  dispatchAction,
+}: DayViewTimeSlotsProps) {
+  const settings = useCalendarSettings();
+
+  const columnRef = React.useRef<HTMLDivElement>(null);
+  const date = React.useMemo(() => {
+    return Temporal.PlainDate.from({
+      year: currentDate.getFullYear(),
+      month: currentDate.getMonth() + 1,
+      day: currentDate.getDate(),
+    });
+  }, [currentDate]);
+
+  const { onDragStart, onDrag, onDragEnd, top, height, opacity } =
+    useDragToCreate({
+      dispatchAction,
+      date,
+      timeZone: settings.defaultTimeZone,
+      columnRef,
+    });
+
+  return (
+    <motion.div
+      className="touch-pan-y"
+      ref={columnRef}
+      onPanStart={onDragStart}
+      onPan={onDrag}
+      onPanEnd={onDragEnd}
+    >
+      {hours.map((hour) => {
+        return (
+          <div
+            key={hour.toString()}
+            className="pointer-events-none h-[var(--week-cells-height)] border-b border-border/70 last:border-b-0"
+          />
+        );
+      })}
+      <DragPreview style={{ top, height, opacity }} />
+    </motion.div>
+  );
+}
+
+const MemoizedDayViewTimeSlots = React.memo(DayViewTimeSlots);

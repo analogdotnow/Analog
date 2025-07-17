@@ -6,7 +6,6 @@ import {
   eachDayOfInterval,
   eachHourOfInterval,
   format,
-  getHours,
   isSameDay,
   isToday,
   isWithinInterval,
@@ -14,6 +13,7 @@ import {
   startOfWeek,
   subDays,
 } from "date-fns";
+import { motion } from "motion/react";
 import { Temporal } from "temporal-polyfill";
 
 import { toDate } from "@repo/temporal";
@@ -21,7 +21,6 @@ import { toDate } from "@repo/temporal";
 import { useCalendarSettings, useViewPreferences } from "@/atoms";
 import {
   DraggableEvent,
-  DroppableCell,
   type CalendarEvent,
 } from "@/components/event-calendar";
 import { EndHour, StartHour } from "@/components/event-calendar/constants";
@@ -44,6 +43,8 @@ import {
 } from "@/components/event-calendar/utils";
 import { cn } from "@/lib/utils";
 import { createDraftEvent } from "@/lib/utils/calendar";
+import { useDragToCreate } from "../hooks/use-drag-to-create";
+import { DragPreview } from "./event/drag-preview";
 import { Timeline } from "./timeline";
 
 interface WeekViewProps extends React.ComponentProps<"div"> {
@@ -636,54 +637,41 @@ function WeekViewDayTimeSlots({
 }: WeekViewDayTimeSlotsProps) {
   const settings = useCalendarSettings();
 
+  const columnRef = React.useRef<HTMLDivElement>(null);
+  const date = React.useMemo(() => {
+    return Temporal.PlainDate.from({
+      year: day.getFullYear(),
+      month: day.getMonth() + 1,
+      day: day.getDate(),
+    });
+  }, [day]);
+
+  const { onDragStart, onDrag, onDragEnd, top, height, opacity } =
+    useDragToCreate({
+      dispatchAction,
+      date,
+      timeZone: settings.defaultTimeZone,
+      columnRef,
+    });
+
   return (
-    <>
+    <motion.div
+      className="touch-pan-y"
+      ref={columnRef}
+      onPanStart={onDragStart}
+      onPan={onDrag}
+      onPanEnd={onDragEnd}
+    >
       {hours.map((hour) => {
-        const hourValue = getHours(hour);
         return (
           <div
             key={hour.toString()}
-            className="relative min-h-[var(--week-cells-height)] border-b border-border/70 last:border-b-0"
-          >
-            {[0, 1, 2, 3].map((quarter) => {
-              const quarterHourTime = hourValue + quarter * 0.25;
-              return (
-                <DroppableCell
-                  key={`${hour.toString()}-${quarter}`}
-                  id={`week-cell-${day.toISOString()}-${quarterHourTime}`}
-                  date={day}
-                  time={quarterHourTime}
-                  className={cn(
-                    "absolute h-[calc(var(--week-cells-height)/4)] w-full",
-                    quarter === 0 && "top-0",
-                    quarter === 1 && "top-[calc(var(--week-cells-height)/4)]",
-                    quarter === 2 && "top-[calc(var(--week-cells-height)/4*2)]",
-                    quarter === 3 && "top-[calc(var(--week-cells-height)/4*3)]",
-                  )}
-                  onClick={() => {
-                    const start = Temporal.ZonedDateTime.from({
-                      year: day.getFullYear(),
-                      month: day.getMonth() + 1,
-                      day: day.getDate(),
-                      hour: hourValue,
-                      minute: quarter * 15,
-                      timeZone: settings.defaultTimeZone,
-                    });
-
-                    const end = start.add({ minutes: 15 });
-
-                    dispatchAction({
-                      type: "draft",
-                      event: createDraftEvent({ start, end }),
-                    });
-                  }}
-                />
-              );
-            })}
-          </div>
+            className="pointer-events-none min-h-[var(--week-cells-height)] border-b border-border/70 last:border-b-0"
+          />
         );
       })}
-    </>
+      <DragPreview style={{ top, height, opacity }} />
+    </motion.div>
   );
 }
 
