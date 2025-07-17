@@ -66,6 +66,7 @@ export interface CalendarProvider {
     calendar: Calendar,
     timeMin: Temporal.ZonedDateTime,
     timeMax: Temporal.ZonedDateTime,
+    timeZone?: string,
   ): Promise<CalendarEvent[]>;
   createEvent(
     calendar: Calendar,

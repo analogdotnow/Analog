@@ -93,6 +93,7 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
     calendar: Calendar,
     timeMin: Temporal.ZonedDateTime,
     timeMax: Temporal.ZonedDateTime,
+    timeZone: string,
   ): Promise<CalendarEvent[]> {
     return this.withErrorHandler("events", async () => {
       const startTime = timeMin.withTimeZone("UTC").toInstant().toString();
@@ -100,6 +101,7 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
 
       const response = await this.graphClient
         .api(`${calendarPath(calendar.id)}/events`)
+        .header("Prefer", `outlook.timezone="${timeZone}"`)
         .filter(
           `start/dateTime ge '${startTime}' and end/dateTime le '${endTime}'`,
         )

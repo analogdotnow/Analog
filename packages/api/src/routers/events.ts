@@ -19,6 +19,7 @@ export const eventsRouter = createTRPCRouter({
         calendarIds: z.array(z.string()).default([]),
         timeMin: zZonedDateTimeInstance,
         timeMax: zZonedDateTimeInstance,
+        defaultTimeZone: z.string(),
       }),
     )
     .query(async ({ ctx, input }) => {
@@ -37,6 +38,7 @@ export const eventsRouter = createTRPCRouter({
                 calendar,
                 input.timeMin,
                 input.timeMax,
+                input.defaultTimeZone,
               );
 
               return events.map((event) => ({

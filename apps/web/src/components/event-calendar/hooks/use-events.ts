@@ -82,14 +82,17 @@ export function useEvents() {
   }, [defaultTimeZone, currentDate, weekStartsOn]);
 
   const eventsQueryKey = useMemo(
-    () => trpc.events.list.queryOptions({ timeMin, timeMax }).queryKey,
-    [trpc.events.list, timeMin, timeMax],
+    () =>
+      trpc.events.list.queryOptions({ timeMin, timeMax, defaultTimeZone })
+        .queryKey,
+    [trpc.events.list, timeMin, timeMax, defaultTimeZone],
   );
 
   const query = useQuery(
     trpc.events.list.queryOptions({
       timeMin,
       timeMax,
+      defaultTimeZone,
     }),
   );
 
