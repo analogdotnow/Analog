@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import { format } from "@formkit/tempo";
 import { endOfWeek, isSameDay, isWithinInterval, startOfWeek } from "date-fns";
 
-import { EndHour, StartHour } from "@/components/event-calendar/constants";
 import { useCalendarSettings } from "@/atoms/calendar-settings";
+import { EndHour, StartHour } from "@/components/event-calendar/constants";
 
 export function useCurrentTimeIndicator(
   currentDate: Date,
@@ -42,7 +42,9 @@ export function useCurrentTimeIndicator(
         });
       }
 
-      const formattedTime = use12Hour ? format(now, "h:mm a") : format(now, "HH:mm");
+      const formattedTime = use12Hour
+        ? format(now, "h:mm a")
+        : format(now, "HH:mm");
       setFormattedTime(formattedTime);
       setCurrentTimePosition(position);
       setCurrentTimeVisible(isCurrentTimeVisible);
