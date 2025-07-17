@@ -110,6 +110,12 @@ export function parseMicrosoftEvent({
     throw new Error("Event start or end is missing");
   }
 
+  const responseStatus = event.responseStatus?.response
+    ? parseMicrosoftAttendeeStatus(event.responseStatus.response)
+    : event.isOrganizer
+      ? ("accepted" as const)
+      : undefined;
+
   return {
     id: event.id!,
     title: event.subject!,
@@ -131,6 +137,7 @@ export function parseMicrosoftEvent({
     calendarId: calendar.id,
     readOnly: calendar.readOnly,
     conference: parseMicrosoftConference(event),
+    ...(responseStatus && { response: { status: responseStatus } }),
     metadata: {
       ...(event.originalStartTimeZone
         ? {

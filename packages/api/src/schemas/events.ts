@@ -61,6 +61,12 @@ export const updateEventInputSchema = createEventInputSchema.extend({
   id: z.string(),
   conference: conferenceSchema.optional(),
   metadata: z.union([microsoftMetadataSchema, googleMetadataSchema]).optional(),
+  response: z
+    .object({
+      status: z.enum(["accepted", "tentative", "declined"]),
+      comment: z.string().optional(),
+    })
+    .optional(),
 });
 
 export type CreateEventInput = z.infer<typeof createEventInputSchema>;

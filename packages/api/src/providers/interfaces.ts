@@ -35,6 +35,11 @@ export interface CalendarEvent {
   providerId: "google" | "microsoft";
   accountId: string;
   calendarId: string;
+  /** Current user's response status for this event */
+  response?: {
+    status: AttendeeStatus;
+    comment?: string;
+  };
   metadata?: Record<string, unknown>;
   conference?: Conference;
 }

@@ -67,6 +67,17 @@ export function parseGoogleCalendarEvent({
   event,
 }: ParsedGoogleCalendarEventOptions): CalendarEvent {
   const isAllDay = !event.start?.dateTime;
+  const selfAttendee = event.attendees?.find((a) => a.self);
+  const response = selfAttendee
+    ? {
+        status: parseGoogleCalendarAttendeeStatus(
+          selfAttendee.responseStatus as GoogleCalendarEventAttendeeResponseStatus,
+        ),
+        comment: selfAttendee.comment,
+      }
+    : event.organizer?.self
+      ? { status: "accepted" as const }
+      : undefined;
 
   return {
     // ID should always be present if not defined Google Calendar will generate one
@@ -89,6 +100,7 @@ export function parseGoogleCalendarEvent({
     calendarId: calendar.id,
     readOnly: calendar.readOnly,
     conference: parseGoogleCalendarConferenceData(event),
+    ...(response && { response }),
   };
 }
 
@@ -378,6 +390,7 @@ export function parseGoogleCalendarAttendee(
       attendee.responseStatus as GoogleCalendarEventAttendeeResponseStatus,
     ),
     type: parseGoogleCalendarAttendeeType(attendee),
+    comment: attendee.comment,
     additionalGuests: attendee.additionalGuests,
   };
 }
