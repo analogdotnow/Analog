@@ -7,7 +7,6 @@ export { CalendarViewTitle } from "./calendar-view-title";
 export { DayView } from "./views/day-view";
 export { DraggableEvent } from "./draggable-event";
 export { DroppableCell } from "./droppable-cell";
-export { EventDialog } from "./event-dialog";
 export { EventItem } from "./event-item";
 export { EventsPopup } from "./events-popup";
 export { OverflowIndicator } from "./overflow-indicator";

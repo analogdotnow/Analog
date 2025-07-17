@@ -57,3 +57,9 @@ export function accountToConferencingProvider(
     accountId: activeAccount.accountId,
   });
 }
+
+const CALENDAR_PROVIDERS = ["google", "microsoft"];
+
+export function isCalendarProvider(providerId: string) {
+  return CALENDAR_PROVIDERS.includes(providerId);
+}

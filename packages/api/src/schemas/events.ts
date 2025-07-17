@@ -51,8 +51,7 @@ export const createEventInputSchema = z.object({
   color: z.string().optional(),
   accountId: z.string(),
   calendarId: z.string(),
-  // Zoom for type compatibility
-  providerId: z.enum(["google", "microsoft", "zoom"]),
+  providerId: z.enum(["google", "microsoft"]),
   readOnly: z.boolean(),
   metadata: z.union([microsoftMetadataSchema, googleMetadataSchema]).optional(),
   conference: conferenceSchema.optional(),

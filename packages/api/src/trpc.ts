@@ -6,7 +6,7 @@ import { ZodError } from "zod";
 import { auth } from "@repo/auth/server";
 import { db } from "@repo/db";
 
-import { accountToProvider } from "./providers";
+import { accountToProvider, isCalendarProvider } from "./providers";
 import { getAccounts } from "./utils/accounts";
 import { superjson } from "./utils/superjson";
 
@@ -62,11 +62,13 @@ export const calendarProcedure = protectedProcedure.use(
     try {
       const accounts = await getAccounts(ctx.user, ctx.headers);
 
-      // Filtering here because we need zoom account to be able to create conferencing
       const providers = accounts
-        .filter((account) => account.providerId !== "zoom")
+        .filter((provider) => isCalendarProvider(provider.providerId))
         .map((account) => ({
-          account,
+          account: {
+            ...account,
+            providerId: account.providerId as "google" | "microsoft",
+          },
           client: accountToProvider(account),
         }));
 

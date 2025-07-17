@@ -3,6 +3,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { LoaderCircle } from "lucide-react";
 import { toast } from "sonner";
 
+import { authClient } from "@repo/auth/client";
+import { env } from "@repo/env/client";
+
 import { AddAccountDialog } from "@/components/add-account-dialog";
 import { Google, Microsoft, Zoom } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -230,9 +233,9 @@ function AccountListItem({ account }: AccountListItemProps) {
   const mutation = useMutation(
     trpc.accounts.unlink.mutationOptions({
       onSuccess: () => {
-        // toast.success("Account disconnected");
         queryClient.invalidateQueries({ queryKey: trpc.accounts.pathKey() });
         queryClient.invalidateQueries({ queryKey: trpc.calendars.pathKey() });
+        queryClient.invalidateQueries({ queryKey: trpc.events.pathKey() });
       },
       onError: (error) => {
         toast.error(`Failed to disconnect account: ${error.message}`);
@@ -268,6 +271,21 @@ function AccountListItem({ account }: AccountListItemProps) {
 }
 
 function AddAccountButton() {
+  const linkAccount = async () => {
+    await authClient.linkSocial({
+      provider: "google",
+      callbackURL: "/calendar",
+    });
+  };
+
+  if (env.NEXT_PUBLIC_VERCEL_ENV === "production") {
+    return (
+      <Button variant="outline" onClick={linkAccount}>
+        Add Account
+      </Button>
+    );
+  }
+
   return (
     <AddAccountDialog>
       <Button variant="outline">Add Account</Button>

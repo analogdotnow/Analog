@@ -14,7 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { providers, type ProviderId } from "@/lib/constants";
+import { providers, type ProviderId } from "@/lib/providers";
 import { cn } from "@/lib/utils";
 
 interface SignInFormProps {
@@ -24,10 +24,10 @@ interface SignInFormProps {
 export function SignInForm({ redirectUrl = "/calendar" }: SignInFormProps) {
   const [loading, setLoading] = useState(false);
 
-  const signInWithProvider = async (providerId: ProviderId) => {
+  const signInWithProvider = async (id: ProviderId) => {
     await authClient.signIn.social(
       {
-        provider: providerId,
+        provider: id,
         callbackURL: redirectUrl,
       },
       {
@@ -61,11 +61,11 @@ export function SignInForm({ redirectUrl = "/calendar" }: SignInFormProps) {
             {providers.slice(0, 1).map((provider) => {
               return (
                 <Button
-                  key={provider.providerId}
+                  key={provider.id}
                   variant="outline"
                   className={cn("w-full gap-2")}
                   disabled={loading}
-                  onClick={() => signInWithProvider(provider.providerId)}
+                  onClick={() => signInWithProvider(provider.id)}
                 >
                   <provider.icon />
                   Continue with {provider.name}
