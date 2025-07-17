@@ -23,6 +23,7 @@ import { useCalendarState } from "@/hooks/use-calendar-state";
 import type { CalendarEvent } from "@/lib/interfaces";
 import { cn } from "@/lib/utils";
 import { useScrollToCurrentTime } from "./event-calendar/week-view/use-scroll-to-current-time";
+import { CreateEventInput } from "./create-event-input";
 
 interface CalendarContentProps {
   events: CalendarEvent[];
@@ -164,6 +165,8 @@ export function CalendarView({
           headerRef={headerRef}
         />
       </div>
+      
+      <CreateEventInput />
       {/* <SignalView className="absolute bottom-8 left-1/2 -translate-x-1/2" /> */}
     </div>
   );
