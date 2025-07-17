@@ -4,6 +4,7 @@ import { GoogleCalendar } from "@repo/google-calendar";
 
 import { CALENDAR_DEFAULTS } from "../constants/calendar";
 import { CreateEventInput, UpdateEventInput } from "../schemas/events";
+import { assignColor } from "./colors";
 import {
   parseGoogleCalendarCalendarListEntry,
   parseGoogleCalendarEvent,
@@ -36,12 +37,17 @@ export class GoogleCalendarProvider implements CalendarProvider {
 
       if (!items) return [];
 
-      return items.map((calendar) =>
-        parseGoogleCalendarCalendarListEntry({
+      return items.map((calendar, index) => {
+        const parsedCalendar = parseGoogleCalendarCalendarListEntry({
           accountId: this.accountId,
           entry: calendar,
-        }),
-      );
+        });
+
+        return {
+          ...parsedCalendar,
+          color: assignColor(index),
+        };
+      });
     });
   }
 
