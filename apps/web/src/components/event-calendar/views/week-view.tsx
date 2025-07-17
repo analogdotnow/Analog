@@ -27,6 +27,7 @@ import {
 import { cn } from "@/lib/utils";
 import { createDraftEvent } from "@/lib/utils/calendar";
 import { EventCollectionItem } from "../hooks/event-collection";
+import { useDoubleClickToCreate } from "../hooks/use-double-click-to-create";
 import { useDragToCreate } from "../hooks/use-drag-to-create";
 import { HOURS } from "./constants";
 import { DragPreview } from "./event/drag-preview";
@@ -522,6 +523,13 @@ function WeekViewDayTimeSlots({
       columnRef,
     });
 
+  const { onDoubleClick } = useDoubleClickToCreate({
+    dispatchAction,
+    date,
+    timeZone: defaultTimeZone,
+    columnRef,
+  });
+
   return (
     <motion.div
       className="touch-pan-y"
@@ -529,6 +537,7 @@ function WeekViewDayTimeSlots({
       onPanStart={onDragStart}
       onPan={onDrag}
       onPanEnd={onDragEnd}
+      onDoubleClick={onDoubleClick}
     >
       {HOURS.map((hour) => {
         return (

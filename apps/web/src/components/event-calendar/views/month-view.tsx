@@ -48,6 +48,7 @@ import {
 import { cn, groupArrayIntoChunks } from "@/lib/utils";
 import { createDraftEvent } from "@/lib/utils/calendar";
 import { EventCollectionItem } from "../hooks/event-collection";
+import { useDoubleClickToCreate } from "../hooks/use-double-click-to-create";
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -365,6 +366,16 @@ function MonthViewDay({
     dispatchAction({ type: "draft", event: createDraftEvent({ start, end }) });
   }, [day, dispatchAction, settings.defaultTimeZone]);
 
+  const cellRef = React.useRef<HTMLDivElement>(null);
+
+  const { onDoubleClick } = useDoubleClickToCreate({
+    dispatchAction,
+    date: currentDate,
+    timeZone: settings.defaultTimeZone,
+    columnRef: cellRef,
+    allDay: true,
+  });
+
   if (!day) return null;
 
   const isCurrentMonth = isSameMonth(day, currentDate);
@@ -385,6 +396,8 @@ function MonthViewDay({
 
   return (
     <div
+      ref={cellRef}
+      onDoubleClick={onDoubleClick}
       className={cn(
         "group relative min-w-0 border-r border-b border-border/70 last:border-r-0 data-outside-cell:bg-muted/25 data-outside-cell:text-muted-foreground/70",
         !isDayVisible && "w-0",

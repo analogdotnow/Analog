@@ -14,6 +14,7 @@ import { useEventCollection } from "@/components/event-calendar/hooks";
 import type { Action } from "@/components/event-calendar/hooks/use-optimistic-events";
 import { cn } from "@/lib/utils";
 import { EventCollectionItem } from "../hooks/event-collection";
+import { useDoubleClickToCreate } from "../hooks/use-double-click-to-create";
 import { useDragToCreate } from "../hooks/use-drag-to-create";
 import { HOURS } from "./constants";
 import { DragPreview } from "./event/drag-preview";
@@ -213,6 +214,13 @@ function DayViewTimeSlots({
       columnRef,
     });
 
+  const { onDoubleClick } = useDoubleClickToCreate({
+    dispatchAction,
+    date: currentDate,
+    timeZone: settings.defaultTimeZone,
+    columnRef,
+  });
+
   return (
     <motion.div
       className="touch-pan-y"
@@ -220,6 +228,7 @@ function DayViewTimeSlots({
       onPanStart={onDragStart}
       onPan={onDrag}
       onPanEnd={onDragEnd}
+      onDoubleClick={onDoubleClick}
     >
       {hours.map((hour) => {
         return (
