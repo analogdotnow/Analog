@@ -20,6 +20,7 @@
     "@formkit/tempo": "^0.1.2",
     "@hookform/resolvers": "^5.1.1",
     "@internationalized/date": "^3.8.2",
+    "@modelcontextprotocol/sdk": "^1.16.0",
     "@number-flow/react": "^0.5.10",
     "@radix-ui/react-alert-dialog": "^1.1.14",
     "@radix-ui/react-avatar": "^1.1.10",
