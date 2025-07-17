@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { format } from "@formkit/tempo";
 import { endOfWeek, isSameDay, isWithinInterval, startOfWeek } from "date-fns";
 
 import { EndHour, StartHour } from "@/components/event-calendar/constants";
+import { useCalendarSettings } from "@/atoms/calendar-settings";
 
 export function useCurrentTimeIndicator(
   currentDate: Date,
@@ -11,6 +13,8 @@ export function useCurrentTimeIndicator(
 ) {
   const [currentTimePosition, setCurrentTimePosition] = useState<number>(0);
   const [currentTimeVisible, setCurrentTimeVisible] = useState<boolean>(false);
+  const [formattedTime, setFormattedTime] = useState<string>("");
+  const { use12Hour } = useCalendarSettings();
 
   useEffect(() => {
     const calculateTimePosition = () => {
@@ -38,6 +42,8 @@ export function useCurrentTimeIndicator(
         });
       }
 
+      const formattedTime = use12Hour ? format(now, "h:mm a") : format(now, "HH:mm");
+      setFormattedTime(formattedTime);
       setCurrentTimePosition(position);
       setCurrentTimeVisible(isCurrentTimeVisible);
     };
@@ -47,7 +53,7 @@ export function useCurrentTimeIndicator(
     const interval = setInterval(calculateTimePosition, 60000);
 
     return () => clearInterval(interval);
-  }, [currentDate, view]);
+  }, [currentDate, view, use12Hour]);
 
-  return { currentTimePosition, currentTimeVisible };
+  return { currentTimePosition, currentTimeVisible, formattedTime };
 }

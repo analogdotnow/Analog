@@ -20,7 +20,7 @@ import { DayView } from "@/components/event-calendar/views/day-view";
 import { MonthView } from "@/components/event-calendar/views/month-view";
 import { WeekView } from "@/components/event-calendar/views/week-view";
 import { useCalendarState } from "@/hooks/use-calendar-state";
-import { CalendarEvent, DraftEvent } from "@/lib/interfaces";
+import type { CalendarEvent } from "@/lib/interfaces";
 import { cn } from "@/lib/utils";
 import { useScrollToCurrentTime } from "./event-calendar/week-view/use-scroll-to-current-time";
 

@@ -44,6 +44,7 @@ import {
 } from "@/components/event-calendar/utils";
 import { cn } from "@/lib/utils";
 import { createDraftEvent } from "@/lib/utils/calendar";
+import { Timeline } from "./timeline";
 
 interface WeekViewProps extends React.ComponentProps<"div"> {
   currentDate: Date;
@@ -88,6 +89,11 @@ export function WeekView({
 
   const containerRef = React.useRef<HTMLDivElement>(null);
 
+  const { currentTimePosition, formattedTime } = useCurrentTimeIndicator(
+    currentDate,
+    "week",
+  );
+
   return (
     <div data-slot="week-view" className="isolate flex flex-col" {...props}>
       <div
@@ -112,10 +118,24 @@ export function WeekView({
 
       <div
         ref={containerRef}
-        className="isolate grid flex-1 overflow-hidden transition-[grid-template-columns] duration-200 ease-linear"
+        className="relative isolate grid flex-1 overflow-hidden transition-[grid-template-columns] duration-200 ease-linear"
         style={{ gridTemplateColumns }}
       >
-        <WeekViewTimeColumn hours={hours} />
+        <div
+          className="pointer-events-none absolute right-0 left-0"
+          style={{ top: `${currentTimePosition}%` }}
+        >
+          <div className="relative flex items-center">
+            <div className="absolute flex h-4 w-20 items-center justify-end border-r border-transparent">
+              <p className="z-[1000] pe-2 text-[10px] font-medium text-red-500/80 tabular-nums sm:pe-4 sm:text-xs">
+                {formattedTime}
+              </p>
+            </div>
+            <div className="h-0.5 w-20"></div>
+            <div className="h-0.5 grow bg-red-500/10"></div>
+          </div>
+        </div>
+        <Timeline hours={hours} />
         <WeekViewDayColumns
           allDays={allDays}
           visibleDays={visibleDays}
@@ -473,31 +493,6 @@ function WeekViewPositionedEvent({
   );
 }
 
-interface WeekViewTimeColumnProps {
-  hours: Date[];
-}
-
-function WeekViewTimeColumn({ hours }: WeekViewTimeColumnProps) {
-  const { use12Hour } = useCalendarSettings();
-
-  return (
-    <div className="grid auto-cols-fr border-r border-border/70">
-      {hours.map((hour, index) => (
-        <div
-          key={hour.toString()}
-          className="relative min-h-[var(--week-cells-height)] border-b border-border/70 last:border-b-0"
-        >
-          {index > 0 && (
-            <span className="absolute -top-3 left-0 flex h-6 w-20 max-w-full items-center justify-end bg-background pe-2 text-[10px] font-medium text-muted-foreground/70 tabular-nums sm:pe-4 sm:text-xs">
-              {use12Hour ? format(hour, "h aaa") : format(hour, "HH:mm")}
-            </span>
-          )}
-        </div>
-      ))}
-    </div>
-  );
-}
-
 interface PositionedEventProps {
   positionedEvent: PositionedEvent;
   onEventClick: (event: CalendarEvent, e: React.MouseEvent) => void;
@@ -609,19 +604,18 @@ function WeekViewDayColumns({
                 className="pointer-events-none absolute right-0 left-0 z-20"
                 style={{ top: `${currentTimePosition}%` }}
               >
-                <div className="relative flex items-center">
-                  <div className="absolute -left-1 h-2 w-2 rounded-full bg-primary"></div>
-                  <div className="h-[2px] w-full bg-primary"></div>
+                <div className="relative flex items-center gap-0.5">
+                  <div className="absolute left-0.5 h-3.5 w-1 rounded-full bg-red-500/90"></div>
+                  <div className="h-0.5 w-1.5"></div>
+                  <div className="h-0.5 w-full rounded-r-full bg-red-500/90"></div>
                 </div>
               </div>
             )}
-            <div>
-              <MemoizedWeekViewDayTimeSlots
-                day={day}
-                hours={hours}
-                dispatchAction={dispatchAction}
-              />
-            </div>
+            <MemoizedWeekViewDayTimeSlots
+              day={day}
+              hours={hours}
+              dispatchAction={dispatchAction}
+            />
           </div>
         );
       })}
