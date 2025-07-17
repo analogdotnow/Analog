@@ -43,6 +43,7 @@ import {
 } from "@/components/event-calendar/utils";
 import { cn } from "@/lib/utils";
 import { createDraftEvent } from "@/lib/utils/calendar";
+import { useDoubleClickToCreate } from "../hooks/use-double-click-to-create";
 import { useDragToCreate } from "../hooks/use-drag-to-create";
 import { DragPreview } from "./event/drag-preview";
 import { Timeline } from "./timeline";
@@ -151,6 +152,78 @@ export function WeekView({
     </div>
   );
 }
+
+interface WeekViewAllDayCellProps {
+  day: Date;
+  isDayVisible: boolean;
+  isLastVisibleDay: boolean;
+  multiDayLaneCount: number;
+  overflow: ReturnType<typeof useMultiDayOverflow>;
+  dayOverflowEvents: CalendarEvent[];
+  dispatchAction: (action: Action) => void;
+  timeZone: string;
+}
+
+function WeekViewAllDayCell({
+  day,
+  isDayVisible,
+  isLastVisibleDay,
+  multiDayLaneCount,
+  overflow,
+  dayOverflowEvents,
+  dispatchAction,
+  timeZone,
+}: WeekViewAllDayCellProps) {
+  const cellRef = React.useRef<HTMLDivElement>(null);
+  const date = React.useMemo(() => {
+    return Temporal.PlainDate.from({
+      year: day.getFullYear(),
+      month: day.getMonth() + 1,
+      day: day.getDate(),
+    });
+  }, [day]);
+
+  const { onDoubleClick } = useDoubleClickToCreate({
+    dispatchAction,
+    date,
+    timeZone,
+    columnRef: cellRef,
+    allDay: true,
+  });
+
+  return (
+    <div
+      ref={cellRef}
+      className={cn(
+        "relative border-r border-border/70",
+        isLastVisibleDay && "border-r-0",
+        isDayVisible ? "" : "w-0",
+      )}
+      data-today={isToday(day) || undefined}
+      style={{ visibility: isDayVisible ? "visible" : "hidden" }}
+      onDoubleClick={onDoubleClick}
+    >
+      <div
+        className="min-h-7"
+        style={{ paddingTop: `${multiDayLaneCount * 28}px` }}
+        ref={overflow.containerRef}
+      />
+      {dayOverflowEvents.length > 0 && (
+        <div className="absolute bottom-1 left-1/2 z-20 -translate-x-1/2 transform">
+          <OverflowIndicator
+            count={dayOverflowEvents.length}
+            events={dayOverflowEvents}
+            date={day}
+            dispatchAction={dispatchAction}
+            className="rounded-md border border-border bg-background px-2 py-1 text-xs font-medium text-foreground shadow-md transition-colors hover:bg-muted/80"
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
+const MemoizedWeekViewAllDayCell = React.memo(WeekViewAllDayCell);
 
 interface WeekViewHeaderProps {
   allDays: Date[];
@@ -341,52 +414,17 @@ function WeekViewAllDaySection({
           });
 
           return (
-            <div
+            <MemoizedWeekViewAllDayCell
               key={day.toString()}
-              className={cn(
-                "relative border-r border-border/70",
-                isLastVisibleDay && "border-r-0",
-                isDayVisible ? "" : "w-0",
-              )}
-              data-today={isToday(day) || undefined}
-              style={{ visibility: isDayVisible ? "visible" : "hidden" }}
-              onClick={() => {
-                const start = Temporal.PlainDate.from({
-                  year: day.getFullYear(),
-                  month: day.getMonth() + 1,
-                  day: day.getDate(),
-                });
-
-                const end = start.add({ days: 1 });
-
-                dispatchAction({
-                  type: "draft",
-                  event: createDraftEvent({ start, end }),
-                });
-              }}
-            >
-              {/* Reserve space for multi-day events */}
-              <div
-                className="min-h-7"
-                style={{
-                  paddingTop: `${multiDayLaneCount * 28}px`, // 24px event height + 4px gap
-                }}
-                ref={overflow.containerRef}
-              />
-
-              {/* Show overflow indicator for this day if there are overflow events that start on this day */}
-              {dayOverflowEvents.length > 0 && (
-                <div className="absolute bottom-1 left-1/2 z-20 -translate-x-1/2 transform">
-                  <OverflowIndicator
-                    count={dayOverflowEvents.length}
-                    events={dayOverflowEvents}
-                    date={day}
-                    dispatchAction={dispatchAction}
-                    className="rounded-md border border-border bg-background px-2 py-1 text-xs font-medium text-foreground shadow-md transition-colors hover:bg-muted/80"
-                  />
-                </div>
-              )}
-            </div>
+              day={day}
+              isDayVisible={isDayVisible}
+              isLastVisibleDay={isLastVisibleDay}
+              multiDayLaneCount={multiDayLaneCount}
+              overflow={overflow}
+              dayOverflowEvents={dayOverflowEvents}
+              dispatchAction={dispatchAction}
+              timeZone={settings.defaultTimeZone}
+            />
           );
         })}
 
@@ -653,6 +691,12 @@ function WeekViewDayTimeSlots({
       timeZone: settings.defaultTimeZone,
       columnRef,
     });
+  const { onDoubleClick } = useDoubleClickToCreate({
+    dispatchAction,
+    date,
+    timeZone: settings.defaultTimeZone,
+    columnRef,
+  });
 
   return (
     <motion.div
@@ -661,6 +705,7 @@ function WeekViewDayTimeSlots({
       onPanStart={onDragStart}
       onPan={onDrag}
       onPanEnd={onDragEnd}
+      onDoubleClick={onDoubleClick}
     >
       {hours.map((hour) => {
         return (

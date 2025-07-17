@@ -27,6 +27,7 @@ import { EndHour, StartHour } from "@/components/event-calendar/constants";
 import { useCurrentTimeIndicator } from "@/components/event-calendar/hooks";
 import type { Action } from "@/components/event-calendar/hooks/use-optimistic-events";
 import { isMultiDayEvent } from "@/components/event-calendar/utils";
+import { useDoubleClickToCreate } from "../hooks/use-double-click-to-create";
 import { useDragToCreate } from "../hooks/use-drag-to-create";
 import { DragPreview } from "./event/drag-preview";
 import { Timeline } from "./timeline";
@@ -391,6 +392,12 @@ function DayViewTimeSlots({
       timeZone: settings.defaultTimeZone,
       columnRef,
     });
+  const { onDoubleClick } = useDoubleClickToCreate({
+    dispatchAction,
+    date,
+    timeZone: settings.defaultTimeZone,
+    columnRef,
+  });
 
   return (
     <motion.div
@@ -399,6 +406,7 @@ function DayViewTimeSlots({
       onPanStart={onDragStart}
       onPan={onDrag}
       onPanEnd={onDragEnd}
+      onDoubleClick={onDoubleClick}
     >
       {hours.map((hour) => {
         return (
