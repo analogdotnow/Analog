@@ -7,10 +7,10 @@ export {
 } from "./view-preferences";
 
 export {
-  calendarsVisibilityAtom,
-  type CalendarsVisibility,
-  useCalendarsVisibility,
-} from "./calendars-visibility";
+  calendarPreferencesAtom,
+  type CalendarPreferences,
+  useCalendarPreferences,
+} from "./calendar-preferences";
 
 export {
   calendarSettingsAtom,

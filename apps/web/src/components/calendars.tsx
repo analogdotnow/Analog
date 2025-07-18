@@ -2,7 +2,6 @@
 
 import { Fragment, useMemo, useRef, useState } from "react";
 import { useResizeObserver } from "@react-hookz/web";
-import { useQuery } from "@tanstack/react-query";
 import { ChevronRight } from "lucide-react";
 
 import {
@@ -19,7 +18,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useTRPC } from "@/lib/trpc/client";
+import { useCalendars } from "@/hooks/use-calendars";
 import { CalendarToggle } from "./calendar-toggle";
 
 export type CalendarItem = {
@@ -30,9 +29,7 @@ export type CalendarItem = {
 };
 
 function useCalendarList() {
-  const trpc = useTRPC();
-
-  return useQuery(trpc.calendars.list.queryOptions());
+  return useCalendars();
 }
 
 export function Calendars() {

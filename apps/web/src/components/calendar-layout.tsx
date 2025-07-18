@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { useAtom } from "jotai";
 
 import {
@@ -13,8 +12,8 @@ import { CalendarView } from "@/components/calendar-view";
 import { EventForm } from "@/components/event-form/event-form";
 import { RightSidebar } from "@/components/right-sidebar";
 import { SidebarInset } from "@/components/ui/sidebar";
+import { useCalendars } from "@/hooks/use-calendars";
 import { EventHotkeys } from "@/lib/hotkeys/event-hotkeys";
-import { useTRPC } from "@/lib/trpc/client";
 import { useOptimisticEvents } from "./event-calendar/hooks/use-optimistic-events";
 
 export function CalendarLayout() {
@@ -36,8 +35,7 @@ export function CalendarLayout() {
 }
 
 function IsolatedCalendarLayout() {
-  const trpc = useTRPC();
-  const query = useQuery(trpc.calendars.list.queryOptions());
+  const query = useCalendars();
 
   const { events, selectedEvents, dispatchAction, dispatchAsyncAction } =
     useOptimisticEvents();

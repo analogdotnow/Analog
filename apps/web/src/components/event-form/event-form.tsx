@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { useQuery } from "@tanstack/react-query";
 import { RepeatIcon } from "lucide-react";
 
 import {
@@ -20,8 +19,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
+import { useCalendars } from "@/hooks/use-calendars";
 import { Calendar, CalendarEvent, DraftEvent } from "@/lib/interfaces";
-import { useTRPC } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
 import { createEventId, isDraftEvent } from "@/lib/utils/calendar";
 import {
@@ -81,8 +80,7 @@ export function EventForm({
 }: EventFormProps) {
   const settings = useCalendarSettings();
 
-  const trpc = useTRPC();
-  const query = useQuery(trpc.calendars.list.queryOptions());
+  const query = useCalendars();
 
   const [event, setEvent] = React.useState(selectedEvent);
 

@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import * as ContextMenuPrimitive from "@radix-ui/react-context-menu";
-import { useQuery } from "@tanstack/react-query";
 import { CheckIcon } from "lucide-react";
 
 import { CalendarEvent } from "@/components/event-calendar/types";
@@ -16,7 +15,7 @@ import {
 } from "@/components/ui/context-menu";
 import { KeyboardShortcut } from "@/components/ui/keyboard-shortcut";
 import { Tooltip, TooltipContent } from "@/components/ui/tooltip";
-import { useTRPC } from "@/lib/trpc/client";
+import { useCalendars } from "@/hooks/use-calendars";
 import { cn } from "@/lib/utils";
 import { Action } from "./hooks/use-optimistic-events";
 
@@ -61,8 +60,7 @@ interface EventContextMenuCalendarListProps {
 function EventContextMenuCalendarList({
   disabled,
 }: EventContextMenuCalendarListProps) {
-  const trpc = useTRPC();
-  const calendarQuery = useQuery(trpc.calendars.list.queryOptions());
+  const calendarQuery = useCalendars();
 
   return (
     <div className="mb-1 flex scrollbar-hidden gap-3 overflow-x-auto px-2 py-2">

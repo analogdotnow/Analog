@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useHotkeysContext } from "react-hotkeys-hook";
 
-import { useCalendarsVisibility, useViewPreferences } from "@/atoms";
+import { useCalendarPreferences, useViewPreferences } from "@/atoms";
 import {
   CalendarHeader,
   EventGap,
@@ -109,7 +109,7 @@ export function CalendarView({
   dispatchAction,
 }: CalendarViewProps) {
   const viewPreferences = useViewPreferences();
-  const [calendarVisibility] = useCalendarsVisibility();
+  const [calendarPreferences] = useCalendarPreferences();
   // const isDragging = useAtomValue(isDraggingAtom);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
@@ -121,13 +121,9 @@ export function CalendarView({
     () =>
       filterVisibleEvents(
         filterPastEvents(events, viewPreferences.showPastEvents),
-        calendarVisibility.hiddenCalendars,
+        calendarPreferences,
       ),
-    [
-      events,
-      viewPreferences.showPastEvents,
-      calendarVisibility.hiddenCalendars,
-    ],
+    [events, viewPreferences.showPastEvents, calendarPreferences],
   );
 
   const { enableScope } = useHotkeysContext();

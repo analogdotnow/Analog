@@ -10,6 +10,7 @@ import {
 
 import { toDate } from "@repo/temporal";
 
+import type { CalendarPreferences } from "@/atoms/calendar-preferences";
 import type { CalendarEvent } from "../types";
 
 // ============================================================================
@@ -63,9 +64,12 @@ export function filterPastEvents(
 
 export function filterVisibleEvents(
   events: CalendarEvent[],
-  hiddenCalendars: string[],
+  preferences: CalendarPreferences,
 ): CalendarEvent[] {
-  return events.filter((event) => !hiddenCalendars.includes(event.calendarId));
+  return events.filter((event) => {
+    const key = `${event.accountId}.${event.calendarId}`;
+    return !preferences[key]?.hidden;
+  });
 }
 
 export function getEventsStartingOnDay(

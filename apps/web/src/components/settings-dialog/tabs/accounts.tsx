@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useCalendars } from "@/hooks/use-calendars";
 import { RouterOutputs } from "@/lib/trpc";
 import { useTRPC } from "@/lib/trpc/client";
 import {
@@ -57,7 +58,7 @@ function DefaultCalendarPicker() {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
-  const query = useQuery(trpc.calendars.list.queryOptions());
+  const query = useCalendars();
   const mutation = useMutation(
     trpc.calendars.setDefault.mutationOptions({
       onSuccess: () => {

@@ -2,9 +2,8 @@
 
 import * as React from "react";
 import { useResizeObserver } from "@react-hookz/web";
-import { useQuery } from "@tanstack/react-query";
 
-import { useCalendarsVisibility } from "@/atoms";
+import { useCalendarPreferences } from "@/atoms";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -19,9 +18,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { useCalendars } from "@/hooks/use-calendars";
 import { Calendar } from "@/lib/interfaces";
 import { RouterOutputs } from "@/lib/trpc";
-import { useTRPC } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
 import { CalendarToggle } from "./calendar-toggle";
 
@@ -50,14 +49,12 @@ function VisibleCalendars({ calendars }: VisibleCalendarProps) {
 }
 
 function useCalendarList() {
-  const trpc = useTRPC();
-
-  return useQuery(trpc.calendars.list.queryOptions());
+  return useCalendars();
 }
 
 function CalendarListItem({ calendar }: { calendar: Calendar }) {
-  const [calendarsVisibility, setCalendarsVisibility] =
-    useCalendarsVisibility();
+  const [calendarPreferences, setCalendarPreferences] =
+    useCalendarPreferences();
   const textRef = React.useRef<HTMLSpanElement>(null);
   const [isTextTruncated, setIsTextTruncated] = React.useState(false);
 
@@ -70,26 +67,25 @@ function CalendarListItem({ calendar }: { calendar: Calendar }) {
   });
 
   const handleCalendarVisibilityChange = React.useCallback(
-    (checked: boolean, calendarId: string) => {
-      const newHiddenCalendars = checked
-        ? calendarsVisibility.hiddenCalendars.filter((id) => id !== calendarId)
-        : [...calendarsVisibility.hiddenCalendars, calendarId];
-
-      setCalendarsVisibility({
-        hiddenCalendars: newHiddenCalendars,
-      });
+    (checked: boolean, cal: Calendar) => {
+      const key = `${cal.accountId}.${cal.id}`;
+      setCalendarPreferences((prev) => ({
+        ...prev,
+        [key]: { ...prev[key], hidden: !checked },
+      }));
     },
-    [calendarsVisibility.hiddenCalendars, setCalendarsVisibility],
+    [setCalendarPreferences],
   );
 
-  const checked = !calendarsVisibility.hiddenCalendars.includes(calendar.id);
+  const pref = calendarPreferences[`${calendar.accountId}.${calendar.id}`];
+  const checked = !pref?.hidden;
 
   return (
     <CommandItem
       className="gap-3 ps-3"
       value={`${calendar.name}`}
       onSelect={() => {
-        handleCalendarVisibilityChange(!checked, calendar.id);
+        handleCalendarVisibilityChange(!checked, calendar);
       }}
     >
       <CalendarToggle
@@ -102,7 +98,7 @@ function CalendarListItem({ calendar }: { calendar: Calendar }) {
         className="dark:border-neutral-700"
         checked={checked}
         onCheckedChange={(checked: boolean) => {
-          handleCalendarVisibilityChange(checked, calendar.id);
+          handleCalendarVisibilityChange(checked, calendar);
         }}
         primaryCalendar={calendar.primary}
       />
@@ -116,15 +112,17 @@ export function CalendarPicker() {
 
   const { data } = useCalendarList();
 
-  const [calendarVisibility] = useCalendarsVisibility();
+  const [calendarPreferences] = useCalendarPreferences();
 
   const visibleCalendars = React.useMemo(() => {
     return data?.accounts
       .flatMap((account) => account.calendars)
-      .filter(
-        (calendar) => !calendarVisibility.hiddenCalendars.includes(calendar.id),
-      );
-  }, [data, calendarVisibility]);
+      .filter((calendar) => {
+        const pref =
+          calendarPreferences[`${calendar.accountId}.${calendar.id}`];
+        return !pref?.hidden;
+      });
+  }, [data, calendarPreferences]);
 
   if (!data) {
     return null;
