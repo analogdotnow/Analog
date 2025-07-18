@@ -5,6 +5,8 @@ import * as ContextMenuPrimitive from "@radix-ui/react-context-menu";
 import { useQuery } from "@tanstack/react-query";
 import { CheckIcon } from "lucide-react";
 
+import type { AttendeeStatus } from "@repo/api/providers/interfaces";
+
 import { CalendarEvent } from "@/components/event-calendar/types";
 import {
   ContextMenu,
@@ -101,9 +103,20 @@ export function EventContextMenu({
   children,
   dispatchAction,
 }: EventContextMenuProps) {
-  const responseStatus = React.useMemo(() => {
-    return event.attendees?.find((attendee) => attendee.email === " ")?.status;
-  }, [event]);
+  const responseStatus = event.response?.status;
+
+  const handleRespond = (status: AttendeeStatus) => {
+    if (!responseStatus) return;
+    if (status === responseStatus) return;
+
+    dispatchAction({
+      type: "update",
+      event: {
+        ...event,
+        response: { status },
+      },
+    });
+  };
 
   const handleDelete = () => {
     dispatchAction({ type: "delete", eventId: event.id });
@@ -123,6 +136,7 @@ export function EventContextMenu({
           className="font-medium"
           checked={responseStatus === "accepted"}
           disabled={!responseStatus}
+          onSelect={() => handleRespond("accepted")}
         >
           Going
           <KeyboardShortcut className="ml-auto bg-transparent text-muted-foreground">
@@ -134,6 +148,7 @@ export function EventContextMenu({
           className="font-medium"
           checked={responseStatus === "tentative"}
           disabled={!responseStatus}
+          onSelect={() => handleRespond("tentative")}
         >
           Maybe
           <KeyboardShortcut className="ml-auto bg-transparent text-muted-foreground">
@@ -145,6 +160,7 @@ export function EventContextMenu({
           className="font-medium"
           checked={responseStatus === "declined"}
           disabled={!responseStatus}
+          onSelect={() => handleRespond("declined")}
         >
           Not going
           <KeyboardShortcut className="ml-auto bg-transparent text-muted-foreground">
