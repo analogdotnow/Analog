@@ -1,6 +1,7 @@
 import * as React from "react";
 import { useAtomValue } from "jotai";
 import { useMotionValue, type PanInfo } from "motion/react";
+import { isHotkeyPressed, useHotkeys } from "react-hotkeys-hook";
 import { Temporal } from "temporal-polyfill";
 
 import { selectedEventsAtom } from "@/atoms/selected-events";
@@ -36,6 +37,8 @@ export function useDragToCreate({
   const opacity = useMotionValue(0);
   const emptyImageRef = React.useRef<HTMLImageElement | null>(null);
   const selectedEvent = useAtomValue(selectedEventsAtom);
+  const isDragging = React.useRef(false);
+  const dragCancelled = React.useRef(false);
 
   // Create empty image on client side only to prevent globe icon on Mac Chrome
   React.useEffect(() => {
@@ -65,6 +68,20 @@ export function useDragToCreate({
     column.addEventListener("dragstart", handleDragStart);
     return () => column.removeEventListener("dragstart", handleDragStart);
   }, [columnRef]);
+
+  // Cancel dragging when Escape is pressed
+  useHotkeys(
+    "esc",
+    () => {
+      if (isDragging.current) {
+        dragCancelled.current = true;
+        top.set(0);
+        height.set(0);
+        opacity.set(0);
+      }
+    },
+    { scopes: ["calendar"] },
+  );
 
   const getMinutesFromPosition = (globalY: number) => {
     if (!columnRef.current) return 0;
@@ -101,6 +118,12 @@ export function useDragToCreate({
 
   const onDragStart = (event: PointerEvent, info: PanInfo) => {
     if (!columnRef.current) return;
+    if (isHotkeyPressed("esc")) {
+      dragCancelled.current = true;
+      return;
+    }
+    isDragging.current = true;
+    dragCancelled.current = false;
 
     // Prevent the default drag behavior that causes the globe icon
     event.preventDefault();
@@ -119,6 +142,10 @@ export function useDragToCreate({
 
   const onDrag = (event: PointerEvent, info: PanInfo) => {
     if (!columnRef.current) {
+      return;
+    }
+
+    if (!isDragging.current || dragCancelled.current) {
       return;
     }
 
@@ -148,6 +175,15 @@ export function useDragToCreate({
   };
 
   const onDragEnd = (event: PointerEvent, info: PanInfo) => {
+    isDragging.current = false;
+    if (dragCancelled.current) {
+      dragCancelled.current = false;
+      top.set(0);
+      height.set(0);
+      opacity.set(0);
+      return;
+    }
+
     const currentMinutes = getMinutesFromPosition(info.point.y);
 
     console.log(currentMinutes, initialMinutes.current);
@@ -169,6 +205,18 @@ export function useDragToCreate({
       startTime.toLocaleString("en-US"),
       endTime.toLocaleString("en-US"),
     );
+
+    const duration =
+      endTime.hour * 60 +
+      endTime.minute -
+      (startTime.hour * 60 + startTime.minute);
+
+    if (duration < 15) {
+      top.set(0);
+      height.set(0);
+      opacity.set(0);
+      return;
+    }
 
     const start = date.toZonedDateTime({ timeZone, plainTime: startTime });
     const end = date.toZonedDateTime({ timeZone, plainTime: endTime });
