@@ -7,6 +7,7 @@ import {
   AttendeeStatus,
   Calendar,
   CalendarEvent,
+  CalendarFreeBusy,
   Conference,
 } from "../interfaces";
 import {
@@ -18,6 +19,7 @@ import {
   GoogleCalendarEventAttendeeResponseStatus,
   GoogleCalendarEventConferenceData,
   GoogleCalendarEventCreateParams,
+  GoogleCalendarFreeBusyResponse,
 } from "./interfaces";
 
 export function toGoogleCalendarDate(
@@ -380,4 +382,20 @@ export function parseGoogleCalendarAttendee(
     type: parseGoogleCalendarAttendeeType(attendee),
     additionalGuests: attendee.additionalGuests,
   };
+}
+
+export function parseGoogleCalendarFreeBusy(
+  response: GoogleCalendarFreeBusyResponse,
+): CalendarFreeBusy[] {
+  if (!response.calendars) return [];
+
+  return Object.entries(response.calendars).map(([id, data]) => ({
+    calendarId: id,
+    busy:
+      data.busy?.map((slot) => ({
+        start: Temporal.Instant.from(slot.start!).toZonedDateTimeISO("UTC"),
+        end: Temporal.Instant.from(slot.end!).toZonedDateTimeISO("UTC"),
+        status: "busy",
+      })) ?? [],
+  }));
 }
