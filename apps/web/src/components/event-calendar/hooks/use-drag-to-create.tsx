@@ -1,9 +1,8 @@
 import * as React from "react";
-import { useAtomValue } from "jotai";
 import { useMotionValue, type PanInfo } from "motion/react";
+import { isHotkeyPressed, useHotkeys } from "react-hotkeys-hook";
 import { Temporal } from "temporal-polyfill";
 
-import { selectedEventsAtom } from "@/atoms/selected-events";
 import { createDraftEvent } from "@/lib/utils/calendar";
 import { Action } from "./use-optimistic-events";
 
@@ -35,7 +34,8 @@ export function useDragToCreate({
   const height = useMotionValue(0);
   const opacity = useMotionValue(0);
   const emptyImageRef = React.useRef<HTMLImageElement | null>(null);
-  const selectedEvent = useAtomValue(selectedEventsAtom);
+  const isDragging = React.useRef(false);
+  const dragCancelled = React.useRef(false);
 
   // Create empty image on client side only to prevent globe icon on Mac Chrome
   React.useEffect(() => {
@@ -52,7 +52,10 @@ export function useDragToCreate({
   // Prevent HTML5 drag and drop which causes the globe icon on Mac Chrome
   React.useEffect(() => {
     const column = columnRef.current;
-    if (!column) return;
+
+    if (!column) {
+      return;
+    }
 
     const handleDragStart = (event: DragEvent) => {
       event.preventDefault();
@@ -66,6 +69,20 @@ export function useDragToCreate({
     return () => column.removeEventListener("dragstart", handleDragStart);
   }, [columnRef]);
 
+  // Cancel dragging when Escape is pressed
+  useHotkeys(
+    "esc",
+    () => {
+      if (isDragging.current) {
+        dragCancelled.current = true;
+        top.set(0);
+        height.set(0);
+        opacity.set(0);
+      }
+    },
+    { scopes: ["calendar"] },
+  );
+
   const getMinutesFromPosition = (globalY: number) => {
     if (!columnRef.current) return 0;
 
@@ -74,12 +91,7 @@ export function useDragToCreate({
     const columnHeight = columnRect.height;
 
     // Calculate minutes from the top (0 = 00:00, columnHeight = 24:00 = 1440 minutes)
-    const minutes = Math.max(
-      0,
-      Math.min(1440, (relativeY / columnHeight) * 1440),
-    );
-
-    return minutes;
+    return Math.max(0, Math.min(1440, (relativeY / columnHeight) * 1440));
   };
 
   const getSnappedPosition = (relativeY: number) => {
@@ -100,7 +112,17 @@ export function useDragToCreate({
   };
 
   const onDragStart = (event: PointerEvent, info: PanInfo) => {
-    if (!columnRef.current) return;
+    if (!columnRef.current) {
+      return;
+    }
+
+    if (isHotkeyPressed("esc")) {
+      dragCancelled.current = true;
+      return;
+    }
+
+    isDragging.current = true;
+    dragCancelled.current = false;
 
     // Prevent the default drag behavior that causes the globe icon
     event.preventDefault();
@@ -111,7 +133,7 @@ export function useDragToCreate({
     initialMinutes.current = getMinutesFromPosition(info.point.y);
 
     const snappedTop = getSnappedPosition(relativeY);
-    // console.log(snappedTop, 0);
+
     top.set(snappedTop);
     opacity.set(1);
     // height.set(0);
@@ -119,6 +141,10 @@ export function useDragToCreate({
 
   const onDrag = (event: PointerEvent, info: PanInfo) => {
     if (!columnRef.current) {
+      return;
+    }
+
+    if (!isDragging.current || dragCancelled.current) {
       return;
     }
 
@@ -148,6 +174,16 @@ export function useDragToCreate({
   };
 
   const onDragEnd = (event: PointerEvent, info: PanInfo) => {
+    isDragging.current = false;
+
+    if (dragCancelled.current) {
+      dragCancelled.current = false;
+      top.set(0);
+      height.set(0);
+      opacity.set(0);
+      return;
+    }
+
     const currentMinutes = getMinutesFromPosition(info.point.y);
 
     const startMinutes = Math.min(initialMinutes.current, currentMinutes);
