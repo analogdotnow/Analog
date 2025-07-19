@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { Temporal } from "temporal-polyfill";
 
 import {
   calculateWeekViewEventPositions,
@@ -7,24 +8,33 @@ import {
 } from "@/components/event-calendar/utils";
 import { StartHour, WeekCellsHeight } from "../constants";
 import type { CalendarEvent } from "../types";
-import { getDayKey } from "../utils/date-time";
+import { useDefaultTimeZone } from "@/atoms/calendar-settings";
+
+export type AllDayCalendarEvent = CalendarEvent & {
+  start: Temporal.PlainDate;
+  end: Temporal.PlainDate;
+};
+
+export type TimedCalendarEvent = CalendarEvent & {
+  start: Temporal.ZonedDateTime;
+  end: Temporal.ZonedDateTime;
+};
+
+export type EventCollectionByDay = {
+  dayEvents: TimedCalendarEvent[];
+  spanningEvents: CalendarEvent[];
+  allDayEvents: AllDayCalendarEvent[];
+  allEvents: CalendarEvent[];
+};
 
 export type EventCollectionForMonth = {
   type: "month";
-  eventsByDay: Map<
-    string,
-    {
-      allDayEvents: CalendarEvent[];
-      allEvents: CalendarEvent[];
-      dayEvents: CalendarEvent[];
-      spanningEvents: CalendarEvent[];
-    }
-  >;
+  eventsByDay: Map<string, EventCollectionByDay>;
 };
 
 export type EventCollectionForWeek = {
   type: "week";
-  allDayEvents: CalendarEvent[];
+  allDayEvents: AllDayCalendarEvent[];
   positionedEvents: PositionedEvent[][];
 };
 
@@ -53,42 +63,37 @@ export function useEventCollection(
   days: Date[],
   viewType: "month" | "week",
 ): EventCollectionForMonth | EventCollectionForWeek {
+  const timeZone = useDefaultTimeZone();
+
   return useMemo(() => {
     if (viewType === "month") {
-      const eventsByDay = new Map<
-        string,
-        {
-          allDayEvents: CalendarEvent[];
-          allEvents: CalendarEvent[];
-          dayEvents: CalendarEvent[];
-          spanningEvents: CalendarEvent[];
-        }
-      >();
+      const eventsByDay = new Map<string, EventCollectionByDay>();
 
       for (const day of days) {
-        const dayKey = getDayKey(day);
-        const dayEvents = getEventCollectionsForDays(events, [day]);
-        eventsByDay.set(dayKey, dayEvents);
+        const dayEvents = getEventCollectionsForDays(events, [day], timeZone);
+
+        eventsByDay.set(day.toString(), dayEvents);
       }
 
       return {
         type: "month" as const,
         eventsByDay,
       };
-    } else {
-      const allDayEvents = getEventCollectionsForDays(events, days);
-      const positionedEvents = calculateWeekViewEventPositions(
-        events,
-        days,
-        StartHour,
-        WeekCellsHeight,
-      );
-
-      return {
-        type: "week" as const,
-        allDayEvents,
-        positionedEvents,
-      };
     }
-  }, [events, days, viewType]);
+
+    const allDayEvents = getEventCollectionsForDays(events, days, timeZone);
+    const positionedEvents = calculateWeekViewEventPositions(
+      events,
+      days,
+      StartHour,
+      WeekCellsHeight,
+      timeZone,
+    );
+
+    return {
+      type: "week" as const,
+      allDayEvents,
+      positionedEvents,
+    };
+  }, [events, days, viewType, timeZone]);
 }

@@ -30,17 +30,6 @@ import {
 } from "../constants";
 import { CalendarView } from "../types";
 
-/**
- * Generate a simple date key for Map lookups
- * Uses the day's timestamp at start of day for uniqueness
- */
-export function getDayKey(date: Date): string {
-  const year = date.getFullYear();
-  const month = date.getMonth();
-  const day = date.getDate();
-  return `${year}-${month}-${day}`;
-}
-
 export function snapTimeToInterval(time: Date): Date {
   const snappedTime = new Date(time);
   const minutes = snappedTime.getMinutes();

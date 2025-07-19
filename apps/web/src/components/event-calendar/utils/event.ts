@@ -11,27 +11,28 @@ import {
 import { toDate } from "@repo/temporal";
 
 import type { CalendarEvent } from "../types";
+import { AllDayCalendarEvent } from "../hooks/use-event-collection";
 
 // ============================================================================
 // CORE HELPERS
 // ============================================================================
 
-export function getEventDates(event: CalendarEvent) {
+export function getEventDates(event: CalendarEvent, timeZone: string) {
   return {
-    start: toDate({ value: event.start, timeZone: "UTC" }),
-    end: toDate({ value: event.end, timeZone: "UTC" }),
+    start: toDate({ value: event.start, timeZone }),
+    end: toDate({ value: event.end, timeZone }),
   };
 }
 
-export function eventOverlapsDay(event: CalendarEvent, day: Date): boolean {
-  const { start, end } = getEventDates(event);
+export function eventOverlapsDay(event: CalendarEvent, day: Date, timeZone: string): boolean {
+  const { start, end } = getEventDates(event, timeZone);
   return (
     isSameDay(day, start) || isSameDay(day, end) || (day > start && day < end)
   );
 }
 
-export function isAllDayOrMultiDay(event: CalendarEvent): boolean {
-  return event.allDay || isMultiDayEvent(event);
+export function isAllDayOrMultiDay(event: CalendarEvent, timeZone: string): boolean {
+  return event.allDay || isMultiDayEvent(event, timeZone);
 }
 
 // ============================================================================
@@ -42,8 +43,8 @@ export function generateEventId(): string {
   return Math.random().toString(36).substring(2, 11);
 }
 
-export function isMultiDayEvent(event: CalendarEvent): boolean {
-  const { start, end } = getEventDates(event);
+export function isMultiDayEvent(event: CalendarEvent, timeZone: string): boolean {
+  const { start, end } = getEventDates(event, timeZone);
   return event.allDay || start.getDate() !== end.getDate();
 }
 
@@ -54,11 +55,12 @@ export function isMultiDayEvent(event: CalendarEvent): boolean {
 export function filterPastEvents(
   events: CalendarEvent[],
   showPastEvents: boolean,
+  timeZone: string,
 ): CalendarEvent[] {
   if (showPastEvents) return events;
 
   const now = new Date();
-  return events.filter((event) => getEventDates(event).end >= now);
+  return events.filter((event) => getEventDates(event, timeZone).end >= now);
 }
 
 export function filterVisibleEvents(
@@ -71,28 +73,30 @@ export function filterVisibleEvents(
 export function getEventsStartingOnDay(
   events: CalendarEvent[],
   day: Date,
+  timeZone: string,
 ): CalendarEvent[] {
   return events
     .filter((event) => {
-      const eventStart = toDate({ value: event.start, timeZone: "UTC" });
+      const eventStart = toDate({ value: event.start, timeZone });
       return isSameDay(day, eventStart);
     })
     .sort(
       (a, b) =>
-        toDate({ value: a.start, timeZone: "UTC" }).getTime() -
-        toDate({ value: b.start, timeZone: "UTC" }).getTime(),
+        toDate({ value: a.start, timeZone }).getTime() -
+        toDate({ value: b.start, timeZone }).getTime(),
     );
 }
 
 export function getSpanningEventsForDay(
   events: CalendarEvent[],
   day: Date,
+  timeZone: string,
 ): CalendarEvent[] {
   return events.filter((event) => {
-    if (!isMultiDayEvent(event)) return false;
+    if (!isMultiDayEvent(event, timeZone)) return false;
 
-    const eventStart = toDate({ value: event.start, timeZone: "UTC" });
-    const eventEnd = toDate({ value: event.end, timeZone: "UTC" });
+    const eventStart = toDate({ value: event.start, timeZone });
+    const eventEnd = toDate({ value: event.end, timeZone });
 
     return (
       !isSameDay(day, eventStart) &&
@@ -104,14 +108,16 @@ export function getSpanningEventsForDay(
 export function getAllEventsForDay(
   events: CalendarEvent[],
   day: Date,
+  timeZone: string,
 ): CalendarEvent[] {
   return sortEventsByStartTime(
-    events.filter((event) => eventOverlapsDay(event, day)),
+    events.filter((event) => eventOverlapsDay(event, day, timeZone)),
+    timeZone,
   );
 }
 
-export function getEventSpanInfoForDay(event: CalendarEvent, day: Date) {
-  const { start, end } = getEventDates(event);
+export function getEventSpanInfoForDay(event: CalendarEvent, day: Date, timeZone: string) {
+  const { start, end } = getEventDates(event, timeZone);
   return {
     eventStart: start,
     eventEnd: end,
@@ -126,6 +132,7 @@ export function getEventSpanInfoForDay(event: CalendarEvent, day: Date) {
 export function getEventCollectionsForDays(
   events: CalendarEvent[],
   days: [Date],
+  timeZone: string,
 ): {
   dayEvents: CalendarEvent[];
   spanningEvents: CalendarEvent[];
@@ -139,7 +146,8 @@ export function getEventCollectionsForDays(
 export function getEventCollectionsForDays(
   events: CalendarEvent[],
   days: Date[],
-): CalendarEvent[];
+  timeZone: string,
+): AllDayCalendarEvent[];
 
 /**
  * Get event collections for multiple days (pass single day as [day] for single-day use)
@@ -147,16 +155,17 @@ export function getEventCollectionsForDays(
 export function getEventCollectionsForDays(
   events: CalendarEvent[],
   days: Date[],
+  timeZone: string,
 ) {
   if (days.length === 0) {
     return [];
   }
   if (days.length > 1) {
     const allDayEvents = events
-      .filter(isAllDayOrMultiDay)
-      .filter((event) => days.some((day) => eventOverlapsDay(event, day)));
+      .filter((event) => isAllDayOrMultiDay(event, timeZone))
+      .filter((event) => days.some((day) => eventOverlapsDay(event, day, timeZone)));
 
-    return sortEventsByStartTime(allDayEvents);
+    return sortEventsByStartTime(allDayEvents, timeZone);
   }
 
   const day = days[0]!;
@@ -165,26 +174,26 @@ export function getEventCollectionsForDays(
   const allEvents: CalendarEvent[] = [];
 
   events.forEach((event) => {
-    if (!eventOverlapsDay(event, day)) return;
+    if (!eventOverlapsDay(event, day, timeZone)) return;
 
     allEvents.push(event);
-    const { start } = getEventDates(event);
+    const { start } = getEventDates(event, timeZone);
 
     if (isSameDay(day, start)) {
       dayEvents.push(event);
-    } else if (isMultiDayEvent(event)) {
+    } else if (isMultiDayEvent(event, timeZone)) {
       spanningEvents.push(event);
     }
   });
 
   return {
-    dayEvents: sortEventsByStartTime(dayEvents),
-    spanningEvents: sortEventsByStartTime(spanningEvents),
+    dayEvents: sortEventsByStartTime(dayEvents, timeZone),
+    spanningEvents: sortEventsByStartTime(spanningEvents, timeZone),
     allDayEvents: [
-      ...sortEventsByStartTime(spanningEvents),
-      ...sortEventsByStartTime(dayEvents),
+      ...sortEventsByStartTime(spanningEvents, timeZone),
+      ...sortEventsByStartTime(dayEvents, timeZone),
     ],
-    allEvents: sortEventsByStartTime(allEvents),
+    allEvents: sortEventsByStartTime(allEvents, timeZone),
   };
 }
 
@@ -209,15 +218,16 @@ interface EventColumn {
 function getTimedEventsForDay(
   events: CalendarEvent[],
   day: Date,
+  timeZone: string,
 ): CalendarEvent[] {
   return events.filter((event) => {
-    if (isAllDayOrMultiDay(event)) return false;
-    return eventOverlapsDay(event, day);
+    if (isAllDayOrMultiDay(event, timeZone)) return false;
+    return eventOverlapsDay(event, day, timeZone);
   });
 }
 
-function getAdjustedEventTimes(event: CalendarEvent, day: Date) {
-  const { start, end } = getEventDates(event);
+function getAdjustedEventTimes(event: CalendarEvent, day: Date, timeZone: string) {
+  const { start, end } = getEventDates(event, timeZone);
   const dayStart = startOfDay(day);
 
   return {
@@ -247,6 +257,7 @@ function findEventColumn(
   adjustedStart: Date,
   adjustedEnd: Date,
   columns: EventColumn[][],
+  timeZone: string,
 ): number {
   let columnIndex = 0;
 
@@ -259,7 +270,7 @@ function findEventColumn(
     }
 
     const hasOverlap = column.some((c) => {
-      const { start, end } = getEventDates(c.event);
+      const { start, end } = getEventDates(c.event, timeZone);
       return areIntervalsOverlapping(
         { start: adjustedStart, end: adjustedEnd },
         { start, end },
@@ -320,9 +331,10 @@ function positionEventsForDay(
   day: Date,
   startHour: number,
   cellHeight: number,
+  timeZone: string,
 ): PositionedEvent[] {
-  const timedEvents = getTimedEventsForDay(events, day);
-  const sortedEvents = sortEventsForCollisionDetection(timedEvents);
+  const timedEvents = getTimedEventsForDay(events, day, timeZone);
+  const sortedEvents = sortEventsForCollisionDetection(timedEvents, timeZone);
   const positioned: PositionedEvent[] = [];
 
   // Group events that start within 24px of each other
@@ -330,7 +342,7 @@ function positionEventsForDay(
   const eventGroups: CalendarEvent[][] = [];
 
   for (const event of sortedEvents) {
-    const { start } = getAdjustedEventTimes(event, day);
+    const { start } = getAdjustedEventTimes(event, day, timeZone);
     const startHourValue = getHours(start) + getMinutes(start) / 60;
 
     // Find existing group within proximity threshold
@@ -340,6 +352,7 @@ function positionEventsForDay(
         const { start: groupStart, end: groupEnd } = getAdjustedEventTimes(
           group[0]!,
           day,
+          timeZone,
         );
         const groupStartHourValue =
           getHours(groupStart) + getMinutes(groupStart) / 60;
@@ -374,10 +387,10 @@ function positionEventsForDay(
       .some((previousGroup) => {
         return group.some((groupEvent) => {
           const { start: groupStart, end: groupEnd } =
-            getEventDates(groupEvent);
+            getEventDates(groupEvent, timeZone);
           return previousGroup.some((previousEvent) => {
             const { start: previousStart, end: previousEnd } =
-              getEventDates(previousEvent);
+              getEventDates(previousEvent, timeZone);
             return areIntervalsOverlapping(
               { start: groupStart, end: groupEnd },
               { start: previousStart, end: previousEnd },
@@ -405,10 +418,10 @@ function positionEventsForDay(
       .filter((previousGroup) => {
         return group.some((groupEvent) => {
           const { start: groupStart, end: groupEnd } =
-            getEventDates(groupEvent);
+            getEventDates(groupEvent, timeZone);
           return previousGroup.some((previousEvent) => {
             const { start: previousStart, end: previousEnd } =
-              getEventDates(previousEvent);
+              getEventDates(previousEvent, timeZone);
             return areIntervalsOverlapping(
               { start: groupStart, end: groupEnd },
               { start: previousStart, end: previousEnd },
@@ -423,6 +436,7 @@ function positionEventsForDay(
       const { start: adjustedStart, end: adjustedEnd } = getAdjustedEventTimes(
         event,
         day,
+        timeZone,
       );
       const { top, height } = calculateEventDimensions(
         adjustedStart,
@@ -436,6 +450,7 @@ function positionEventsForDay(
         adjustedStart,
         adjustedEnd,
         columns,
+        timeZone,
       );
 
       // Calculate total columns needed for this group
@@ -476,9 +491,10 @@ export function calculateWeekViewEventPositions(
   days: Date[],
   startHour: number,
   cellHeight: number,
+  timeZone: string,
 ): PositionedEvent[][] {
   return days.map((day) =>
-    positionEventsForDay(events, day, startHour, cellHeight),
+    positionEventsForDay(events, day, startHour, cellHeight, timeZone),
   );
 }
 
@@ -489,10 +505,10 @@ export function calculateWeekViewEventPositions(
 /**
  * Standard event sorting by start time (simple ascending)
  */
-function sortEventsByStartTime(events: CalendarEvent[]): CalendarEvent[] {
+function sortEventsByStartTime(events: CalendarEvent[], timeZone: string): CalendarEvent[] {
   return [...events].sort((a, b) => {
-    const aStart = getEventDates(a).start.getTime();
-    const bStart = getEventDates(b).start.getTime();
+    const aStart = getEventDates(a, timeZone).start.getTime();
+    const bStart = getEventDates(b, timeZone).start.getTime();
     return aStart - bStart;
   });
 }
@@ -503,16 +519,17 @@ function sortEventsByStartTime(events: CalendarEvent[]): CalendarEvent[] {
  */
 function sortEventsForCollisionDetection(
   events: CalendarEvent[],
+  timeZone: string,
 ): CalendarEvent[] {
   return [...events].sort((a, b) => {
-    const { start: aStart } = getEventDates(a);
-    const { start: bStart } = getEventDates(b);
+    const { start: aStart } = getEventDates(a, timeZone);
+    const { start: bStart } = getEventDates(b, timeZone);
 
     if (aStart < bStart) return -1;
     if (aStart > bStart) return 1;
 
-    const { end: aEnd } = getEventDates(a);
-    const { end: bEnd } = getEventDates(b);
+    const { end: aEnd } = getEventDates(a, timeZone);
+    const { end: bEnd } = getEventDates(b, timeZone);
     const aDuration = differenceInMinutes(aEnd, aStart);
     const bDuration = differenceInMinutes(bEnd, bStart);
     return bDuration - aDuration;
@@ -523,14 +540,14 @@ function sortEventsForCollisionDetection(
  * Displaying multi-day events first, then by start time)
  * Used by UI components for rendering order
  */
-export function sortEventsForDisplay(events: CalendarEvent[]): CalendarEvent[] {
+export function sortEventsForDisplay(events: CalendarEvent[], timeZone: string): CalendarEvent[] {
   return [...events].sort((a, b) => {
-    const aIsMultiDay = isMultiDayEvent(a);
-    const bIsMultiDay = isMultiDayEvent(b);
+    const aIsMultiDay = isMultiDayEvent(a, timeZone);
+    const bIsMultiDay = isMultiDayEvent(b, timeZone);
 
     if (aIsMultiDay && !bIsMultiDay) return -1;
     if (!aIsMultiDay && bIsMultiDay) return 1;
 
-    return getEventDates(a).start.getTime() - getEventDates(b).start.getTime();
+    return getEventDates(a, timeZone).start.getTime() - getEventDates(b, timeZone).start.getTime();
   });
 }
