@@ -134,7 +134,7 @@ export function DayView({ currentDate, events, dispatchAction }: DayViewProps) {
   const allDayEvents = React.useMemo(() => {
     return dayEvents.filter((event) => {
       // Include explicitly marked all-day events or multi-day events
-      return event.allDay || isMultiDayEvent(event);
+      return event.allDay || isMultiDayEvent(event, settings.defaultTimeZone);
     });
   }, [dayEvents]);
 
@@ -142,7 +142,7 @@ export function DayView({ currentDate, events, dispatchAction }: DayViewProps) {
   const timeEvents = React.useMemo(() => {
     return dayEvents.filter((event) => {
       // Exclude all-day events and multi-day events
-      return !event.allDay && !isMultiDayEvent(event);
+      return !event.allDay && !isMultiDayEvent(event, settings.defaultTimeZone);
     });
   }, [dayEvents]);
 
@@ -183,7 +183,7 @@ export function DayView({ currentDate, events, dispatchAction }: DayViewProps) {
         timeZone: settings.defaultTimeZone,
       });
       const eventEnd = toDate({
-        value: event.end,
+        value: event.end.subtract({ seconds: 1 }),
         timeZone: settings.defaultTimeZone,
       });
 
@@ -283,7 +283,7 @@ export function DayView({ currentDate, events, dispatchAction }: DayViewProps) {
                 timeZone: settings.defaultTimeZone,
               });
               const eventEnd = toDate({
-                value: event.end,
+                value: event.end.subtract({ days: 1 }),
                 timeZone: settings.defaultTimeZone,
               });
               const isFirstDay = isSameDay(currentDate, eventStart);
@@ -297,10 +297,7 @@ export function DayView({ currentDate, events, dispatchAction }: DayViewProps) {
                   view="month"
                   isFirstDay={isFirstDay}
                   isLastDay={isLastDay}
-                >
-                  {/* Always show the title in day view for better usability */}
-                  <div>{event.title}</div>
-                </EventItem>
+                ></EventItem>
               );
             })}
           </div>

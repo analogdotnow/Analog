@@ -11,7 +11,6 @@ import {
 import { toDate } from "@repo/temporal";
 
 import type { CalendarEvent } from "../types";
-import { AllDayCalendarEvent } from "../hooks/use-event-collection";
 
 // ============================================================================
 // CORE HELPERS
@@ -20,7 +19,7 @@ import { AllDayCalendarEvent } from "../hooks/use-event-collection";
 export function getEventDates(event: CalendarEvent, timeZone: string) {
   return {
     start: toDate({ value: event.start, timeZone }),
-    end: toDate({ value: event.end, timeZone }),
+    end: toDate({ value: event.end.subtract({ seconds: 1 }), timeZone }),
   };
 }
 
@@ -127,48 +126,13 @@ export function getEventSpanInfoForDay(event: CalendarEvent, day: Date, timeZone
 }
 
 /**
- * Get detailed event collections for a single day
- */
-export function getEventCollectionsForDays(
-  events: CalendarEvent[],
-  days: [Date],
-  timeZone: string,
-): {
-  dayEvents: CalendarEvent[];
-  spanningEvents: CalendarEvent[];
-  allDayEvents: CalendarEvent[];
-  allEvents: CalendarEvent[];
-};
-
-/**
- * Get aggregated all-day events for multiple days
- */
-export function getEventCollectionsForDays(
-  events: CalendarEvent[],
-  days: Date[],
-  timeZone: string,
-): AllDayCalendarEvent[];
-
-/**
  * Get event collections for multiple days (pass single day as [day] for single-day use)
  */
-export function getEventCollectionsForDays(
+export function getEventCollectionsForDay(
   events: CalendarEvent[],
-  days: Date[],
+  day: Date,
   timeZone: string,
 ) {
-  if (days.length === 0) {
-    return [];
-  }
-  if (days.length > 1) {
-    const allDayEvents = events
-      .filter((event) => isAllDayOrMultiDay(event, timeZone))
-      .filter((event) => days.some((day) => eventOverlapsDay(event, day, timeZone)));
-
-    return sortEventsByStartTime(allDayEvents, timeZone);
-  }
-
-  const day = days[0]!;
   const dayEvents: CalendarEvent[] = [];
   const spanningEvents: CalendarEvent[] = [];
   const allEvents: CalendarEvent[] = [];
@@ -195,6 +159,25 @@ export function getEventCollectionsForDays(
     ],
     allEvents: sortEventsByStartTime(allEvents, timeZone),
   };
+}
+
+/**
+ * Get aggregated all-day events for multiple days
+ */
+export function getAllDayEventCollectionsForDays(
+  events: CalendarEvent[],
+  days: Date[],
+  timeZone: string,
+) {
+  if (days.length === 0) {
+    return [];
+  }
+
+  const allDayEvents = events
+    .filter((event) => isAllDayOrMultiDay(event, timeZone))
+    .filter((event) => days.some((day) => eventOverlapsDay(event, day, timeZone)));
+
+  return sortEventsByStartTime(allDayEvents, timeZone);
 }
 
 // ============================================================================

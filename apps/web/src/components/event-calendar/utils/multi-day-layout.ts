@@ -128,10 +128,10 @@ export function getGridPosition(
   event: CalendarEvent,
   weekStart: Date,
   weekEnd: Date,
-  timeZone: string = "UTC",
+  timeZone: string,
 ): GridPosition {
   const eventStart = toDate({ value: event.start, timeZone });
-  let eventEnd = toDate({ value: event.end, timeZone });
+  let eventEnd = toDate({ value: event.end.subtract({ seconds: 1 }), timeZone });
 
   // For all-day events, the end date is exclusive. Subtract one day for span calculation.
   if (event.allDay) {
@@ -213,8 +213,8 @@ export function placeIntoLanes(
     }
 
     // If start times are equal, longer events come first
-    const endA = toDate({ value: a.end, timeZone });
-    const endB = toDate({ value: b.end, timeZone });
+    const endA = toDate({ value: a.end.subtract({ seconds: 1 }), timeZone });
+    const endB = toDate({ value: b.end.subtract({ seconds: 1 }), timeZone });
     return endB.getTime() - endA.getTime();
   });
 
@@ -261,7 +261,7 @@ export function getWeekSpanningEvents(
 ): CalendarEvent[] {
   return events.filter((event) => {
     const eventStart = toDate({ value: event.start, timeZone });
-    let eventEnd = toDate({ value: event.end, timeZone });
+    let eventEnd = toDate({ value: event.end.subtract({ seconds: 1 }), timeZone });
 
     // For all-day events, the end date is exclusive.
     if (event.allDay) {
@@ -283,7 +283,7 @@ export function isSingleDayEvent(
   timeZone: string = "UTC",
 ): boolean {
   const eventStart = toDate({ value: event.start, timeZone });
-  let eventEnd = toDate({ value: event.end, timeZone });
+  let eventEnd = toDate({ value: event.end.subtract({ seconds: 1 }), timeZone });
 
   // For all-day events, the end date is exclusive.
   if (event.allDay) {

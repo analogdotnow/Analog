@@ -200,7 +200,7 @@ function MonthViewWeek({
       timeZone: settings.defaultTimeZone,
     });
     let eventEnd = toDate({
-      value: event.end,
+      value: event.end.subtract({ seconds: 1 }),
       timeZone: settings.defaultTimeZone,
     });
 

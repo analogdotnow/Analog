@@ -455,7 +455,10 @@ function WeekViewPositionedEvent({
     value: evt.start,
     timeZone: settings.defaultTimeZone,
   });
-  let eventEnd = toDate({ value: evt.end, timeZone: settings.defaultTimeZone });
+  let eventEnd = toDate({
+    value: evt.end.subtract({ minutes: 1 }),
+    timeZone: settings.defaultTimeZone,
+  });
   if (evt.allDay) {
     eventEnd = subDays(eventEnd, 1);
   }

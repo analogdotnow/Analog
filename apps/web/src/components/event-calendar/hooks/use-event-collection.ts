@@ -3,7 +3,8 @@ import { Temporal } from "temporal-polyfill";
 
 import {
   calculateWeekViewEventPositions,
-  getEventCollectionsForDays,
+  getAllDayEventCollectionsForDays,
+  getEventCollectionsForDay,
   type PositionedEvent,
 } from "@/components/event-calendar/utils";
 import { StartHour, WeekCellsHeight } from "../constants";
@@ -21,9 +22,9 @@ export type TimedCalendarEvent = CalendarEvent & {
 };
 
 export type EventCollectionByDay = {
-  dayEvents: TimedCalendarEvent[];
+  dayEvents: CalendarEvent[];
   spanningEvents: CalendarEvent[];
-  allDayEvents: AllDayCalendarEvent[];
+  allDayEvents: CalendarEvent[];
   allEvents: CalendarEvent[];
 };
 
@@ -34,7 +35,7 @@ export type EventCollectionForMonth = {
 
 export type EventCollectionForWeek = {
   type: "week";
-  allDayEvents: AllDayCalendarEvent[];
+  allDayEvents: CalendarEvent[];
   positionedEvents: PositionedEvent[][];
 };
 
@@ -70,7 +71,7 @@ export function useEventCollection(
       const eventsByDay = new Map<string, EventCollectionByDay>();
 
       for (const day of days) {
-        const dayEvents = getEventCollectionsForDays(events, [day], timeZone);
+        const dayEvents = getEventCollectionsForDay(events, day, timeZone);
 
         eventsByDay.set(day.toString(), dayEvents);
       }
@@ -81,7 +82,7 @@ export function useEventCollection(
       };
     }
 
-    const allDayEvents = getEventCollectionsForDays(events, days, timeZone);
+    const allDayEvents = getAllDayEventCollectionsForDays(events, days, timeZone);
     const positionedEvents = calculateWeekViewEventPositions(
       events,
       days,
