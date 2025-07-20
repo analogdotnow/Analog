@@ -4,10 +4,7 @@ import * as R from "remeda";
 import { toast } from "sonner";
 
 import { compareTemporal } from "@repo/temporal";
-import {
-  endOfMonth,
-  startOfMonth,
-} from "@repo/temporal/v2";
+import { endOfMonth, startOfMonth } from "@repo/temporal/v2";
 
 import { useCalendarSettings } from "@/atoms";
 import { useCalendarState } from "@/hooks/use-calendar-state";
