@@ -1,54 +1,40 @@
 "use client";
 
 import * as React from "react";
-// import {
-//   addHours,
-//   areIntervalsOverlapping,
-//   differenceInMinutes,
-//   eachHourOfInterval,
-//   getHours,
-//   getMinutes,
-//   isSameDay,
-//   startOfDay,
-// } from "date-fns";
 import { motion } from "motion/react";
 import { Temporal } from "temporal-polyfill";
-
-import { toDate } from "@repo/temporal";
-import { isSameDay, startOfDay } from "@repo/temporal/v2";
 
 import { useCalendarSettings } from "@/atoms";
 import {
   DraggableEvent,
   EventItem,
-  WeekCellsHeight,
   type CalendarEvent,
 } from "@/components/event-calendar";
-import { EndHour, StartHour } from "@/components/event-calendar/constants";
-import { useCurrentTimeIndicator } from "@/components/event-calendar/hooks";
+import { useEventCollection } from "@/components/event-calendar/hooks";
 import type { Action } from "@/components/event-calendar/hooks/use-optimistic-events";
-import { isMultiDayEvent } from "@/components/event-calendar/utils";
+import { cn } from "@/lib/utils";
+import { EventCollectionItem } from "../hooks/event-collection";
 import { useDragToCreate } from "../hooks/use-drag-to-create";
+import { HOURS } from "./constants";
 import { DragPreview } from "./event/drag-preview";
+import { TimeIndicator, TimeIndicatorBackground } from "./time-indicator";
 import { Timeline } from "./timeline";
 
 interface DayViewProps {
   currentDate: Temporal.PlainDate;
-  events: CalendarEvent[];
+  events: EventCollectionItem[];
   dispatchAction: (action: Action) => void;
 }
 
-interface PositionedEvent {
-  event: CalendarEvent;
-  top: number;
-  height: number;
-  left: number;
-  width: number;
-  zIndex: number;
-}
-
 interface PositionedEventProps {
-  positionedEvent: PositionedEvent;
+  positionedEvent: {
+    item: EventCollectionItem;
+    top: number;
+    height: number;
+    left: number;
+    width: number;
+    zIndex: number;
+  };
   onEventClick: (event: CalendarEvent, e: React.MouseEvent) => void;
   dispatchAction: (action: Action) => void;
   containerRef: React.RefObject<HTMLDivElement | null>;
@@ -64,7 +50,7 @@ function PositionedEvent({
 
   return (
     <div
-      key={positionedEvent.event.id}
+      key={positionedEvent.item.event.id}
       className="absolute z-10"
       style={{
         top: `${positionedEvent.top}px`,
@@ -76,9 +62,9 @@ function PositionedEvent({
       onClick={(e) => e.stopPropagation()}
     >
       <DraggableEvent
-        event={positionedEvent.event}
+        event={positionedEvent.item.event}
         view="day"
-        onClick={(e) => onEventClick(positionedEvent.event, e)}
+        onClick={(e) => onEventClick(positionedEvent.item.event, e)}
         dispatchAction={dispatchAction}
         showTime
         height={positionedEvent.height}
@@ -92,234 +78,36 @@ function PositionedEvent({
 export function DayView({ currentDate, events, dispatchAction }: DayViewProps) {
   const containerRef = React.useRef<HTMLDivElement | null>(null);
 
-  const settings = useCalendarSettings();
-
-  const dayEvents = React.useMemo(() => {
-    return events
-      .filter((event) => {
-        const eventStart = toDate({
-          value: event.start,
-          timeZone: settings.defaultTimeZone,
-        });
-        const eventEnd = event.end;
-        return (
-          isSameDay(currentDate, eventStart) ||
-          isSameDay(currentDate, eventEnd) ||
-          (currentDate > eventStart && currentDate < eventEnd)
-        );
-      })
-      .sort(
-        (a, b) =>
-          toDate({
-            value: a.start,
-            timeZone: settings.defaultTimeZone,
-          }).getTime() -
-          toDate({
-            value: b.start,
-            timeZone: settings.defaultTimeZone,
-          }).getTime(),
-      );
-  }, [currentDate, events, settings.defaultTimeZone]);
-
-  // Filter all-day events
-  const allDayEvents = React.useMemo(() => {
-    return dayEvents.filter((event) => {
-      // Include explicitly marked all-day events or multi-day events
-      return event.allDay || isMultiDayEvent(event, settings.defaultTimeZone);
-    });
-  }, [dayEvents]);
-
-  // Get only single-day time-based events
-  const timeEvents = React.useMemo(() => {
-    return dayEvents.filter((event) => {
-      // Exclude all-day events and multi-day events
-      return !event.allDay && !isMultiDayEvent(event, settings.defaultTimeZone);
-    });
-  }, [dayEvents]);
-
-  // Process events to calculate positions
-  const positionedEvents = React.useMemo(() => {
-    const result: PositionedEvent[] = [];
-    const dayStart = startOfDay(currentDate, {
-      timeZone: settings.defaultTimeZone,
-    });
-
-    // Sort events by start time and duration
-    const sortedEvents = [...timeEvents].sort((a, b) => {
-      const aStart = toDate({
-        value: a.start,
-        timeZone: settings.defaultTimeZone,
-      });
-      const bStart = toDate({
-        value: b.start,
-        timeZone: settings.defaultTimeZone,
-      });
-      const aEnd = toDate({ value: a.end, timeZone: settings.defaultTimeZone });
-      const bEnd = toDate({ value: b.end, timeZone: settings.defaultTimeZone });
-
-      // First sort by start time
-      if (aStart < bStart) return -1;
-      if (aStart > bStart) return 1;
-
-      // If start times are equal, sort by duration (longer events first)
-      const aDuration = differenceInMinutes(aEnd, aStart);
-      const bDuration = differenceInMinutes(bEnd, bStart);
-      return bDuration - aDuration;
-    });
-
-    // Track columns for overlapping events
-    const columns: { event: CalendarEvent; end: Date }[][] = [];
-
-    sortedEvents.forEach((event) => {
-      const eventStart = toDate({
-        value: event.start,
-        timeZone: settings.defaultTimeZone,
-      });
-      const eventEnd = toDate({
-        value: event.end.subtract({ seconds: 1 }),
-        timeZone: settings.defaultTimeZone,
-      });
-
-      // Adjust start and end times if they're outside this day
-      const adjustedStart = isSameDay(currentDate, eventStart)
-        ? eventStart
-        : dayStart;
-      const adjustedEnd = isSameDay(currentDate, eventEnd)
-        ? eventEnd
-        : addHours(dayStart, 24);
-
-      // Calculate top position and height
-      const startHour =
-        getHours(adjustedStart) + getMinutes(adjustedStart) / 60;
-      const endHour = getHours(adjustedEnd) + getMinutes(adjustedEnd) / 60;
-      const top = (startHour - StartHour) * WeekCellsHeight;
-      const height = (endHour - startHour) * WeekCellsHeight;
-
-      // Find a column for this event
-      let columnIndex = 0;
-      let placed = false;
-
-      while (!placed) {
-        const col = columns[columnIndex] || [];
-        if (col.length === 0) {
-          columns[columnIndex] = col;
-          placed = true;
-        } else {
-          const overlaps = col.some((c) =>
-            areIntervalsOverlapping(
-              { start: adjustedStart, end: adjustedEnd },
-              {
-                start: toDate({
-                  value: c.event.start,
-                  timeZone: settings.defaultTimeZone,
-                }),
-                end: toDate({
-                  value: c.event.end,
-                  timeZone: settings.defaultTimeZone,
-                }),
-              },
-            ),
-          );
-          if (!overlaps) {
-            placed = true;
-          } else {
-            columnIndex++;
-          }
-        }
-      }
-
-      // Ensure column is initialized before pushing
-      const currentColumn = columns[columnIndex] || [];
-      columns[columnIndex] = currentColumn;
-      currentColumn.push({ event, end: adjustedEnd });
-
-      // First column takes full width, others are indented by 10% and take 90% width
-      const width = columnIndex === 0 ? 1 : 0.9;
-      const left = columnIndex === 0 ? 0 : columnIndex * 0.1;
-
-      result.push({
-        event,
-        top,
-        height,
-        left,
-        width,
-        zIndex: 10 + columnIndex, // Higher columns get higher z-index
-      });
-    });
-
-    return result;
-  }, [currentDate, timeEvents, settings.defaultTimeZone]);
+  // Use the new event collection hook
+  const eventCollection = useEventCollection(events, currentDate, "day");
 
   const handleEventClick = (event: CalendarEvent, e: React.MouseEvent) => {
     e.stopPropagation();
     dispatchAction({ type: "select", event });
   };
 
-  const { currentTimePosition, currentTimeVisible, formattedTime } =
-    useCurrentTimeIndicator(currentDate, "day");
-
-  const { use12Hour } = useCalendarSettings();
-
   return (
     <div data-slot="day-view" className="contents" ref={containerRef}>
-      <div className="sticky top-0 z-30 border-t border-border/70 bg-background/80 backdrop-blur-md">
-        <div className="grid grid-cols-[5rem_1fr] border-b border-border/70">
-          <div className="relative flex min-h-7 flex-col justify-center border-r border-border/70">
-            <span className="w-16 max-w-full ps-2 text-right text-[10px] text-muted-foreground/70 sm:ps-4 sm:text-xs">
-              All day
-            </span>
-          </div>
-          <div className="relative border-r border-border/70 p-1 last:border-r-0">
-            {allDayEvents.map((event) => {
-              const eventStart = toDate({
-                value: event.start,
-                timeZone: settings.defaultTimeZone,
-              });
-              const eventEnd = toDate({
-                value: event.end.subtract({ days: 1 }),
-                timeZone: settings.defaultTimeZone,
-              });
-              const isFirstDay = isSameDay(currentDate, eventStart);
-              const isLastDay = isSameDay(currentDate, eventEnd);
-
-              return (
-                <EventItem
-                  key={`spanning-${event.id}`}
-                  onClick={(e) => handleEventClick(event, e)}
-                  event={event}
-                  view="month"
-                  isFirstDay={isFirstDay}
-                  isLastDay={isLastDay}
-                ></EventItem>
-              );
-            })}
-          </div>
-        </div>
-      </div>
+      <AllDayRow>
+        {eventCollection.allDayEvents.map((item) => (
+          <DayViewPositionedEvent
+            key={`spanning-${item.event.id}`}
+            item={item}
+            currentDate={currentDate}
+            dispatchAction={dispatchAction}
+          />
+        ))}
+      </AllDayRow>
 
       <div className="relative isolate grid flex-1 grid-cols-[5rem_1fr] overflow-hidden border-border/70">
-        {/* Current time indicator spanning both columns */}
-        <div
-          className="pointer-events-none absolute right-0 left-0"
-          style={{ top: `${currentTimePosition}%` }}
-        >
-          <div className="relative flex items-center">
-            <div className="absolute flex h-4 w-20 items-center justify-end border-r border-transparent">
-              <p className="z-[1000] pe-2 text-[10px] font-medium text-red-500/80 tabular-nums sm:pe-4 sm:text-xs">
-                {formattedTime}
-              </p>
-            </div>
-            <div className="h-0.5 w-20"></div>
-            <div className="h-0.5 grow bg-red-500/10"></div>
-          </div>
-        </div>
+        <TimeIndicatorBackground date={currentDate} />
 
-        <Timeline hours={hours} />
+        <Timeline />
 
         <div className="relative">
-          {positionedEvents.map((positionedEvent) => (
+          {eventCollection.positionedEvents.map((positionedEvent) => (
             <PositionedEvent
-              key={positionedEvent.event.id}
+              key={positionedEvent.item.event.id}
               positionedEvent={positionedEvent}
               onEventClick={handleEventClick}
               dispatchAction={dispatchAction}
@@ -327,23 +115,11 @@ export function DayView({ currentDate, events, dispatchAction }: DayViewProps) {
             />
           ))}
 
-          {/* Current time indicator */}
-          {currentTimeVisible && (
-            <div
-              className="pointer-events-none absolute right-0 left-0 z-20"
-              style={{ top: `${currentTimePosition}%` }}
-            >
-              <div className="relative flex items-center gap-0.5">
-                <div className="absolute left-0.5 h-3.5 w-1 rounded-full bg-red-500/90"></div>
-                <div className="h-0.5 w-1.5"></div>
-                <div className="h-0.5 w-full rounded-r-full bg-red-500/90"></div>
-              </div>
-            </div>
-          )}
+          <TimeIndicator date={currentDate} />
 
           <MemoizedDayViewTimeSlots
             currentDate={currentDate}
-            hours={hours}
+            hours={HOURS}
             dispatchAction={dispatchAction}
           />
         </div>
@@ -352,9 +128,72 @@ export function DayView({ currentDate, events, dispatchAction }: DayViewProps) {
   );
 }
 
+type AllDayRowProps = React.ComponentProps<"div">;
+
+function AllDayRow({ children, className, ...props }: AllDayRowProps) {
+  return (
+    <div
+      className={cn(
+        "sticky top-0 z-30 border-t border-border/70 bg-background/80 backdrop-blur-md",
+        className,
+      )}
+      {...props}
+    >
+      <div className="grid grid-cols-[5rem_1fr] border-b border-border/70">
+        <div className="relative flex min-h-7 flex-col justify-center border-r border-border/70">
+          <span className="w-16 max-w-full ps-2 text-right text-[10px] text-muted-foreground/70 sm:ps-4 sm:text-xs">
+            All day
+          </span>
+        </div>
+        <div className="relative border-r border-border/70 py-1 last:border-r-0">
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface DayViewPositionedEventProps {
+  item: EventCollectionItem;
+  currentDate: Temporal.PlainDate;
+  dispatchAction: (action: Action) => void;
+}
+
+function DayViewPositionedEvent({
+  item,
+  currentDate,
+  dispatchAction,
+}: DayViewPositionedEventProps) {
+  const handleEventClick = React.useCallback(
+    (event: CalendarEvent, e: React.MouseEvent) => {
+      e.stopPropagation();
+      dispatchAction({ type: "select", event });
+    },
+    [dispatchAction],
+  );
+
+  const { isFirstDay, isLastDay } = React.useMemo(() => {
+    // For single-day events, ensure they are properly marked as first and last day
+    const isFirstDay = Temporal.PlainDate.compare(item.start, currentDate) >= 0;
+    const isLastDay = Temporal.PlainDate.compare(item.end, currentDate) <= 0;
+
+    return { isFirstDay, isLastDay };
+  }, [item.start, item.end, currentDate]);
+
+  return (
+    <EventItem
+      onClick={(e) => handleEventClick(item.event, e)}
+      event={item.event}
+      view="month"
+      isFirstDay={isFirstDay}
+      isLastDay={isLastDay}
+    />
+  );
+}
+
 interface DayViewTimeSlotsProps {
-  currentDate: Date;
-  hours: Date[];
+  currentDate: Temporal.PlainDate;
+  hours: Temporal.PlainTime[];
   dispatchAction: (action: Action) => void;
 }
 
@@ -364,20 +203,12 @@ function DayViewTimeSlots({
   dispatchAction,
 }: DayViewTimeSlotsProps) {
   const settings = useCalendarSettings();
-
   const columnRef = React.useRef<HTMLDivElement>(null);
-  const date = React.useMemo(() => {
-    return Temporal.PlainDate.from({
-      year: currentDate.getFullYear(),
-      month: currentDate.getMonth() + 1,
-      day: currentDate.getDate(),
-    });
-  }, [currentDate]);
 
   const { onDragStart, onDrag, onDragEnd, top, height, opacity } =
     useDragToCreate({
       dispatchAction,
-      date,
+      date: currentDate,
       timeZone: settings.defaultTimeZone,
       columnRef,
     });

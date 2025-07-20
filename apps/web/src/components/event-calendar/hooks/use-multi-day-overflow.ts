@@ -1,8 +1,7 @@
 import * as React from "react";
 
-import { EventCollectionItem } from "@/components/event-calendar/hooks/use-event-collection";
+import { EventCollectionItem } from "@/components/event-calendar/hooks/event-collection";
 import { EventGap, EventHeight } from "../constants";
-import type { CalendarEvent } from "../types";
 import {
   getOverflowEvents,
   organizeEventsWithOverflow,

@@ -14,7 +14,8 @@ import { toDate } from "@repo/temporal";
 import * as T from "@repo/temporal/v2";
 
 import { CalendarEvent } from "@/lib/interfaces";
-import { EventCollectionItem, EventCollectionByDay } from "../hooks/use-event-collection";
+import { EventCollectionItem } from "../hooks/event-collection";
+import { EventCollectionByDay } from "../hooks/use-event-collection";
 
 // ============================================================================
 // CORE HELPERS
@@ -700,17 +701,17 @@ export function getEventCollectionsBatch(
       if (isMultiDay) {
         if (event.event.allDay) {
           const exclusiveEnd = end.subtract({ days: 1 });
-          overlaps = (
+          overlaps =
             Temporal.PlainDate.compare(day, start) === 0 ||
             Temporal.PlainDate.compare(day, exclusiveEnd) === 0 ||
-            (Temporal.PlainDate.compare(day, start) > 0 && Temporal.PlainDate.compare(day, exclusiveEnd) < 0)
-          );
+            (Temporal.PlainDate.compare(day, start) > 0 &&
+              Temporal.PlainDate.compare(day, exclusiveEnd) < 0);
         } else {
-          overlaps = (
+          overlaps =
             Temporal.PlainDate.compare(day, start) === 0 ||
             Temporal.PlainDate.compare(day, end) === 0 ||
-            (Temporal.PlainDate.compare(day, start) > 0 && Temporal.PlainDate.compare(day, end) < 0)
-          );
+            (Temporal.PlainDate.compare(day, start) > 0 &&
+              Temporal.PlainDate.compare(day, end) < 0);
         }
       } else {
         overlaps = Temporal.PlainDate.compare(day, start) === 0;

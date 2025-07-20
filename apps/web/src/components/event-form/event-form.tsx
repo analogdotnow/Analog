@@ -149,6 +149,7 @@ export function EventForm({
     form.reset();
   }, [selectedEvent, event, form]);
 
+  console.log(JSON.stringify(form.state.values.attendees, null, 2));
   return (
     <form
       className={cn("flex flex-col gap-y-1")}
@@ -254,13 +255,20 @@ export function EventForm({
                     <AttendeeList
                       className={cn(field.state.value.length > 0 && "py-2")}
                     >
-                      {field.state.value.map((v, i) => {
+                      {field.state.value.filter(Boolean).map((v, i) => {
+                        console.log("v", JSON.stringify(v, null, 2));
                         return (
                           <form.Field
                             key={`${field.name}-${v.email}`}
                             name={`attendees[${i}]`}
                           >
                             {(subField) => {
+                              if (!subField.state.value) {
+                                return null;
+                              }
+                              console.log(
+                                JSON.stringify(subField.state.value, null, 2),
+                              );
                               return (
                                 <AttendeeListItem
                                   name={subField.state.value.name}
@@ -288,6 +296,7 @@ export function EventForm({
                       )}
                       onComplete={(email) => {
                         field.pushValue({
+                          name: "",
                           email,
                           status: "unknown",
                           type: "required",

@@ -6,22 +6,11 @@ import { motion } from "motion/react";
 import { Temporal } from "temporal-polyfill";
 
 import { toDate } from "@repo/temporal";
-import {
-  eachDayOfInterval,
-  isSameDay,
-  isToday,
-  isWeekend,
-  isWithinInterval,
-  startOfWeek,
-} from "@repo/temporal/v2";
+import { isToday, isWeekend } from "@repo/temporal/v2";
 
 import { useCalendarSettings, useViewPreferences } from "@/atoms";
+import { DraggableEvent } from "@/components/event-calendar";
 import {
-  DraggableEvent,
-  type CalendarEvent,
-} from "@/components/event-calendar";
-import {
-  useCurrentTimeIndicator,
   useEventCollection,
   useGridLayout,
   type EventCollectionForWeek,
@@ -30,24 +19,23 @@ import { useMultiDayOverflow } from "@/components/event-calendar/hooks/use-multi
 import type { Action } from "@/components/event-calendar/hooks/use-optimistic-events";
 import { OverflowIndicator } from "@/components/event-calendar/overflow-indicator";
 import {
+  getEventsStartingOnPlainDate,
   getGridPosition,
   getWeek,
-  placeIntoLanes,
-  getEventsStartingOnPlainDate,
   type PositionedEvent,
 } from "@/components/event-calendar/utils";
 import { cn } from "@/lib/utils";
 import { createDraftEvent } from "@/lib/utils/calendar";
-import { useZonedDateTime } from "../context/datetime-provider";
+import { EventCollectionItem } from "../hooks/event-collection";
 import { useDragToCreate } from "../hooks/use-drag-to-create";
-import { EventCollectionItem } from "../hooks/use-event-collection";
 import { HOURS } from "./constants";
 import { DragPreview } from "./event/drag-preview";
+import { TimeIndicator, TimeIndicatorBackground } from "./time-indicator";
 import { Timeline } from "./timeline";
 
 interface WeekViewProps extends React.ComponentProps<"div"> {
   currentDate: Temporal.PlainDate;
-  events: CalendarEvent[];
+  events: EventCollectionItem[];
   dispatchAction: (action: Action) => void;
   headerRef: React.RefObject<HTMLDivElement | null>;
 }
@@ -62,18 +50,21 @@ export function WeekView({
   const viewPreferences = useViewPreferences();
 
   const settings = useCalendarSettings();
-  const week = React.useMemo(
-    () => getWeek(currentDate, settings.weekStartsOn),
-    [currentDate, settings.weekStartsOn],
-  );
+  const { week, visibleDays } = React.useMemo(() => {
+    const week = getWeek(currentDate, settings.weekStartsOn);
 
-  const visibleDays = React.useMemo(
-    () =>
-      viewPreferences.showWeekends
-        ? week.days
-        : week.days.filter((day) => !isWeekend(day)),
-    [week.days, viewPreferences.showWeekends],
-  );
+    if (!viewPreferences.showWeekends) {
+      return {
+        week,
+        visibleDays: week.days.filter((day) => !isWeekend(day)),
+      };
+    }
+
+    return {
+      week,
+      visibleDays: week.days,
+    };
+  }, [currentDate, settings.weekStartsOn, viewPreferences.showWeekends]);
 
   const gridTemplateColumns = useGridLayout(week.days, {
     includeTimeColumn: true,
@@ -81,11 +72,6 @@ export function WeekView({
   const eventCollection = useEventCollection(events, visibleDays, "week");
 
   const containerRef = React.useRef<HTMLDivElement>(null);
-
-  const { currentTimePosition, formattedTime } = useCurrentTimeIndicator(
-    currentDate,
-    "week",
-  );
 
   return (
     <div data-slot="week-view" className="isolate flex flex-col" {...props}>
@@ -113,20 +99,7 @@ export function WeekView({
         className="relative isolate grid flex-1 overflow-hidden transition-[grid-template-columns] duration-200 ease-linear"
         style={{ gridTemplateColumns }}
       >
-        <div
-          className="pointer-events-none absolute right-0 left-0"
-          style={{ top: `${currentTimePosition}%` }}
-        >
-          <div className="relative flex items-center">
-            <div className="absolute flex h-4 w-20 items-center justify-end border-r border-transparent">
-              <p className="z-[1000] pe-2 text-[10px] font-medium text-red-500/80 tabular-nums sm:pe-4 sm:text-xs">
-                {formattedTime}
-              </p>
-            </div>
-            <div className="h-0.5 w-20"></div>
-            <div className="h-0.5 grow bg-red-500/10"></div>
-          </div>
-        </div>
+        <TimeIndicatorBackground date={currentDate} />
         <Timeline />
         <WeekViewDayColumns
           allDays={week.days}
@@ -219,70 +192,15 @@ function WeekViewAllDaySection({
   visibleDays,
   eventCollection,
   gridTemplateColumns,
-  currentDate,
   containerRef,
   dispatchAction,
 }: WeekViewAllDaySectionProps) {
   const viewPreferences = useViewPreferences();
   const settings = useCalendarSettings();
 
-  const weekStart = React.useMemo(
-    () => startOfWeek(currentDate, { weekStartsOn: settings.weekStartsOn }),
-    [currentDate, settings.weekStartsOn],
-  );
-  const weekEnd = React.useMemo(() => allDays[allDays.length - 1]!, [allDays]);
-  const allDayEvents = React.useMemo(() => {
-    const events =
-      eventCollection.type === "week" ? eventCollection.allDayEvents : [];
-
-    // If weekends are hidden, filter out events that only occur on weekends
-    if (!viewPreferences.showWeekends) {
-      return events.filter((item) => {
-        const eventStart = item.start;
-
-        // All-day events have an exclusive end; subtract one day so the final day is included
-        const eventEnd = item.end;
-        // Get all days that this event spans within the week
-        const eventDays = eachDayOfInterval(
-          Temporal.PlainDate.compare(eventStart, weekStart) === -1
-            ? weekStart
-            : eventStart,
-          Temporal.PlainDate.compare(eventEnd, weekEnd) === 1
-            ? weekEnd
-            : eventEnd,
-          { timeZone: settings.defaultTimeZone },
-        );
-
-        // Check if event has at least one day that's not a weekend
-        const hasNonWeekendDay = eventDays.some((day) => !isWeekend(day));
-
-        return hasNonWeekendDay;
-      });
-    }
-
-    return events;
-    // .filter((item) => {
-    //   const eventStart = item.start;
-    //   // All-day events have an exclusive end; subtract one day so the final day is included
-    //   const eventEnd = item.event.allDay ? item.end.subtract({ days: 1 }) : item.end;
-
-    //   return (
-    //     isWithinInterval(eventStart, { start: weekStart, end: weekEnd }, { timeZone: settings.defaultTimeZone }) ||
-    //     isWithinInterval(eventEnd, { start: weekStart, end: weekEnd }, { timeZone: settings.defaultTimeZone })
-    //   );
-    // });
-  }, [
-    eventCollection,
-    viewPreferences.showWeekends,
-    settings.defaultTimeZone,
-    weekStart,
-    weekEnd,
-  ]);
-
-
   // Use overflow hook for all-day events
   const overflow = useMultiDayOverflow({
-    events: allDayEvents,
+    events: eventCollection.allDayEvents,
     timeZone: settings.defaultTimeZone,
     minVisibleLanes: 10,
   });
@@ -370,7 +288,6 @@ function WeekViewAllDaySection({
           className="pointer-events-none absolute inset-x-0 top-0 bottom-0 grid min-w-0 auto-rows-max"
           style={{ gridTemplateColumns }}
         >
-          {/* Skip the time column */}
           <div />
 
           {/* Render only visible events */}
@@ -381,8 +298,8 @@ function WeekViewAllDaySection({
                   key={evt.event.id}
                   y={y}
                   item={evt}
-                  weekStart={weekStart}
-                  weekEnd={weekEnd}
+                  weekStart={allDays[0]!}
+                  weekEnd={allDays[allDays.length - 1]!}
                   settings={settings}
                   dispatchAction={dispatchAction}
                   containerRef={containerRef}
@@ -422,13 +339,13 @@ function WeekViewPositionedEvent({
     settings.defaultTimeZone,
   );
 
-  // Calculate actual first/last day based on event dates
-  const eventStart = item.start;
-  const eventEnd = item.end;
+  const { isFirstDay, isLastDay } = React.useMemo(() => {
+    // For single-day events, ensure they are properly marked as first and last day
+    const isFirstDay = Temporal.PlainDate.compare(item.start, weekStart) >= 0;
+    const isLastDay = Temporal.PlainDate.compare(item.end, weekEnd) <= 0;
 
-  // For single-day events, ensure they are properly marked as first and last day
-  const isFirstDay = Temporal.PlainDate.compare(eventStart, weekStart) >= 0;
-  const isLastDay = Temporal.PlainDate.compare(eventEnd, weekEnd) <= 0;
+    return { isFirstDay, isLastDay };
+  }, [item.start, item.end, weekStart, weekEnd]);
 
   const [isDragging, setIsDragging] = React.useState(false);
 
@@ -529,24 +446,18 @@ function WeekViewDayColumns({
   allDays,
   visibleDays,
   eventCollection,
-  currentDate,
   dispatchAction,
   containerRef,
 }: WeekViewDayColumnsProps) {
   const viewPreferences = useViewPreferences();
-  const settings = useCalendarSettings();
-
-  const { currentTimePosition, currentTimeVisible } = useCurrentTimeIndicator(
-    currentDate,
-    "week",
-  );
+  const { defaultTimeZone } = useCalendarSettings();
 
   return (
     <>
-      {allDays.map((day) => {
-        const isDayVisible = viewPreferences.showWeekends || !isWeekend(day);
+      {allDays.map((date) => {
+        const isDayVisible = viewPreferences.showWeekends || !isWeekend(date);
         const visibleDayIndex = visibleDays.findIndex(
-          (d) => Temporal.PlainDate.compare(d, day) === 0,
+          (d) => Temporal.PlainDate.compare(d, date) === 0,
         );
         const isLastVisibleDay =
           isDayVisible && visibleDayIndex === visibleDays.length - 1;
@@ -558,14 +469,14 @@ function WeekViewDayColumns({
 
         return (
           <div
-            key={day.toString()}
+            key={date.toString()}
             className={cn(
               "relative grid auto-cols-fr border-r border-border/70",
               isLastVisibleDay && "border-r-0",
               !isDayVisible && "w-0 overflow-hidden",
             )}
             data-today={
-              isToday(day, { timeZone: settings.defaultTimeZone }) || undefined
+              isToday(date, { timeZone: defaultTimeZone }) || undefined
             }
             style={{ visibility: isDayVisible ? "visible" : "hidden" }}
           >
@@ -578,21 +489,9 @@ function WeekViewDayColumns({
               />
             ))}
 
-            {currentTimeVisible &&
-              isToday(day, { timeZone: settings.defaultTimeZone }) && (
-                <div
-                  className="pointer-events-none absolute right-0 left-0 z-20"
-                  style={{ top: `${currentTimePosition}%` }}
-                >
-                  <div className="relative flex items-center gap-0.5">
-                    <div className="absolute left-0.5 h-3.5 w-1 rounded-full bg-red-500/90"></div>
-                    <div className="h-0.5 w-1.5"></div>
-                    <div className="h-0.5 w-full rounded-r-full bg-red-500/90"></div>
-                  </div>
-                </div>
-              )}
+            <TimeIndicator date={date} />
             <MemoizedWeekViewDayTimeSlots
-              day={day}
+              date={date}
               dispatchAction={dispatchAction}
             />
           </div>
@@ -603,23 +502,23 @@ function WeekViewDayColumns({
 }
 
 interface WeekViewDayTimeSlotsProps {
-  day: Temporal.PlainDate;
+  date: Temporal.PlainDate;
   dispatchAction: (action: Action) => void;
 }
 
 function WeekViewDayTimeSlots({
-  day,
+  date,
   dispatchAction,
 }: WeekViewDayTimeSlotsProps) {
-  const settings = useCalendarSettings();
+  const { defaultTimeZone } = useCalendarSettings();
 
   const columnRef = React.useRef<HTMLDivElement>(null);
 
   const { onDragStart, onDrag, onDragEnd, top, height, opacity } =
     useDragToCreate({
       dispatchAction,
-      date: day,
-      timeZone: settings.defaultTimeZone,
+      date,
+      timeZone: defaultTimeZone,
       columnRef,
     });
 

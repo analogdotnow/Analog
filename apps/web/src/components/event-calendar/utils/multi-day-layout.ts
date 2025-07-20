@@ -9,7 +9,7 @@ import { Temporal } from "temporal-polyfill";
 
 import { toDate } from "@repo/temporal";
 
-import { EventCollectionItem } from "../hooks/use-event-collection";
+import { EventCollectionItem } from "../hooks/event-collection";
 import type { CalendarEvent } from "../types";
 
 // ============================================================================

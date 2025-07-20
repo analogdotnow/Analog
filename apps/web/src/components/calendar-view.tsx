@@ -15,21 +15,19 @@ import {
   WeekCellsHeight,
 } from "@/components/event-calendar";
 import type { Action } from "@/components/event-calendar/hooks/use-optimistic-events";
-import {
-  filterPastEvents,
-  filterVisibleEvents,
-} from "@/components/event-calendar/utils";
+import { filterPastEvents } from "@/components/event-calendar/utils";
 import { AgendaView } from "@/components/event-calendar/views/agenda-view";
 import { DayView } from "@/components/event-calendar/views/day-view";
 import { MonthView } from "@/components/event-calendar/views/month-view";
 import { WeekView } from "@/components/event-calendar/views/week-view";
 import { useCalendarState } from "@/hooks/use-calendar-state";
-import type { CalendarEvent } from "@/lib/interfaces";
 import { cn } from "@/lib/utils";
+import { useEdgeAutoScroll } from "./event-calendar/drag-and-drop/use-auto-scroll";
+import { type EventCollectionItem } from "./event-calendar/hooks/event-collection";
 import { useScrollToCurrentTime } from "./event-calendar/week-view/use-scroll-to-current-time";
 
 interface CalendarContentProps {
-  events: CalendarEvent[];
+  events: EventCollectionItem[];
   scrollContainerRef: React.RefObject<HTMLDivElement | null>;
   dispatchAction: (action: Action) => void;
   headerRef: React.RefObject<HTMLDivElement | null>;
@@ -70,23 +68,23 @@ function CalendarContent({
         />
       );
 
-    // case "day":
-    //   return (
-    //     <DayView
-    //       currentDate={currentDate}
-    //       events={events}
-    //       dispatchAction={dispatchAction}
-    //     />
-    //   );
+    case "day":
+      return (
+        <DayView
+          currentDate={currentDate}
+          events={events}
+          dispatchAction={dispatchAction}
+        />
+      );
 
-    // case "agenda":
-    //   return (
-    //     <AgendaView
-    //       currentDate={currentDate}
-    //       events={events}
-    //       dispatchAction={dispatchAction}
-    //     />
-    //   );
+    case "agenda":
+      return (
+        <AgendaView
+          currentDate={currentDate}
+          events={events}
+          dispatchAction={dispatchAction}
+        />
+      );
 
     default:
       // Fallback to week view for unknown view types
@@ -103,7 +101,7 @@ function CalendarContent({
 
 interface CalendarViewProps {
   className?: string;
-  events: CalendarEvent[];
+  events: EventCollectionItem[];
   dispatchAction: (action: Action) => void;
 }
 
@@ -114,31 +112,34 @@ export function CalendarView({
 }: CalendarViewProps) {
   const viewPreferences = useViewPreferences();
   const [calendarVisibility] = useCalendarsVisibility();
-  // const isDragging = useAtomValue(isDraggingAtom);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
 
   // Enable edge auto scroll when dragging events
-  // useEdgeAutoScroll(scrollContainerRef, { active: isDragging, headerRef });
+  useEdgeAutoScroll(scrollContainerRef, { active: true, headerRef });
 
   const { defaultTimeZone } = useCalendarSettings();
-  const filteredEvents = useMemo(
-    () =>
-      filterVisibleEvents(
-        filterPastEvents(
-          events,
-          viewPreferences.showPastEvents,
-          defaultTimeZone,
-        ),
-        calendarVisibility.hiddenCalendars,
-      ),
-    [
+  const filteredEvents = useMemo(() => {
+    // First filter past events
+    const pastFiltered = filterPastEvents(
       events,
       viewPreferences.showPastEvents,
-      calendarVisibility.hiddenCalendars,
       defaultTimeZone,
-    ],
-  );
+    );
+
+    // Then filter by calendar visibility - need to check the event.event.calendarId
+    return pastFiltered.filter(
+      (eventItem) =>
+        !calendarVisibility.hiddenCalendars.includes(
+          eventItem.event.calendarId,
+        ),
+    );
+  }, [
+    events,
+    viewPreferences.showPastEvents,
+    calendarVisibility.hiddenCalendars,
+    defaultTimeZone,
+  ]);
 
   const { enableScope } = useHotkeysContext();
 

@@ -6,6 +6,7 @@ export {
   useEventCollection,
   type EventCollectionForMonth,
   type EventCollectionForWeek,
+  type EventCollectionForDay,
 } from "./use-event-collection";
 export { useGridLayout } from "./use-grid-layout";
 

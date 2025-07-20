@@ -17,7 +17,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { EventCollectionItem } from "./hooks/use-event-collection";
+import { EventCollectionItem } from "./hooks/event-collection";
 
 interface OverflowIndicatorProps {
   count: number;

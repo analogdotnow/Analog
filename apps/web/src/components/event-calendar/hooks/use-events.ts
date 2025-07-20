@@ -2,7 +2,6 @@ import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as R from "remeda";
 import { toast } from "sonner";
-import { Temporal } from "temporal-polyfill";
 
 import {
   compareTemporal,
@@ -15,6 +14,7 @@ import {
 import { useCalendarSettings } from "@/atoms";
 import { useCalendarState } from "@/hooks/use-calendar-state";
 import { useTRPC } from "@/lib/trpc/client";
+import { mapEventsToItems } from "./event-collection";
 
 const TIME_RANGE_DAYS_PAST = 30;
 const TIME_RANGE_DAYS_FUTURE = 30;
@@ -95,8 +95,9 @@ export function useEvents() {
   const events = useMemo(() => {
     if (!query.data?.events) return [];
 
-    return query.data.events;
-  }, [query.data]);
+    // Map to EventCollectionItem early with default time zone
+    return mapEventsToItems(query.data.events, defaultTimeZone);
+  }, [query.data, defaultTimeZone]);
 
   const createMutation = useMutation(
     trpc.events.create.mutationOptions({

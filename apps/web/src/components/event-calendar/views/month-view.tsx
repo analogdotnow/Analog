@@ -40,21 +40,20 @@ import { useMultiDayOverflow } from "@/components/event-calendar/hooks/use-multi
 import type { Action } from "@/components/event-calendar/hooks/use-optimistic-events";
 import { OverflowIndicator } from "@/components/event-calendar/overflow-indicator";
 import {
+  getEventsStartingOnPlainDate,
   getGridPosition,
   getWeekDays,
   isWeekendIndex,
-  placeIntoLanes,
-  getEventsStartingOnPlainDate,
 } from "@/components/event-calendar/utils";
 import { cn, groupArrayIntoChunks } from "@/lib/utils";
 import { createDraftEvent } from "@/lib/utils/calendar";
-import { EventCollectionItem } from "../hooks/use-event-collection";
+import { EventCollectionItem } from "../hooks/event-collection";
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 interface MonthViewProps {
   currentDate: Temporal.PlainDate;
-  events: CalendarEvent[];
+  events: EventCollectionItem[];
   dispatchAction: (action: Action) => void;
 }
 
@@ -210,11 +209,8 @@ function MonthViewWeek({
 
       // Check if event is within the week range
       const isInWeek =
-        ((isAfter(eventStart, weekStart) || isSameDay(eventStart, weekStart)) &&
-          isBefore(eventStart, weekEnd)) ||
-        ((isAfter(eventEnd, weekStart) || isSameDay(eventEnd, weekStart)) &&
-          (isBefore(eventEnd, weekEnd) || isSameDay(eventEnd, weekEnd))) ||
-        (isBefore(eventStart, weekStart) && isAfter(eventEnd, weekEnd));
+        isWithinInterval(eventStart, { start: weekStart, end: weekEnd }) ||
+        isWithinInterval(eventEnd, { start: weekStart, end: weekEnd });
 
       if (!isInWeek) {
         return false;

@@ -48,8 +48,8 @@ function IsolatedCalendarLayout() {
         selectedEvent={selectedEvents[0]}
         dispatchAction={dispatchAction}
       />
-      <SidebarInset className="h-full overflow-hidden">
-        <div className="flex h-[calc(100dvh-1rem)]">
+      <SidebarInset className="h-dvh overflow-hidden">
+        <div className="flex h-full rounded-xl border border-sidebar-border bg-background">
           <CalendarView
             className="grow"
             events={events}
