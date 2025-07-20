@@ -150,7 +150,6 @@ export function useDragToCreate({
   const onDragEnd = (event: PointerEvent, info: PanInfo) => {
     const currentMinutes = getMinutesFromPosition(info.point.y);
 
-    console.log(currentMinutes, initialMinutes.current);
     const startMinutes = Math.min(initialMinutes.current, currentMinutes);
     const endMinutes = Math.max(initialMinutes.current, currentMinutes);
 

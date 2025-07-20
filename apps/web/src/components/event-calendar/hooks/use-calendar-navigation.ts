@@ -1,10 +1,16 @@
 import { useCallback } from "react";
+import { Temporal } from "temporal-polyfill";
+
+
 
 import { useCalendarState } from "@/hooks/use-calendar-state";
 import { navigateToNext, navigateToPrevious } from "../utils";
+import { useCalendarSettings } from "@/atoms/calendar-settings";
+
 
 export function useCalendarNavigation() {
   const { currentDate, view, setCurrentDate } = useCalendarState();
+  const settings = useCalendarSettings();
 
   const handlePrevious = useCallback(() => {
     setCurrentDate(navigateToPrevious(currentDate, view));
@@ -15,8 +21,8 @@ export function useCalendarNavigation() {
   }, [currentDate, view, setCurrentDate]);
 
   const handleToday = useCallback(() => {
-    setCurrentDate(new Date());
-  }, [setCurrentDate]);
+    setCurrentDate(Temporal.Now.plainDateISO(settings.defaultTimeZone));
+  }, [setCurrentDate, settings.defaultTimeZone]);
 
   return {
     handlePrevious,

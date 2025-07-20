@@ -33,6 +33,7 @@ import {
   getGridPosition,
   getWeek,
   placeIntoLanes,
+  getEventsStartingOnPlainDate,
   type PositionedEvent,
 } from "@/components/event-calendar/utils";
 import { cn } from "@/lib/utils";
@@ -278,6 +279,7 @@ function WeekViewAllDaySection({
     weekEnd,
   ]);
 
+
   // Use overflow hook for all-day events
   const overflow = useMultiDayOverflow({
     events: allDayEvents,
@@ -285,20 +287,6 @@ function WeekViewAllDaySection({
     minVisibleLanes: 10,
   });
 
-  // Calculate how many lanes multi-day events occupy for this week
-  const multiDayLaneCount = React.useMemo(() => {
-    if (allDayEvents.length === 0) return 0;
-    const lanes = placeIntoLanes(allDayEvents, settings.defaultTimeZone);
-    return lanes.length;
-  }, [allDayEvents, settings.defaultTimeZone]);
-
-  console.log(
-    "overflow ",
-    overflow.visibleEvents.length,
-    overflow.overflowEvents.length,
-    allDayEvents.length,
-    multiDayLaneCount,
-  );
   return (
     <div className="border-b border-border/70 [--calendar-height:100%]">
       <div
@@ -322,11 +310,11 @@ function WeekViewAllDaySection({
             isDayVisible && visibleDayIndex === visibleDays.length - 1;
 
           // Filter overflow events to only show those that start on this day
-          const dayOverflowEvents = overflow.overflowEvents.filter((event) => {
-            return isSameDay(event.start, day, {
-              timeZone: settings.defaultTimeZone,
-            });
-          });
+          const dayOverflowEvents = getEventsStartingOnPlainDate(
+            overflow.overflowEvents,
+            day,
+            settings.defaultTimeZone,
+          );
 
           return (
             <div
@@ -356,7 +344,7 @@ function WeekViewAllDaySection({
               <div
                 className="min-h-7"
                 style={{
-                  paddingTop: `${multiDayLaneCount * 28}px`, // 24px event height + 4px gap
+                  paddingTop: `${overflow.capacityInfo.totalLanes * 28}px`, // 24px event height + 4px gap
                 }}
                 ref={overflow.containerRef}
               />

@@ -44,6 +44,7 @@ import {
   getWeekDays,
   isWeekendIndex,
   placeIntoLanes,
+  getEventsStartingOnPlainDate,
 } from "@/components/event-calendar/utils";
 import { cn, groupArrayIntoChunks } from "@/lib/utils";
 import { createDraftEvent } from "@/lib/utils/calendar";
@@ -250,13 +251,6 @@ function MonthViewWeek({
     timeZone: settings.defaultTimeZone,
   });
 
-  // Calculate how many lanes multi-day events occupy for this week
-  const multiDayLaneCount = React.useMemo(() => {
-    if (weekEvents.length === 0) return 0;
-    const lanes = placeIntoLanes(weekEvents, settings.defaultTimeZone);
-    return lanes.length;
-  }, [weekEvents, settings.defaultTimeZone]);
-
   return (
     <div
       key={`week-${weekIndex}`}
@@ -272,7 +266,6 @@ function MonthViewWeek({
           rows={rows}
           weekIndex={weekIndex}
           dayIndex={dayIndex}
-          multiDayLaneCount={multiDayLaneCount}
           overflow={overflow}
           dispatchAction={dispatchAction}
           currentDate={currentDate}
@@ -340,7 +333,6 @@ const MemoizedMonthViewDay = React.memo(
       prevProps.rows === nextProps.rows &&
       prevProps.weekIndex === nextProps.weekIndex &&
       prevProps.dayIndex === nextProps.dayIndex &&
-      prevProps.multiDayLaneCount === nextProps.multiDayLaneCount &&
       prevProps.overflow === nextProps.overflow &&
       prevProps.dispatchAction === nextProps.dispatchAction &&
       prevProps.currentDate.equals(nextProps.currentDate)
@@ -353,7 +345,6 @@ interface MonthViewDayProps {
   rows: number;
   weekIndex: number;
   dayIndex: number;
-  multiDayLaneCount: number;
   overflow: ReturnType<typeof useMultiDayOverflow>;
   dispatchAction: (action: Action) => void;
   currentDate: Temporal.PlainDate;
@@ -386,10 +377,11 @@ function MonthViewDay({
   const cellId = `month-cell-${day.toString()}`;
 
   // Filter overflow events to only show those that start on this day
-  const dayOverflowEvents = overflow.overflowEvents.filter((event) => {
-    const eventStart = event.start.toPlainDate();
-    return isSameDay(eventStart, day);
-  });
+  const dayOverflowEvents = getEventsStartingOnPlainDate(
+    overflow.overflowEvents,
+    day,
+    settings.defaultTimeZone,
+  );
 
   const hasOverflowForDay = dayOverflowEvents.length > 0;
 

@@ -204,49 +204,69 @@ export function placeIntoLanes(
 ): EventCollectionItem[][] {
   if (events.length === 0) return [];
 
-  // Sort events by start time, then by duration (longer events first)
-  const sortedEvents = [...events].sort((a, b) => {
-    const startA = toDate({ value: a.start, timeZone });
-    const startB = toDate({ value: b.start, timeZone });
+  // Pre-compute start/end (day) values for each event to avoid repeated
+  // conversions inside the sorting / placement loops.
+  interface CachedEvent {
+    item: EventCollectionItem;
+    startDayValue: number; // milliseconds since epoch at local 00:00
+    endDayValue: number; // "       "         "      "
+    duration: number; // number of days (inclusive)
+  }
 
-    // DO NOT CHANGE THIS, IT DOES NOT FIX THE PROBLEM
-    if (startA.getTime() < startB.getTime()) {
-      return startA.getTime() - startB.getTime();
+  const cached: CachedEvent[] = events.map((e) => {
+    const start = toDate({ value: e.start, timeZone });
+    const rawEnd = toDate({ value: e.end, timeZone });
+
+    // Account for all-day exclusive end dates (already inclusive for timed)
+    const inclusiveEnd = e.event.allDay ? subDays(rawEnd, 1) : rawEnd;
+
+    const startDayValue = new Date(
+      start.getFullYear(),
+      start.getMonth(),
+      start.getDate(),
+    ).valueOf();
+    const endDayValue = new Date(
+      inclusiveEnd.getFullYear(),
+      inclusiveEnd.getMonth(),
+      inclusiveEnd.getDate(),
+    ).valueOf();
+
+    // +1 so a 1-day event has duration === 1
+    const duration = Math.floor((endDayValue - startDayValue) / 86_400_000) + 1;
+
+    return { item: e, startDayValue, endDayValue, duration };
+  });
+
+  // Sort: earliest start first; if equal, longer duration first.
+  cached.sort((a, b) => {
+    if (a.startDayValue !== b.startDayValue) {
+      return a.startDayValue - b.startDayValue;
     }
-
-    // If start times are equal, longer events come first
-    const endA = toDate({ value: a.end, timeZone });
-    const endB = toDate({ value: b.end, timeZone });
-
-    return endB.getTime() - endA.getTime();
+    return b.duration - a.duration;
   });
 
   const lanes: EventCollectionItem[][] = [];
+  const laneEndValues: number[] = []; // track last endDay per lane
 
-  sortedEvents.forEach((event) => {
-    // Find the first lane where this event doesn't overlap with any existing events
-    let laneIndex = 0;
+  cached.forEach((ce) => {
+    const { item, startDayValue, endDayValue } = ce;
     let placed = false;
 
-    while (!placed) {
-      const currentLane = lanes[laneIndex];
-      if (!currentLane) {
-        // Create new lane
-        lanes[laneIndex] = [event];
+    for (let i = 0; i < laneEndValues.length; i++) {
+      const laneEnd = laneEndValues[i]!;
+      // Non-overlap if this starts strictly AFTER the last event in lane.
+      if (startDayValue > laneEnd) {
+        lanes[i]!.push(item);
+        laneEndValues[i] = endDayValue;
         placed = true;
-      } else {
-        // Check if event overlaps with any event in this lane
-        const hasOverlap = currentLane.some((laneEvent) =>
-          eventsOverlap(event.event, laneEvent.event, timeZone),
-        );
-
-        if (!hasOverlap) {
-          currentLane.push(event);
-          placed = true;
-        } else {
-          laneIndex++;
-        }
+        break;
       }
+    }
+
+    if (!placed) {
+      // Create a new lane for this event.
+      lanes.push([item]);
+      laneEndValues.push(endDayValue);
     }
   });
 

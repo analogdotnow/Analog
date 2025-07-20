@@ -14,7 +14,7 @@ import { toDate } from "@repo/temporal";
 import * as T from "@repo/temporal/v2";
 
 import { CalendarEvent } from "@/lib/interfaces";
-import { EventCollectionItem } from "../hooks/use-event-collection";
+import { EventCollectionItem, EventCollectionByDay } from "../hooks/use-event-collection";
 
 // ============================================================================
 // CORE HELPERS
@@ -113,6 +113,17 @@ export function getEventsStartingOnDay(
         toDate({ value: a.start, timeZone }).getTime() -
         toDate({ value: b.start, timeZone }).getTime(),
     );
+}
+
+export function getEventsStartingOnPlainDate(
+  events: EventCollectionItem[],
+  day: Temporal.PlainDate,
+  timeZone: string,
+): EventCollectionItem[] {
+  return events.filter((event) => {
+    const eventStart = event.start.toPlainDate();
+    return T.isSameDay(eventStart, day);
+  });
 }
 
 export function getSpanningEventsForDay(
@@ -599,4 +610,130 @@ export function sortEventsForDisplay(
       getEventDates(b, timeZone).start.getTime()
     );
   });
+}
+
+// ============================================================================
+// PERFORMANCE OPTIMIZATIONS
+// ============================================================================
+
+/**
+ * Optimized event overlap checking with early termination
+ */
+export function batchEventOverlapCheck(
+  events: EventCollectionItem[],
+  day: Temporal.PlainDate,
+  timeZone: string,
+): EventCollectionItem[] {
+  const result: EventCollectionItem[] = [];
+
+  for (const event of events) {
+    // Early termination: if event starts after the day, skip remaining events
+    // (assuming events are sorted by start time)
+    const eventStart = event.start.toPlainDate();
+    if (Temporal.PlainDate.compare(eventStart, day) > 1) {
+      break;
+    }
+
+    if (eventOverlapsDay(event, day, timeZone)) {
+      result.push(event);
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Optimized sorting with memoized comparison keys
+ */
+export function sortEventsByStartTimeOptimized(
+  events: EventCollectionItem[],
+  timeZone: string,
+): EventCollectionItem[] {
+  if (events.length <= 1) return events;
+
+  // Create sort keys once instead of computing them multiple times
+  const sortData = events.map((event) => ({
+    event,
+    startTime: getEventDates(event, timeZone).start.getTime(),
+  }));
+
+  // Sort by pre-computed start times
+  sortData.sort((a, b) => a.startTime - b.startTime);
+
+  return sortData.map(({ event }) => event);
+}
+
+/**
+ * Batch process multiple days with shared event filtering
+ */
+export function getEventCollectionsBatch(
+  events: EventCollectionItem[],
+  days: Temporal.PlainDate[],
+  timeZone: string,
+): Map<string, EventCollectionByDay> {
+  if (days.length === 0 || events.length === 0) {
+    return new Map();
+  }
+
+  // Sort events once for all days
+  const sortedEvents = sortEventsByStartTimeOptimized(events, timeZone);
+  const result = new Map<string, EventCollectionByDay>();
+
+  // Pre-compute event date ranges for faster filtering
+  const eventRanges = sortedEvents.map((event) => ({
+    event,
+    start: event.start.toPlainDate(),
+    end: event.end.toPlainDate(),
+    isAllDay: event.event.allDay,
+    isMultiDay: isMultiDayEvent(event, timeZone),
+  }));
+
+  for (const day of days) {
+    const dayEvents: EventCollectionItem[] = [];
+    const spanningEvents: EventCollectionItem[] = [];
+    const allEvents: EventCollectionItem[] = [];
+
+    for (const { event, start, end, isMultiDay } of eventRanges) {
+      // Quick overlap check using pre-computed values
+      let overlaps = false;
+
+      if (isMultiDay) {
+        if (event.event.allDay) {
+          const exclusiveEnd = end.subtract({ days: 1 });
+          overlaps = (
+            Temporal.PlainDate.compare(day, start) === 0 ||
+            Temporal.PlainDate.compare(day, exclusiveEnd) === 0 ||
+            (Temporal.PlainDate.compare(day, start) > 0 && Temporal.PlainDate.compare(day, exclusiveEnd) < 0)
+          );
+        } else {
+          overlaps = (
+            Temporal.PlainDate.compare(day, start) === 0 ||
+            Temporal.PlainDate.compare(day, end) === 0 ||
+            (Temporal.PlainDate.compare(day, start) > 0 && Temporal.PlainDate.compare(day, end) < 0)
+          );
+        }
+      } else {
+        overlaps = Temporal.PlainDate.compare(day, start) === 0;
+      }
+
+      if (!overlaps) continue;
+
+      allEvents.push(event);
+
+      if (Temporal.PlainDate.compare(day, start) === 0) {
+        dayEvents.push(event);
+      } else if (isMultiDay) {
+        spanningEvents.push(event);
+      }
+    }
+
+    result.set(day.toString(), {
+      dayEvents,
+      spanningEvents,
+      allDayEvents: [...spanningEvents, ...dayEvents],
+      allEvents,
+    });
+  }
+
+  return result;
 }

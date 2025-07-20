@@ -26,6 +26,7 @@ export type EventCollectionItem = {
   start: Temporal.ZonedDateTime;
   end: Temporal.ZonedDateTime;
 };
+
 function convertToZonedDateTime(
   value: Temporal.PlainDate | Temporal.ZonedDateTime | Temporal.Instant,
   timeZone: string,
@@ -49,6 +50,81 @@ function mapEventsToItems(
     start: convertToZonedDateTime(event.start, timeZone),
     end: convertToZonedDateTime(event.end, timeZone).subtract({ seconds: 1 }),
   }));
+}
+
+// Pre-filter events by date range to avoid processing irrelevant events
+function preFilterEventsByDateRange(
+  items: EventCollectionItem[],
+  startDate: Temporal.PlainDate,
+  endDate: Temporal.PlainDate,
+): EventCollectionItem[] {
+  return items.filter((item) => {
+    const eventStart = item.start.toPlainDate();
+    const eventEnd = item.end.toPlainDate();
+
+    // Check if event overlaps with the date range
+    return Temporal.PlainDate.compare(eventEnd, startDate) >= 0 &&
+           Temporal.PlainDate.compare(eventStart, endDate) <= 0;
+  });
+}
+
+// Simple per-day processing for month view (keeps code easy to reason about)
+function getEventCollectionsForMonthSimple(
+  items: EventCollectionItem[],
+  days: Temporal.PlainDate[],
+  timeZone: string,
+): Map<string, EventCollectionByDay> {
+  const map = new Map<string, EventCollectionByDay>();
+
+  if (days.length === 0) return map;
+
+  // Pre-filter events to those that can possibly overlap with the visible range
+  const startDate = days[0]!;
+  const endDate = days[days.length - 1]!;
+  const relevant = preFilterEventsByDateRange(items, startDate, endDate);
+
+  for (const day of days) {
+    map.set(day.toString(), getEventCollectionsForDay(relevant, day, timeZone));
+  }
+
+  return map;
+}
+
+// Optimized week view processing
+function getOptimizedWeekViewEvents(
+  items: EventCollectionItem[],
+  days: Temporal.PlainDate[],
+  timeZone: string,
+): { allDayEvents: EventCollectionItem[]; positionedEvents: PositionedEvent[][] } {
+  if (days.length === 0) return { allDayEvents: [], positionedEvents: [] };
+
+  // Pre-filter events for the week range
+  const startDate = days[0]!;
+  const endDate = days[days.length - 1]!;
+  const relevantItems = preFilterEventsByDateRange(items, startDate, endDate);
+
+  // Early return if no relevant events
+  if (relevantItems.length === 0) {
+    return {
+      allDayEvents: [],
+      positionedEvents: days.map(() => []),
+    };
+  }
+
+  const allDayEvents = getAllDayEventCollectionsForDays(
+    relevantItems,
+    days,
+    timeZone,
+  );
+
+  const positionedEvents = calculateWeekViewEventPositions(
+    relevantItems,
+    days,
+    WeekCellsHeight,
+    timeZone,
+  );
+
+  return { allDayEvents, positionedEvents };
 }
 
 export type EventCollectionByDay = {
@@ -97,61 +173,38 @@ export function useEventCollection(
   const timeZone = useDefaultTimeZone();
 
   return useMemo(() => {
-    const items = mapEventsToItems(events, timeZone);
-    if (viewType === "month") {
-      const eventsByDay = new Map<string, EventCollectionByDay>();
-
-      for (const day of days) {
-        const dayEvents = getEventCollectionsForDay(items, day, timeZone);
-
-        eventsByDay.set(day.toString(), dayEvents);
+    // Early return for empty inputs
+    if (events.length === 0 || days.length === 0) {
+      if (viewType === "month") {
+        return {
+          type: "month" as const,
+          eventsByDay: new Map(),
+        };
       }
+      return {
+        type: "week" as const,
+        allDayEvents: [],
+        positionedEvents: [],
+      };
+    }
 
+    const items = mapEventsToItems(events, timeZone);
+
+    if (viewType === "month") {
+      const eventsByDay = getEventCollectionsForMonthSimple(items, days, timeZone);
       return {
         type: "month" as const,
         eventsByDay,
       };
     }
 
-    const allDayEvents = getAllDayEventCollectionsForDays(
-      items,
-      days,
-      timeZone,
-    );
-
-    const positionedEvents = calculateWeekViewEventPositions(
-      items,
-      days,
-      WeekCellsHeight,
-      timeZone,
-    );
-
+    const { allDayEvents, positionedEvents } = getOptimizedWeekViewEvents(items, days, timeZone);
     return {
       type: "week" as const,
       allDayEvents,
       positionedEvents,
     };
-  }, [events, days, viewType, timeZone]);
-}
-
-function useEventCollectionForDay(
-  events: CalendarEvent[],
-  day: Temporal.PlainDate,
-  timeZone: string,
-): EventCollectionByDay {
-  return useMemo(() => {
-    const items = mapEventsToItems(events, timeZone);
-    return getEventCollectionsForDay(items, day, timeZone);
-  }, [events, day, timeZone]);
-}
-
-function useEventCollectionForMonth(
-  events: CalendarEvent[],
-  days: Temporal.PlainDate[],
-  timeZone: string,
-): EventCollectionForWeek {
-  return useMemo(() => {
-    const items = mapEventsToItems(events, timeZone);
-    return getEventCollectionsForWeek(items, days, timeZone);
-  }, [events, days, timeZone]);
+  },
+    [events, days, viewType, timeZone],
+  );
 }
