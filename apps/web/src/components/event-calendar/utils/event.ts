@@ -252,28 +252,24 @@ function getAdjustedEventTimes(
   return {
     start: T.isSameDay(day, item.start, { timeZone })
       ? item.start
-      : day
-          .toZonedDateTime(timeZone)
-          .withPlainTime({
-            hour: 0,
-            minute: 0,
-            second: 0,
-            millisecond: 0,
-            microsecond: 0,
-            nanosecond: 0,
-          }),
+      : day.toZonedDateTime(timeZone).withPlainTime({
+          hour: 0,
+          minute: 0,
+          second: 0,
+          millisecond: 0,
+          microsecond: 0,
+          nanosecond: 0,
+        }),
     end: T.isSameDay(day, item.end, { timeZone })
       ? item.end
-      : day
-          .toZonedDateTime(timeZone)
-          .withPlainTime({
-            hour: 23,
-            minute: 59,
-            second: 59,
-            millisecond: 999,
-            microsecond: 999,
-            nanosecond: 999,
-          }),
+      : day.toZonedDateTime(timeZone).withPlainTime({
+          hour: 23,
+          minute: 59,
+          second: 59,
+          millisecond: 999,
+          microsecond: 999,
+          nanosecond: 999,
+        }),
   };
 }
 

@@ -15,6 +15,7 @@ import { motion } from "motion/react";
 import { Temporal } from "temporal-polyfill";
 
 import { toDate } from "@repo/temporal";
+import { isSameDay, startOfDay } from "@repo/temporal/v2";
 
 import { useCalendarSettings } from "@/atoms";
 import {
@@ -30,7 +31,6 @@ import { isMultiDayEvent } from "@/components/event-calendar/utils";
 import { useDragToCreate } from "../hooks/use-drag-to-create";
 import { DragPreview } from "./event/drag-preview";
 import { Timeline } from "./timeline";
-import { isSameDay, startOfDay } from "@repo/temporal/v2";
 
 interface DayViewProps {
   currentDate: Temporal.PlainDate;
@@ -140,7 +140,9 @@ export function DayView({ currentDate, events, dispatchAction }: DayViewProps) {
   // Process events to calculate positions
   const positionedEvents = React.useMemo(() => {
     const result: PositionedEvent[] = [];
-    const dayStart = startOfDay(currentDate, { timeZone: settings.defaultTimeZone });
+    const dayStart = startOfDay(currentDate, {
+      timeZone: settings.defaultTimeZone,
+    });
 
     // Sort events by start time and duration
     const sortedEvents = [...timeEvents].sort((a, b) => {

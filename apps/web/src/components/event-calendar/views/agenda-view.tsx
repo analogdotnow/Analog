@@ -4,6 +4,7 @@ import * as React from "react";
 import { RiCalendarEventLine } from "@remixicon/react";
 import { addDays, format, isToday } from "date-fns";
 
+import { useCalendarSettings } from "@/atoms/calendar-settings";
 import {
   AgendaDaysToShow,
   CalendarEvent,
@@ -11,7 +12,6 @@ import {
 } from "@/components/event-calendar";
 import type { Action } from "@/components/event-calendar/hooks/use-optimistic-events";
 import { getAllEventsForDay } from "@/components/event-calendar/utils";
-import { useCalendarSettings } from "@/atoms/calendar-settings";
 
 interface AgendaViewProps {
   currentDate: Date;
@@ -31,19 +31,21 @@ export function AgendaView({
     );
   }, [currentDate]);
 
-  const handleEventClick = React.useCallback((event: CalendarEvent, e: React.MouseEvent) => {
-    e.stopPropagation();
-    dispatchAction({ type: "select", event });
-  }, [dispatchAction]);
+  const handleEventClick = React.useCallback(
+    (event: CalendarEvent, e: React.MouseEvent) => {
+      e.stopPropagation();
+      dispatchAction({ type: "select", event });
+    },
+    [dispatchAction],
+  );
 
   const settings = useCalendarSettings();
 
   // Check if there are any days with events
   const hasEvents = days.some(
-    (day) => getAllEventsForDay(events, day, settings.defaultTimeZone).length > 0,
+    (day) =>
+      getAllEventsForDay(events, day, settings.defaultTimeZone).length > 0,
   );
-
-  
 
   return (
     <div className="border-t border-border/70 px-4">

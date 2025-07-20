@@ -73,27 +73,49 @@ export function useMultiDayOverflow({
   }, [measureHeight]);
 
   // Calculate capacity and organize events
-  const capacityInfo = React.useMemo(() => organizeEventsWithOverflow(
-    events,
-    minVisibleLanes
-      ? Math.max(minVisibleLanes * (eventHeight + eventGap), availableHeight)
-      : availableHeight,
-    timeZone,
-    eventHeight,
-    eventGap,
-  ), [events, minVisibleLanes, eventHeight, eventGap, availableHeight, timeZone]);
+  const capacityInfo = React.useMemo(
+    () =>
+      organizeEventsWithOverflow(
+        events,
+        minVisibleLanes
+          ? Math.max(
+              minVisibleLanes * (eventHeight + eventGap),
+              availableHeight,
+            )
+          : availableHeight,
+        timeZone,
+        eventHeight,
+        eventGap,
+      ),
+    [events, minVisibleLanes, eventHeight, eventGap, availableHeight, timeZone],
+  );
 
   // Get visible and overflow events
-  const visibleEvents = React.useMemo(() => capacityInfo.visibleLanes.flat(), [capacityInfo.visibleLanes]);
-  const overflowEvents = React.useMemo(() => getOverflowEvents(capacityInfo), [capacityInfo]);
+  const visibleEvents = React.useMemo(
+    () => capacityInfo.visibleLanes.flat(),
+    [capacityInfo.visibleLanes],
+  );
+  const overflowEvents = React.useMemo(
+    () => getOverflowEvents(capacityInfo),
+    [capacityInfo],
+  );
 
-  return React.useMemo(() => ({
-    containerRef,
-    availableHeight,
-    capacityInfo,
-    visibleEvents,
-    overflowEvents,
-    hasOverflow: capacityInfo.hasOverflow,
-    overflowCount: capacityInfo.overflowCount,
-  }), [containerRef, availableHeight, capacityInfo, visibleEvents, overflowEvents]);
+  return React.useMemo(
+    () => ({
+      containerRef,
+      availableHeight,
+      capacityInfo,
+      visibleEvents,
+      overflowEvents,
+      hasOverflow: capacityInfo.hasOverflow,
+      overflowCount: capacityInfo.overflowCount,
+    }),
+    [
+      containerRef,
+      availableHeight,
+      capacityInfo,
+      visibleEvents,
+      overflowEvents,
+    ],
+  );
 }

@@ -134,7 +134,6 @@ export function useEventCollection(
   }, [events, days, viewType, timeZone]);
 }
 
-
 function useEventCollectionForDay(
   events: CalendarEvent[],
   day: Temporal.PlainDate,

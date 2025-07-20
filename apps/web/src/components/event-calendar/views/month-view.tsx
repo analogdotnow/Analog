@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { format } from "date-fns";
+import { isWithinInterval } from "interval-temporal";
 import { Temporal } from "temporal-polyfill";
 
 import { toDate } from "@repo/temporal";
@@ -47,7 +48,6 @@ import {
 import { cn, groupArrayIntoChunks } from "@/lib/utils";
 import { createDraftEvent } from "@/lib/utils/calendar";
 import { EventCollectionItem } from "../hooks/use-event-collection";
-import { isWithinInterval } from "interval-temporal";
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -63,10 +63,12 @@ export function MonthView({
   dispatchAction,
 }: MonthViewProps) {
   const settings = useCalendarSettings();
-  
+
   // Memoize dispatchAction to prevent cascading re-renders
-  const memoizedDispatchAction = React.useCallback(dispatchAction, [dispatchAction]);
-  
+  const memoizedDispatchAction = React.useCallback(dispatchAction, [
+    dispatchAction,
+  ]);
+
   const { days, weeks } = React.useMemo(() => {
     const monthStart = startOfMonth(currentDate);
     const monthEnd = endOfMonth(monthStart);
@@ -110,9 +112,7 @@ export function MonthView({
               eventCollection={eventCollection}
               dispatchAction={memoizedDispatchAction}
               settings={settings}
-              containerRef={
-                containerRef as React.RefObject<HTMLDivElement | null>
-              }
+              containerRef={containerRef}
               currentDate={currentDate}
             />
           );
@@ -129,7 +129,10 @@ function MonthViewHeader(props: MonthViewHeaderProps) {
   const settings = useCalendarSettings();
 
   const weekDays = React.useMemo(() => {
-    return [...WEEKDAYS.slice(settings.weekStartsOn), ...WEEKDAYS.slice(0, settings.weekStartsOn)];
+    return [
+      ...WEEKDAYS.slice(settings.weekStartsOn),
+      ...WEEKDAYS.slice(0, settings.weekStartsOn),
+    ];
   }, [settings.weekStartsOn]);
 
   return (
@@ -234,7 +237,12 @@ function MonthViewWeek({
 
       return true;
     });
-  }, [eventCollection.eventsByDay, viewPreferences.showWeekends, weekStart, weekEnd]);
+  }, [
+    eventCollection.eventsByDay,
+    viewPreferences.showWeekends,
+    weekStart,
+    weekEnd,
+  ]);
 
   // Use overflow hook to manage event display
   const overflow = useMultiDayOverflow({
@@ -300,39 +308,45 @@ function MonthViewWeek({
   );
 }
 
-const MemorizedMonthViewWeek = React.memo(MonthViewWeek, (prevProps, nextProps) => {
-  // Deep comparison for week array
-  if (prevProps.week.length !== nextProps.week.length) return false;
-  for (let i = 0; i < prevProps.week.length; i++) {
-    if (!prevProps.week[i]!.equals(nextProps.week[i]!)) return false;
-  }
-  
-  // Compare other props
-  return (
-    prevProps.weekIndex === nextProps.weekIndex &&
-    prevProps.rows === nextProps.rows &&
-    prevProps.gridTemplateColumns === nextProps.gridTemplateColumns &&
-    prevProps.eventCollection === nextProps.eventCollection &&
-    prevProps.dispatchAction === nextProps.dispatchAction &&
-    prevProps.settings === nextProps.settings &&
-    prevProps.containerRef === nextProps.containerRef &&
-    prevProps.currentDate.equals(nextProps.currentDate)
-  );
-});
+const MemorizedMonthViewWeek = React.memo(
+  MonthViewWeek,
+  (prevProps, nextProps) => {
+    // Deep comparison for week array
+    if (prevProps.week.length !== nextProps.week.length) return false;
+    for (let i = 0; i < prevProps.week.length; i++) {
+      if (!prevProps.week[i]!.equals(nextProps.week[i]!)) return false;
+    }
+
+    // Compare other props
+    return (
+      prevProps.weekIndex === nextProps.weekIndex &&
+      prevProps.rows === nextProps.rows &&
+      prevProps.gridTemplateColumns === nextProps.gridTemplateColumns &&
+      prevProps.eventCollection === nextProps.eventCollection &&
+      prevProps.dispatchAction === nextProps.dispatchAction &&
+      prevProps.settings === nextProps.settings &&
+      prevProps.containerRef === nextProps.containerRef &&
+      prevProps.currentDate.equals(nextProps.currentDate)
+    );
+  },
+);
 
 // Also memoize MonthViewDay to prevent unnecessary re-renders
-const MemoizedMonthViewDay = React.memo(MonthViewDay, (prevProps, nextProps) => {
-  return (
-    prevProps.day.equals(nextProps.day) &&
-    prevProps.rows === nextProps.rows &&
-    prevProps.weekIndex === nextProps.weekIndex &&
-    prevProps.dayIndex === nextProps.dayIndex &&
-    prevProps.multiDayLaneCount === nextProps.multiDayLaneCount &&
-    prevProps.overflow === nextProps.overflow &&
-    prevProps.dispatchAction === nextProps.dispatchAction &&
-    prevProps.currentDate.equals(nextProps.currentDate)
-  );
-});
+const MemoizedMonthViewDay = React.memo(
+  MonthViewDay,
+  (prevProps, nextProps) => {
+    return (
+      prevProps.day.equals(nextProps.day) &&
+      prevProps.rows === nextProps.rows &&
+      prevProps.weekIndex === nextProps.weekIndex &&
+      prevProps.dayIndex === nextProps.dayIndex &&
+      prevProps.multiDayLaneCount === nextProps.multiDayLaneCount &&
+      prevProps.overflow === nextProps.overflow &&
+      prevProps.dispatchAction === nextProps.dispatchAction &&
+      prevProps.currentDate.equals(nextProps.currentDate)
+    );
+  },
+);
 
 interface MonthViewDayProps {
   day: Temporal.PlainDate;
@@ -446,12 +460,10 @@ function PositionedEvent({
   containerRef,
   rows,
 }: PositionedEventProps) {
-  const { colStart, span } = React.useMemo(() => getGridPosition(
-    evt,
-    weekStart,
-    weekEnd,
-    settings.defaultTimeZone,
-  ), [evt, weekStart, weekEnd, settings.defaultTimeZone]);
+  const { colStart, span } = React.useMemo(
+    () => getGridPosition(evt, weekStart, weekEnd, settings.defaultTimeZone),
+    [evt, weekStart, weekEnd, settings.defaultTimeZone],
+  );
 
   // Calculate actual first/last day based on event dates
   const eventStart = evt.start.toPlainDate();
@@ -500,15 +512,18 @@ function PositionedEvent({
 }
 
 // Memoize PositionedEvent to prevent unnecessary re-renders
-const MemoizedPositionedEvent = React.memo(PositionedEvent, (prevProps, nextProps) => {
-  return (
-    prevProps.y === nextProps.y &&
-    prevProps.evt === nextProps.evt &&
-    prevProps.weekStart.equals(nextProps.weekStart) &&
-    prevProps.weekEnd.equals(nextProps.weekEnd) &&
-    prevProps.settings === nextProps.settings &&
-    prevProps.dispatchAction === nextProps.dispatchAction &&
-    prevProps.containerRef === nextProps.containerRef &&
-    prevProps.rows === nextProps.rows
-  );
-});
+const MemoizedPositionedEvent = React.memo(
+  PositionedEvent,
+  (prevProps, nextProps) => {
+    return (
+      prevProps.y === nextProps.y &&
+      prevProps.evt === nextProps.evt &&
+      prevProps.weekStart.equals(nextProps.weekStart) &&
+      prevProps.weekEnd.equals(nextProps.weekEnd) &&
+      prevProps.settings === nextProps.settings &&
+      prevProps.dispatchAction === nextProps.dispatchAction &&
+      prevProps.containerRef === nextProps.containerRef &&
+      prevProps.rows === nextProps.rows
+    );
+  },
+);

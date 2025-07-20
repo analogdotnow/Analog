@@ -27,16 +27,14 @@ export function startOfWeek<
     return value.subtract({ days: diff });
   }
 
-  return value
-    .subtract({ days: diff })
-    .withPlainTime({
-      hour: 0,
-      minute: 0,
-      second: 0,
-      millisecond: 0,
-      microsecond: 0,
-      nanosecond: 0,
-    });
+  return value.subtract({ days: diff }).withPlainTime({
+    hour: 0,
+    minute: 0,
+    second: 0,
+    millisecond: 0,
+    microsecond: 0,
+    nanosecond: 0,
+  });
 }
 
 interface EndOfWeekOptions {
@@ -61,16 +59,14 @@ export function endOfWeek<
     return value.add({ days: 6 - diff });
   }
 
-  return value
-    .add({ days: 6 - diff })
-    .withPlainTime({
-      hour: 23,
-      minute: 59,
-      second: 59,
-      millisecond: 999,
-      microsecond: 999,
-      nanosecond: 999,
-    });
+  return value.add({ days: 6 - diff }).withPlainTime({
+    hour: 23,
+    minute: 59,
+    second: 59,
+    millisecond: 999,
+    microsecond: 999,
+    nanosecond: 999,
+  });
 }
 
 interface StartOfDayOptions {
@@ -90,7 +86,9 @@ export function startOfDay<
 >(value: T, options?: StartOfDayOptions) {
   if (value instanceof Temporal.PlainDate) {
     if (!options) {
-      throw new Error("options with timeZone required when converting PlainDate to ZonedDateTime");
+      throw new Error(
+        "options with timeZone required when converting PlainDate to ZonedDateTime",
+      );
     }
 
     return value.toZonedDateTime({
@@ -120,20 +118,21 @@ interface EndOfDayOptions {
   timeZone: string;
 }
 
-export function endOfDay(
-  value: Temporal.ZonedDateTime,
-): Temporal.ZonedDateTime;
+export function endOfDay(value: Temporal.ZonedDateTime): Temporal.ZonedDateTime;
 export function endOfDay(
   value: Temporal.PlainDate,
   options: EndOfDayOptions,
 ): Temporal.ZonedDateTime;
 
-export function endOfDay<
-  T extends Temporal.ZonedDateTime | Temporal.PlainDate,
->(value: T, options?: EndOfDayOptions) {
+export function endOfDay<T extends Temporal.ZonedDateTime | Temporal.PlainDate>(
+  value: T,
+  options?: EndOfDayOptions,
+) {
   if (value instanceof Temporal.PlainDate) {
     if (!options) {
-      throw new Error("options with timeZone required when converting PlainDate to ZonedDateTime");
+      throw new Error(
+        "options with timeZone required when converting PlainDate to ZonedDateTime",
+      );
     }
 
     return value.toZonedDateTime({
@@ -171,16 +170,14 @@ export function startOfMonth<
     return value.with({ day: 1 });
   }
 
-  return value
-    .with({ day: 1 })
-    .withPlainTime({
-      hour: 0,
-      minute: 0,
-      second: 0,
-      millisecond: 0,
-      microsecond: 0,
-      nanosecond: 0,
-    });
+  return value.with({ day: 1 }).withPlainTime({
+    hour: 0,
+    minute: 0,
+    second: 0,
+    millisecond: 0,
+    microsecond: 0,
+    nanosecond: 0,
+  });
 }
 
 export function endOfMonth(
@@ -195,16 +192,14 @@ export function endOfMonth<
     return value.with({ day: value.daysInMonth });
   }
 
-  return value
-    .with({ day: value.daysInMonth })
-    .withPlainTime({
-      hour: 23,
-      minute: 59,
-      second: 59,
-      millisecond: 999,
-      microsecond: 999,
-      nanosecond: 999,
-    });
+  return value.with({ day: value.daysInMonth }).withPlainTime({
+    hour: 23,
+    minute: 59,
+    second: 59,
+    millisecond: 999,
+    microsecond: 999,
+    nanosecond: 999,
+  });
 }
 
 export function eachDayOfInterval<T extends Temporal.ZonedDateTime>(
