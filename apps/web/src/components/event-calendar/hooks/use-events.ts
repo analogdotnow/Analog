@@ -36,9 +36,7 @@ export function useEvents() {
   const { defaultTimeZone, weekStartsOn } = useCalendarSettings();
 
   const timeMin = useMemo(() => {
-    const base = Temporal.PlainDate.from(
-      currentDate.toISOString().split("T")[0]!,
-    )
+    const base = currentDate
       .subtract({
         days: TIME_RANGE_DAYS_PAST,
       })
@@ -59,9 +57,7 @@ export function useEvents() {
   }, [defaultTimeZone, currentDate, weekStartsOn]);
 
   const timeMax = useMemo(() => {
-    const base = Temporal.PlainDate.from(
-      currentDate.toISOString().split("T")[0]!,
-    )
+    const base = currentDate
       .add({
         days: TIME_RANGE_DAYS_FUTURE,
       })

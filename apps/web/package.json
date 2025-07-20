@@ -60,6 +60,7 @@
     "cmdk": "^1.1.1",
     "date-fns": "^4.1.0",
     "deepmerge": "^4.3.1",
+    "interval-temporal": "^0.3.1",
     "jotai": "^2.12.5",
     "lucide-react": "^0.525.0",
     "match-sorter": "^8.0.3",

@@ -7,6 +7,7 @@ import { Temporal } from "temporal-polyfill";
 import { toDate } from "@repo/temporal";
 
 import { useCalendarSettings } from "@/atoms";
+import { useDefaultTimeZone } from "@/atoms/calendar-settings";
 import type { CalendarEvent } from "@/components/event-calendar";
 import {
   getBorderRadiusClasses,
@@ -92,20 +93,21 @@ export function EventItem({
   onMouseDown,
   onTouchStart,
 }: EventItemProps) {
+  const timeZone = useDefaultTimeZone();
   // Use the provided currentTime (for dragging) or the event's actual time
   const displayStart = React.useMemo(() => {
-    return currentTime || toDate({ value: event.start, timeZone: "UTC" });
-  }, [currentTime, event.start]);
+    return currentTime || toDate({ value: event.start, timeZone });
+  }, [currentTime, event.start, timeZone]);
 
   const displayEnd = React.useMemo(() => {
     return currentTime
       ? new Date(
           new Date(currentTime).getTime() +
-            (toDate({ value: event.end, timeZone: "UTC" }).getTime() -
-              toDate({ value: event.start, timeZone: "UTC" }).getTime()),
+            (toDate({ value: event.end, timeZone }).getTime() -
+              toDate({ value: event.start, timeZone }).getTime()),
         )
-      : toDate({ value: event.end, timeZone: "UTC" });
-  }, [currentTime, event.start, event.end]);
+      : toDate({ value: event.end, timeZone });
+  }, [currentTime, event.start, event.end, timeZone]);
 
   // Calculate event duration in minutes
   const durationMinutes = React.useMemo(() => {
@@ -263,7 +265,7 @@ export function EventItem({
         } as React.CSSProperties
       }
       data-past-event={
-        isPast(toDate({ value: event.end, timeZone: "UTC" })) || undefined
+        isPast(toDate({ value: event.end, timeZone })) || undefined
       }
       onClick={onClick}
       onMouseDown={onMouseDown}

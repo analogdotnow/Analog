@@ -1,10 +1,13 @@
+"use client";
+
 import * as React from "react";
-import { Temporal } from "@js-temporal/polyfill";
+import { Temporal } from "temporal-polyfill";
+
+import { useDefaultTimeZone } from "@/atoms/calendar-settings";
 
 type Granularity = "minute" | "second";
 
 interface ZonedDateTimeProviderProps {
-  timeZone: string;
   tick?: Granularity; // default 'minute'; pass 'second' for per-second updates
   children: React.ReactNode;
 }
@@ -29,10 +32,11 @@ function msUntilNext(now: Temporal.ZonedDateTime, unit: Granularity): number {
 }
 
 export function ZonedDateTimeProvider({
-  timeZone,
   tick = "minute",
   children,
 }: ZonedDateTimeProviderProps) {
+  const timeZone = useDefaultTimeZone();
+
   const [dateTime, setDateTime] = React.useState(() =>
     Temporal.Now.zonedDateTimeISO(timeZone),
   );

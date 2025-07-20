@@ -65,6 +65,7 @@
         "cmdk": "^1.1.1",
         "date-fns": "^4.1.0",
         "deepmerge": "^4.3.1",
+        "interval-temporal": "^0.3.1",
         "jotai": "^2.12.5",
         "lucide-react": "^0.525.0",
         "match-sorter": "^8.0.3",
@@ -1584,6 +1585,8 @@
     "imurmurhash": ["imurmurhash@0.1.4", "", {}, "sha512-JmXMZ6wuvDmLiHEml9ykzqO6lwFbof0GG4IkcGaENdCRDDmMVnny7s5HsIgHCbaq0w2MyPhDqkhTUgS2LU2PHA=="],
 
     "internal-slot": ["internal-slot@1.1.0", "", { "dependencies": { "es-errors": "^1.3.0", "hasown": "^2.0.2", "side-channel": "^1.1.0" } }, "sha512-4gd7VpWNQNB4UKKCFFVcp1AVv+FMOgs9NKzjHKusc8jTMhd5eL1NqQqOpE0KzMds804/yHlglp3uxgluOqAPLw=="],
+
+    "interval-temporal": ["interval-temporal@0.3.1", "", { "dependencies": { "tslib": "^2.8.1" }, "peerDependencies": { "temporal-polyfill": "^0.2 || ^0.3" } }, "sha512-JAp/BAqx7EIdRpp7wTacn7uyRwq9pptAZzgELbCM/rrSWzVRz+9tuGLG3/rhq1m6EthvZ1Bu+sBGOGttUdnnTQ=="],
 
     "intl-messageformat": ["intl-messageformat@10.7.16", "", { "dependencies": { "@formatjs/ecma402-abstract": "2.3.4", "@formatjs/fast-memoize": "2.2.7", "@formatjs/icu-messageformat-parser": "2.11.2", "tslib": "^2.8.0" } }, "sha512-UmdmHUmp5CIKKjSoE10la5yfU+AYJAaiYLsodbjL4lji83JNvgOQUjGaGhGrpFCb0Uh7sl7qfP1IyILa8Z40ug=="],
 

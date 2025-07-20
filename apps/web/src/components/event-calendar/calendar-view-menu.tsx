@@ -17,6 +17,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Key } from "@/components/ui/keyboard-shortcut";
+import { useCalendarState } from "@/hooks/use-calendar-state";
 import { CalendarView } from "./types";
 
 function CalendarViewPreferences() {
@@ -110,17 +111,9 @@ function CalendarViewOptions({
   );
 }
 
-interface CalendarViewMenuProps {
-  currentView: CalendarView;
-  onViewChange: (view: CalendarView) => void;
-}
-
-export function CalendarViewMenu({
-  currentView,
-  onViewChange,
-}: CalendarViewMenuProps) {
-  const viewDisplayName =
-    currentView.charAt(0).toUpperCase() + currentView.slice(1);
+export function CalendarViewMenu() {
+  const { view, setView } = useCalendarState();
+  const viewDisplayName = view.charAt(0).toUpperCase() + view.slice(1);
 
   return (
     <DropdownMenu>
@@ -128,7 +121,7 @@ export function CalendarViewMenu({
         <Button variant="outline" className="h-8 gap-1.5">
           <span>
             <span className="@min-md/header:hidden" aria-hidden="true">
-              {currentView.charAt(0).toUpperCase()}
+              {view.charAt(0).toUpperCase()}
             </span>
             <span className="@max-md/header:sr-only">{viewDisplayName}</span>
           </span>
@@ -140,10 +133,7 @@ export function CalendarViewMenu({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-64">
-        <CalendarViewOptions
-          currentView={currentView}
-          onViewChange={onViewChange}
-        />
+        <CalendarViewOptions currentView={view} onViewChange={setView} />
         <DropdownMenuSeparator />
         <CalendarViewPreferences />
       </DropdownMenuContent>

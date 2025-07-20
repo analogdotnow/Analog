@@ -1,12 +1,12 @@
 "use client";
 
-import { Niconne } from "next/font/google";
 import { AnimatePresence, Variant, motion } from "motion/react";
 
-import type { ViewPreferences } from "@/atoms/view-preferences";
+import { useCalendarSettings } from "@/atoms/calendar-settings";
+import { useViewPreferences } from "@/atoms/view-preferences";
+import { useCalendarState } from "@/hooks/use-calendar-state";
 import { cn } from "@/lib/utils";
-import { CalendarView } from "./types";
-import { getViewTitleData, getWeekNumber } from "./utils";
+import { getViewTitleData } from "./utils";
 
 const variants: Record<string, Variant> = {
   exit: {
@@ -29,21 +29,19 @@ const variants: Record<string, Variant> = {
 };
 
 interface CalendarViewTitleProps {
-  currentDate: Date;
-  view: CalendarView;
   className?: string;
-  prevDate?: Date;
-  viewPreferences: ViewPreferences;
 }
 
-/**
- * Component that renders the calendar view title with responsive breakpoints
- */
+export function CalendarViewTitle({ className }: CalendarViewTitleProps) {
+  const { currentDate, view } = useCalendarState();
+  const settings = useCalendarSettings();
+  const viewPreferences = useViewPreferences();
 
-export function CalendarViewTitle(props: CalendarViewTitleProps) {
-  const { currentDate, view, className, viewPreferences } = props;
-  const titleData = getViewTitleData(currentDate, view);
-  const weekNumber = getWeekNumber(currentDate, view);
+  const titleData = getViewTitleData(currentDate, {
+    timeZone: settings.defaultTimeZone,
+    view,
+    weekStartsOn: settings.weekStartsOn,
+  });
 
   return (
     <div className="relative h-8 w-full">
@@ -65,9 +63,9 @@ export function CalendarViewTitle(props: CalendarViewTitleProps) {
           <span className="line-clamp-1 @max-md/header:hidden">
             {titleData.full}
           </span>
-          {viewPreferences.showWeekNumbers && weekNumber ? (
+          {view !== "month" && viewPreferences.showWeekNumbers ? (
             <span className="line-clamp-1 text-sm text-muted-foreground">
-              W{weekNumber}
+              W{currentDate.weekOfYear}
             </span>
           ) : null}
         </motion.h2>

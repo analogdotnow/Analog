@@ -1,0 +1,28 @@
+import { Temporal } from "temporal-polyfill";
+
+export const HOURS = [
+  Temporal.PlainTime.from({ hour: 0 }),
+  Temporal.PlainTime.from({ hour: 1 }),
+  Temporal.PlainTime.from({ hour: 2 }),
+  Temporal.PlainTime.from({ hour: 3 }),
+  Temporal.PlainTime.from({ hour: 4 }),
+  Temporal.PlainTime.from({ hour: 5 }),
+  Temporal.PlainTime.from({ hour: 6 }),
+  Temporal.PlainTime.from({ hour: 7 }),
+  Temporal.PlainTime.from({ hour: 8 }),
+  Temporal.PlainTime.from({ hour: 9 }),
+  Temporal.PlainTime.from({ hour: 10 }),
+  Temporal.PlainTime.from({ hour: 11 }),
+  Temporal.PlainTime.from({ hour: 12 }),
+  Temporal.PlainTime.from({ hour: 13 }),
+  Temporal.PlainTime.from({ hour: 14 }),
+  Temporal.PlainTime.from({ hour: 15 }),
+  Temporal.PlainTime.from({ hour: 16 }),
+  Temporal.PlainTime.from({ hour: 17 }),
+  Temporal.PlainTime.from({ hour: 18 }),
+  Temporal.PlainTime.from({ hour: 19 }),
+  Temporal.PlainTime.from({ hour: 20 }),
+  Temporal.PlainTime.from({ hour: 21 }),
+  Temporal.PlainTime.from({ hour: 22 }),
+  Temporal.PlainTime.from({ hour: 23 }),
+];

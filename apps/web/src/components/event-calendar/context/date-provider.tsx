@@ -1,8 +1,11 @@
+"use client";
+
 import * as React from "react";
 import { Temporal } from "temporal-polyfill";
 
+import { useDefaultTimeZone } from "@/atoms/calendar-settings";
+
 interface DateProviderProps {
-  timeZone: string;
   children: React.ReactNode;
 }
 
@@ -12,12 +15,12 @@ const DateContext = React.createContext<Temporal.PlainDate | null>(null);
  * Provider — supplies the *current* PlainDate and re-renders
  * exactly once per calendrical day (00:00 in TZ) or when `timeZone` changes.
  */
-export function DateProvider({ timeZone, children }: DateProviderProps) {
+export function DateProvider({ children }: DateProviderProps) {
+  const timeZone = useDefaultTimeZone();
   const [date, setDate] = React.useState(() =>
     Temporal.Now.plainDateISO(timeZone),
   );
   const timerRef = React.useRef<number | undefined>(undefined);
-
   React.useEffect(() => {
     setDate(Temporal.Now.plainDateISO(timeZone));
 

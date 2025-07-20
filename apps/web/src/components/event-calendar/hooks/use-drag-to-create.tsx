@@ -159,16 +159,12 @@ export function useDragToCreate({
       roundingIncrement: 15,
       roundingMode: "floor",
     });
+
     const endTime = timeFromMinutes(endMinutes).round({
       smallestUnit: "minute",
       roundingIncrement: 15,
       roundingMode: "halfExpand",
     });
-
-    console.log(
-      startTime.toLocaleString("en-US"),
-      endTime.toLocaleString("en-US"),
-    );
 
     const start = date.toZonedDateTime({ timeZone, plainTime: startTime });
     const end = date.toZonedDateTime({ timeZone, plainTime: endTime });

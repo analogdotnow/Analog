@@ -1,3 +1,4 @@
+import { tzDate } from "@formkit/tempo";
 import { Temporal } from "temporal-polyfill";
 
 interface ToDateOptions {
@@ -6,7 +7,7 @@ interface ToDateOptions {
 }
 
 export function toDate({ value, timeZone }: ToDateOptions): Date {
-  return new Date(toInstant({ value, timeZone }).toString());
+  return tzDate(new Date(toInstant({ value, timeZone }).toString()), timeZone);
 }
 
 interface ToInstantOptions {

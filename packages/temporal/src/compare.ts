@@ -3,12 +3,14 @@ import { Temporal } from "temporal-polyfill";
 import { toInstant, toPlainDate, toPlainYearMonth } from "./convert";
 
 export interface IsSameDayOptions {
-  a: Temporal.Instant | Temporal.ZonedDateTime | Temporal.PlainDate;
-  b: Temporal.Instant | Temporal.ZonedDateTime | Temporal.PlainDate;
   timeZone: string;
 }
 
-export function isSameDay({ a, b, timeZone }: IsSameDayOptions) {
+export function isSameDay(
+  a: Temporal.Instant | Temporal.ZonedDateTime | Temporal.PlainDate,
+  b: Temporal.Instant | Temporal.ZonedDateTime | Temporal.PlainDate,
+  { timeZone }: IsSameDayOptions,
+) {
   return toPlainDate({ value: a, timeZone }).equals(
     toPlainDate({ value: b, timeZone }),
   );

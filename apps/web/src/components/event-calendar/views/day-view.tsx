@@ -1,16 +1,16 @@
 "use client";
 
 import * as React from "react";
-import {
-  addHours,
-  areIntervalsOverlapping,
-  differenceInMinutes,
-  eachHourOfInterval,
-  getHours,
-  getMinutes,
-  isSameDay,
-  startOfDay,
-} from "date-fns";
+// import {
+//   addHours,
+//   areIntervalsOverlapping,
+//   differenceInMinutes,
+//   eachHourOfInterval,
+//   getHours,
+//   getMinutes,
+//   isSameDay,
+//   startOfDay,
+// } from "date-fns";
 import { motion } from "motion/react";
 import { Temporal } from "temporal-polyfill";
 
@@ -30,9 +30,10 @@ import { isMultiDayEvent } from "@/components/event-calendar/utils";
 import { useDragToCreate } from "../hooks/use-drag-to-create";
 import { DragPreview } from "./event/drag-preview";
 import { Timeline } from "./timeline";
+import { isSameDay, startOfDay } from "@repo/temporal/v2";
 
 interface DayViewProps {
-  currentDate: Date;
+  currentDate: Temporal.PlainDate;
   events: CalendarEvent[];
   dispatchAction: (action: Action) => void;
 }
@@ -90,13 +91,6 @@ function PositionedEvent({
 
 export function DayView({ currentDate, events, dispatchAction }: DayViewProps) {
   const containerRef = React.useRef<HTMLDivElement | null>(null);
-  const hours = React.useMemo(() => {
-    const dayStart = startOfDay(currentDate);
-    return eachHourOfInterval({
-      start: addHours(dayStart, StartHour),
-      end: addHours(dayStart, EndHour - 1),
-    });
-  }, [currentDate]);
 
   const settings = useCalendarSettings();
 
@@ -107,10 +101,7 @@ export function DayView({ currentDate, events, dispatchAction }: DayViewProps) {
           value: event.start,
           timeZone: settings.defaultTimeZone,
         });
-        const eventEnd = toDate({
-          value: event.end,
-          timeZone: settings.defaultTimeZone,
-        });
+        const eventEnd = event.end;
         return (
           isSameDay(currentDate, eventStart) ||
           isSameDay(currentDate, eventEnd) ||
@@ -149,7 +140,7 @@ export function DayView({ currentDate, events, dispatchAction }: DayViewProps) {
   // Process events to calculate positions
   const positionedEvents = React.useMemo(() => {
     const result: PositionedEvent[] = [];
-    const dayStart = startOfDay(currentDate);
+    const dayStart = startOfDay(currentDate, { timeZone: settings.defaultTimeZone });
 
     // Sort events by start time and duration
     const sortedEvents = [...timeEvents].sort((a, b) => {

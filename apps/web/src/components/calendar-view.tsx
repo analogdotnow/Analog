@@ -3,7 +3,11 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useHotkeysContext } from "react-hotkeys-hook";
 
-import { useCalendarsVisibility, useViewPreferences } from "@/atoms";
+import {
+  useCalendarSettings,
+  useCalendarsVisibility,
+  useViewPreferences,
+} from "@/atoms";
 import {
   CalendarHeader,
   EventGap,
@@ -66,23 +70,23 @@ function CalendarContent({
         />
       );
 
-    case "day":
-      return (
-        <DayView
-          currentDate={currentDate}
-          events={events}
-          dispatchAction={dispatchAction}
-        />
-      );
+    // case "day":
+    //   return (
+    //     <DayView
+    //       currentDate={currentDate}
+    //       events={events}
+    //       dispatchAction={dispatchAction}
+    //     />
+    //   );
 
-    case "agenda":
-      return (
-        <AgendaView
-          currentDate={currentDate}
-          events={events}
-          dispatchAction={dispatchAction}
-        />
-      );
+    // case "agenda":
+    //   return (
+    //     <AgendaView
+    //       currentDate={currentDate}
+    //       events={events}
+    //       dispatchAction={dispatchAction}
+    //     />
+    //   );
 
     default:
       // Fallback to week view for unknown view types
@@ -117,16 +121,22 @@ export function CalendarView({
   // Enable edge auto scroll when dragging events
   // useEdgeAutoScroll(scrollContainerRef, { active: isDragging, headerRef });
 
+  const { defaultTimeZone } = useCalendarSettings();
   const filteredEvents = useMemo(
     () =>
       filterVisibleEvents(
-        filterPastEvents(events, viewPreferences.showPastEvents),
+        filterPastEvents(
+          events,
+          viewPreferences.showPastEvents,
+          defaultTimeZone,
+        ),
         calendarVisibility.hiddenCalendars,
       ),
     [
       events,
       viewPreferences.showPastEvents,
       calendarVisibility.hiddenCalendars,
+      defaultTimeZone,
     ],
   );
 
@@ -151,7 +161,7 @@ export function CalendarView({
         } as React.CSSProperties
       }
     >
-      <CalendarHeader ref={headerRef} viewPreferences={viewPreferences} />
+      <CalendarHeader ref={headerRef} />
 
       <div
         className="scrollbar-hidden grow overflow-x-hidden overflow-y-auto"

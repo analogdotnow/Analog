@@ -5,9 +5,11 @@ import {
   isSameDay,
   subDays,
 } from "date-fns";
+import { Temporal } from "temporal-polyfill";
 
 import { toDate } from "@repo/temporal";
 
+import { EventCollectionItem } from "../hooks/use-event-collection";
 import type { CalendarEvent } from "../types";
 
 // ============================================================================
@@ -27,8 +29,8 @@ export interface MultiDayEvent {
 export interface EventCapacityInfo {
   maxVisibleLanes: number;
   totalLanes: number;
-  visibleLanes: CalendarEvent[][];
-  overflowLanes: CalendarEvent[][];
+  visibleLanes: EventCollectionItem[][];
+  overflowLanes: EventCollectionItem[][];
   hasOverflow: boolean;
   overflowCount: number;
 }
@@ -55,9 +57,9 @@ export function calculateEventCapacity(
  * Organize events into visible and overflow lanes based on available space
  */
 export function organizeEventsWithOverflow(
-  events: CalendarEvent[],
+  events: EventCollectionItem[],
   availableHeight: number,
-  timeZone: string = "UTC",
+  timeZone: string,
   eventHeight: number = 24,
   eventGap: number = 4,
 ): EventCapacityInfo {
@@ -117,7 +119,7 @@ export function organizeEventsWithOverflow(
  */
 export function getOverflowEvents(
   capacityInfo: EventCapacityInfo,
-): CalendarEvent[] {
+): EventCollectionItem[] {
   return capacityInfo.overflowLanes.flat();
 }
 
@@ -125,28 +127,30 @@ export function getOverflowEvents(
  * Calculate the grid position for a multi-day event within a week row
  */
 export function getGridPosition(
-  event: CalendarEvent,
-  weekStart: Date,
-  weekEnd: Date,
+  items: EventCollectionItem,
+  weekStart: Temporal.PlainDate,
+  weekEnd: Temporal.PlainDate,
   timeZone: string,
 ): GridPosition {
-  const eventStart = toDate({ value: event.start, timeZone });
-  let eventEnd = toDate({ value: event.end.subtract({ seconds: 1 }), timeZone });
-
+  const eventStart = items.start;
   // For all-day events, the end date is exclusive. Subtract one day for span calculation.
-  if (event.allDay) {
-    eventEnd = subDays(eventEnd, 1);
-  }
+  const eventEnd = items.end;
 
   // Clamp the event to the week's visible range
-  const clampedStart = isBefore(eventStart, weekStart) ? weekStart : eventStart;
-  const clampedEnd = isAfter(eventEnd, weekEnd) ? weekEnd : eventEnd;
+  const clampedStart =
+    Temporal.PlainDate.compare(eventStart, weekStart) === -1
+      ? weekStart
+      : eventStart.toPlainDate();
+  const clampedEnd =
+    Temporal.PlainDate.compare(eventEnd, weekEnd) === 1
+      ? weekEnd
+      : eventEnd.toPlainDate();
 
-  // Calculate column start (0-based index)
-  const colStart = differenceInCalendarDays(clampedStart, weekStart);
+  // Calculate column start (0-based index) - should be weekStart.until(clampedStart), not the reverse
+  const colStart = weekStart.until(clampedStart).total({ unit: "days" });
 
   // Calculate span (number of days the event covers in this week)
-  const span = differenceInCalendarDays(clampedEnd, clampedStart) + 1;
+  const span = clampedStart.until(clampedEnd).total({ unit: "days" }) + 1;
 
   return { colStart, span };
 }
@@ -157,7 +161,7 @@ export function getGridPosition(
 function eventsOverlap(
   event1: CalendarEvent,
   event2: CalendarEvent,
-  timeZone: string = "UTC",
+  timeZone: string,
 ): boolean {
   // Convert to JS Date objects in the provided time-zone
   const start1 = toDate({ value: event1.start, timeZone });
@@ -195,9 +199,9 @@ function eventsOverlap(
  * Returns an array of lanes, where each lane contains non-overlapping events
  */
 export function placeIntoLanes(
-  events: CalendarEvent[],
-  timeZone: string = "UTC",
-): CalendarEvent[][] {
+  events: EventCollectionItem[],
+  timeZone: string,
+): EventCollectionItem[][] {
   if (events.length === 0) return [];
 
   // Sort events by start time, then by duration (longer events first)
@@ -207,18 +211,17 @@ export function placeIntoLanes(
 
     // DO NOT CHANGE THIS, IT DOES NOT FIX THE PROBLEM
     if (startA.getTime() < startB.getTime()) {
-      // console.log("startA", startA);
-      // console.log("startB", startB);
       return startA.getTime() - startB.getTime();
     }
 
     // If start times are equal, longer events come first
-    const endA = toDate({ value: a.end.subtract({ seconds: 1 }), timeZone });
-    const endB = toDate({ value: b.end.subtract({ seconds: 1 }), timeZone });
+    const endA = toDate({ value: a.end, timeZone });
+    const endB = toDate({ value: b.end, timeZone });
+
     return endB.getTime() - endA.getTime();
   });
 
-  const lanes: CalendarEvent[][] = [];
+  const lanes: EventCollectionItem[][] = [];
 
   sortedEvents.forEach((event) => {
     // Find the first lane where this event doesn't overlap with any existing events
@@ -234,7 +237,7 @@ export function placeIntoLanes(
       } else {
         // Check if event overlaps with any event in this lane
         const hasOverlap = currentLane.some((laneEvent) =>
-          eventsOverlap(event, laneEvent, timeZone),
+          eventsOverlap(event.event, laneEvent.event, timeZone),
         );
 
         if (!hasOverlap) {
@@ -257,11 +260,14 @@ export function getWeekSpanningEvents(
   events: CalendarEvent[],
   weekStart: Date,
   weekEnd: Date,
-  timeZone: string = "UTC",
+  timeZone: string,
 ): CalendarEvent[] {
   return events.filter((event) => {
     const eventStart = toDate({ value: event.start, timeZone });
-    let eventEnd = toDate({ value: event.end.subtract({ seconds: 1 }), timeZone });
+    let eventEnd = toDate({
+      value: event.end.subtract({ seconds: 1 }),
+      timeZone,
+    });
 
     // For all-day events, the end date is exclusive.
     if (event.allDay) {
@@ -280,10 +286,13 @@ export function getWeekSpanningEvents(
  */
 export function isSingleDayEvent(
   event: CalendarEvent,
-  timeZone: string = "UTC",
+  timeZone: string,
 ): boolean {
   const eventStart = toDate({ value: event.start, timeZone });
-  let eventEnd = toDate({ value: event.end.subtract({ seconds: 1 }), timeZone });
+  let eventEnd = toDate({
+    value: event.end.subtract({ seconds: 1 }),
+    timeZone,
+  });
 
   // For all-day events, the end date is exclusive.
   if (event.allDay) {

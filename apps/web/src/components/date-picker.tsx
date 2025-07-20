@@ -1,15 +1,23 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Temporal } from "temporal-polyfill";
 
+import { useCalendarSettings } from "@/atoms/calendar-settings";
 import { Calendar } from "@/components/ui/calendar";
 import { useCalendarState } from "@/hooks/use-calendar-state";
 import { cn } from "@/lib/utils";
 
+function toDate(date: Temporal.PlainDate): Date {
+  return new Date(date.year, date.month - 1, date.day);
+}
+
 export function DatePicker() {
   const { currentDate, setCurrentDate, view } = useCalendarState();
-  const [displayedDate, setDisplayedDate] = useState<Date>(currentDate);
-  const [displayedMonth, setDisplayedMonth] = useState<Date>(currentDate);
+  const [displayedDate, setDisplayedDate] = useState<Date>(toDate(currentDate));
+  const [displayedMonth, setDisplayedMonth] = useState<Date>(
+    toDate(currentDate),
+  );
   const updateSource = useRef<"internal" | "external">("external");
 
   // Prevent circular updates and animation conflicts by tracking update source:
@@ -17,17 +25,26 @@ export function DatePicker() {
   // - External (navigation/hotkeys): Update local state via useEffect
 
   const handleSelect = (date: Date | undefined) => {
-    if (!date) return;
+    if (!date) {
+      return;
+    }
 
     updateSource.current = "internal";
     setDisplayedDate(date);
-    setCurrentDate(date);
+    setCurrentDate(
+      Temporal.PlainDate.from({
+        year: date.getFullYear(),
+        month: date.getMonth() + 1,
+        day: date.getDate(),
+      }),
+    );
   };
 
+  const settings = useCalendarSettings();
   useEffect(() => {
     if (updateSource.current === "external") {
-      setDisplayedDate(currentDate);
-      setDisplayedMonth(currentDate);
+      setDisplayedDate(toDate(currentDate));
+      setDisplayedMonth(toDate(currentDate));
     }
     updateSource.current = "external";
   }, [currentDate]);
@@ -37,6 +54,7 @@ export function DatePicker() {
 
   return (
     <Calendar
+      weekStartsOn={(settings.weekStartsOn % 7) as 0 | 1 | 2 | 3 | 4 | 5 | 6}
       animate
       mode="single"
       required

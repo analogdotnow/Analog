@@ -1,7 +1,9 @@
 "use client";
 
 import { useHotkeys } from "react-hotkeys-hook";
+import { Temporal } from "temporal-polyfill";
 
+import { useCalendarSettings } from "@/atoms/calendar-settings";
 import {
   navigateToNext,
   navigateToPrevious,
@@ -20,6 +22,7 @@ export const KEYBOARD_SHORTCUTS = {
 } as const;
 
 export function CalendarHotkeys() {
+  const { defaultTimeZone } = useCalendarSettings();
   const { view, setView, setCurrentDate } = useCalendarState();
 
   useHotkeys(KEYBOARD_SHORTCUTS.MONTH, () => setView("month"), {
@@ -34,20 +37,23 @@ export function CalendarHotkeys() {
   useHotkeys(KEYBOARD_SHORTCUTS.AGENDA, () => setView("agenda"), {
     scopes: ["calendar"],
   });
-  useHotkeys(KEYBOARD_SHORTCUTS.TODAY, () => setCurrentDate(new Date()), {
-    scopes: ["calendar"],
-  });
+  useHotkeys(
+    KEYBOARD_SHORTCUTS.TODAY,
+    () => setCurrentDate(Temporal.Now.plainDateISO(defaultTimeZone)),
+    {
+      scopes: ["calendar"],
+    },
+  );
 
   useHotkeys(
     KEYBOARD_SHORTCUTS.NEXT_PERIOD,
-    () => setCurrentDate((prevDate: Date) => navigateToNext(prevDate, view)),
+    () => setCurrentDate((prevDate) => navigateToNext(prevDate, view)),
     { scopes: ["calendar"] },
   );
 
   useHotkeys(
     KEYBOARD_SHORTCUTS.PREVIOUS_PERIOD,
-    () =>
-      setCurrentDate((prevDate: Date) => navigateToPrevious(prevDate, view)),
+    () => setCurrentDate((prevDate) => navigateToPrevious(prevDate, view)),
     { scopes: ["calendar"] },
   );
 

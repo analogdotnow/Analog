@@ -1,11 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import { format, isSameDay } from "date-fns";
+import * as React from "react";
+import { format } from "date-fns";
 import { XIcon } from "lucide-react";
+import { Temporal } from "temporal-polyfill";
 
 import { toDate } from "@repo/temporal";
+import { isSameDay } from "@repo/temporal/v2";
 
+import { useDefaultTimeZone } from "@/atoms/calendar-settings";
 import { EventItem, type CalendarEvent } from "@/components/event-calendar";
 import type { Action } from "@/components/event-calendar/hooks/use-optimistic-events";
 import {
@@ -14,11 +17,12 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { EventCollectionItem } from "./hooks/use-event-collection";
 
 interface OverflowIndicatorProps {
   count: number;
-  events: CalendarEvent[];
-  date: Date;
+  items: EventCollectionItem[];
+  date: Temporal.PlainDate;
   dispatchAction: (action: Action) => void;
   gridColumn?: string;
   className?: string;
@@ -26,20 +30,29 @@ interface OverflowIndicatorProps {
 
 export function OverflowIndicator({
   count,
-  events,
+  items,
   date,
   dispatchAction,
   gridColumn,
   className,
 }: OverflowIndicatorProps) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = React.useState(false);
 
-  const handleEventClick = (event: CalendarEvent) => {
-    dispatchAction({ type: "select", event });
-    setOpen(false);
-  };
+  const timeZone = useDefaultTimeZone();
 
-  if (count <= 0) return null;
+  const handleEventClick = React.useCallback(
+    (event: CalendarEvent) => {
+      dispatchAction({ type: "select", event });
+      setOpen(false);
+    },
+    [dispatchAction],
+  );
+
+  if (count <= 0) {
+    return null;
+  }
+
+  const legacyDate = toDate({ value: date, timeZone });
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -63,7 +76,9 @@ export function OverflowIndicator({
         sideOffset={4}
       >
         <div className="flex items-center justify-between px-2 py-1">
-          <h3 className="text-sm font-medium">{format(date, "d MMMM yyyy")}</h3>
+          <h3 className="text-sm font-medium">
+            {format(legacyDate, "d MMMM yyyy")}
+          </h3>
           <button
             onClick={() => setOpen(false)}
             className="rounded-full p-1 hover:bg-muted"
@@ -74,27 +89,24 @@ export function OverflowIndicator({
         </div>
 
         <div className="max-h-96 overflow-auto px-2 pb-2">
-          {events.length === 0 ? (
+          {items.length === 0 ? (
             <div className="py-2 text-sm text-muted-foreground">No events</div>
           ) : (
             <div className="space-y-2">
-              {events.map((event) => {
-                const eventStart = toDate({
-                  value: event.start,
-                  timeZone: "UTC",
-                });
-                const eventEnd = toDate({ value: event.end, timeZone: "UTC" });
+              {items.map((item) => {
+                const eventStart = item.start.toPlainDate();
+                const eventEnd = item.end.toPlainDate();
                 const isFirstDay = isSameDay(date, eventStart);
                 const isLastDay = isSameDay(date, eventEnd);
 
                 return (
                   <div
-                    key={event.id}
+                    key={item.event.id}
                     className="cursor-pointer"
-                    onClick={() => handleEventClick(event)}
+                    onClick={() => handleEventClick(item.event)}
                   >
                     <EventItem
-                      event={event}
+                      event={item.event}
                       view="agenda"
                       isFirstDay={isFirstDay}
                       isLastDay={isLastDay}

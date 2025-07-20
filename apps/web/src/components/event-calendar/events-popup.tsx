@@ -6,6 +6,7 @@ import { XIcon } from "lucide-react";
 
 import { toDate } from "@repo/temporal";
 
+import { useDefaultTimeZone } from "@/atoms/calendar-settings";
 import { EventItem, type CalendarEvent } from "@/components/event-calendar";
 import type { Action } from "@/components/event-calendar/hooks/use-optimistic-events";
 
@@ -86,6 +87,7 @@ export function EventsPopup({
     return positionCopy;
   }, [position]);
 
+  const timeZone = useDefaultTimeZone();
   return (
     <div
       ref={popupRef}
@@ -111,8 +113,8 @@ export function EventsPopup({
           <div className="py-2 text-sm text-muted-foreground">No events</div>
         ) : (
           events.map((event) => {
-            const eventStart = toDate({ value: event.start, timeZone: "UTC" });
-            const eventEnd = toDate({ value: event.end, timeZone: "UTC" });
+            const eventStart = toDate({ value: event.start, timeZone });
+            const eventEnd = toDate({ value: event.end, timeZone });
             const isFirstDay = isSameDay(date, eventStart);
             const isLastDay = isSameDay(date, eventEnd);
 

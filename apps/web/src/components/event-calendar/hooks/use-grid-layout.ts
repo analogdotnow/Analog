@@ -1,7 +1,9 @@
 import { useMemo } from "react";
+import { Temporal } from "temporal-polyfill";
+
+import { isWeekend } from "@repo/temporal/v2";
 
 import { useViewPreferences } from "@/atoms";
-import { isWeekend } from "../utils/date-time";
 
 interface GridLayoutOptions {
   /**
@@ -22,7 +24,10 @@ interface GridLayoutOptions {
  * @param options - Configuration options for the grid layout
  * @returns CSS grid-template-columns string
  */
-export function useGridLayout(days: Date[], options: GridLayoutOptions = {}) {
+export function useGridLayout(
+  days: Temporal.PlainDate[],
+  options: GridLayoutOptions = {},
+) {
   const { includeTimeColumn = false, timeColumnWidth = "5rem" } = options;
 
   const viewPreferences = useViewPreferences();

@@ -1,61 +1,79 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React from "react";
 import { format } from "@formkit/tempo";
-import { endOfWeek, isSameDay, isWithinInterval, startOfWeek } from "date-fns";
+import { Temporal } from "temporal-polyfill";
+
+import { toDate } from "@repo/temporal";
+import {
+  endOfWeek,
+  isSameDay,
+  isWithinInterval,
+  startOfWeek,
+} from "@repo/temporal/v2";
 
 import { useCalendarSettings } from "@/atoms/calendar-settings";
-import { EndHour, StartHour } from "@/components/event-calendar/constants";
+import { useZonedDateTime } from "../context/datetime-provider";
+
+const END_OF_DAY_MINUTES = 1440; // 24 hours * 60 minutes
 
 export function useCurrentTimeIndicator(
-  currentDate: Date,
+  currentDate: Temporal.PlainDate,
   view: "day" | "week",
 ) {
-  const [currentTimePosition, setCurrentTimePosition] = useState<number>(0);
-  const [currentTimeVisible, setCurrentTimeVisible] = useState<boolean>(false);
-  const [formattedTime, setFormattedTime] = useState<string>("");
-  const { use12Hour } = useCalendarSettings();
+  const time = useZonedDateTime();
+  const { defaultTimeZone, weekStartsOn, use12Hour } = useCalendarSettings();
 
-  useEffect(() => {
-    const calculateTimePosition = () => {
-      const now = new Date();
-      const hours = now.getHours();
-      const minutes = now.getMinutes();
-      const totalMinutes = (hours - StartHour) * 60 + minutes;
-      const dayStartMinutes = 0;
-      const dayEndMinutes = (EndHour - StartHour) * 60;
+  const { currentTimePosition, currentTimeVisible, formattedTime } =
+    React.useMemo(() => {
+      if (!time) {
+        return {
+          currentTimePosition: 0,
+          currentTimeVisible: false,
+          formattedTime: "",
+        };
+      }
+      const totalMinutes = time.hour * 60 + time.minute;
 
-      const position =
-        ((totalMinutes - dayStartMinutes) / (dayEndMinutes - dayStartMinutes)) *
-        100;
+      const position = (totalMinutes / END_OF_DAY_MINUTES) * 100;
 
       let isCurrentTimeVisible = false;
 
       if (view === "day") {
-        isCurrentTimeVisible = isSameDay(now, currentDate);
-      } else if (view === "week") {
-        const startOfWeekDate = startOfWeek(currentDate, { weekStartsOn: 0 });
-        const endOfWeekDate = endOfWeek(currentDate, { weekStartsOn: 0 });
-        isCurrentTimeVisible = isWithinInterval(now, {
-          start: startOfWeekDate,
-          end: endOfWeekDate,
+        isCurrentTimeVisible = isSameDay(time, currentDate, {
+          timeZone: defaultTimeZone,
         });
+      } else if (view === "week") {
+        const startOfWeekDate = startOfWeek(currentDate, { weekStartsOn });
+        const endOfWeekDate = endOfWeek(currentDate, { weekStartsOn });
+
+        isCurrentTimeVisible = isWithinInterval(
+          time,
+          {
+            start: startOfWeekDate,
+            end: endOfWeekDate,
+          },
+          { timeZone: defaultTimeZone },
+        );
       }
 
+      if (!time) {
+        return {
+          currentTimePosition: 0,
+          currentTimeVisible: false,
+          formattedTime: "",
+        };
+      }
       const formattedTime = use12Hour
-        ? format(now, "h:mm a")
-        : format(now, "HH:mm");
-      setFormattedTime(formattedTime);
-      setCurrentTimePosition(position);
-      setCurrentTimeVisible(isCurrentTimeVisible);
-    };
+        ? format(toDate({ value: time, timeZone: defaultTimeZone }), "h:mm a")
+        : format(toDate({ value: time, timeZone: defaultTimeZone }), "HH:mm");
 
-    calculateTimePosition();
-
-    const interval = setInterval(calculateTimePosition, 60000);
-
-    return () => clearInterval(interval);
-  }, [currentDate, view, use12Hour]);
+      return {
+        currentTimePosition: position,
+        currentTimeVisible: isCurrentTimeVisible,
+        formattedTime,
+      };
+    }, [currentDate, view, use12Hour, time, defaultTimeZone, weekStartsOn]);
 
   return { currentTimePosition, currentTimeVisible, formattedTime };
 }

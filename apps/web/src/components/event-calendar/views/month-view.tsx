@@ -1,21 +1,23 @@
 "use client";
 
 import * as React from "react";
+import { format } from "date-fns";
+import { Temporal } from "temporal-polyfill";
+
+import { toDate } from "@repo/temporal";
 import {
   eachDayOfInterval,
   endOfMonth,
   endOfWeek,
-  format,
+  isAfter,
+  isBefore,
   isSameDay,
   isSameMonth,
   isToday,
+  isWeekend,
   startOfMonth,
   startOfWeek,
-  subDays,
-} from "date-fns";
-import { Temporal } from "temporal-polyfill";
-
-import { toDate } from "@repo/temporal";
+} from "@repo/temporal/v2";
 
 import {
   CalendarSettings,
@@ -39,17 +41,18 @@ import { OverflowIndicator } from "@/components/event-calendar/overflow-indicato
 import {
   getGridPosition,
   getWeekDays,
-  isWeekend,
   isWeekendIndex,
   placeIntoLanes,
 } from "@/components/event-calendar/utils";
 import { cn, groupArrayIntoChunks } from "@/lib/utils";
 import { createDraftEvent } from "@/lib/utils/calendar";
+import { EventCollectionItem } from "../hooks/use-event-collection";
+import { isWithinInterval } from "interval-temporal";
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 interface MonthViewProps {
-  currentDate: Date;
+  currentDate: Temporal.PlainDate;
   events: CalendarEvent[];
   dispatchAction: (action: Action) => void;
 }
@@ -60,33 +63,30 @@ export function MonthView({
   dispatchAction,
 }: MonthViewProps) {
   const settings = useCalendarSettings();
+  
+  // Memoize dispatchAction to prevent cascading re-renders
+  const memoizedDispatchAction = React.useCallback(dispatchAction, [dispatchAction]);
+  
   const { days, weeks } = React.useMemo(() => {
     const monthStart = startOfMonth(currentDate);
     const monthEnd = endOfMonth(monthStart);
-    const calendarStart = startOfWeek(monthStart, { weekStartsOn: 0 });
-    const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 0 });
-
-    const allDays = eachDayOfInterval({
-      start: calendarStart,
-      end: calendarEnd,
+    const calendarStart = startOfWeek(monthStart, {
+      weekStartsOn: settings.weekStartsOn,
     });
+    const calendarEnd = endOfWeek(monthEnd, {
+      weekStartsOn: settings.weekStartsOn,
+    });
+
+    const allDays = eachDayOfInterval(calendarStart, calendarEnd);
 
     const weeksResult = groupArrayIntoChunks(allDays, 7);
 
     return { days: allDays, weeks: weeksResult };
-  }, [currentDate]);
+  }, [currentDate, settings.weekStartsOn]);
 
   const containerRef = React.useRef<HTMLDivElement | null>(null);
 
-  const handleEventClick = React.useCallback(
-    (event: CalendarEvent, e: React.MouseEvent) => {
-      e.stopPropagation();
-      dispatchAction({ type: "select", event });
-    },
-    [dispatchAction],
-  );
-
-  const gridTemplateColumns = useGridLayout(getWeekDays(new Date()));
+  const gridTemplateColumns = useGridLayout(getWeekDays(currentDate));
   const eventCollection = useEventCollection(events, days, "month");
 
   const rows = weeks.length;
@@ -101,15 +101,14 @@ export function MonthView({
       >
         {weeks.map((week, weekIndex) => {
           return (
-            <MonthViewWeek
+            <MemorizedMonthViewWeek
               key={weekIndex}
               week={week}
               weekIndex={weekIndex}
               rows={rows}
               gridTemplateColumns={gridTemplateColumns}
               eventCollection={eventCollection}
-              onEventClick={handleEventClick}
-              dispatchAction={dispatchAction}
+              dispatchAction={memoizedDispatchAction}
               settings={settings}
               containerRef={
                 containerRef as React.RefObject<HTMLDivElement | null>
@@ -127,13 +126,18 @@ type MonthViewHeaderProps = React.ComponentProps<"div">;
 
 function MonthViewHeader(props: MonthViewHeaderProps) {
   const viewPreferences = useViewPreferences();
+  const settings = useCalendarSettings();
+
+  const weekDays = React.useMemo(() => {
+    return [...WEEKDAYS.slice(settings.weekStartsOn), ...WEEKDAYS.slice(0, settings.weekStartsOn)];
+  }, [settings.weekStartsOn]);
 
   return (
     <div
       className="grid justify-items-stretch border-b border-border/70 transition-[grid-template-columns] duration-200 ease-linear"
       {...props}
     >
-      {WEEKDAYS.map((day, index) => {
+      {weekDays.map((day, index) => {
         const isDayVisible =
           viewPreferences.showWeekends || !isWeekendIndex(index);
 
@@ -155,16 +159,15 @@ function MonthViewHeader(props: MonthViewHeaderProps) {
 }
 
 interface MonthViewWeekItemProps {
-  week: Date[];
+  week: Temporal.PlainDate[];
   weekIndex: number;
   rows: number;
   gridTemplateColumns: string;
   eventCollection: EventCollectionForMonth;
-  onEventClick: (event: CalendarEvent, e: React.MouseEvent) => void;
   dispatchAction: (action: Action) => void;
   settings: CalendarSettings;
   containerRef: React.RefObject<HTMLDivElement | null>;
-  currentDate: Date;
+  currentDate: Temporal.PlainDate;
 }
 
 function MonthViewWeek({
@@ -173,7 +176,6 @@ function MonthViewWeek({
   rows,
   gridTemplateColumns,
   eventCollection,
-  onEventClick,
   dispatchAction,
   settings,
   containerRef,
@@ -184,59 +186,55 @@ function MonthViewWeek({
   const weekStart = week[0]!;
   const weekEnd = week[6]!;
 
-  // Collect all events from the event collection - treat ALL events as multi-day
-  const allEvents: CalendarEvent[] = [];
-  eventCollection.eventsByDay.forEach((dayEvents) => {
-    allEvents.push(...dayEvents.allEvents);
-  });
-  const uniqueEvents = allEvents.filter(
-    (event, index, self) => index === self.findIndex((e) => e.id === event.id),
-  );
-
-  // Include ALL events in the multi-day lane, not just spanning events
-  const weekEvents = uniqueEvents.filter((event) => {
-    const eventStart = toDate({
-      value: event.start,
-      timeZone: settings.defaultTimeZone,
+  const weekEvents = React.useMemo(() => {
+    // Collect all events from the event collection - treat ALL events as multi-day
+    const allEvents: EventCollectionItem[] = [];
+    eventCollection.eventsByDay.forEach((dayEvents) => {
+      allEvents.push(...dayEvents.allEvents);
     });
-    let eventEnd = toDate({
-      value: event.end.subtract({ seconds: 1 }),
-      timeZone: settings.defaultTimeZone,
-    });
+    const uniqueEvents = allEvents.filter(
+      (event, index, self) =>
+        index === self.findIndex((e) => e.event.id === event.event.id),
+    );
 
-    // All-day events have an exclusive end; subtract one day so the final day is included
-    if (event.allDay) {
-      eventEnd = subDays(eventEnd, 1);
-    }
+    // Include ALL events in the multi-day lane, not just spanning events
+    return uniqueEvents.filter((item) => {
+      const eventStart = item.start.toPlainDate();
+      const eventEnd = item.end.toPlainDate();
 
-    // Check if event is within the week range
-    const isInWeek =
-      (eventStart >= weekStart && eventStart <= weekEnd) ||
-      (eventEnd >= weekStart && eventEnd <= weekEnd) ||
-      (eventStart < weekStart && eventEnd > weekEnd);
+      // All-day events have an exclusive end; subtract one day so the final day is included
 
-    if (!isInWeek) {
-      return false;
-    }
+      // Check if event is within the week range
+      const isInWeek =
+        ((isAfter(eventStart, weekStart) || isSameDay(eventStart, weekStart)) &&
+          isBefore(eventStart, weekEnd)) ||
+        ((isAfter(eventEnd, weekStart) || isSameDay(eventEnd, weekStart)) &&
+          (isBefore(eventEnd, weekEnd) || isSameDay(eventEnd, weekEnd))) ||
+        (isBefore(eventStart, weekStart) && isAfter(eventEnd, weekEnd));
 
-    // If weekends are hidden, exclude events that only occur on weekends
-    if (!viewPreferences.showWeekends) {
-      // Get all days that this event spans within the week
-      const eventDays = eachDayOfInterval({
-        start: eventStart < weekStart ? weekStart : eventStart,
-        end: eventEnd > weekEnd ? weekEnd : eventEnd,
-      });
-
-      // Check if event has at least one day that's not a weekend
-      const hasNonWeekendDay = eventDays.some((day) => !isWeekend(day));
-
-      if (!hasNonWeekendDay) {
+      if (!isInWeek) {
         return false;
       }
-    }
 
-    return true;
-  });
+      // If weekends are hidden, exclude events that only occur on weekends
+      if (!viewPreferences.showWeekends) {
+        // Get all days that this event spans within the week
+        const eventDays = eachDayOfInterval(
+          isBefore(eventStart, weekStart) ? weekStart : eventStart,
+          isAfter(eventEnd, weekEnd) ? weekEnd : eventEnd,
+        );
+
+        // Check if event has at least one day that's not a weekend
+        const hasNonWeekendDay = eventDays.some((day) => !isWeekend(day));
+
+        if (!hasNonWeekendDay) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [eventCollection.eventsByDay, viewPreferences.showWeekends, weekStart, weekEnd]);
 
   // Use overflow hook to manage event display
   const overflow = useMultiDayOverflow({
@@ -260,7 +258,7 @@ function MonthViewWeek({
     >
       {/* 1. Day cells */}
       {week.map((day, dayIndex) => (
-        <MonthViewDay
+        <MemoizedMonthViewDay
           key={day.toString()}
           day={day}
           rows={rows}
@@ -283,15 +281,14 @@ function MonthViewWeek({
         {overflow.capacityInfo.visibleLanes.map((lane, y) =>
           lane.map((evt) => {
             return (
-              <PositionedEvent
+              <MemoizedPositionedEvent
                 rows={rows}
-                key={evt.id}
+                key={evt.event.id}
                 y={y}
                 evt={evt}
                 weekStart={weekStart}
                 weekEnd={weekEnd}
                 settings={settings}
-                onEventClick={onEventClick}
                 dispatchAction={dispatchAction}
                 containerRef={containerRef}
               />
@@ -303,15 +300,49 @@ function MonthViewWeek({
   );
 }
 
+const MemorizedMonthViewWeek = React.memo(MonthViewWeek, (prevProps, nextProps) => {
+  // Deep comparison for week array
+  if (prevProps.week.length !== nextProps.week.length) return false;
+  for (let i = 0; i < prevProps.week.length; i++) {
+    if (!prevProps.week[i]!.equals(nextProps.week[i]!)) return false;
+  }
+  
+  // Compare other props
+  return (
+    prevProps.weekIndex === nextProps.weekIndex &&
+    prevProps.rows === nextProps.rows &&
+    prevProps.gridTemplateColumns === nextProps.gridTemplateColumns &&
+    prevProps.eventCollection === nextProps.eventCollection &&
+    prevProps.dispatchAction === nextProps.dispatchAction &&
+    prevProps.settings === nextProps.settings &&
+    prevProps.containerRef === nextProps.containerRef &&
+    prevProps.currentDate.equals(nextProps.currentDate)
+  );
+});
+
+// Also memoize MonthViewDay to prevent unnecessary re-renders
+const MemoizedMonthViewDay = React.memo(MonthViewDay, (prevProps, nextProps) => {
+  return (
+    prevProps.day.equals(nextProps.day) &&
+    prevProps.rows === nextProps.rows &&
+    prevProps.weekIndex === nextProps.weekIndex &&
+    prevProps.dayIndex === nextProps.dayIndex &&
+    prevProps.multiDayLaneCount === nextProps.multiDayLaneCount &&
+    prevProps.overflow === nextProps.overflow &&
+    prevProps.dispatchAction === nextProps.dispatchAction &&
+    prevProps.currentDate.equals(nextProps.currentDate)
+  );
+});
+
 interface MonthViewDayProps {
-  day: Date;
+  day: Temporal.PlainDate;
   rows: number;
   weekIndex: number;
   dayIndex: number;
   multiDayLaneCount: number;
   overflow: ReturnType<typeof useMultiDayOverflow>;
   dispatchAction: (action: Action) => void;
-  currentDate: Date;
+  currentDate: Temporal.PlainDate;
 }
 
 function MonthViewDay({
@@ -324,16 +355,11 @@ function MonthViewDay({
   const settings = useCalendarSettings();
 
   const handleDayClick = React.useCallback(() => {
-    const start = Temporal.ZonedDateTime.from({
-      year: day.getFullYear(),
-      month: day.getMonth() + 1,
-      day: day.getDate(),
-      hour: DefaultStartHour,
-      minute: 0,
+    const start = day.toZonedDateTime({
       timeZone: settings.defaultTimeZone,
+      plainTime: { hour: DefaultStartHour, minute: 0 },
     });
-
-    const end = start.add({ days: 1 });
+    const end = start.add({ hours: 1 });
 
     dispatchAction({ type: "draft", event: createDraftEvent({ start, end }) });
   }, [day, dispatchAction, settings.defaultTimeZone]);
@@ -343,18 +369,17 @@ function MonthViewDay({
   const isCurrentMonth = isSameMonth(day, currentDate);
   const isDayVisible = viewPreferences.showWeekends || !isWeekend(day);
   // const isReferenceCell = weekIndex === 0 && dayIndex === 0;
-  const cellId = `month-cell-${day.toISOString()}`;
+  const cellId = `month-cell-${day.toString()}`;
 
   // Filter overflow events to only show those that start on this day
   const dayOverflowEvents = overflow.overflowEvents.filter((event) => {
-    const eventStart = toDate({
-      value: event.start,
-      timeZone: settings.defaultTimeZone,
-    });
+    const eventStart = event.start.toPlainDate();
     return isSameDay(eventStart, day);
   });
 
   const hasOverflowForDay = dayOverflowEvents.length > 0;
+
+  const legacyDay = toDate({ value: day, timeZone: settings.defaultTimeZone });
 
   return (
     <div
@@ -362,7 +387,9 @@ function MonthViewDay({
         "group relative min-w-0 border-r border-b border-border/70 last:border-r-0 data-outside-cell:bg-muted/25 data-outside-cell:text-muted-foreground/70",
         !isDayVisible && "w-0",
       )}
-      data-today={isToday(day) || undefined}
+      data-today={
+        isToday(day, { timeZone: settings.defaultTimeZone }) || undefined
+      }
       data-outside-cell={!isCurrentMonth || undefined}
       style={{
         visibility: isDayVisible ? "visible" : "hidden",
@@ -370,12 +397,11 @@ function MonthViewDay({
     >
       <DroppableCell
         id={cellId}
-        date={day}
         onClick={handleDayClick}
         className="flex justify-between"
       >
         <div className="relative mt-1 ml-0.5 inline-flex size-6 items-center justify-center rounded-full text-sm group-data-today:bg-primary group-data-today:text-primary-foreground">
-          {format(day, "d")}
+          {format(legacyDay, "d")}
         </div>
 
         <div
@@ -388,7 +414,7 @@ function MonthViewDay({
           <div className="pointer-events-auto z-10 flex flex-col items-center place-self-stretch pb-1">
             <OverflowIndicator
               count={dayOverflowEvents.length}
-              events={dayOverflowEvents}
+              items={dayOverflowEvents}
               date={day}
               dispatchAction={dispatchAction}
               className=""
@@ -402,11 +428,10 @@ function MonthViewDay({
 
 interface PositionedEventProps {
   y: number;
-  evt: CalendarEvent;
-  weekStart: Date;
-  weekEnd: Date;
+  evt: EventCollectionItem;
+  weekStart: Temporal.PlainDate;
+  weekEnd: Temporal.PlainDate;
   settings: CalendarSettings;
-  onEventClick: (event: CalendarEvent, e: React.MouseEvent) => void;
   dispatchAction: (action: Action) => void;
   containerRef: React.RefObject<HTMLDivElement | null>;
   rows: number;
@@ -417,37 +442,39 @@ function PositionedEvent({
   weekStart,
   weekEnd,
   settings,
-  onEventClick,
   dispatchAction,
   containerRef,
   rows,
 }: PositionedEventProps) {
-  const { colStart, span } = getGridPosition(
+  const { colStart, span } = React.useMemo(() => getGridPosition(
     evt,
     weekStart,
     weekEnd,
     settings.defaultTimeZone,
-  );
+  ), [evt, weekStart, weekEnd, settings.defaultTimeZone]);
 
   // Calculate actual first/last day based on event dates
-  const eventStart = toDate({
-    value: evt.start,
-    timeZone: settings.defaultTimeZone,
-  });
-  let eventEnd = toDate({ value: evt.end, timeZone: settings.defaultTimeZone });
-  if (evt.allDay) {
-    eventEnd = subDays(eventEnd, 1);
-  }
+  const eventStart = evt.start.toPlainDate();
+  const eventEnd = evt.end.toPlainDate();
 
   // For single-day events, ensure they are properly marked as first and last day
-  const isFirstDay = eventStart >= weekStart;
-  const isLastDay = eventEnd <= weekEnd;
+  const isFirstDay =
+    isAfter(eventStart, weekStart) || isSameDay(eventStart, weekStart);
+  const isLastDay = isBefore(eventEnd, weekEnd) || isSameDay(eventEnd, weekEnd);
 
   const [isDragging, setIsDragging] = React.useState(false);
 
+  const handleEventClick = React.useCallback(
+    (e: React.MouseEvent, event: CalendarEvent) => {
+      e.stopPropagation();
+      dispatchAction({ type: "select", event });
+    },
+    [dispatchAction],
+  );
+
   return (
     <div
-      key={evt.id}
+      key={evt.event.id}
       className="pointer-events-auto my-[1px] min-w-0"
       style={{
         gridColumn: `${colStart + 1} / span ${span}`,
@@ -457,12 +484,12 @@ function PositionedEvent({
       }}
     >
       <DraggableEvent
-        event={evt}
+        event={evt.event}
         view="month"
         containerRef={containerRef}
         isFirstDay={isFirstDay}
         isLastDay={isLastDay}
-        onClick={(e) => onEventClick(evt, e)}
+        onClick={(e) => handleEventClick(e, evt.event)}
         dispatchAction={dispatchAction}
         setIsDragging={setIsDragging}
         zIndex={isDragging ? 99999 : undefined}
@@ -471,3 +498,17 @@ function PositionedEvent({
     </div>
   );
 }
+
+// Memoize PositionedEvent to prevent unnecessary re-renders
+const MemoizedPositionedEvent = React.memo(PositionedEvent, (prevProps, nextProps) => {
+  return (
+    prevProps.y === nextProps.y &&
+    prevProps.evt === nextProps.evt &&
+    prevProps.weekStart.equals(nextProps.weekStart) &&
+    prevProps.weekEnd.equals(nextProps.weekEnd) &&
+    prevProps.settings === nextProps.settings &&
+    prevProps.dispatchAction === nextProps.dispatchAction &&
+    prevProps.containerRef === nextProps.containerRef &&
+    prevProps.rows === nextProps.rows
+  );
+});
