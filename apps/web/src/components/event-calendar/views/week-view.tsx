@@ -526,7 +526,6 @@ function WeekViewDayTimeSlots({
   const { onDoubleClick } = useDoubleClickToCreate({
     dispatchAction,
     date,
-    timeZone: defaultTimeZone,
     columnRef,
   });
 

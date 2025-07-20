@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Temporal } from "temporal-polyfill";
 
+import { useCalendarSettings } from "@/atoms/calendar-settings";
 import { createDraftEvent } from "@/lib/utils/calendar";
 import { TIME_INTERVALS } from "../constants";
 import type { Action } from "./use-optimistic-events";
@@ -8,9 +9,7 @@ import type { Action } from "./use-optimistic-events";
 interface UseDoubleClickToCreateOptions {
   dispatchAction: (action: Action) => void;
   date: Temporal.PlainDate;
-  timeZone: string;
   columnRef?: React.RefObject<HTMLDivElement | null>;
-  allDay?: boolean;
 }
 
 function timeFromMinutes(minutes: number) {
@@ -26,24 +25,25 @@ function timeFromMinutes(minutes: number) {
 export function useDoubleClickToCreate({
   dispatchAction,
   date,
-  timeZone,
   columnRef,
-  allDay = false,
 }: UseDoubleClickToCreateOptions) {
+  const { defaultTimeZone, defaultStartTime, defaultEventDuration } =
+    useCalendarSettings();
   const handleDoubleClick = React.useCallback(
     (e: React.MouseEvent) => {
-      if (allDay) {
-        const start = date;
-        const end = start.add({ days: 1 });
+      if (!columnRef?.current) {
+        const start = date.toZonedDateTime({
+          timeZone: defaultTimeZone,
+          plainTime: defaultStartTime,
+        });
+        const end = start.add({ minutes: defaultEventDuration });
 
         dispatchAction({
           type: "draft",
-          event: createDraftEvent({ start, end, allDay: true }),
+          event: createDraftEvent({ start, end, allDay: false }),
         });
         return;
       }
-
-      if (!columnRef?.current) return;
 
       const rect = columnRef.current.getBoundingClientRect();
       const relativeY = e.clientY - rect.top;
@@ -56,19 +56,26 @@ export function useDoubleClickToCreate({
         ) * TIME_INTERVALS.SNAP_TO_MINUTES;
 
       const startTime = timeFromMinutes(snapped);
-      const endTime = startTime.add({
-        hours: TIME_INTERVALS.DEFAULT_EVENT_DURATION_HOURS,
-      });
 
-      const start = date.toZonedDateTime({ timeZone, plainTime: startTime });
-      const end = date.toZonedDateTime({ timeZone, plainTime: endTime });
+      const start = date.toZonedDateTime({
+        timeZone: defaultTimeZone,
+        plainTime: startTime,
+      });
+      const end = start.add({ minutes: defaultEventDuration });
 
       dispatchAction({
         type: "draft",
         event: createDraftEvent({ start, end, allDay: false }),
       });
     },
-    [allDay, columnRef, date, timeZone, dispatchAction],
+    [
+      columnRef,
+      date,
+      defaultEventDuration,
+      defaultStartTime,
+      defaultTimeZone,
+      dispatchAction,
+    ],
   );
 
   return { onDoubleClick: handleDoubleClick };

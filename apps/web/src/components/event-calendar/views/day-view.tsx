@@ -217,7 +217,6 @@ function DayViewTimeSlots({
   const { onDoubleClick } = useDoubleClickToCreate({
     dispatchAction,
     date: currentDate,
-    timeZone: settings.defaultTimeZone,
     columnRef,
   });
 

@@ -371,9 +371,7 @@ function MonthViewDay({
   const { onDoubleClick } = useDoubleClickToCreate({
     dispatchAction,
     date: currentDate,
-    timeZone: settings.defaultTimeZone,
     columnRef: cellRef,
-    allDay: true,
   });
 
   if (!day) return null;

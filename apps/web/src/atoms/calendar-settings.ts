@@ -7,6 +7,7 @@ export interface CalendarSettings {
   use12Hour: boolean;
   defaultTimeZone: string;
   defaultEventDuration: number;
+  defaultStartTime: string;
 }
 
 export const defaultTimeZone =
@@ -20,6 +21,7 @@ export const calendarSettingsAtom = atomWithStorage<CalendarSettings>(
     use12Hour: false,
     defaultTimeZone,
     defaultEventDuration: 60,
+    defaultStartTime: "09:00",
   },
 );
 
