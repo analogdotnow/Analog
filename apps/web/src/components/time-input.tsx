@@ -125,7 +125,9 @@ function useTimeSuggestions() {
   const suggestions = useMemo(() => {
     const parsedDate = parseDate(searchValue);
 
-    const matches = matchSorter(list, searchValue, { keys: ["label"] });
+    const matches = matchSorter(list, searchValue, {
+      keys: ["formattedIn24h"],
+    });
 
     if (parsedDate) {
       const instant = Temporal.Instant.fromEpochMilliseconds(

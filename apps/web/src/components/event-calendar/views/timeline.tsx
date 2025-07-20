@@ -27,7 +27,7 @@ export function Timeline() {
               {use12Hour
                 ? format({
                     date: hour,
-                    format: "h aaa",
+                    format: "h a",
                   })
                 : format({
                     date: hour,

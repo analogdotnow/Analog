@@ -21,7 +21,7 @@ export function formatTime({
   if (use12Hour) {
     return format({
       date,
-      format: "hh:mm a",
+      format: "h:mm a",
       locale,
       tz: value.timeZoneId,
     });
