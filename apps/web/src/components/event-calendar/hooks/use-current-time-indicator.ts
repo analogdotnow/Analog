@@ -33,8 +33,16 @@ export function useCurrentTimeIndicator(currentDate: Temporal.PlainDate) {
       });
 
       const formattedTime = use12Hour
-        ? format(toDate({ value: time, timeZone: defaultTimeZone }), "h:mm a")
-        : format(toDate({ value: time, timeZone: defaultTimeZone }), "HH:mm");
+        ? format({
+            date: toDate({ value: time, timeZone: defaultTimeZone }),
+            format: "h:mm a",
+            tz: defaultTimeZone,
+          })
+        : format({
+            date: toDate({ value: time, timeZone: defaultTimeZone }),
+            format: "HH:mm",
+            tz: defaultTimeZone,
+          });
 
       return {
         currentTimePosition,
