@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
-import { z } from "zod";
+import { z } from "zod/v3";
 
 import { auth } from "@repo/auth/server";
 import { user } from "@repo/db/schema";

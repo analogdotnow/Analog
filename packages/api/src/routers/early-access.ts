@@ -2,7 +2,7 @@ import { TRPCError } from "@trpc/server";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 import { count, eq } from "drizzle-orm";
-import { z } from "zod";
+import { z } from "zod/v3";
 
 import { db } from "@repo/db";
 import { waitlist } from "@repo/db/schema";

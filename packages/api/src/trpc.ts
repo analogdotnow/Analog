@@ -1,7 +1,7 @@
 import "server-only";
 
 import { TRPCError, initTRPC } from "@trpc/server";
-import { ZodError } from "zod";
+import { ZodError } from "zod/v3";
 
 import { auth } from "@repo/auth/server";
 import { db } from "@repo/db";

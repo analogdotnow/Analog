@@ -11,20 +11,20 @@
     "type-check": "tsc --noEmit"
   },
   "peerDependencies": {
-    "better-auth": "1.2.12",
+    "better-auth": "1.3.1",
     "server-only": "^0.0.1"
   },
   "dependencies": {
     "@repo/db": "workspace:*",
     "@repo/env": "workspace:*",
-    "@upstash/redis": "^1.35.0"
+    "@upstash/redis": "^1.35.1"
   },
   "devDependencies": {
     "@microsoft/microsoft-graph-types": "^2.40.0",
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@types/node": "^22.9.0",
-    "eslint": "^9.30.1",
+    "eslint": "^9.31.0",
     "typescript": "^5.8.3"
   }
 }

@@ -3,7 +3,7 @@ import {
   zPlainDateInstance,
   zZonedDateTimeInstance,
 } from "temporal-zod";
-import { z } from "zod";
+import { z } from "zod/v3";
 
 const conferenceSchema = z.object({
   id: z.string().optional(),
@@ -14,7 +14,7 @@ const conferenceSchema = z.object({
   password: z.string().optional(),
   phoneNumbers: z.array(z.string()).optional(),
   notes: z.string().optional(),
-  extra: z.record(z.unknown()).optional(),
+  extra: z.record(z.string(), z.unknown()).optional(),
 });
 
 const microsoftMetadataSchema = z.object({

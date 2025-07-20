@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import { Temporal } from "temporal-polyfill";
-import { z } from "zod";
+import { z } from "zod/v3";
 
 import { accountToConferencingProvider } from "../providers";
 import { Conference } from "../providers/interfaces";

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { z } from "zod";
+import { z } from "zod/v3";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
