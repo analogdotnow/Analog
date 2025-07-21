@@ -8,6 +8,25 @@ import {
   ComboboxLabel,
 } from "@/components/ui/combobox";
 import { cn } from "@/lib/utils";
+import * as Icons from "../icons";
+
+interface AttendeeStatusIconProps {
+  status: "accepted" | "declined" | "tentative" | "unknown";
+  className?: string;
+}
+
+function AttendeeStatusIcon({ status, className }: AttendeeStatusIconProps) {
+  switch (status) {
+    case "accepted":
+      return <Icons.Accepted className={cn("text-green-500/80 size-5", className)} />;
+    case "declined":
+      return <Icons.Declined className={cn("text-red-500/80 size-5", className)} />;
+    case "tentative":
+      return <Icons.Tentative className={cn("text-yellow-500/80 size-5", className)} />;
+    case "unknown":
+      return null;
+  }
+}
 
 interface AttendeeListItemProps
   extends Omit<React.ComponentPropsWithoutRef<"div">, "children"> {
@@ -15,6 +34,19 @@ interface AttendeeListItemProps
   email: string;
   status: "accepted" | "declined" | "tentative" | "unknown";
   type?: "required" | "optional" | "resource";
+}
+
+interface AvatarFallbackOptions {
+  email: string;
+  name?: string;
+}
+
+function avatarFallback({ email, name }: AvatarFallbackOptions) {
+  if (name && name.trim().length > 0) {
+    return name.charAt(0);
+  }
+
+  return email.charAt(0);
 }
 
 export function AttendeeListItem({
@@ -25,17 +57,22 @@ export function AttendeeListItem({
   type,
   ...props
 }: AttendeeListItemProps) {
+  console.log(name, email, status, type);
   return (
     <div className={cn("flex items-center gap-2 ps-8", className)} {...props}>
       <Avatar className="size-5">
         {/* <AvatarImage src="https://github.com/shadcn.png" /> */}
-        <AvatarFallback className="text-xs">
-          {name?.charAt(0) ?? email.charAt(0)}
+        <AvatarFallback className="text-[10px]">
+          {avatarFallback({ email, name })}
         </AvatarFallback>
       </Avatar>
       <div className="flex flex-col">
         <p className="text-sm font-medium">{name}</p>
         <p className="text-xs text-muted-foreground">{email}</p>
+      </div>
+      <div className="flex items-center gap-2">
+        <AttendeeStatusIcon status={status} className="size-5" />
+        <p className="sr-only">{status}</p>
       </div>
     </div>
   );
