@@ -99,6 +99,33 @@ interface ParseMicrosoftEventOptions {
   event: MicrosoftEvent;
 }
 
+function parseResponseStatus(
+  event: MicrosoftEvent,
+): AttendeeStatus | undefined {
+  const organizerIsAttendee =
+    event.attendees?.some(
+      (attendee) => attendee.status?.response === "organizer",
+    ) ?? false;
+
+  if (
+    !event.attendees ||
+    !organizerIsAttendee ||
+    event.attendees.length === 0
+  ) {
+    return undefined;
+  }
+
+  const hasOtherAttendees = organizerIsAttendee && event.attendees.length > 1;
+
+  if (!hasOtherAttendees) {
+    return undefined;
+  }
+
+  return event.responseStatus?.response
+    ? parseMicrosoftAttendeeStatus(event.responseStatus.response)
+    : undefined;
+}
+
 export function parseMicrosoftEvent({
   accountId,
   calendar,
@@ -110,11 +137,7 @@ export function parseMicrosoftEvent({
     throw new Error("Event start or end is missing");
   }
 
-  const responseStatus = event.responseStatus?.response
-    ? parseMicrosoftAttendeeStatus(event.responseStatus.response)
-    : event.isOrganizer
-      ? ("accepted" as const)
-      : undefined;
+  const responseStatus = parseResponseStatus(event);
 
   return {
     id: event.id!,
@@ -298,15 +321,11 @@ export function eventResponseStatusPath(
 function parseMicrosoftAttendeeStatus(
   status: MicrosoftEventAttendeeResponseStatus["response"],
 ): AttendeeStatus {
-  if (
-    status === "notResponded" ||
-    status === "none" ||
-    status === "organizer"
-  ) {
+  if (status === "notResponded" || status === "none") {
     return "unknown";
   }
 
-  if (status === "accepted") {
+  if (status === "accepted" || status === "organizer") {
     return "accepted";
   }
 

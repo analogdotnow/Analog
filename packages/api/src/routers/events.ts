@@ -119,20 +119,10 @@ export const eventsRouter = createTRPCRouter({
         });
       }
 
-      const { response, ...updateInput } = input;
-
-      if (response) {
-        await provider.client.responseToEvent(
-          input.calendarId,
-          input.id,
-          response,
-        );
-      }
-
       const event = await provider.client.updateEvent(
         calendar,
-        updateInput.id,
-        updateInput,
+        input.id,
+        input,
       );
 
       return { event };
@@ -168,8 +158,9 @@ export const eventsRouter = createTRPCRouter({
         calendarId: z.string(),
         eventId: z.string(),
         response: z.object({
-          status: z.enum(["accepted", "tentative", "declined"]),
+          status: z.enum(["accepted", "tentative", "declined", "unknown"]),
           comment: z.string().optional(),
+          sendUpdate: z.boolean().default(true),
         }),
       }),
     )
@@ -185,11 +176,11 @@ export const eventsRouter = createTRPCRouter({
         });
       }
 
-      await provider.client.responseToEvent(
-        input.calendarId,
-        input.eventId,
-        input.response,
-      );
+      await provider.client.responseToEvent(input.calendarId, input.eventId, {
+        status: input.response.status,
+        comment: input.response.comment,
+        sendUpdate: input.response.sendUpdate,
+      });
 
       return { success: true };
     }),

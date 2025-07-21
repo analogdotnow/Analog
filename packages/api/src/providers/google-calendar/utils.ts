@@ -55,6 +55,21 @@ function parseDateTime({ dateTime, timeZone }: GoogleCalendarDateTime) {
   return instant.toZonedDateTimeISO(timeZone);
 }
 
+function parseResponseStatus(event: GoogleCalendarEvent) {
+  const selfAttendee = event.attendees?.find((a) => a.self);
+
+  if (!selfAttendee) {
+    return undefined;
+  }
+
+  return {
+    status: parseGoogleCalendarAttendeeStatus(
+      selfAttendee.responseStatus as GoogleCalendarEventAttendeeResponseStatus,
+    ),
+    comment: selfAttendee.comment,
+  };
+}
+
 interface ParsedGoogleCalendarEventOptions {
   calendar: Calendar;
   accountId: string;
@@ -67,17 +82,7 @@ export function parseGoogleCalendarEvent({
   event,
 }: ParsedGoogleCalendarEventOptions): CalendarEvent {
   const isAllDay = !event.start?.dateTime;
-  const selfAttendee = event.attendees?.find((a) => a.self);
-  const response = selfAttendee
-    ? {
-        status: parseGoogleCalendarAttendeeStatus(
-          selfAttendee.responseStatus as GoogleCalendarEventAttendeeResponseStatus,
-        ),
-        comment: selfAttendee.comment,
-      }
-    : event.organizer?.self
-      ? { status: "accepted" as const }
-      : undefined;
+  const response = parseResponseStatus(event);
 
   return {
     // ID should always be present if not defined Google Calendar will generate one

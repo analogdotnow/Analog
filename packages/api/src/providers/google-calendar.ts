@@ -11,7 +11,12 @@ import {
   toGoogleCalendarAttendeeResponseStatus,
   toGoogleCalendarEvent,
 } from "./google-calendar/utils";
-import type { Calendar, CalendarEvent, CalendarProvider } from "./interfaces";
+import type {
+  Calendar,
+  CalendarEvent,
+  CalendarProvider,
+  ResponseToEventInput,
+} from "./interfaces";
 import { ProviderError } from "./utils";
 
 interface GoogleCalendarProviderOptions {
@@ -145,11 +150,45 @@ export class GoogleCalendarProvider implements CalendarProvider {
         },
       );
 
-      const updatedEvent = await this.client.calendars.events.update(eventId, {
+      let eventToUpdate = {
         ...existingEvent,
         calendarId: calendar.id,
         ...toGoogleCalendarEvent(event),
-      });
+      };
+
+      // Handle response status update within the same call for Google Calendar
+      if (event.response && event.response.status !== "unknown") {
+        if (!existingEvent.attendees) {
+          throw new Error("Event has no attendees");
+        }
+
+        const selfIndex = existingEvent.attendees.findIndex(
+          (attendee) => attendee.self,
+        );
+
+        if (selfIndex === -1) {
+          throw new Error("User is not an attendee");
+        }
+
+        const updatedAttendees = [...existingEvent.attendees];
+        updatedAttendees[selfIndex] = {
+          ...updatedAttendees[selfIndex],
+          responseStatus: toGoogleCalendarAttendeeResponseStatus(
+            event.response.status,
+          ),
+        };
+
+        eventToUpdate = {
+          ...eventToUpdate,
+          attendees: updatedAttendees,
+          sendUpdates: event.response.sendUpdate ? "all" : "none",
+        };
+      }
+
+      const updatedEvent = await this.client.calendars.events.update(
+        eventId,
+        eventToUpdate,
+      );
 
       return parseGoogleCalendarEvent({
         calendar,
@@ -195,12 +234,13 @@ export class GoogleCalendarProvider implements CalendarProvider {
   async responseToEvent(
     calendarId: string,
     eventId: string,
-    response: {
-      status: "accepted" | "tentative" | "declined";
-      comment?: string;
-    },
+    response: ResponseToEventInput,
   ): Promise<void> {
     return this.withErrorHandler("responseToEvent", async () => {
+      if (response.status === "unknown") {
+        return;
+      }
+
       const event = await this.client.calendars.events.retrieve(eventId, {
         calendarId,
       });
@@ -209,14 +249,10 @@ export class GoogleCalendarProvider implements CalendarProvider {
         throw new Error("Event has no attendees");
       }
 
-      if (response.comment) {
-        throw new Error("Comment is not supported");
-      }
-
       const selfIndex = event.attendees.findIndex((attendee) => attendee.self);
 
       if (selfIndex === -1) {
-        throw new Error("Event has no self attendee");
+        throw new Error("User is not an attendee");
       }
 
       event.attendees[selfIndex] = {
@@ -227,7 +263,7 @@ export class GoogleCalendarProvider implements CalendarProvider {
       await this.client.calendars.events.update(eventId, {
         ...event,
         calendarId,
-        sendUpdates: "all",
+        sendUpdates: response.sendUpdate ? "all" : "none",
       });
     });
   }

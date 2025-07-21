@@ -9,7 +9,12 @@ import { CALENDAR_DEFAULTS } from "../constants/calendar";
 import { CreateCalendarInput, UpdateCalendarInput } from "../schemas/calendars";
 import { CreateEventInput, UpdateEventInput } from "../schemas/events";
 import { assignColor } from "./colors";
-import type { Calendar, CalendarEvent, CalendarProvider } from "./interfaces";
+import type {
+  Calendar,
+  CalendarEvent,
+  CalendarProvider,
+  ResponseToEventInput,
+} from "./interfaces";
 import {
   calendarPath,
   eventResponseStatusPath,
@@ -146,9 +151,22 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
     event: UpdateEventInput,
   ): Promise<CalendarEvent> {
     return this.withErrorHandler("updateEvent", async () => {
+      // First, perform the regular event update
       const updatedEvent: MicrosoftEvent = await this.graphClient
         .api(`${calendarPath(calendar.id)}/events/${eventId}`)
         .patch(toMicrosoftEvent(event));
+
+      // Then, handle response status update if present (Microsoft-specific approach)
+      if (event.response && event.response.status !== "unknown") {
+        await this.graphClient
+          .api(
+            `/me/events/${eventId}/${eventResponseStatusPath(event.response.status)}`,
+          )
+          .post({
+            comment: event.response.comment,
+            sendResponse: event.response.sendUpdate,
+          });
+      }
 
       return parseMicrosoftEvent({
         event: updatedEvent,
@@ -175,17 +193,18 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
   async responseToEvent(
     calendarId: string,
     eventId: string,
-    response: {
-      status: "accepted" | "tentative" | "declined";
-      comment?: string;
-    },
+    response: ResponseToEventInput,
   ): Promise<void> {
     await this.withErrorHandler("responseToEvent", async () => {
+      if (response.status === "unknown") {
+        return;
+      }
+
       await this.graphClient
         .api(
           `/me/events/${eventId}/${eventResponseStatusPath(response.status)}`,
         )
-        .post({ comment: response.comment, sendResponse: true });
+        .post({ comment: response.comment, sendResponse: response.sendUpdate });
     });
   }
 

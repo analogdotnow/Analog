@@ -63,8 +63,9 @@ export const updateEventInputSchema = createEventInputSchema.extend({
   metadata: z.union([microsoftMetadataSchema, googleMetadataSchema]).optional(),
   response: z
     .object({
-      status: z.enum(["accepted", "tentative", "declined"]),
+      status: z.enum(["accepted", "tentative", "declined", "unknown"]),
       comment: z.string().optional(),
+      sendUpdate: z.boolean().default(false),
     })
     .optional(),
 });

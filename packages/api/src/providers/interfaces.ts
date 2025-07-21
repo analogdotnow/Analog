@@ -54,6 +54,12 @@ export interface Attendee {
   additionalGuests?: number; // Google only
 }
 
+export interface ResponseToEventInput {
+  status: "accepted" | "tentative" | "declined" | "unknown";
+  comment?: string;
+  sendUpdate: boolean;
+}
+
 export type AttendeeStatus = Attendee["status"];
 
 export interface CalendarProvider {
@@ -86,10 +92,7 @@ export interface CalendarProvider {
   responseToEvent(
     calendarId: string,
     eventId: string,
-    response: {
-      status: "accepted" | "tentative" | "declined";
-      comment?: string;
-    },
+    response: ResponseToEventInput,
   ): Promise<void>;
 }
 

@@ -106,8 +106,9 @@ export function EventContextMenu({
   const responseStatus = event.response?.status;
 
   const handleRespond = (status: AttendeeStatus) => {
-    if (!responseStatus) return;
-    if (status === responseStatus) return;
+    if (!responseStatus || status === responseStatus) {
+      return;
+    }
 
     dispatchAction({
       type: "update",
