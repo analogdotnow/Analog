@@ -33,7 +33,7 @@ export function useEvents() {
   const { timeMin, timeMax } = React.useMemo(() => {
     const start = currentDate
       .subtract({
-        days: 30,
+        days: TIME_RANGE_DAYS_PAST,
       })
       .toZonedDateTime({
         timeZone: defaultTimeZone,
@@ -41,7 +41,7 @@ export function useEvents() {
 
     const end = currentDate
       .add({
-        days: 30,
+        days: TIME_RANGE_DAYS_FUTURE,
       })
       .toZonedDateTime({
         timeZone: defaultTimeZone,

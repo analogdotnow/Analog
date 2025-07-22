@@ -7,6 +7,7 @@ import { db } from "@repo/db";
 import type { account } from "@repo/db/schema";
 import { env } from "@repo/env/server";
 
+import { zero } from "./providers/zero";
 import { secondaryStorage } from "./secondary-storage";
 import { createProviderHandler } from "./utils/account-linking";
 
@@ -93,6 +94,7 @@ export const auth = betterAuth({
       overrideUserInfoOnSignIn: true,
     },
   },
+  plugins: [zero],
 });
 
 export type Session = typeof auth.$Infer.Session;

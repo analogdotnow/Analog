@@ -180,6 +180,7 @@ export function DraggableEvent({
     height.set(startHeight.current - info.offset.y);
     top.set(info.offset.y);
   };
+
   const onResizeBottomStart = (_e: PointerEvent, info: PanInfo) => {
     startHeight.current = heightRef.current ?? 0;
     height.set(startHeight.current + info.offset.y);

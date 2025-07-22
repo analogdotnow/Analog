@@ -18,6 +18,7 @@ export const env = createEnv({
     UPSTASH_REDIS_REST_URL: z.string().url(),
     UPSTASH_REDIS_REST_TOKEN: z.string().min(1),
     DEEPSEEK_API_KEY: z.string().min(1),
+    OPENROUTER_API_KEY: z.string().min(1),
   },
   experimental__runtimeEnv: process.env,
   skipValidation: process.env.NODE_ENV !== "production",

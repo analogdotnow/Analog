@@ -38,8 +38,8 @@
   --sidebar-accent-foreground: var(--color-neutral-900);
   --sidebar-border: var(--color-neutral-200);
   --sidebar-ring: var(--color-neutral-400);
-  --avatar-gradient-top: var(--color-zinc-200);
-  --avatar-gradient-bottom: var(--color-zinc-100);
+  --avatar-gradient-top: var(--color-neutral-200);
+  --avatar-gradient-bottom: var(--color-neutral-100);
   --analog-neutral: oklch(0.945 0 0);
   --calendar-red: #fb2c36;
   --calendar-orange: #ff6900;

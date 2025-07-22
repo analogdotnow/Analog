@@ -3,6 +3,7 @@
 import * as React from "react";
 import { MicIcon } from "lucide-react";
 import { Variants } from "motion/react";
+import { useHotkeys } from "react-hotkeys-hook";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,19 +40,9 @@ const VARIANTS: Variants = {
 export function SignalView({ className, events }: SignalViewProps) {
   const [state, setState] = React.useState<"default" | "expanded">("expanded");
 
-  React.useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "v") {
-        setState("expanded");
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, []);
+  useHotkeys("v", () => {
+    setState("expanded");
+  });
 
   return (
     <Window

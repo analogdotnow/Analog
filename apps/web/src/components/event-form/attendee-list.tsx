@@ -18,11 +18,19 @@ interface AttendeeStatusIconProps {
 function AttendeeStatusIcon({ status, className }: AttendeeStatusIconProps) {
   switch (status) {
     case "accepted":
-      return <Icons.Accepted className={cn("text-green-500/80 size-5", className)} />;
+      return (
+        <Icons.Accepted className={cn("size-5 text-green-500/80", className)} />
+      );
     case "declined":
-      return <Icons.Declined className={cn("text-red-500/80 size-5", className)} />;
+      return (
+        <Icons.Declined className={cn("size-5 text-red-500/80", className)} />
+      );
     case "tentative":
-      return <Icons.Tentative className={cn("text-yellow-500/80 size-5", className)} />;
+      return (
+        <Icons.Tentative
+          className={cn("size-5 text-yellow-500/80", className)}
+        />
+      );
     case "unknown":
       return null;
   }
