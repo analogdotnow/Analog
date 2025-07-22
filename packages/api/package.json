@@ -22,14 +22,15 @@
     "zod": "^4.0.5"
   },
   "dependencies": {
+    "@analog/meeting-links": "workspace:*",
+    "@googlemaps/places": "^2.1.0",
     "@microsoft/microsoft-graph-client": "^3.0.7",
     "@repo/auth": "workspace:*",
     "@repo/db": "workspace:*",
     "@repo/env": "workspace:*",
-    "@analog/meeting-links": "workspace:*",
-    "@repo/temporal": "workspace:*",
     "@repo/google-calendar": "workspace:*",
     "@repo/google-tasks": "workspace:*",
+    "@repo/temporal": "workspace:*",
     "@upstash/ratelimit": "^2.0.5",
     "@upstash/redis": "^1.35.1"
   },

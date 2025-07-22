@@ -35,6 +35,7 @@
         "BETTER_AUTH_URL",
         "GOOGLE_CLIENT_ID",
         "GOOGLE_CLIENT_SECRET",
+        "GOOGLE_PLACES_API_KEY",
         "VERCEL_URL",
         "NEXT_PUBLIC_VERCEL_URL",
         "NEXT_PUBLIC_VERCEL_ENV",
