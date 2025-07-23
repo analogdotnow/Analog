@@ -3,6 +3,15 @@
   <p align="center">The open source calendar that changes everything</p>
 </p>
 
+<div align="center">
+<br/>
+<a href="https://vercel.com/oss">
+  <img alt="Vercel OSS Program" src="https://vercel.com/oss/program-badge.svg" />
+</a>
+<br/>
+<br/>
+</div>
+
 ## Getting Started
 
 To get Analog up and running on your local machine, follow these steps:
