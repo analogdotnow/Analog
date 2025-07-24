@@ -25,6 +25,8 @@ const supportedTaskProviders = {
   google: GoogleTasksProvider,
 } as const;
 
+export { supportedTaskProviders };
+
 export function accountToProvider(
   activeAccount: typeof account.$inferSelect,
 ): CalendarProvider {
@@ -74,10 +76,13 @@ export function accountToTasksProvider(
     throw new Error("Invalid account");
   }
 
-  const Provider = supportedTaskProviders["google"];
+  const Provider =
+    supportedTaskProviders[
+      activeAccount.providerId as keyof typeof supportedTaskProviders
+    ];
 
   if (!Provider) {
-    throw new Error("Provider not supported");
+    throw new Error(`Task provider '${activeAccount.providerId}' is not supported`);
   }
 
   return new Provider({ accessToken: activeAccount.accessToken });

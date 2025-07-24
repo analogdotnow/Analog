@@ -45,28 +45,26 @@ export class GoogleTasksProvider implements TaskProvider {
 
     const tasks = results.flatMap((result) => result.items ?? []);
 
-    console.log(tasks);
-
     return tasks
       .filter((task) => task.id && task.title)
-      .map((task) => ({
-        id: task.id!,
-        categoryId: GoogleTasksProvider.TASK_LIST_ID_REGEX.exec(
+      .map((task) => {
+        const categoryId = GoogleTasksProvider.TASK_LIST_ID_REGEX.exec(
           task.selfLink ?? "",
-        )?.[1],
-        categoryTitle: categories?.find(
-          (category) =>
-            category.id ===
-            GoogleTasksProvider.TASK_LIST_ID_REGEX.exec(
-              task.selfLink ?? "",
-            )?.[1],
-        )?.title,
-        title: task.title,
-        status: task.status,
-        completed: task.completed,
-        notes: task.notes,
-        due: task.due,
-      }));
+        )?.[1];
+        
+        return {
+          id: task.id!,
+          categoryId,
+          categoryTitle: categories?.find(
+            (category) => category.id === categoryId,
+          )?.title,
+          title: task.title,
+          status: task.status,
+          completed: task.completed,
+          notes: task.notes,
+          due: task.due,
+        };
+      });
   }
 
   async tasksForCategory(category: Category): Promise<Task[]> {
@@ -101,7 +99,6 @@ export class GoogleTasksProvider implements TaskProvider {
   }
 
   async updateTask(category: Category, task: Partial<Task>): Promise<Task> {
-    console.log(task);
     const map = { completed: "completed", notStarted: "needsAction" } as const;
     const status = task.status
       ? (map[task.status as keyof typeof map] ?? "")

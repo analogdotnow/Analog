@@ -6,7 +6,7 @@ import { ZodError } from "zod";
 import { auth } from "@repo/auth/server";
 import { db } from "@repo/db";
 
-import { accountToProvider, accountToTasksProvider } from "./providers";
+import { accountToProvider, accountToTasksProvider, supportedTaskProviders } from "./providers";
 import { getAccounts } from "./utils/accounts";
 import { superjson } from "./utils/superjson";
 
@@ -90,15 +90,33 @@ export const taskProcedure = protectedProcedure.use(async ({ ctx, next }) => {
   try {
     const accounts = await getAccounts(ctx.user, ctx.headers);
 
-    const providers = accounts.map((account) => ({
+    // Filter accounts to only include those with supported task providers
+    const supportedAccounts = accounts.filter((account) =>
+      account.providerId in supportedTaskProviders
+    );
+
+    // Log warning if unsupported accounts are found and excluded
+    const unsupportedAccounts = accounts.filter(
+      (account) => !(account.providerId in supportedTaskProviders)
+    );
+    
+    if (unsupportedAccounts.length > 0) {
+      console.warn(
+        `Excluded ${unsupportedAccounts.length} unsupported task provider account(s):`,
+        unsupportedAccounts.map((account) => account.providerId)
+      );
+    }
+
+    const providers = supportedAccounts.map((account) => ({
       account,
       client: accountToTasksProvider(account),
     }));
 
     return next({
       ctx: {
+        ...ctx,
         providers,
-        accounts,
+        accounts: supportedAccounts,
       },
     });
   } catch (error) {
