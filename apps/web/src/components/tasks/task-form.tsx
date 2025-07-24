@@ -52,13 +52,64 @@ export function TaskForm({
 
   const createTaskMutation = useMutation(
     trpc.tasks.createTask.mutationOptions({
+      onMutate: async (newTask) => {
+        // Cancel any outgoing refetches
+        await queryClient.cancelQueries({ queryKey: trpc.tasks.list.queryKey() });
+
+        // Snapshot the previous value
+        const previousData = queryClient.getQueryData(trpc.tasks.list.queryKey());
+
+        // Optimistically update to the new value
+        queryClient.setQueryData(trpc.tasks.list.queryKey(), (old: any) => {
+          if (!old?.accounts) return old;
+
+          return {
+            ...old,
+            accounts: old.accounts.map((account: any) => {
+              if (account.id === newTask.accountId) {
+                return {
+                  ...account,
+                  tasks: [
+                    {
+                      id: `temp-${Date.now()}`, // Temporary ID
+                      title: newTask.task.title,
+                      categoryId: newTask.categoryId,
+                      categoryTitle: old.accounts
+                        .find((acc: any) => acc.id === newTask.accountId)
+                        ?.tasks?.find((task: any) => task.categoryId === newTask.categoryId)
+                        ?.categoryTitle || "Uncategorized",
+                      status: newTask.task.status,
+                      notes: newTask.task.notes,
+                      due: newTask.task.due,
+                      completed: newTask.task.completed,
+                    },
+                    ...account.tasks,
+                  ],
+                };
+              }
+              return account;
+            }),
+          };
+        });
+
+        // Return a context object with the snapshotted value
+        return { previousData };
+      },
+      onError: (err, newTask, context) => {
+        // If the mutation fails, use the context returned from onMutate to roll back
+        if (context?.previousData) {
+          queryClient.setQueryData(trpc.tasks.list.queryKey(), context.previousData);
+        }
+        toast.error("Failed to create task");
+        console.error(err);
+      },
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: trpc.tasks.list.queryKey() });
         onSuccess?.();
       },
-      onError: (error) => {
-        toast.error("Failed to create task");
-        console.error(error);
+      onSettled: () => {
+        // Always refetch after error or success
+        queryClient.invalidateQueries({ queryKey: trpc.tasks.list.queryKey() });
       },
     }),
   );

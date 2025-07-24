@@ -231,6 +231,7 @@ function TaskItem({
 }) {
   const textRef = useRef<HTMLSpanElement>(null);
   const [isTextTruncated, setIsTextTruncated] = useState(false);
+  const isOptimistic = item.id.startsWith('temp-');
 
   // Check for text truncation whenever the element resizes
   useResizeObserver(textRef, () => {
@@ -253,12 +254,15 @@ function TaskItem({
       <SidebarMenuButton
         asChild
         tooltip={isTextTruncated ? tooltipProps : undefined}
-        className="hover:bg-neutral-600/20"
+        className={cn("hover:bg-neutral-600/20", {
+          "opacity-70": isOptimistic,
+        })}
       >
         <div className="relative">
           <Checkbox
             className="dark:border-neutral-700"
             checked={!!item.completed}
+            disabled={isOptimistic}
             onCheckedChange={(checked: boolean) => {
               updateTaskMutation.mutate({
                 accountId,
