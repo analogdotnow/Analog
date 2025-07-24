@@ -231,7 +231,7 @@ function TaskItem({
 }) {
   const textRef = useRef<HTMLSpanElement>(null);
   const [isTextTruncated, setIsTextTruncated] = useState(false);
-  const isOptimistic = item.id.startsWith('temp-');
+  const isOptimistic = item.id.startsWith("temp-");
 
   // Check for text truncation whenever the element resizes
   useResizeObserver(textRef, () => {

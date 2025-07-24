@@ -4,7 +4,14 @@ import * as React from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarIcon, Plus, X } from "lucide-react";
+import { toast } from "sonner";
 
+import {
+  defaultTaskValues,
+  taskFormSchema,
+  useAppForm,
+} from "@/components/tasks/form";
+import { getErrorMessage, toTaskRequest } from "@/components/tasks/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
@@ -24,13 +31,6 @@ import {
 import { SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
 import { Textarea } from "@/components/ui/textarea";
 import { useTRPC } from "@/lib/trpc/client";
-import {
-  defaultTaskValues,
-  taskFormSchema,
-  useAppForm,
-} from "@/components/tasks/form";
-import { getErrorMessage, toTaskRequest } from "@/components/tasks/utils";
-import { toast } from "sonner";
 
 interface TaskFormProps {
   accountId: string;
@@ -54,10 +54,14 @@ export function TaskForm({
     trpc.tasks.createTask.mutationOptions({
       onMutate: async (newTask) => {
         // Cancel any outgoing refetches
-        await queryClient.cancelQueries({ queryKey: trpc.tasks.list.queryKey() });
+        await queryClient.cancelQueries({
+          queryKey: trpc.tasks.list.queryKey(),
+        });
 
         // Snapshot the previous value
-        const previousData = queryClient.getQueryData(trpc.tasks.list.queryKey());
+        const previousData = queryClient.getQueryData(
+          trpc.tasks.list.queryKey(),
+        );
 
         // Optimistically update to the new value
         queryClient.setQueryData(trpc.tasks.list.queryKey(), (old: any) => {
@@ -74,10 +78,13 @@ export function TaskForm({
                       id: `temp-${Date.now()}`, // Temporary ID
                       title: newTask.task.title,
                       categoryId: newTask.categoryId,
-                      categoryTitle: old.accounts
-                        .find((acc: any) => acc.id === newTask.accountId)
-                        ?.tasks?.find((task: any) => task.categoryId === newTask.categoryId)
-                        ?.categoryTitle || "Uncategorized",
+                      categoryTitle:
+                        old.accounts
+                          .find((acc: any) => acc.id === newTask.accountId)
+                          ?.tasks?.find(
+                            (task: any) =>
+                              task.categoryId === newTask.categoryId,
+                          )?.categoryTitle || "Uncategorized",
                       status: newTask.task.status,
                       notes: newTask.task.notes,
                       due: newTask.task.due,
@@ -98,7 +105,10 @@ export function TaskForm({
       onError: (err, newTask, context) => {
         // If the mutation fails, use the context returned from onMutate to roll back
         if (context?.previousData) {
-          queryClient.setQueryData(trpc.tasks.list.queryKey(), context.previousData);
+          queryClient.setQueryData(
+            trpc.tasks.list.queryKey(),
+            context.previousData,
+          );
         }
         toast.error("Failed to create task");
         console.error(err);
@@ -144,7 +154,7 @@ export function TaskForm({
           variant="ghost"
           size="icon"
           onClick={handleCancel}
-          className="absolute top-2 right-2 z-10 h-6 w-6 rounded-full bg-transparent p-0 text-neutral-400 hover:text-white dark:bg-transparent dark:hover:bg-transparent hover:bg-transparent"
+          className="absolute top-2 right-2 z-10 h-6 w-6 rounded-full bg-transparent p-0 text-neutral-400 hover:bg-transparent hover:text-white dark:bg-transparent dark:hover:bg-transparent"
           aria-label="Close"
         >
           <X className="h-3 w-3" />
@@ -174,7 +184,7 @@ export function TaskForm({
                     autoFocus
                   />
                   {field.state.meta.errors.length > 0 && (
-                    <span className="ml-3 mt-1 text-xs text-red-500">
+                    <span className="mt-1 ml-3 text-xs text-red-500">
                       {getErrorMessage(field.state.meta.errors[0])}
                     </span>
                   )}
