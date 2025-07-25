@@ -9,7 +9,7 @@ export function Window({ children, className, ...props }: WindowProps) {
   return (
     <motion.div
       className={cn(
-        "box-content flex max-h-48 min-h-16 w-full flex-col overflow-hidden rounded-2xl border border-border bg-popover/50 backdrop-blur-xl",
+        "box-content flex min-h-16 w-full flex-col overflow-hidden rounded-2xl border border-border bg-popover/50 backdrop-blur-xl",
         className,
       )}
       {...props}
@@ -81,7 +81,7 @@ export function WindowFooter({
   ...props
 }: WindowFooterProps) {
   return (
-    <div className={cn("flex h-13 items-center px-3", className)} {...props}>
+    <div className={cn("flex h-12 items-center px-3", className)} {...props}>
       {children}
     </div>
   );

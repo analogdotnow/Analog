@@ -1,6 +1,7 @@
-import { CalendarEvent } from "@/lib/interfaces";
 import { Temporal } from "temporal-polyfill";
 import { z } from "zod";
+
+import { CalendarEvent } from "@/lib/interfaces";
 
 const eventSchema = z.object({
   id: z.string(),
@@ -29,5 +30,5 @@ export interface CalendarContext {
   events: CalendarEvent[];
 }
 
-export function createContext(
-
+export async function createContext() {
+}

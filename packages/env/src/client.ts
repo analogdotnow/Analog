@@ -6,11 +6,13 @@ export const env = createEnv({
     NEXT_PUBLIC_VERCEL_URL: z.string().optional(),
     NEXT_PUBLIC_ENV: z.enum(["development", "test", "production"]),
     NEXT_PUBLIC_VERCEL_ENV: z.enum(["development", "preview", "production"]),
+    NEXT_PUBLIC_DEEPGRAM_API_KEY: z.string(),
   },
   runtimeEnv: {
     NEXT_PUBLIC_VERCEL_URL: process.env.NEXT_PUBLIC_VERCEL_URL,
     NEXT_PUBLIC_ENV: process.env.NODE_ENV,
     NEXT_PUBLIC_VERCEL_ENV: process.env.NEXT_PUBLIC_VERCEL_ENV,
+    NEXT_PUBLIC_DEEPGRAM_API_KEY: process.env.NEXT_PUBLIC_DEEPGRAM_API_KEY,
   },
   skipValidation: process.env.NODE_ENV !== "production",
 });

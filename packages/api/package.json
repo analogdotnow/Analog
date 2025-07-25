@@ -5,7 +5,8 @@
   "exports": {
     ".": "./src/root.ts",
     "./trpc": "./src/trpc.ts",
-    "./providers/interfaces": "./src/providers/interfaces.ts"
+    "./providers/interfaces": "./src/providers/interfaces.ts",
+    "./utils/context": "./src/utils/context.ts"
   },
   "scripts": {
     "lint": "eslint .",

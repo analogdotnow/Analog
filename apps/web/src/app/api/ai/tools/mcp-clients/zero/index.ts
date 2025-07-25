@@ -1,6 +1,7 @@
 import { experimental_createMCPClient as createMCPClient } from "ai";
-import { schemas } from "./schemas";
 import z from "zod";
+
+import { schemas } from "./schemas";
 
 type MCPClient = Awaited<ReturnType<typeof createMCPClient>>;
 
@@ -21,19 +22,19 @@ export async function createZeroMCPClient({
     },
   });
 
-  const toolds = await client.tools({
+  const tools = await client.tools({
     schemas: {
-      'get-data': {
+      "get-data": {
         inputSchema: z.object({
-          query: z.string().describe('The data query'),
-          format: z.enum(['json', 'text']).optional(),
+          query: z.string().describe("The data query"),
+          format: z.enum(["json", "text"]).optional(),
         }),
         outputSchema: z.object({
           data: z.string(),
-        })
+        }),
       },
       // For tools with zero arguments, you should use an empty object:
-      'tool-with-no-args': {
+      "tool-with-no-args": {
         inputSchema: z.object({}),
       },
     },
@@ -48,5 +49,5 @@ export async function createZeroMCPClient({
   return {
     client: client as MCPClient,
     tools,
-  }
+  };
 }
