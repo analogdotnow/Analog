@@ -128,6 +128,7 @@ export function parseMicrosoftEvent({
     status: event.showAs ?? undefined,
     attendees: event.attendees?.map(parseMicrosoftAttendee) ?? [],
     url: event.webLink ?? undefined,
+    etag: event.changeKey ?? undefined,
     color: undefined,
     providerId: "microsoft",
     accountId,

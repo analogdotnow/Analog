@@ -1,5 +1,5 @@
 {
-  "id": "0ab81044-86cc-4c05-91b5-56df4bde7b34",
+  "id": "ef260e11-4d91-4771-9450-8315b3f6e428",
   "prevId": "df04c974-2904-48c2-8894-36479a82d7f0",
   "version": "7",
   "dialect": "postgresql",
@@ -543,14 +543,14 @@
           "primaryKey": false,
           "notNull": false
         },
-        "sync_token": {
-          "name": "sync_token",
+        "etag": {
+          "name": "etag",
           "type": "text",
           "primaryKey": false,
           "notNull": false
         },
-        "recurring_event_id": {
-          "name": "recurring_event_id",
+        "sync_token": {
+          "name": "sync_token",
           "type": "text",
           "primaryKey": false,
           "notNull": false
