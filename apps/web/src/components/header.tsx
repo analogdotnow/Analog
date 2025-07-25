@@ -1,7 +1,9 @@
+import Link from "next/link";
 import { Discord, GitHub, Logo, Twitter } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { ModeToggle } from "@/components/ui/theme-toggle";
 import { cn } from "@/lib/utils";
+import { URLS } from "@/lib/urls";
 
 interface HeaderProps {
   className?: string;
@@ -16,12 +18,14 @@ export function Header({ className }: HeaderProps) {
       )}
     >
       <div className="mx-auto flex w-full max-w-7xl flex-row items-center justify-between">
-        <Logo />
+        <Link href="/">
+          <Logo />
+        </Link>
 
         <nav className="flex flex-row items-center justify-center gap-1.5">
           <Button asChild variant="ghost" size="sm">
             <a
-              href="https://github.com/jeanmeijer/analog"
+              href={URLS.GITHUB}
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -32,7 +36,7 @@ export function Header({ className }: HeaderProps) {
 
           <Button asChild variant="ghost" size="sm">
             <a
-              href="https://x.com/analogdotnow"
+              href={URLS.TWITTER}
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -43,8 +47,8 @@ export function Header({ className }: HeaderProps) {
 
           <Button asChild variant="ghost" size="sm">
             <a
-              href="https://discord.gg/K3AsABDKUm"
-              target="_blank"
+              href={URLS.DISCORD}
+              target="_blank" 
               rel="noopener noreferrer"
             >
               <Discord className="fill-primary" />

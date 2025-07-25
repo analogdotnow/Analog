@@ -1,12 +1,13 @@
 import type { NextConfig } from "next";
 import withSimpleAnalytics from "@simpleanalytics/next/plugin";
+import { URLS } from "./src/lib/urls";
 
 const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
         source: "/discord",
-        destination: "https://discord.gg/K3AsABDKUm",
+        destination: URLS.DISCORD,
         permanent: false,
       },
     ];

@@ -1,8 +1,5 @@
-import * as React from "react";
-import { Metadata } from "next";
+import type { Metadata } from "next";
 
-import { Footer } from "@/components/footer";
-import { Header } from "@/components/header";
 import {
   LegalHeading1,
   LegalHeading2,
@@ -18,8 +15,6 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   return (
-    <div className="min-h-screen bg-background">
-      <Header className="sticky top-0" />
       <main className="relative">
         <div className="relative container mx-auto px-4 py-16">
           <div className="mx-auto max-w-4xl">
@@ -1164,7 +1159,5 @@ export default function PrivacyPage() {
           </div>
         </div>
       </main>
-      <Footer />
-    </div>
   );
 }

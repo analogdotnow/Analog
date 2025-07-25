@@ -22,7 +22,7 @@ const geistMono = Geist_Mono({
 });
 
 const satoshi = localFont({
-  src: "./fonts/Satoshi-Variable.ttf",
+  src: "../assets/fonts/Satoshi-Variable.ttf",
   variable: "--font-satoshi",
   display: "swap",
   weight: "500",
