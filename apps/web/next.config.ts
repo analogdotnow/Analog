@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import withSimpleAnalytics from "@simpleanalytics/next/plugin";
+
 import { URLS } from "./src/lib/urls";
 
 const nextConfig: NextConfig = {

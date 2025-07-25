@@ -1,9 +1,10 @@
 import Link from "next/link";
+
 import { Discord, GitHub, Logo, Twitter } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { ModeToggle } from "@/components/ui/theme-toggle";
-import { cn } from "@/lib/utils";
 import { URLS } from "@/lib/urls";
+import { cn } from "@/lib/utils";
 
 interface HeaderProps {
   className?: string;
@@ -24,33 +25,21 @@ export function Header({ className }: HeaderProps) {
 
         <nav className="flex flex-row items-center justify-center gap-1.5">
           <Button asChild variant="ghost" size="sm">
-            <a
-              href={URLS.GITHUB}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
+            <a href={URLS.GITHUB} target="_blank" rel="noopener noreferrer">
               <GitHub className="fill-primary" />
               <span className="sr-only">GitHub</span>
             </a>
           </Button>
 
           <Button asChild variant="ghost" size="sm">
-            <a
-              href={URLS.TWITTER}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
+            <a href={URLS.TWITTER} target="_blank" rel="noopener noreferrer">
               <Twitter className="fill-primary" />
               <span className="sr-only">Twitter</span>
             </a>
           </Button>
 
           <Button asChild variant="ghost" size="sm">
-            <a
-              href={URLS.DISCORD}
-              target="_blank" 
-              rel="noopener noreferrer"
-            >
+            <a href={URLS.DISCORD} target="_blank" rel="noopener noreferrer">
               <Discord className="fill-primary" />
               <span className="sr-only">Discord</span>
             </a>

@@ -1,4 +1,5 @@
 import Link from "next/link";
+
 import { Logo } from "@/components/icons";
 
 export function Footer() {
@@ -10,13 +11,13 @@ export function Footer() {
         <div className="flex flex-row items-center justify-center gap-2 text-muted-foreground">
           <Link
             href="/terms"
-            className="underline underline-offset-2 text-xs md:text-sm"
+            className="text-xs underline underline-offset-2 md:text-sm"
           >
             Terms of Use
           </Link>
           <Link
             href="/privacy"
-            className="underline underline-offset-2 text-xs md:text-sm"
+            className="text-xs underline underline-offset-2 md:text-sm"
           >
             Privacy Policy
           </Link>
