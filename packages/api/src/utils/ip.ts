@@ -6,6 +6,7 @@ export function getIp(headers: Headers): string {
 
   if (forwardedFor) {
     const firstIp = forwardedFor.split(",")[0]?.trim();
+
     if (firstIp && isIP(firstIp)) {
       return firstIp;
     }
@@ -13,6 +14,7 @@ export function getIp(headers: Headers): string {
 
   if (realIp) {
     const trimmedIp = realIp.trim();
+
     if (isIP(trimmedIp)) {
       return trimmedIp;
     }
