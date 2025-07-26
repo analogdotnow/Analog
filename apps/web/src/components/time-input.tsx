@@ -185,7 +185,7 @@ export function TimeInput({
   onChange,
   disabled,
   open,
-  onOpenChange
+  onOpenChange,
 }: TimeInputProps) {
   const { use12Hour, locale } = useAtomValue(calendarSettingsAtom);
   const [input, setInput] = React.useState(
@@ -197,7 +197,7 @@ export function TimeInput({
     setInput(formatTime({ value, use12Hour, locale }));
   }, [value, use12Hour, locale]);
 
-  const [uncontrolledOpen, setUncontrolledOpen] = React.useState(false)
+  const [uncontrolledOpen, setUncontrolledOpen] = React.useState(false);
   const isOpen = open !== undefined ? open : uncontrolledOpen;
   const setIsOpen = onOpenChange ?? setUncontrolledOpen;
 
