@@ -15,7 +15,7 @@ export class GooglePlacesProvider implements PlacesProvider {
 
   constructor() {
     this.client = new PlacesClient({
-      apiKey: env.GOOGLE_PLACES_API_KEY,
+      apiKey: env.GOOGLE_MAPS_API_KEY,
     });
   }
 

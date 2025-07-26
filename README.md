@@ -64,10 +64,10 @@ Ensure you have the following installed:
 
 6. **Set up Google Places API**:
 
-- `GOOGLE_PLACES_API_KEY`:
+- `GOOGLE_MAPS_API_KEY`:
   1. In your existing Google Cloud project (or create a new one), enable the Places API (New) by visiting [Google Cloud API Library](https://console.cloud.google.com/apis/library/places.googleapis.com).
   2. Create an API key in [Google Cloud Maps Platform Credentials](https://console.cloud.google.com/google/maps-apis/credentials).
-  3. Set the API key as `GOOGLE_PLACES_API_KEY` in your `.env` file.
+  3. Set the API key as `GOOGLE_MAPS_API_KEY` in your `.env` file.
 
 ### Database Setup
 
