@@ -2,10 +2,11 @@ import { TRPCError } from "@trpc/server";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 
+import { env } from "@repo/env/server";
+
 import { GooglePlacesProvider } from "../providers/google-places";
 import { autocompleteInputSchema } from "../schemas/places";
 import { createTRPCRouter, publicProcedure } from "../trpc";
-import { env } from "@repo/env/server";
 import { getIp } from "../utils/ip";
 
 let ratelimit: Ratelimit | null = null;
@@ -45,7 +46,7 @@ export const placesRouter = createTRPCRouter({
       }
 
       const placesProvider = new GooglePlacesProvider();
-      
+
       return await placesProvider.autocomplete(input.input, {
         languageCode: input.languageCode,
         limit: input.limit,
