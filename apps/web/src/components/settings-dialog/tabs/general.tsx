@@ -1,10 +1,12 @@
-import React, { JSX, useId } from "react";
+import { useRef, useState } from "react";
 import { format } from "@formkit/tempo";
 import { useTheme } from "next-themes";
+import { useHotkeys } from "react-hotkeys-hook";
 
 import DarkTheme from "@/assets/theme-dark.svg";
 import LightTheme from "@/assets/theme-light.svg";
 import SystemTheme from "@/assets/theme-system.svg";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -129,7 +131,7 @@ function StartOfWeekPicker() {
 function TimeFormatPicker() {
   const [calendarSettings, setCalendarSettings] = useCalendarSettings();
 
-  const time = React.useRef(new Date());
+  const time = useRef(new Date());
 
   return (
     <div className="w-48">
@@ -161,7 +163,46 @@ function TimeFormatPicker() {
   );
 }
 
+function EasterEggSelector() {
+  const [calendarSettings, setCalendarSettings] = useCalendarSettings();
+
+  return (
+    <div className="flex w-48 justify-end">
+      <Label htmlFor="settings-easter-eggs" className="sr-only">
+        Easter eggs
+      </Label>
+      <Checkbox
+        id="terms-2"
+        checked={calendarSettings.easterEggsEnabled}
+        onCheckedChange={() => {
+          setCalendarSettings((prev) => ({
+            ...prev,
+            easterEggsEnabled: !prev.easterEggsEnabled,
+          }));
+        }}
+      />
+    </div>
+  );
+}
+
 export function General() {
+  const [easterEggSettingsVisible, setEasterEggSettingsVisible] =
+    useState(false);
+
+  useHotkeys(
+    "shift",
+    () => setEasterEggSettingsVisible(true),
+    { keydown: true, keyup: false },
+    [],
+  );
+
+  useHotkeys(
+    "shift",
+    () => setEasterEggSettingsVisible(false),
+    { keydown: false, keyup: true },
+    [],
+  );
+
   return (
     <SettingsPage>
       <SettingsSection>
@@ -226,6 +267,19 @@ export function General() {
           </SettingsSectionHeader>
           <TimeFormatPicker />
         </div>
+
+        {/* When adding new settings, make sure this stays at the bottom of the section */}
+        {easterEggSettingsVisible && (
+          <div className="flex items-center justify-between gap-4">
+            <SettingsSectionHeader>
+              <SettingsSectionTitle>Easter Eggs</SettingsSectionTitle>
+              <SettingsSectionDescription>
+                Do you have what it takes to find all the easter eggs?
+              </SettingsSectionDescription>
+            </SettingsSectionHeader>
+            <EasterEggSelector />
+          </div>
+        )}
       </SettingsSection>
     </SettingsPage>
   );
