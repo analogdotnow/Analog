@@ -280,7 +280,11 @@ function TimeInputList({ suggestions }: TimeInputListProps) {
   });
 
   return (
-    <ComboboxPopover className="max-h-64 overflow-y-auto" ref={parentRef}>
+    <ComboboxPopover
+      className="max-h-64 overflow-y-auto"
+      ref={parentRef}
+      autoFocusOnHide={false}
+    >
       <div
         className="relative w-full"
         style={{ height: rowVirtualizer.getTotalSize() }}
