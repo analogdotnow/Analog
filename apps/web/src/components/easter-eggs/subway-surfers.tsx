@@ -1,17 +1,17 @@
-import { useEffect, useRef, useState } from "react";
+import * as React from "react";
 import Image from "next/image";
 
 import SubwaySurfersImage from "@/assets/easter-eggs/subway-surfers.webp";
 
 const SHORTCUT_KEYS = ["s", "u", "r", "f"];
 
-export default function SubwaySurfers() {
+export function SubwaySurfers() {
   const [easterEggSettingsVisible, setEasterEggSettingsVisible] =
-    useState(false);
+    React.useState(false);
 
-  const pressed = useRef<{ [key: string]: boolean }>({});
+  const pressed = React.useRef<{ [key: string]: boolean }>({});
 
-  useEffect(() => {
+  React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const key = e.key.toLowerCase();
       if (SHORTCUT_KEYS.includes(key)) {

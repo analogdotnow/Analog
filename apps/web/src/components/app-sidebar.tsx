@@ -2,7 +2,7 @@ import * as React from "react";
 
 import { useCalendarSettings } from "@/atoms/calendar-settings";
 import { DatePicker } from "@/components/date-picker";
-import SubwaySurfers from "@/components/easter-eggs/subway-surfers";
+import { SubwaySurfers } from "@/components/easter-eggs/subway-surfers";
 import { NavUser } from "@/components/nav-user";
 import {
   Sidebar,
