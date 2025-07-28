@@ -5,8 +5,7 @@ import { useHotkeys } from "react-hotkeys-hook";
 import SubwaySurfersImage from "@/assets/easter-eggs/subway-surfers.webp";
 
 export function SubwaySurfers() {
-  const [showEasterEgg, setShowEasterEgg] =
-    React.useState(false);
+  const [showEasterEgg, setShowEasterEgg] = React.useState(false);
 
   useHotkeys(
     "s+u+r+f",
