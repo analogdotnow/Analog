@@ -165,28 +165,6 @@ function TimeFormatPicker() {
 
 function EasterEggSelector() {
   const [calendarSettings, setCalendarSettings] = useCalendarSettings();
-
-  return (
-    <div className="flex w-48 justify-end">
-      <Label htmlFor="settings-easter-eggs" className="sr-only">
-        Easter eggs
-      </Label>
-      <Checkbox
-        id="terms-2"
-        checked={calendarSettings.easterEggsEnabled}
-        onCheckedChange={() => {
-          setCalendarSettings((prev) => ({
-            ...prev,
-            easterEggsEnabled: !prev.easterEggsEnabled,
-          }));
-        }}
-      />
-    </div>
-  );
-}
-
-export function General() {
-  const [calendarSettings] = useCalendarSettings();
   const [easterEggSettingsVisible, setEasterEggSettingsVisible] =
     useState(false);
 
@@ -204,6 +182,38 @@ export function General() {
     [],
   );
 
+  if (!easterEggSettingsVisible && !calendarSettings.easterEggsEnabled) {
+    return null;
+  }
+
+  return (
+    <div className="flex items-center justify-between gap-4">
+      <SettingsSectionHeader>
+        <SettingsSectionTitle>Easter Eggs</SettingsSectionTitle>
+        <SettingsSectionDescription>
+          Do you have what it takes to find all the easter eggs?
+        </SettingsSectionDescription>
+      </SettingsSectionHeader>
+      <div className="flex w-48 justify-end">
+        <Label htmlFor="settings-easter-eggs" className="sr-only">
+          Easter eggs
+        </Label>
+        <Checkbox
+          id="terms-2"
+          checked={calendarSettings.easterEggsEnabled}
+          onCheckedChange={() => {
+            setCalendarSettings((prev) => ({
+              ...prev,
+              easterEggsEnabled: !prev.easterEggsEnabled,
+            }));
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
+export function General() {
   return (
     <SettingsPage>
       <SettingsSection>
@@ -270,17 +280,7 @@ export function General() {
         </div>
 
         {/* When adding new settings, make sure this stays at the bottom of the section */}
-        {(easterEggSettingsVisible || calendarSettings.easterEggsEnabled) && (
-          <div className="flex items-center justify-between gap-4">
-            <SettingsSectionHeader>
-              <SettingsSectionTitle>Easter Eggs</SettingsSectionTitle>
-              <SettingsSectionDescription>
-                Do you have what it takes to find all the easter eggs?
-              </SettingsSectionDescription>
-            </SettingsSectionHeader>
-            <EasterEggSelector />
-          </div>
-        )}
+        <EasterEggSelector />
       </SettingsSection>
     </SettingsPage>
   );
