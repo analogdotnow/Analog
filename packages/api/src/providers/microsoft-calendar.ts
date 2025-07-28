@@ -22,7 +22,7 @@ import {
   parseMicrosoftEvent,
   toMicrosoftEvent,
 } from "./microsoft-calendar/utils";
-import { ProviderError } from "./utils";
+import { withErrorHandler } from "./utils";
 
 interface MicrosoftCalendarProviderOptions {
   accessToken: string;
@@ -44,7 +44,7 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
   }
 
   async calendars(): Promise<Calendar[]> {
-    return this.withErrorHandler("calendars", async () => {
+    return withErrorHandler("calendars", async () => {
       // Microsoft Graph API does not work without $select due to a bug
       const response = await this.graphClient
         .api(
@@ -60,7 +60,7 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
   }
 
   async createCalendar(calendarData: CreateCalendarInput): Promise<Calendar> {
-    return this.withErrorHandler("createCalendar", async () => {
+    return withErrorHandler("createCalendar", async () => {
       const createdCalendar: MicrosoftCalendar = await this.graphClient
         .api("/me/calendars")
         .post(calendarData);
@@ -76,7 +76,7 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
     calendarId: string,
     calendar: UpdateCalendarInput,
   ): Promise<Calendar> {
-    return this.withErrorHandler("updateCalendar", async () => {
+    return withErrorHandler("updateCalendar", async () => {
       const updatedCalendar: MicrosoftCalendar = await this.graphClient
         .api(calendarPath(calendarId))
         .patch(calendar);
@@ -89,7 +89,7 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
   }
 
   async deleteCalendar(calendarId: string): Promise<void> {
-    return this.withErrorHandler("deleteCalendar", async () => {
+    return withErrorHandler("deleteCalendar", async () => {
       await this.graphClient.api(calendarPath(calendarId)).delete();
     });
   }
@@ -100,7 +100,7 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
     timeMax: Temporal.ZonedDateTime,
     timeZone: string,
   ): Promise<CalendarEvent[]> {
-    return this.withErrorHandler("events", async () => {
+    return withErrorHandler("events", async () => {
       const startTime = timeMin.withTimeZone("UTC").toInstant().toString();
       const endTime = timeMax.withTimeZone("UTC").toInstant().toString();
 
@@ -124,7 +124,7 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
     calendar: Calendar,
     event: CreateEventInput,
   ): Promise<CalendarEvent> {
-    return this.withErrorHandler("createEvent", async () => {
+    return withErrorHandler("createEvent", async () => {
       const createdEvent: MicrosoftEvent = await this.graphClient
         .api(`${calendarPath(calendar.id)}/events`)
         .post(toMicrosoftEvent(event));
@@ -150,7 +150,7 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
     eventId: string,
     event: UpdateEventInput,
   ): Promise<CalendarEvent> {
-    return this.withErrorHandler("updateEvent", async () => {
+    return withErrorHandler("updateEvent", async () => {
       // First, perform the regular event update
       const updatedEvent: MicrosoftEvent = await this.graphClient
         .api(`${calendarPath(calendar.id)}/events/${eventId}`)
@@ -183,7 +183,7 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
    * @param eventId - The event identifier
    */
   async deleteEvent(calendarId: string, eventId: string): Promise<void> {
-    await this.withErrorHandler("deleteEvent", async () => {
+    await withErrorHandler("deleteEvent", async () => {
       await this.graphClient
         .api(`${calendarPath(calendarId)}/events/${eventId}`)
         .delete();
@@ -195,7 +195,7 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
     eventId: string,
     response: ResponseToEventInput,
   ): Promise<void> {
-    await this.withErrorHandler("responseToEvent", async () => {
+    await withErrorHandler("responseToEvent", async () => {
       if (response.status === "unknown") {
         return;
       }
@@ -208,17 +208,4 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
     });
   }
 
-  private async withErrorHandler<T>(
-    operation: string,
-    fn: () => Promise<T> | T,
-    context?: Record<string, unknown>,
-  ): Promise<T> {
-    try {
-      return await Promise.resolve(fn());
-    } catch (error: unknown) {
-      console.error(`Failed to ${operation}:`, error);
-
-      throw new ProviderError(error as Error, operation, context);
-    }
-  }
 }

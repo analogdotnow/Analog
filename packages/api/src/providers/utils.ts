@@ -16,3 +16,18 @@ export class ProviderError extends Error {
     this.originalError = error;
   }
 }
+
+
+export async function withErrorHandler<T>(
+  operation: string,
+  fn: () => Promise<T> | T,
+  context?: Record<string, unknown>,
+): Promise<T> {
+  try {
+    return await Promise.resolve(fn());
+  } catch (error: unknown) {
+    console.error(`Failed to ${operation}:`, error);
+
+    throw new ProviderError(error as Error, operation, context);
+  }
+}

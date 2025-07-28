@@ -1,7 +1,7 @@
 import GoogleCalendar from "@repo/google-calendar";
 
 import { Conference, ConferencingProvider } from "../interfaces";
-import { ProviderError } from "../utils";
+import { withErrorHandler } from "../utils";
 
 interface GoogleMeetProviderOptions {
   accessToken: string;
@@ -28,7 +28,7 @@ export class GoogleMeetProvider implements ConferencingProvider {
     calendarId?: string,
     eventId?: string,
   ): Promise<Conference> {
-    return this.withErrorHandler("createConferencing", async () => {
+    return withErrorHandler("createConferencing", async () => {
       if (!eventId || !calendarId) {
         throw new Error("Google Meet requires a calendarId and eventId");
       }
@@ -78,17 +78,4 @@ export class GoogleMeetProvider implements ConferencingProvider {
     });
   }
 
-  private async withErrorHandler<T>(
-    operation: string,
-    fn: () => Promise<T> | T,
-    context?: Record<string, unknown>,
-  ): Promise<T> {
-    try {
-      return await Promise.resolve(fn());
-    } catch (error: unknown) {
-      console.error(`Failed to ${operation}:`, error);
-
-      throw new ProviderError(error as Error, operation, context);
-    }
-  }
 }

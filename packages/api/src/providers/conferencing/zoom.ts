@@ -1,7 +1,7 @@
 import { Temporal } from "temporal-polyfill";
 
 import { Conference, ConferencingProvider } from "../interfaces";
-import { ProviderError } from "../utils";
+import { withErrorHandler } from "../utils";
 
 interface ZoomProviderOptions {
   accessToken: string;
@@ -30,7 +30,7 @@ export class ZoomProvider implements ConferencingProvider {
     endTime: string,
     timeZone = "UTC",
   ): Promise<Conference> {
-    return this.withErrorHandler("createConferencing", async () => {
+    return withErrorHandler("createConferencing", async () => {
       // Default 60-minute duration
       let duration = 60;
 
@@ -106,17 +106,4 @@ export class ZoomProvider implements ConferencingProvider {
     });
   }
 
-  private async withErrorHandler<T>(
-    operation: string,
-    fn: () => Promise<T> | T,
-    context?: Record<string, unknown>,
-  ): Promise<T> {
-    try {
-      return await Promise.resolve(fn());
-    } catch (error: unknown) {
-      console.error(`Failed to ${operation}:`, error);
-
-      throw new ProviderError(error as Error, operation, context);
-    }
-  }
 }

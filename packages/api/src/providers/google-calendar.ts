@@ -17,7 +17,7 @@ import type {
   CalendarProvider,
   ResponseToEventInput,
 } from "./interfaces";
-import { ProviderError } from "./utils";
+import { withErrorHandler } from "./utils";
 
 interface GoogleCalendarProviderOptions {
   accessToken: string;
@@ -37,7 +37,7 @@ export class GoogleCalendarProvider implements CalendarProvider {
   }
 
   async calendars(): Promise<Calendar[]> {
-    return this.withErrorHandler("calendars", async () => {
+    return withErrorHandler("calendars", async () => {
       const { items } = await this.client.users.me.calendarList.list();
 
       if (!items) return [];
@@ -59,7 +59,7 @@ export class GoogleCalendarProvider implements CalendarProvider {
   async createCalendar(
     calendar: Omit<Calendar, "id" | "providerId">,
   ): Promise<Calendar> {
-    return this.withErrorHandler("createCalendar", async () => {
+    return withErrorHandler("createCalendar", async () => {
       const createdCalendar = await this.client.calendars.create({
         summary: calendar.name,
       });
@@ -75,7 +75,7 @@ export class GoogleCalendarProvider implements CalendarProvider {
     calendarId: string,
     calendar: Partial<Calendar>,
   ): Promise<Calendar> {
-    return this.withErrorHandler("updateCalendar", async () => {
+    return withErrorHandler("updateCalendar", async () => {
       const updatedCalendar = await this.client.calendars.update(calendarId, {
         summary: calendar.name,
       });
@@ -88,7 +88,7 @@ export class GoogleCalendarProvider implements CalendarProvider {
   }
 
   async deleteCalendar(calendarId: string): Promise<void> {
-    return this.withErrorHandler("deleteCalendar", async () => {
+    return withErrorHandler("deleteCalendar", async () => {
       await this.client.calendars.delete(calendarId);
     });
   }
@@ -98,7 +98,7 @@ export class GoogleCalendarProvider implements CalendarProvider {
     timeMin: Temporal.ZonedDateTime,
     timeMax: Temporal.ZonedDateTime,
   ): Promise<CalendarEvent[]> {
-    return this.withErrorHandler("events", async () => {
+    return withErrorHandler("events", async () => {
       const { items } = await this.client.calendars.events.list(calendar.id, {
         timeMin: timeMin.withTimeZone("UTC").toInstant().toString(),
         timeMax: timeMax.withTimeZone("UTC").toInstant().toString(),
@@ -123,7 +123,7 @@ export class GoogleCalendarProvider implements CalendarProvider {
     calendar: Calendar,
     event: CreateEventInput,
   ): Promise<CalendarEvent> {
-    return this.withErrorHandler("createEvent", async () => {
+    return withErrorHandler("createEvent", async () => {
       const createdEvent = await this.client.calendars.events.create(
         calendar.id,
         toGoogleCalendarEvent(event),
@@ -142,7 +142,7 @@ export class GoogleCalendarProvider implements CalendarProvider {
     eventId: string,
     event: UpdateEventInput,
   ): Promise<CalendarEvent> {
-    return this.withErrorHandler("updateEvent", async () => {
+    return withErrorHandler("updateEvent", async () => {
       const existingEvent = await this.client.calendars.events.retrieve(
         eventId,
         {
@@ -199,13 +199,13 @@ export class GoogleCalendarProvider implements CalendarProvider {
   }
 
   async deleteEvent(calendarId: string, eventId: string): Promise<void> {
-    return this.withErrorHandler("deleteEvent", async () => {
+    return withErrorHandler("deleteEvent", async () => {
       await this.client.calendars.events.delete(eventId, { calendarId });
     });
   }
 
   async acceptEvent(calendarId: string, eventId: string): Promise<void> {
-    return this.withErrorHandler("acceptEvent", async () => {
+    return withErrorHandler("acceptEvent", async () => {
       const event = await this.client.calendars.events.retrieve(eventId, {
         calendarId,
       });
@@ -236,7 +236,7 @@ export class GoogleCalendarProvider implements CalendarProvider {
     eventId: string,
     response: ResponseToEventInput,
   ): Promise<void> {
-    return this.withErrorHandler("responseToEvent", async () => {
+    return withErrorHandler("responseToEvent", async () => {
       if (response.status === "unknown") {
         return;
       }
@@ -266,19 +266,5 @@ export class GoogleCalendarProvider implements CalendarProvider {
         sendUpdates: response.sendUpdate ? "all" : "none",
       });
     });
-  }
-
-  private async withErrorHandler<T>(
-    operation: string,
-    fn: () => Promise<T> | T,
-    context?: Record<string, unknown>,
-  ): Promise<T> {
-    try {
-      return await Promise.resolve(fn());
-    } catch (error: unknown) {
-      console.error(`Failed to ${operation}:`, error);
-
-      throw new ProviderError(error as Error, operation, context);
-    }
   }
 }
