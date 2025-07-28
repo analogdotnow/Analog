@@ -5,25 +5,25 @@ import { useHotkeys } from "react-hotkeys-hook";
 import SubwaySurfersImage from "@/assets/easter-eggs/subway-surfers.webp";
 
 export function SubwaySurfers() {
-  const [easterEggSettingsVisible, setEasterEggSettingsVisible] =
+  const [showEasterEgg, setShowEasterEgg] =
     React.useState(false);
 
   useHotkeys(
     "s+u+r+f",
-    () => setEasterEggSettingsVisible(true),
+    () => setShowEasterEgg(true),
     { keydown: true, keyup: false },
     [],
   );
 
   useHotkeys(
     "s, u, r, f",
-    () => setEasterEggSettingsVisible(false),
+    () => setShowEasterEgg(false),
     { keydown: false, keyup: true },
     [],
   );
 
   return (
-    easterEggSettingsVisible && (
+    showEasterEgg && (
       <Image
         src={SubwaySurfersImage}
         alt="Subway Surfers Easter Egg"
