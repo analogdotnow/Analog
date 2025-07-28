@@ -1,43 +1,26 @@
 import * as React from "react";
 import Image from "next/image";
+import { useHotkeys } from "react-hotkeys-hook";
 
 import SubwaySurfersImage from "@/assets/easter-eggs/subway-surfers.webp";
-
-const SHORTCUT_KEYS = ["s", "u", "r", "f"];
 
 export function SubwaySurfers() {
   const [easterEggSettingsVisible, setEasterEggSettingsVisible] =
     React.useState(false);
 
-  const pressed = React.useRef<{ [key: string]: boolean }>({});
+  useHotkeys(
+    "s+u+r+f",
+    () => setEasterEggSettingsVisible(true),
+    { keydown: true, keyup: false },
+    [],
+  );
 
-  React.useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const key = e.key.toLowerCase();
-      if (SHORTCUT_KEYS.includes(key)) {
-        pressed.current[key] = true;
-        if (SHORTCUT_KEYS.every((k) => pressed.current[k])) {
-          setEasterEggSettingsVisible(true);
-        }
-      }
-    };
-
-    const handleKeyUp = (e: KeyboardEvent) => {
-      const key = e.key.toLowerCase();
-      if (SHORTCUT_KEYS.includes(key)) {
-        pressed.current[key] = false;
-        setEasterEggSettingsVisible(false);
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    window.addEventListener("keyup", handleKeyUp);
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-      window.removeEventListener("keyup", handleKeyUp);
-    };
-  }, []);
+  useHotkeys(
+    "s, u, r, f",
+    () => setEasterEggSettingsVisible(false),
+    { keydown: false, keyup: true },
+    [],
+  );
 
   return (
     easterEggSettingsVisible && (
