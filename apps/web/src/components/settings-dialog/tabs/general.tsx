@@ -199,7 +199,7 @@ function EasterEggSelector() {
           Easter eggs
         </Label>
         <Checkbox
-          id="terms-2"
+          id="settings-easter-eggs"
           checked={calendarSettings.easterEggsEnabled}
           onCheckedChange={() => {
             setCalendarSettings((prev) => ({
