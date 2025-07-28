@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import * as React from "react";
 import { format } from "@formkit/tempo";
 import { useTheme } from "next-themes";
 import { useHotkeys } from "react-hotkeys-hook";
@@ -131,7 +131,7 @@ function StartOfWeekPicker() {
 function TimeFormatPicker() {
   const [calendarSettings, setCalendarSettings] = useCalendarSettings();
 
-  const time = useRef(new Date());
+  const time = React.useRef(new Date());
 
   return (
     <div className="w-48">
@@ -166,7 +166,7 @@ function TimeFormatPicker() {
 function EasterEggSelector() {
   const [calendarSettings, setCalendarSettings] = useCalendarSettings();
   const [easterEggSettingsVisible, setEasterEggSettingsVisible] =
-    useState(false);
+    React.useState(false);
 
   useHotkeys(
     "shift",
