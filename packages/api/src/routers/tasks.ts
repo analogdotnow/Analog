@@ -1,8 +1,6 @@
 import { TRPCError } from "@trpc/server";
 
-import {
-  createTaskInputSchema,
-} from "../schemas/tasks";
+import { createTaskInputSchema } from "../schemas/tasks";
 import { createTRPCRouter, taskProcedure } from "../trpc";
 
 export const tasksRouter = createTRPCRouter({
@@ -30,7 +28,7 @@ export const tasksRouter = createTRPCRouter({
     .input(createTaskInputSchema)
     .mutation(async ({ ctx, input }) => {
       const provider = ctx.providers.find(
-        ({ account }) => account.accountId === input.accountId,
+        ({ account }) => account.id === input.accountId,
       );
 
       if (!provider?.client) {

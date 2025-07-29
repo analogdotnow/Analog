@@ -39,6 +39,7 @@ export class GoogleTasksProvider implements TaskProvider {
           providerId: "google",
           title: taskCollection.title,
           updated: taskCollection.updated,
+          accountId: this.accountId,
         }));
     });
   }
@@ -53,10 +54,10 @@ export class GoogleTasksProvider implements TaskProvider {
             taskCollection.id!,
           );
           return {
-            taskCollectionId: taskCollection.id!,
-            taskCollectionName: taskCollection.title!,
-            providerId: "google",
+            id: taskCollection.id!,
+            title: taskCollection.title!,
             accountId: this.accountId,
+            providerId: "google",
             tasks:
               tasks?.map((task) =>
                 parseGoogleTask({

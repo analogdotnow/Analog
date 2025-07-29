@@ -147,6 +147,11 @@ export interface TaskCollection {
   providerId?: string;
   title?: string;
   updated?: string;
+  accountId: string;
+}
+
+export interface TaskCollectionWithTasks extends TaskCollection {
+  tasks: Task[];
 }
 
 export interface Task {
@@ -159,14 +164,6 @@ export interface Task {
   completed?: Temporal.ZonedDateTime | Temporal.Instant | Temporal.PlainDate;
   description?: string;
   due?: Temporal.ZonedDateTime | Temporal.Instant | Temporal.PlainDate;
-}
-
-export interface TaskCollectionWithTasks {
-  taskCollectionId: string;
-  taskCollectionName: string;
-  providerId?: string;
-  accountId: string;
-  tasks: Task[];
 }
 
 export interface TaskProvider {

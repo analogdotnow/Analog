@@ -1,5 +1,5 @@
-import { z } from "zod";
 import { Temporal } from "@js-temporal/polyfill";
+import { z } from "zod";
 
 export const createTaskCollectionInputSchema = z.object({
   title: z.string(),
@@ -11,16 +11,20 @@ export const createTaskInputSchema = z
     taskCollectionId: z.string(),
     description: z.string().optional(),
     accountId: z.string(),
-    completed: z.union([
-      z.instanceof(Temporal.PlainDate),
-      z.instanceof(Temporal.Instant),
-      z.instanceof(Temporal.ZonedDateTime),
-    ]).optional(),
-    due: z.union([
-      z.instanceof(Temporal.PlainDate),
-      z.instanceof(Temporal.Instant),
-      z.instanceof(Temporal.ZonedDateTime),
-    ]).optional(),
+    completed: z
+      .union([
+        z.instanceof(Temporal.PlainDate),
+        z.instanceof(Temporal.Instant),
+        z.instanceof(Temporal.ZonedDateTime),
+      ])
+      .optional(),
+    due: z
+      .union([
+        z.instanceof(Temporal.PlainDate),
+        z.instanceof(Temporal.Instant),
+        z.instanceof(Temporal.ZonedDateTime),
+      ])
+      .optional(),
   })
   .refine((data) => data.title || data.description, {
     message: "Either title or description must be provided",
