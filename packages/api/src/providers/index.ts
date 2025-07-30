@@ -3,12 +3,22 @@ import { account } from "@repo/db/schema";
 import { GoogleMeetProvider } from "./conferencing/google-meet";
 import { ZoomProvider } from "./conferencing/zoom";
 import { GoogleCalendarProvider } from "./google-calendar";
-import type { CalendarProvider, ConferencingProvider } from "./interfaces";
+import { GoogleTasksProvider } from "./google-tasks";
+import type {
+  CalendarProvider,
+  ConferencingProvider,
+  ProviderConfig,
+  TaskProvider,
+} from "./interfaces";
 import { MicrosoftCalendarProvider } from "./microsoft-calendar";
 
-const supportedProviders = {
+const supportedCalendarProviders = {
   google: GoogleCalendarProvider,
   microsoft: MicrosoftCalendarProvider,
+} as const;
+
+const supportedTaskProviders = {
+  google: GoogleTasksProvider,
 } as const;
 
 const supportedConferencingProviders = {
@@ -16,17 +26,24 @@ const supportedConferencingProviders = {
   zoom: ZoomProvider,
 } as const;
 
-export function accountToProvider(
+const CALENDAR_PROVIDERS = ["google", "microsoft"];
+const TASK_PROVIDERS = ["google"];
+
+function accountToProvider<
+  TProvider extends CalendarProvider | TaskProvider,
+  TProviderMap extends Record<
+    string,
+    new (config: ProviderConfig) => TProvider
+  >,
+>(
   activeAccount: typeof account.$inferSelect,
-): CalendarProvider {
+  providerMap: TProviderMap,
+): TProvider {
   if (!activeAccount.accessToken || !activeAccount.refreshToken) {
     throw new Error("Invalid account");
   }
 
-  const Provider =
-    supportedProviders[
-      activeAccount.providerId as keyof typeof supportedProviders
-    ];
+  const Provider = providerMap[activeAccount.providerId as keyof TProviderMap];
 
   if (!Provider) {
     throw new Error("Provider not supported");
@@ -36,6 +53,24 @@ export function accountToProvider(
     accessToken: activeAccount.accessToken,
     accountId: activeAccount.accountId,
   });
+}
+
+export function getCalendarProvider(
+  activeAccount: typeof account.$inferSelect,
+): CalendarProvider {
+  return accountToProvider(
+    activeAccount,
+    supportedCalendarProviders,
+  ) as CalendarProvider;
+}
+
+export function getTaskProvider(
+  activeAccount: typeof account.$inferSelect,
+): TaskProvider {
+  return accountToProvider(
+    activeAccount,
+    supportedTaskProviders,
+  ) as TaskProvider;
 }
 
 export function accountToConferencingProvider(
@@ -58,8 +93,10 @@ export function accountToConferencingProvider(
   });
 }
 
-const CALENDAR_PROVIDERS = ["google", "microsoft"];
-
 export function isCalendarProvider(providerId: string) {
   return CALENDAR_PROVIDERS.includes(providerId);
+}
+
+export function isTaskProvider(providerId: string) {
+  return TASK_PROVIDERS.includes(providerId);
 }

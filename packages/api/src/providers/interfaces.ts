@@ -7,6 +7,11 @@ export type TemporalDate =
   | Temporal.Instant
   | Temporal.ZonedDateTime;
 
+export interface ProviderConfig {
+  accessToken: string;
+  accountId: string;
+}
+
 export interface Calendar {
   id: string;
   providerId: "google" | "microsoft";
@@ -135,4 +140,38 @@ export interface Conference {
 
   /** Provider-specific extra fields preserved for debugging / extensions. */
   extra?: Record<string, unknown>;
+}
+
+export interface TaskCollection {
+  id: string;
+  providerId?: string;
+  title?: string;
+  updated?: string;
+  accountId: string;
+}
+
+export interface TaskCollectionWithTasks extends TaskCollection {
+  tasks: Task[];
+}
+
+export interface Task {
+  id: string;
+  accountId: string;
+  taskCollectionId: string;
+  providerId?: string;
+  title?: string;
+  etag?: string;
+  completed?: Temporal.ZonedDateTime | Temporal.Instant | Temporal.PlainDate;
+  description?: string;
+  due?: Temporal.ZonedDateTime | Temporal.Instant | Temporal.PlainDate;
+}
+
+export interface TaskProvider {
+  providerId: "google";
+  tasks(): Promise<TaskCollectionWithTasks[]>;
+  taskCollections(): Promise<TaskCollection[]>;
+  tasksForTaskCollection(taskCollectionId: string): Promise<Task[]>;
+  createTask(task: Omit<Task, "id">): Promise<Task>;
+  updateTask(task: Task): Promise<Task>;
+  deleteTask(task: Task): Promise<void>;
 }

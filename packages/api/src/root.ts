@@ -6,6 +6,7 @@ import { conferencingRouter } from "./routers/conferencing";
 import { earlyAccessRouter } from "./routers/early-access";
 import { eventsRouter } from "./routers/events";
 import { placesRouter } from "./routers/places";
+import { tasksRouter } from "./routers/tasks";
 import { userRouter } from "./routers/user";
 import {
   createCallerFactory,
@@ -17,6 +18,7 @@ export const appRouter = createTRPCRouter({
   user: userRouter,
   accounts: accountsRouter,
   calendars: calendarsRouter,
+  tasks: tasksRouter,
   events: eventsRouter,
   conferencing: conferencingRouter,
   earlyAccess: earlyAccessRouter,
