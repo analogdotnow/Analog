@@ -9,6 +9,11 @@ const WeekCellsHeight = 64;
 // Number of days to show in the agenda view
 const AgendaDaysToShow = 30;
 
+// Time constants
+const HOURS_IN_DAY = 24;
+const MINUTES_IN_HOUR = 60;
+const TOTAL_MINUTES_IN_DAY = HOURS_IN_DAY * MINUTES_IN_HOUR;
+
 // Start and end hours for the week and day views
 const StartHour = 0;
 const EndHour = 24;
@@ -38,6 +43,9 @@ export {
   EventGap,
   WeekCellsHeight,
   AgendaDaysToShow,
+  HOURS_IN_DAY,
+  MINUTES_IN_HOUR,
+  TOTAL_MINUTES_IN_DAY,
   StartHour,
   EndHour,
   DefaultStartHour,

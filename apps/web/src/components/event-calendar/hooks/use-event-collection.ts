@@ -1,13 +1,9 @@
 import { useMemo } from "react";
 import { Temporal } from "temporal-polyfill";
 
-import { startOfWeek } from "@repo/temporal";
 import { eachDayOfInterval, isWeekend } from "@repo/temporal/v2";
 
-import {
-  useCalendarSettings,
-  useDefaultTimeZone,
-} from "@/atoms/calendar-settings";
+import { useDefaultTimeZone } from "@/atoms/calendar-settings";
 import { useViewPreferences } from "@/atoms/view-preferences";
 import {
   calculateWeekViewEventPositions,
@@ -16,7 +12,7 @@ import {
   isAllDayOrMultiDay,
   type PositionedEvent,
 } from "@/components/event-calendar/utils";
-import { StartHour, WeekCellsHeight } from "../constants";
+import { useCellHeight } from "@/atoms";
 import type { CalendarEvent } from "../types";
 import { EventCollectionItem } from "./event-collection";
 
@@ -69,6 +65,7 @@ function getEventCollectionsForMonthSimple(
 function getOptimizedWeekViewEvents(
   items: EventCollectionItem[],
   days: Temporal.PlainDate[],
+  cellHeight: number,
   timeZone: string,
 ): {
   allDayEvents: EventCollectionItem[];
@@ -98,7 +95,7 @@ function getOptimizedWeekViewEvents(
   const positionedEvents = calculateWeekViewEventPositions(
     relevantItems,
     days,
-    WeekCellsHeight,
+    cellHeight,
     timeZone,
   );
 
@@ -109,6 +106,7 @@ function getOptimizedWeekViewEvents(
 function getOptimizedDayViewEvents(
   items: EventCollectionItem[],
   day: Temporal.PlainDate,
+  cellHeight: number,
   timeZone: string,
 ): {
   allDayEvents: EventCollectionItem[];
@@ -142,7 +140,7 @@ function getOptimizedDayViewEvents(
   const positionedEvents = calculateWeekViewEventPositions(
     relevantItems,
     [day],
-    WeekCellsHeight,
+    cellHeight,
     timeZone,
   );
 
@@ -208,6 +206,7 @@ export function useEventCollection(
   viewType: "month" | "week" | "day",
 ): EventCollectionForMonth | EventCollectionForWeek | EventCollectionForDay {
   const timeZone = useDefaultTimeZone();
+  const cellHeight = useCellHeight();
 
   return useMemo(() => {
     // Early return for empty inputs
@@ -237,6 +236,7 @@ export function useEventCollection(
       const { allDayEvents, positionedEvents } = getOptimizedDayViewEvents(
         eventItems,
         day,
+        cellHeight,
         timeZone,
       );
       return {
@@ -277,6 +277,7 @@ export function useEventCollection(
     const { allDayEvents, positionedEvents } = getOptimizedWeekViewEvents(
       eventItems,
       days,
+      cellHeight,
       timeZone,
     );
     return {
@@ -284,7 +285,7 @@ export function useEventCollection(
       allDayEvents,
       positionedEvents,
     };
-  }, [eventItems, daysOrDay, viewType, timeZone]);
+  }, [eventItems, daysOrDay, viewType, timeZone, cellHeight]);
 }
 
 function filterWeekViewEvents(
@@ -318,6 +319,7 @@ export function useWeekViewEventCollection(
   timeZone: string,
 ): EventCollectionForWeek {
   const viewPreferences = useViewPreferences();
+  const cellHeight = useCellHeight();
 
   // return useMemo(() => {
   //   if (items.length === 0) {
@@ -353,6 +355,7 @@ export function useWeekViewEventCollection(
     const { allDayEvents, positionedEvents } = getOptimizedWeekViewEvents(
       items,
       days,
+      cellHeight,
       timeZone,
     );
 
@@ -376,5 +379,5 @@ export function useWeekViewEventCollection(
       allDayEvents,
       positionedEvents,
     };
-  }, [items, days, timeZone, viewPreferences.showWeekends]);
+  }, [items, days, timeZone, cellHeight, viewPreferences.showWeekends]);
 }
