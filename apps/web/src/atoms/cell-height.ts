@@ -7,7 +7,7 @@ import { atom, useAtomValue, useSetAtom } from "jotai";
  * value inside this atom.  Keep it in sync with the CSS custom property
  * `--week-cells-height` which is updated by the CalendarView component.
  */
-export const cellHeightAtom = atom<number>(80);
+export const cellHeightAtom = atom<number>(64);
 
 // Convenient hooks ----------------------------------------------------------------------------------------------------------------
 
