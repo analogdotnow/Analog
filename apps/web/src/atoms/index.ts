@@ -24,8 +24,4 @@ export {
   useSelectedEvents,
 } from "./selected-events";
 
-export {
-  cellHeightAtom,
-  useCellHeight,
-  useSetCellHeight,
-} from "./cell-height";
+export { cellHeightAtom, useCellHeight, useSetCellHeight } from "./cell-height";

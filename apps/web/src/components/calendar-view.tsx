@@ -6,8 +6,8 @@ import { useHotkeysContext } from "react-hotkeys-hook";
 import {
   useCalendarSettings,
   useCalendarsVisibility,
-  useViewPreferences,
   useCellHeight,
+  useViewPreferences,
 } from "@/atoms";
 import {
   CalendarHeader,

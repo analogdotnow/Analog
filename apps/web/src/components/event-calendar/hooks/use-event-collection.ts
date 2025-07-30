@@ -3,6 +3,7 @@ import { Temporal } from "temporal-polyfill";
 
 import { eachDayOfInterval, isWeekend } from "@repo/temporal/v2";
 
+import { useCellHeight } from "@/atoms";
 import { useDefaultTimeZone } from "@/atoms/calendar-settings";
 import { useViewPreferences } from "@/atoms/view-preferences";
 import {
@@ -12,7 +13,6 @@ import {
   isAllDayOrMultiDay,
   type PositionedEvent,
 } from "@/components/event-calendar/utils";
-import { useCellHeight } from "@/atoms";
 import type { CalendarEvent } from "../types";
 import { EventCollectionItem } from "./event-collection";
 

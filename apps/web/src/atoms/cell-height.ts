@@ -15,6 +15,8 @@ export function useCellHeight(): number {
   return useAtomValue(cellHeightAtom);
 }
 
-export function useSetCellHeight(): (value: number | ((prev: number) => number)) => void {
+export function useSetCellHeight(): (
+  value: number | ((prev: number) => number),
+) => void {
   return useSetAtom(cellHeightAtom);
-} 
+}

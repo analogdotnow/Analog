@@ -9,11 +9,11 @@ import {
 } from "motion/react";
 import { Temporal } from "temporal-polyfill";
 
+import { useCellHeight } from "@/atoms";
 import { CalendarEvent, EventItem } from "@/components/event-calendar";
 import { EventContextMenu } from "@/components/event-calendar/event-context-menu";
 import { ContextMenuTrigger } from "@/components/ui/context-menu";
 import type { Action } from "./hooks/use-optimistic-events";
-import { useCellHeight } from "@/atoms";
 
 interface DraggableEventProps {
   event: CalendarEvent;

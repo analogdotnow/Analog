@@ -5,8 +5,12 @@ import { Temporal } from "temporal-polyfill";
 
 import { useCellHeight } from "@/atoms";
 import { createDraftEvent } from "@/lib/utils/calendar";
+import {
+  HOURS_IN_DAY,
+  MINUTES_IN_HOUR,
+  TOTAL_MINUTES_IN_DAY,
+} from "../constants";
 import { Action } from "./use-optimistic-events";
-import { HOURS_IN_DAY, MINUTES_IN_HOUR, TOTAL_MINUTES_IN_DAY } from "../constants";
 
 interface UseDragToCreateOptions {
   dispatchAction: (action: Action) => void;
