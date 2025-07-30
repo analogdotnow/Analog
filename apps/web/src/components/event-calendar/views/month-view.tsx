@@ -260,8 +260,6 @@ function MonthViewWeek({
         <MemoizedMonthViewDay
           key={day.toString()}
           day={day}
-          rows={rows}
-          weekIndex={weekIndex}
           dayIndex={dayIndex}
           overflow={overflow}
           dispatchAction={dispatchAction}
@@ -327,8 +325,6 @@ const MemoizedMonthViewDay = React.memo(
   (prevProps, nextProps) => {
     return (
       prevProps.day.equals(nextProps.day) &&
-      prevProps.rows === nextProps.rows &&
-      prevProps.weekIndex === nextProps.weekIndex &&
       prevProps.dayIndex === nextProps.dayIndex &&
       prevProps.overflow === nextProps.overflow &&
       prevProps.dispatchAction === nextProps.dispatchAction &&
@@ -339,8 +335,6 @@ const MemoizedMonthViewDay = React.memo(
 
 interface MonthViewDayProps {
   day: Temporal.PlainDate;
-  rows: number;
-  weekIndex: number;
   dayIndex: number;
   overflow: ReturnType<typeof useMultiDayOverflow>;
   dispatchAction: (action: Action) => void;
@@ -349,6 +343,7 @@ interface MonthViewDayProps {
 
 function MonthViewDay({
   day,
+  dayIndex,
   overflow,
   dispatchAction,
   currentDate,
@@ -378,7 +373,12 @@ function MonthViewDay({
 
   const isCurrentMonth = isSameMonth(day, currentDate);
   const isDayVisible = viewPreferences.showWeekends || !isWeekend(day);
-  // const isReferenceCell = weekIndex === 0 && dayIndex === 0;
+
+  // Determine if this day is in the last visible column
+  const isLastVisibleColumn = viewPreferences.showWeekends
+    ? dayIndex === 6 // Saturday is last when weekends shown
+    : dayIndex === 5; // Friday is last when weekends hidden
+
   const cellId = `month-cell-${day.toString()}`;
 
   // Filter overflow events to only show those that start on this day
@@ -397,7 +397,8 @@ function MonthViewDay({
       ref={cellRef}
       onDoubleClick={onDoubleClick}
       className={cn(
-        "group relative min-w-0 border-r border-b border-border/70 last:border-r-0 data-outside-cell:bg-muted/25 data-outside-cell:text-muted-foreground/70",
+        "group relative min-w-0 border-b border-border/70 data-outside-cell:bg-muted/25 data-outside-cell:text-muted-foreground/70",
+        !isLastVisibleColumn && "border-r",
         !isDayVisible && "w-0",
       )}
       data-today={
