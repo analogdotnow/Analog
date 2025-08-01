@@ -9,15 +9,27 @@ const handler = (req: NextRequest) =>
     endpoint: "/api/trpc",
     req,
     router: appRouter,
-    createContext: () => createContext({ headers: req.headers }),
+    createContext: async () => {
+      try {
+        return await createContext({ headers: req.headers });
+      } catch (error) {
+        console.error("Failed to create context:", error);
+        throw error;
+      }
+    },
     onError:
       env.NODE_ENV === "development"
         ? ({ path, error }) => {
             console.error(
               `❌ tRPC failed on ${path ?? "<no-path>"}: ${error.message}`,
             );
+            console.error("Full error:", error);
           }
-        : undefined,
+        : ({ path, error }) => {
+            console.error(
+              `❌ tRPC failed on ${path ?? "<no-path>"}: ${error.message}`,
+            );
+          },
   });
 
 export { handler as GET, handler as POST };

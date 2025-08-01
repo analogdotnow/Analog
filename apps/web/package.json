@@ -7,7 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.0-beta.11",
@@ -21,6 +24,7 @@
     "@internationalized/date": "^3.8.2",
     "@number-flow/react": "^0.5.10",
     "@radix-ui/react-alert-dialog": "^1.1.14",
+    "@opennextjs/cloudflare": "^1.3.1",
     "@radix-ui/react-avatar": "^1.1.10",
     "@radix-ui/react-checkbox": "^1.3.2",
     "@radix-ui/react-collapsible": "^1.1.11",
@@ -95,6 +99,7 @@
     "eslint": "^9.31.0",
     "eslint-config-next": "15.4.2",
     "tailwindcss": "^4.1.11",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "wrangler": "^4.20.5"
   }
 }

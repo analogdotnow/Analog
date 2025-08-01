@@ -19,6 +19,9 @@
   },
   "dependencies": {
     "@repo/env": "workspace:*",
+    "@neondatabase/serverless": "^1.0.1",
+    "@supabase/supabase-js": "^2.39.0",
+    "drizzle-orm": "^0.44.2",
     "postgres": "^3.4.7",
     "server-only": "^0.0.1"
   },

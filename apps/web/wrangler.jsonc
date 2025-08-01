@@ -1,0 +1,17 @@
+{
+  "main": ".open-next/worker.js",
+  "name": "analog-calendar",
+  "compatibility_date": "2025-03-25",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS",
+  },
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1,
+  },
+  "vars": {
+    "BETTER_AUTH_URL": "https://analog-calendar.thomas-development.workers.dev",
+  },
+}
