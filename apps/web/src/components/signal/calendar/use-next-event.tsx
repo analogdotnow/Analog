@@ -6,6 +6,7 @@ import { Temporal } from "temporal-polyfill";
 import { compareTemporal, toInstant } from "@repo/temporal";
 
 import { useCalendarSettings } from "@/atoms";
+import { useZonedDateTime } from "@/components/event-calendar/context/datetime-provider";
 import type { CalendarEvent } from "@/lib/interfaces";
 
 interface NextEventResult {
@@ -18,7 +19,7 @@ interface UseNextEventProps {
 }
 
 export function useNextEvent({ events }: UseNextEventProps): NextEventResult {
-  const currentTime = Temporal.Now.instant();
+  const currentTime = useZonedDateTime();
   const { defaultTimeZone } = useCalendarSettings();
 
   return useMemo(() => {

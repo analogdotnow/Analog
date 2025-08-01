@@ -17,7 +17,8 @@
   "dependencies": {
     "@repo/db": "workspace:*",
     "@repo/env": "workspace:*",
-    "@upstash/redis": "^1.35.1"
+    "@upstash/redis": "^1.35.1",
+    "mcp-client-auth": "^1.2.1"
   },
   "devDependencies": {
     "@microsoft/microsoft-graph-types": "^2.40.0",

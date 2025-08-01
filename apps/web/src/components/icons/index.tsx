@@ -10,3 +10,4 @@ export * from "./zoom";
 export * from "./accepted";
 export * from "./declined";
 export * from "./tentative";
+export * from "./mic";

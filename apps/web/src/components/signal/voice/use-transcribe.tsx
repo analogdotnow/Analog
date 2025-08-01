@@ -1,19 +1,25 @@
-import { env } from "@repo/env/client";
 import * as React from "react";
-import { createClient, ListenLiveClient, LiveTranscriptionEvents } from "@deepgram/sdk";
+import {
+  ListenLiveClient,
+  LiveTranscriptionEvents,
+  createClient,
+} from "@deepgram/sdk";
+
+import { env } from "@repo/env/client";
 
 const TIMESLICE = 250;
 const KEEP_ALIVE_INTERVAL = 3000; // 3 seconds
 
 interface UseTranscribeProps {
   onTranscript?: (transcript: string) => void;
+  onFinish?: (transcript: string) => void;
 }
 
-export function useTranscribe({ onTranscript }: UseTranscribeProps) {
+export function useTranscribe({ onTranscript, onFinish }: UseTranscribeProps) {
   const [transcript, setTranscript] = React.useState("");
   const [isTranscribing, setIsTranscribing] = React.useState(false);
   const [isPaused, setIsPaused] = React.useState(false);
-  
+
   const connectionRef = React.useRef<ListenLiveClient | null>(null);
   const mediaRecorderRef = React.useRef<MediaRecorder | null>(null);
   const streamRef = React.useRef<MediaStream | null>(null);
@@ -53,7 +59,7 @@ export function useTranscribe({ onTranscript }: UseTranscribeProps) {
 
   const pauseTranscription = React.useCallback(() => {
     if (!isTranscribing || isPaused) return;
-    
+
     console.log("Pausing transcription");
     mediaRecorderRef.current?.pause();
     setIsPaused(true);
@@ -62,7 +68,7 @@ export function useTranscribe({ onTranscript }: UseTranscribeProps) {
 
   const resumeTranscription = React.useCallback(() => {
     if (!isTranscribing || !isPaused) return;
-    
+
     console.log("Resuming transcription");
     stopKeepAlive();
     mediaRecorderRef.current?.resume();
@@ -71,22 +77,25 @@ export function useTranscribe({ onTranscript }: UseTranscribeProps) {
 
   const stopTranscription = React.useCallback(() => {
     console.log("Stopping transcription");
-    
+
     // Stop media recorder
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+    if (
+      mediaRecorderRef.current &&
+      mediaRecorderRef.current.state !== "inactive"
+    ) {
       mediaRecorderRef.current.stop();
     }
-    
+
     streamRef.current?.getTracks().forEach((track) => track.stop());
-    
+
     if (connectionRef.current) {
       connectionRef.current.requestClose();
       connectionRef.current = null;
     }
-    
+
     // Clean up timers
     stopKeepAlive();
-    
+
     setIsTranscribing(false);
     setIsPaused(false);
   }, [stopKeepAlive]);
@@ -99,10 +108,10 @@ export function useTranscribe({ onTranscript }: UseTranscribeProps) {
 
     try {
       console.log("Starting transcription...");
-      
+
       // Clear previous transcript
       setTranscript("");
-      
+
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
 
@@ -111,29 +120,28 @@ export function useTranscribe({ onTranscript }: UseTranscribeProps) {
       });
       mediaRecorderRef.current = mediaRecorder;
 
-      console.log("env.NEXT_PUBLIC_DEEPGRAM_API_KEY", env.NEXT_PUBLIC_DEEPGRAM_API_KEY);
-      
       // Create Deepgram client and connection
       const deepgram = createClient(env.NEXT_PUBLIC_DEEPGRAM_API_KEY);
       const connection = deepgram.listen.live({
         model: "nova-3",
-        punctuate: true,
-        smart_format: true,
+        // punctuate: true,
         interim_results: true,
-        endpointing: 300, // 300ms silence before considering speech ended
+        vad_events: true,
+        utterance_end_ms: 1000,
+        endpointing: false, // 300ms silence before considering speech ended
       });
 
       connectionRef.current = connection;
 
       connection.on(LiveTranscriptionEvents.Open, () => {
         console.log("Deepgram connection opened");
-        
+
         mediaRecorder.addEventListener("dataavailable", (event) => {
           if (event.data.size > 0 && connectionRef.current) {
             connectionRef.current.send(event.data);
           }
         });
-        
+
         mediaRecorder.start(TIMESLICE);
         setIsTranscribing(true);
       });
@@ -156,10 +164,10 @@ export function useTranscribe({ onTranscript }: UseTranscribeProps) {
 
       connection.on(LiveTranscriptionEvents.Close, () => {
         console.log("Deepgram connection closed");
+        onFinish?.(transcript);
         setIsTranscribing(false);
         setIsPaused(false);
       });
-
     } catch (err) {
       console.error("Failed to start transcription:", err);
     }

@@ -1,0 +1,48 @@
+{
+  "name": "@repo/ai",
+  "version": "0.1.0",
+  "private": true,
+  "exports": {
+    ".": "./src/root.ts",
+    "./trpc": "./src/trpc.ts",
+    "./providers/interfaces": "./src/providers/interfaces.ts",
+    "./utils/context": "./src/utils/context.ts",
+    "./auth/session-store": "./src/auth/session-store.ts",
+    "./auth/oauth-client": "./src/auth/oauth-client.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "type-check": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "@trpc/server": "^11.4.3",
+    "better-auth": "1.3.1",
+    "next": "^15.4.2",
+    "server-only": "^0.0.1",
+    "superjson": "^2.2.2",
+    "superjson-temporal": "^0.3.1",
+    "temporal-zod": "https://pkg.pr.new/analogdotnow/temporal-utils/temporal-zod@9c97507",
+    "zod": "^4.0.5"
+  },
+  "dependencies": {
+    "@analog/meeting-links": "workspace:*",
+    "@googlemaps/places": "^2.1.0",
+    "@microsoft/microsoft-graph-client": "^3.0.7",
+    "@repo/auth": "workspace:*",
+    "@repo/db": "workspace:*",
+    "@repo/env": "workspace:*",
+    "@repo/google-calendar": "workspace:*",
+    "@repo/google-tasks": "workspace:*",
+    "@repo/temporal": "workspace:*",
+    "@upstash/ratelimit": "^2.0.5",
+    "@upstash/redis": "^1.35.1"
+  },
+  "devDependencies": {
+    "@microsoft/microsoft-graph-types": "^2.40.0",
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "^22.9.0",
+    "eslint": "^9.31.0",
+    "typescript": "^5.8.3"
+  }
+}

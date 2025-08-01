@@ -1,17 +1,23 @@
 "use client";
 
 import * as React from "react";
-import { MicIcon, MicOffIcon, PauseIcon, PlayIcon } from "lucide-react";
+import { UIMessage } from "@ai-sdk/react";
+import { ExternalLink } from "lucide-react";
 import { Variants } from "motion/react";
 import { useHotkeys } from "react-hotkeys-hook";
 
+import * as Icons from "@/components/icons";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { KeyboardShortcut } from "@/components/ui/keyboard-shortcut";
-import { CalendarEvent } from "@/lib/interfaces";
 import { cn } from "@/lib/utils";
-import { EventPreview } from "./event-preview";
-import { Transcript } from "./transcript";
+import { EventCollectionItem } from "../event-calendar/hooks/event-collection";
+import { ActionButton, ActionShortcut } from "./actions";
+import { EventPreview } from "./calendar/event-preview";
+import { useActiveEvent } from "./calendar/use-active-event";
+import { useNextEvent } from "./calendar/use-next-event";
+import { Chat } from "./chat";
+import { ConnectAccount } from "./connect-account";
+import { Transcript } from "./voice/transcript";
 import { useTranscribe } from "./voice/use-transcribe";
 import {
   Window,
@@ -23,7 +29,7 @@ import {
 
 interface SignalViewProps {
   className?: string;
-  events: CalendarEvent[];
+  items: EventCollectionItem[];
 }
 
 const VARIANTS: Variants = {
@@ -39,72 +45,49 @@ const VARIANTS: Variants = {
   },
 };
 
-export function SignalView({ className, events }: SignalViewProps) {
+export function SignalView({ className, items }: SignalViewProps) {
   const [state, setState] = React.useState<"default" | "expanded">("expanded");
-  
-  const { 
-    isTranscribing, 
-    isPaused, 
-    transcript, 
-    handleTranscriptionToggle,
-    pauseTranscription,
-    resumeTranscription,
-  } = useTranscribe({
-    onTranscript: (transcript) => {
-      console.log("New transcript:", transcript);
-    },
-  });
 
-  useHotkeys("v", () => {
-    handleTranscriptionToggle();
-  });
+  const { isTranscribing, transcript, handleTranscriptionToggle } =
+    useTranscribe({
+      onTranscript: (transcript) => {
+        console.log("New transcript:", transcript);
+      },
+    });
 
-  useHotkeys("space", (e) => {
-    if (isTranscribing) {
-      e.preventDefault();
-      if (isPaused) {
-        resumeTranscription();
-      } else {
-        pauseTranscription();
-      }
-    }
-  });
+  const events = items.map((item) => item.event);
+  const { nextEvent, ongoingEvent } = useNextEvent({ events });
+  const { activeEvent } = useActiveEvent({ ongoingEvent, nextEvent });
 
-  const getMainButtonContent = () => {
-    if (!isTranscribing) {
-      return {
-        icon: <MicIcon className="size-4" />,
-        text: "Voice",
-        className: "",
-      };
+  const [messages, setMessages] = React.useState<UIMessage[]>([]);
+  const [signal, setSignal] = React.useState<AbortSignal>(
+    new AbortController().signal,
+  );
+
+  // Join event hotkey
+  const handleJoinEvent = () => {
+    const meetingUrl = activeEvent?.conference?.joinUrl;
+
+    if (meetingUrl) {
+      window.open(meetingUrl, "_blank", "noopener,noreferrer");
     }
-    
-    if (isPaused) {
-      return {
-        icon: <PlayIcon className="size-4" />,
-        text: "Resume",
-        className: "bg-yellow-100 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800",
-      };
-    }
-    
-    return {
-      icon: <MicOffIcon className="size-4" />,
-      text: "Stop",
-      className: "bg-red-100 dark:bg-red-900/20 border-red-200 dark:border-red-800",
-    };
   };
 
-  const handleMainButtonClick = () => {
-    if (!isTranscribing) {
+  useHotkeys(
+    "v",
+    () => {
       handleTranscriptionToggle();
-    } else if (isPaused) {
-      resumeTranscription();
-    } else {
-      handleTranscriptionToggle(); // Stop
-    }
-  };
+    },
+    { scopes: ["signal-view"] },
+  );
 
-  const buttonContent = getMainButtonContent();
+  useHotkeys(
+    "j",
+    () => {
+      handleJoinEvent();
+    },
+    { scopes: ["signal-view"] },
+  );
 
   return (
     <Window
@@ -118,53 +101,56 @@ export function SignalView({ className, events }: SignalViewProps) {
       </WindowHeader>
       <WindowContent>
         <div className="flex flex-col gap-2 p-3">
-          <Input
-            className="border-none focus-visible:ring-0 focus-visible:ring-offset-0 dark:bg-transparent"
-            placeholder="..."
-          />
-          <Transcript 
-            transcript={transcript}
-            isTranscribing={isTranscribing}
-            isPaused={isPaused}
-            className={cn("hidden", state === "expanded" && "block")}
-          />
           <EventPreview
             className={cn("hidden", state === "expanded" && "block")}
-            events={events}
+            nextEvent={nextEvent}
+            ongoingEvent={ongoingEvent}
           />
+          <ConnectAccount
+            className={cn("hidden", state === "expanded" && "block")}
+          />
+          {/* <Input
+            className="border-none focus-visible:ring-0 focus-visible:ring-offset-0 dark:bg-transparent"
+            placeholder="..."
+          /> */}
+          <Transcript
+            transcript={transcript}
+            isTranscribing={isTranscribing}
+            className={cn("hidden", state === "expanded" && "block")}
+          />
+          {messages.length > 0 && (
+            <Chat
+              signal={signal}
+              initialMessages={messages}
+              onFinish={() => setMessages([])}
+            />
+          )}
         </div>
       </WindowContent>
       <WindowFooter>
-        <div className="flex gap-2 w-full">
-          <Button
-            variant="outline"
-            size="sm"
-            className={cn(
-              "h-7 gap-2 rounded-md ps-2 pe-1 text-xs shadow-none dark:bg-neutral-700/40",
-              buttonContent.className
+        <div className="flex w-full gap-2">
+          <ActionButton onClick={handleTranscriptionToggle}>
+            {!isTranscribing ? (
+              <>
+                <Icons.Mic className="size-4" />
+                Voice
+                <ActionShortcut>V</ActionShortcut>
+              </>
+            ) : (
+              <>
+                Cancel
+                <ActionShortcut>Esc</ActionShortcut>
+              </>
             )}
-            onClick={handleMainButtonClick}
-          >
-            {buttonContent.icon}
-            {buttonContent.text}
-            <KeyboardShortcut className="bg-neutral-700 text-neutral-400">
-              V
-            </KeyboardShortcut>
-          </Button>
-          
-          {isTranscribing && !isPaused && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-7 gap-2 rounded-md ps-2 pe-1 text-xs shadow-none dark:bg-neutral-700/40"
-              onClick={pauseTranscription}
-            >
-              <PauseIcon className="size-4" />
-              Pause
-              <KeyboardShortcut className="bg-neutral-700 text-neutral-400">
-                Space
-              </KeyboardShortcut>
-            </Button>
+          </ActionButton>
+          {activeEvent && activeEvent.conference?.joinUrl && (
+            <ActionButton onClick={handleJoinEvent}>
+              <>
+                <ExternalLink className="size-4" />
+                Join
+                <ActionShortcut>J</ActionShortcut>
+              </>
+            </ActionButton>
           )}
         </div>
       </WindowFooter>

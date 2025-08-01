@@ -1,5 +1,7 @@
 import { genericOAuth } from "better-auth/plugins";
 
+import { env } from "@repo/env/server";
+
 export const zero = genericOAuth({
   config: [
     {

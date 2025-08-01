@@ -1,20 +1,19 @@
 "use client";
 
 import * as React from "react";
+
 import { cn } from "@/lib/utils";
 
 interface TranscriptProps {
   transcript: string;
   isTranscribing: boolean;
-  isPaused?: boolean;
   className?: string;
 }
 
-export function Transcript({ 
-  transcript, 
-  isTranscribing, 
-  isPaused = false, 
-  className 
+export function Transcript({
+  transcript,
+  isTranscribing,
+  className,
 }: TranscriptProps) {
   const scrollRef = React.useRef<HTMLDivElement>(null);
 
@@ -26,23 +25,18 @@ export function Transcript({
   }, [transcript]);
 
   return (
-    <div 
-      className={cn(
-        "flex flex-col gap-2 max-h-32 overflow-hidden",
-        className
-      )}
+    <div
+      className={cn("flex max-h-32 flex-col gap-2 overflow-hidden", className)}
     >
       <div
         ref={scrollRef}
         className={cn(
-          "min-h-16 max-h-24 overflow-y-auto text-sm leading-relaxed",
-          !transcript && "flex items-start justify-start text-muted-foreground"
+          "max-h-24 min-h-16 overflow-y-auto text-sm leading-relaxed",
+          !transcript && "flex items-start justify-start text-muted-foreground",
         )}
       >
-        <span>
-          {transcript}
-        </span>
+        <span>{transcript}</span>
       </div>
     </div>
   );
-} 
+}

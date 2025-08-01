@@ -52,6 +52,27 @@ export const accountsRouter = createTRPCRouter({
       },
     };
   }),
+  hasZeroAccount: protectedProcedure.query(async ({ ctx }) => {
+    const accounts = await getAccounts(ctx.user, ctx.headers);
+    const zeroAccount = accounts.find(
+      (account) => account.providerId === "zero",
+    );
+
+    return {
+      hasZeroAccount: !!zeroAccount,
+      zeroAccount: zeroAccount
+        ? {
+            id: zeroAccount.id,
+            accountId: zeroAccount.accountId,
+            name: zeroAccount.name,
+            email: zeroAccount.email,
+            image: zeroAccount.image,
+            createdAt: zeroAccount.createdAt,
+            updatedAt: zeroAccount.updatedAt,
+          }
+        : null,
+    };
+  }),
   unlink: calendarProcedure
     .input(
       z.object({

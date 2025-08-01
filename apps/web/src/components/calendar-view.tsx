@@ -178,7 +178,7 @@ export function CalendarView({
       </div>
       <SignalView
         className="absolute bottom-8 left-1/2 -translate-x-1/2"
-        events={filteredEvents}
+        items={filteredEvents}
       />
     </div>
   );

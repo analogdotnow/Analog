@@ -30,5 +30,4 @@ export interface CalendarContext {
   events: CalendarEvent[];
 }
 
-export async function createContext() {
-}
+export async function createContext() {}

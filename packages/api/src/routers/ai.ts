@@ -1,39 +1,35 @@
+import { createClient } from "@deepgram/sdk";
 import { TRPCError } from "@trpc/server";
-import { z } from "zod";
 
 import { env } from "@repo/env/server";
 
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 
 export const aiRouter = createTRPCRouter({
-  getDeepseekToken: protectedProcedure
-    .input(
-      z.object({
-        url: z.string().optional(),
-      }),
-    )
-    .query(async ({ ctx, input }) => {
-      // exit early so we don't request tokens while in dev mode
-      if (env.NODE_ENV === "development") {
-        return {
-          key: env.DEEPSEEK_API_KEY,
-          url: input.url,
-        };
-      }
+  getDeepgramToken: protectedProcedure.query(async () => {
+    // TODO: check user subscription
+    if (env.NODE_ENV === "development") {
+      return {
+        token: env.DEEPGRAM_API_KEY,
+      };
+    }
 
-      try {
-        return {
-          key: env.DEEPSEEK_API_KEY,
-          url: input.url,
-        };
-      } catch (error) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message:
-            error instanceof Error
-              ? error.message
-              : "Failed to generate Deepseek token",
-        });
-      }
-    }),
+    const deepgram = createClient(env.DEEPGRAM_API_KEY);
+
+    const token = await deepgram.auth.grantToken({
+      ttl_seconds: 3600, // 1 hour
+    });
+
+    if (token.error) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: token.error.message,
+        cause: token.error,
+      });
+    }
+
+    return {
+      token: token.result.access_token,
+    };
+  }),
 });
