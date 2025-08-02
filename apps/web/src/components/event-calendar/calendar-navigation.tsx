@@ -51,7 +51,7 @@ export function CalendarNavigation() {
       </div>
       <Button
         variant="outline"
-        className="aspect-square h-8 @max-md/header:hidden"
+        className="h-8 @max-md/header:hidden"
         onClick={handleToday}
       >
         Today
