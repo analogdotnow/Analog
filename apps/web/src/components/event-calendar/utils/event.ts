@@ -104,16 +104,10 @@ export function getEventsStartingOnDay(
   day: Date,
   timeZone: string,
 ): EventCollectionItem[] {
-  return events
-    .filter((event) => {
-      const eventStart = toDate({ value: event.start, timeZone });
-      return isSameDay(day, eventStart);
-    })
-    .sort(
-      (a, b) =>
-        toDate({ value: a.start, timeZone }).getTime() -
-        toDate({ value: b.start, timeZone }).getTime(),
-    );
+  return events.filter((event) => {
+    const eventStart = toDate({ value: event.start, timeZone });
+    return isSameDay(day, eventStart);
+  });
 }
 
 export function getEventsStartingOnPlainDate(
@@ -150,10 +144,7 @@ export function getAllEventsForDay(
   day: Temporal.PlainDate,
   timeZone: string,
 ): EventCollectionItem[] {
-  return sortEventsByStartTime(
-    events.filter((event) => eventOverlapsDay(event, day, timeZone)),
-    timeZone,
-  );
+  return events.filter((event) => eventOverlapsDay(event, day, timeZone));
 }
 
 export function getEventSpanInfoForDay(
@@ -196,13 +187,10 @@ export function getEventCollectionsForDay(
   });
 
   return {
-    dayEvents: sortEventsByStartTime(dayEvents, timeZone),
-    spanningEvents: sortEventsByStartTime(spanningEvents, timeZone),
-    allDayEvents: [
-      ...sortEventsByStartTime(spanningEvents, timeZone),
-      ...sortEventsByStartTime(dayEvents, timeZone),
-    ],
-    allEvents: sortEventsByStartTime(allEvents, timeZone),
+    dayEvents,
+    spanningEvents,
+    allDayEvents: [...spanningEvents, ...dayEvents],
+    allEvents,
   };
 }
 
@@ -224,7 +212,7 @@ export function getAllDayEventCollectionsForDays(
       days.some((day) => eventOverlapsDay(event, day, timeZone)),
     );
 
-  return sortEventsByStartTime(allDayEvents, timeZone);
+  return allDayEvents;
 }
 
 // ============================================================================
@@ -380,7 +368,21 @@ function positionEventsForDay(
   timeZone: string,
 ): PositionedEvent[] {
   const timedEvents = getTimedEventsForDay(events, day, timeZone);
+  console.log(
+    JSON.stringify(
+      timedEvents.map((e) => e.event.id),
+      null,
+      2,
+    ),
+  );
   const sortedEvents = sortEventsForCollisionDetection(timedEvents, timeZone);
+  console.log(
+    JSON.stringify(
+      sortedEvents.map((e) => e.event.id),
+      null,
+      2,
+    ),
+  );
   const positioned: PositionedEvent[] = [];
 
   // Group events that start within 24px of each other
@@ -555,20 +557,6 @@ export function calculateWeekViewEventPositions(
 // ============================================================================
 
 /**
- * Standard event sorting by start time (simple ascending)
- */
-function sortEventsByStartTime(
-  events: EventCollectionItem[],
-  timeZone: string,
-): EventCollectionItem[] {
-  return [...events].sort((a, b) => {
-    const aStart = getEventDates(a, timeZone).start.getTime();
-    const bStart = getEventDates(b, timeZone).start.getTime();
-    return aStart - bStart;
-  });
-}
-
-/**
  * Collision detection (start time + duration fallback)
  * Used internally by week view positioning
  */
@@ -644,27 +632,6 @@ export function batchEventOverlapCheck(
 }
 
 /**
- * Optimized sorting with memoized comparison keys
- */
-export function sortEventsByStartTimeOptimized(
-  events: EventCollectionItem[],
-  timeZone: string,
-): EventCollectionItem[] {
-  if (events.length <= 1) return events;
-
-  // Create sort keys once instead of computing them multiple times
-  const sortData = events.map((event) => ({
-    event,
-    startTime: getEventDates(event, timeZone).start.getTime(),
-  }));
-
-  // Sort by pre-computed start times
-  sortData.sort((a, b) => a.startTime - b.startTime);
-
-  return sortData.map(({ event }) => event);
-}
-
-/**
  * Batch process multiple days with shared event filtering
  */
 export function getEventCollectionsBatch(
@@ -677,11 +644,10 @@ export function getEventCollectionsBatch(
   }
 
   // Sort events once for all days
-  const sortedEvents = sortEventsByStartTimeOptimized(events, timeZone);
   const result = new Map<string, EventCollectionByDay>();
 
   // Pre-compute event date ranges for faster filtering
-  const eventRanges = sortedEvents.map((event) => ({
+  const eventRanges = events.map((event) => ({
     event,
     start: event.start.toPlainDate(),
     end: event.end.toPlainDate(),
