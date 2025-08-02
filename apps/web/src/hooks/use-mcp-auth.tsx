@@ -17,11 +17,7 @@ interface DisconnectParams {
   sessionId: string;
 }
 
-interface UseMcpAuthOptions {
-  serverUrl: string;
-}
-
-export function useMcpAuth({ serverUrl }: UseMcpAuthOptions) {
+export function useMcpAuth() {
   const [sessionId, setSessionId] = useState<string | null>(null);
 
   const connectMutation = useMutation({
