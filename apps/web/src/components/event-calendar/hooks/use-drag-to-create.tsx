@@ -3,7 +3,13 @@ import { useMotionValue, type PanInfo } from "motion/react";
 import { isHotkeyPressed, useHotkeys } from "react-hotkeys-hook";
 import { Temporal } from "temporal-polyfill";
 
+import { useCellHeight } from "@/atoms";
 import { createDraftEvent } from "@/lib/utils/calendar";
+import {
+  HOURS_IN_DAY,
+  MINUTES_IN_HOUR,
+  TOTAL_MINUTES_IN_DAY,
+} from "../constants";
 import { Action } from "./use-optimistic-events";
 
 interface UseDragToCreateOptions {
@@ -14,8 +20,8 @@ interface UseDragToCreateOptions {
 }
 
 function timeFromMinutes(minutes: number) {
-  const hour = Math.floor(minutes / 60);
-  const minute = Math.floor(minutes % 60);
+  const hour = Math.floor(minutes / MINUTES_IN_HOUR);
+  const minute = Math.floor(minutes % MINUTES_IN_HOUR);
 
   return Temporal.PlainTime.from({
     hour: Math.min(23, Math.max(0, hour)),
@@ -36,6 +42,7 @@ export function useDragToCreate({
   const emptyImageRef = React.useRef<HTMLImageElement | null>(null);
   const isDragging = React.useRef(false);
   const dragCancelled = React.useRef(false);
+  const cellHeight = useCellHeight();
 
   // Create empty image on client side only to prevent globe icon on Mac Chrome
   React.useEffect(() => {
@@ -88,27 +95,29 @@ export function useDragToCreate({
 
     const columnRect = columnRef.current.getBoundingClientRect();
     const relativeY = globalY - columnRect.top;
-    const columnHeight = columnRect.height;
 
-    // Calculate minutes from the top (0 = 00:00, columnHeight = 24:00 = 1440 minutes)
-    return Math.max(0, Math.min(1440, (relativeY / columnHeight) * 1440));
+    // Calculate minutes from the top (0 = 00:00, columnHeight = 24:00)
+    const minutes = (relativeY / columnRect.height) * TOTAL_MINUTES_IN_DAY;
+    return Math.max(0, Math.min(TOTAL_MINUTES_IN_DAY, minutes));
   };
 
   const getSnappedPosition = (relativeY: number) => {
     if (!columnRef.current) return 0;
 
     const columnRect = columnRef.current.getBoundingClientRect();
-    const columnHeight = columnRect.height;
 
     // Calculate which 15-minute interval this position corresponds to
     const minutes = Math.max(
       0,
-      Math.min(1440, (relativeY / columnHeight) * 1440),
+      Math.min(
+        TOTAL_MINUTES_IN_DAY,
+        (relativeY / columnRect.height) * TOTAL_MINUTES_IN_DAY,
+      ),
     );
     const snappedMinutes = Math.floor(minutes / 15) * 15;
 
     // Convert back to position
-    return (snappedMinutes / 1440) * columnHeight;
+    return (snappedMinutes / TOTAL_MINUTES_IN_DAY) * columnRect.height;
   };
 
   const onDragStart = (event: PointerEvent, info: PanInfo) => {
@@ -156,7 +165,7 @@ export function useDragToCreate({
     const columnRect = columnRef.current.getBoundingClientRect();
     const currentRelativeY = info.point.y - columnRect.top;
     const initialRelativeY =
-      (initialMinutes.current / 1440) * columnRect.height;
+      (initialMinutes.current / TOTAL_MINUTES_IN_DAY) * columnRect.height;
 
     const snappedCurrentY = getSnappedPosition(currentRelativeY);
     const snappedInitialY = getSnappedPosition(initialRelativeY);

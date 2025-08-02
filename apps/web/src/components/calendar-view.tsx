@@ -6,13 +6,13 @@ import { useHotkeysContext } from "react-hotkeys-hook";
 import {
   useCalendarSettings,
   useCalendarsVisibility,
+  useCellHeight,
   useViewPreferences,
 } from "@/atoms";
 import {
   CalendarHeader,
   EventGap,
   EventHeight,
-  WeekCellsHeight,
 } from "@/components/event-calendar";
 import type { Action } from "@/components/event-calendar/hooks/use-optimistic-events";
 import { filterPastEvents } from "@/components/event-calendar/utils";
@@ -115,6 +115,9 @@ export function CalendarView({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
 
+  // Cell height comes from Jotai atom so updates trigger a re-render + CSS update
+  const cellHeight = useCellHeight();
+
   // Enable edge auto scroll when dragging events
   useEdgeAutoScroll(scrollContainerRef, { active: true, headerRef });
 
@@ -158,7 +161,7 @@ export function CalendarView({
         {
           "--event-height": `${EventHeight}px`,
           "--event-gap": `${EventGap}px`,
-          "--week-cells-height": `${WeekCellsHeight}px`,
+          "--week-cells-height": `${cellHeight}px`,
         } as React.CSSProperties
       }
     >

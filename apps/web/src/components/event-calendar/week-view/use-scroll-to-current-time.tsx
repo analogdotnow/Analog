@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Temporal } from "temporal-polyfill";
 
-import { EventHeight } from "../constants";
+import { useCellHeight } from "@/atoms";
 
 interface useScrollToCurrentTimeProps {
   scrollContainerRef: React.RefObject<HTMLDivElement | null>;
@@ -10,18 +10,19 @@ interface useScrollToCurrentTimeProps {
 export function useScrollToCurrentTime({
   scrollContainerRef,
 }: useScrollToCurrentTimeProps) {
+  const cellHeight = useCellHeight();
   const scrollToCurrentTime = React.useCallback(() => {
     if (!scrollContainerRef.current) {
       return;
     }
 
     const { hour, minute } = Temporal.Now.plainTimeISO();
-    const top = hour * EventHeight + (minute * EventHeight) / 60;
+    const top = hour * cellHeight + (minute * cellHeight) / 60;
 
     scrollContainerRef.current.scrollTo({
       top,
     });
-  }, [scrollContainerRef]);
+  }, [scrollContainerRef, cellHeight]);
 
   return scrollToCurrentTime;
 }

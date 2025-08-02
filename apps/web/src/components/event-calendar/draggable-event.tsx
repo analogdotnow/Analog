@@ -9,6 +9,7 @@ import {
 } from "motion/react";
 import { Temporal } from "temporal-polyfill";
 
+import { useCellHeight } from "@/atoms";
 import { CalendarEvent, EventItem } from "@/components/event-calendar";
 import { EventContextMenu } from "@/components/event-calendar/event-context-menu";
 import { ContextMenuTrigger } from "@/components/ui/context-menu";
@@ -83,6 +84,7 @@ export function DraggableEvent({
   const height = useMotionValue(initialHeight ?? "100%");
   const transform = useMotionTemplate`translate(${left}px,${top}px)`;
 
+  const cellHeight = useCellHeight();
   React.useEffect(() => {
     height.set(initialHeight ?? "100%");
   }, [initialHeight, height]);
@@ -135,7 +137,7 @@ export function DraggableEvent({
         return;
       }
 
-      const minutes = Math.round((info.offset.y / 64) * 60);
+      const minutes = Math.round((info.offset.y / cellHeight) * 60);
       const start = current.start.add({ minutes }).round({
         smallestUnit: "minute",
         roundingIncrement: 15,
@@ -158,7 +160,7 @@ export function DraggableEvent({
       return;
     }
 
-    const minutes = Math.round((info.offset.y / 64) * 60);
+    const minutes = Math.round((info.offset.y / cellHeight) * 60);
     const start = current.start
       .add({ days: columnDelta })
       .add({ minutes })
@@ -199,7 +201,7 @@ export function DraggableEvent({
       const start = eventRef.current.start as
         | Temporal.ZonedDateTime
         | Temporal.Instant;
-      const minutes = Math.round((offsetY / 64) * 60);
+      const minutes = Math.round((offsetY / cellHeight) * 60);
       const rounded = start.add({ minutes }).round({
         smallestUnit: "minute",
         roundingIncrement: 15,
@@ -211,7 +213,7 @@ export function DraggableEvent({
         event: { ...eventRef.current, start: rounded },
       });
     },
-    [dispatchAction],
+    [dispatchAction, cellHeight],
   );
 
   const updateEndTime = React.useCallback(
@@ -219,7 +221,7 @@ export function DraggableEvent({
       const end = eventRef.current.end as
         | Temporal.ZonedDateTime
         | Temporal.Instant;
-      const minutes = Math.round((offsetY / 64) * 60);
+      const minutes = Math.round((offsetY / cellHeight) * 60);
       const rounded = end.add({ minutes }).round({
         smallestUnit: "minute",
         roundingIncrement: 15,
@@ -231,7 +233,7 @@ export function DraggableEvent({
         event: { ...eventRef.current, end: rounded },
       });
     },
-    [dispatchAction],
+    [dispatchAction, cellHeight],
   );
 
   const onResizeTopEnd = (_: PointerEvent, info: PanInfo) => {
@@ -247,7 +249,7 @@ export function DraggableEvent({
     return (
       <motion.div
         ref={dragRef}
-        className="@container/event size-full touch-none"
+        className="size-full touch-none"
         style={{ transform, height, top, zIndex }}
       >
         <EventContextMenu event={event} dispatchAction={dispatchAction}>
@@ -283,7 +285,7 @@ export function DraggableEvent({
   return (
     <motion.div
       ref={dragRef}
-      className="@container/event size-full touch-none"
+      className="size-full touch-none"
       style={{ transform, height: height, zIndex }}
     >
       <EventContextMenu event={event} dispatchAction={dispatchAction}>

@@ -166,7 +166,7 @@ export function EventItem({
         isLastDay={isLastDay}
         onClick={onClick}
         className={cn(
-          "flex gap-x-1.5 py-1 ps-1 pe-2",
+          "@container/event flex gap-x-1.5 py-1 ps-1 pe-2",
           "mt-[var(--calendar-color-gap)] h-[var(--calendar-color-height)] items-center text-[10px] sm:text-xs",
           className,
         )}
@@ -206,7 +206,7 @@ export function EventItem({
         isLastDay={isLastDay}
         onClick={onClick}
         className={cn(
-          "relative flex gap-x-1.5 py-1 ps-1 pe-2 ring-1 ring-background/80",
+          "@container/event relative flex gap-x-1.5 py-1 ps-1 pe-2 ring-1 ring-background/80",
           durationMinutes < 45 && "pe-1",
           view === "week" ? "text-[10px] sm:text-xs" : "text-xs",
           className,
@@ -219,7 +219,7 @@ export function EventItem({
         <div className="w-1 shrink-0 rounded-lg bg-[color-mix(in_oklab,var(--background),var(--calendar-color)_90%)] opacity-40" />
         <div
           className={cn(
-            durationMinutes < 45 ? "items-center" : "flex-col",
+            // durationMinutes < 45 ? "items-center" : "flex-col",
             "pointer-events-none relative flex w-full min-w-0 flex-col items-stretch gap-y-1",
           )}
         >
@@ -255,7 +255,7 @@ export function EventItem({
   return (
     <button
       className={`${cn(
-        "flex w-full flex-col gap-1 rounded p-2 text-left transition outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 data-past-event:line-through data-past-event:opacity-90",
+        "@container/event flex w-full flex-col gap-1 rounded p-2 text-left transition outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 data-past-event:line-through data-past-event:opacity-90",
         "border-[color-mix(in_oklab,var(--background),var(--calendar-color)_30%)] bg-[color-mix(in_oklab,var(--background),var(--calendar-color)_20%)]",
         className,
       )} text-[color-mix(in_oklab,var(--foreground),var(--calendar-color)_80%)]`}
