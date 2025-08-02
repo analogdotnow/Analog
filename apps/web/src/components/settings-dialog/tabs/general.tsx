@@ -1,10 +1,12 @@
-import React, { JSX, useId } from "react";
+import * as React from "react";
 import { format } from "@formkit/tempo";
 import { useTheme } from "next-themes";
+import { useHotkeys } from "react-hotkeys-hook";
 
 import DarkTheme from "@/assets/theme-dark.svg";
 import LightTheme from "@/assets/theme-light.svg";
 import SystemTheme from "@/assets/theme-system.svg";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -161,6 +163,56 @@ function TimeFormatPicker() {
   );
 }
 
+function EasterEggSelector() {
+  const [calendarSettings, setCalendarSettings] = useCalendarSettings();
+  const [easterEggSettingsVisible, setEasterEggSettingsVisible] =
+    React.useState(false);
+
+  useHotkeys(
+    "shift",
+    () => setEasterEggSettingsVisible(true),
+    { keydown: true, keyup: false },
+    [],
+  );
+
+  useHotkeys(
+    "shift",
+    () => setEasterEggSettingsVisible(false),
+    { keydown: false, keyup: true },
+    [],
+  );
+
+  if (!easterEggSettingsVisible && !calendarSettings.easterEggsEnabled) {
+    return null;
+  }
+
+  return (
+    <div className="flex items-center justify-between gap-4">
+      <SettingsSectionHeader>
+        <SettingsSectionTitle>Easter Eggs</SettingsSectionTitle>
+        <SettingsSectionDescription>
+          Do you have what it takes to find all the easter eggs?
+        </SettingsSectionDescription>
+      </SettingsSectionHeader>
+      <div className="flex w-48 justify-end">
+        <Label htmlFor="settings-easter-eggs" className="sr-only">
+          Easter eggs
+        </Label>
+        <Checkbox
+          id="settings-easter-eggs"
+          checked={calendarSettings.easterEggsEnabled}
+          onCheckedChange={() => {
+            setCalendarSettings((prev) => ({
+              ...prev,
+              easterEggsEnabled: !prev.easterEggsEnabled,
+            }));
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
 export function General() {
   return (
     <SettingsPage>
@@ -226,6 +278,9 @@ export function General() {
           </SettingsSectionHeader>
           <TimeFormatPicker />
         </div>
+
+        {/* When adding new settings, make sure this stays at the bottom of the section */}
+        <EasterEggSelector />
       </SettingsSection>
     </SettingsPage>
   );
