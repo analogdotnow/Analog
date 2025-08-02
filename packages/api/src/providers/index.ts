@@ -1,16 +1,16 @@
 import { account } from "@repo/db/schema";
 
+import { GoogleCalendarProvider } from "./calendars/google-calendar";
+import { MicrosoftCalendarProvider } from "./calendars/microsoft-calendar";
 import { GoogleMeetProvider } from "./conferencing/google-meet";
 import { ZoomProvider } from "./conferencing/zoom";
-import { GoogleCalendarProvider } from "./google-calendar";
-import { GoogleTasksProvider } from "./google-tasks";
 import type {
   CalendarProvider,
   ConferencingProvider,
   ProviderConfig,
   TaskProvider,
 } from "./interfaces";
-import { MicrosoftCalendarProvider } from "./microsoft-calendar";
+import { GoogleTasksProvider } from "./tasks/google-tasks";
 
 const supportedCalendarProviders = {
   google: GoogleCalendarProvider,

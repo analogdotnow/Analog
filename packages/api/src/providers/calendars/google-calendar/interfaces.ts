@@ -1,5 +1,4 @@
 import { GoogleCalendar } from "@repo/google-calendar";
-import { GoogleTasks } from "@repo/google-tasks";
 
 export type GoogleCalendarCalendar = GoogleCalendar.Calendars.Calendar;
 export type GoogleCalendarCalendarListEntry =
@@ -48,8 +47,3 @@ export type GoogleCalendarEventAttendeeResponseStatus =
   | "accepted"
   | "declined"
   | "tentative";
-
-export type GoogleTask = GoogleTasks.Tasks.V1.Lists.Tasks.Task;
-export type GoogleTaskUpdateParams =
-  GoogleTasks.Tasks.V1.Lists.Tasks.TaskUpdateParams;
-export type GoogleTaskCategory = GoogleTasks.Tasks.V1.Users.Me.TaskList;

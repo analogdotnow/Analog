@@ -2,24 +2,23 @@ import { Temporal } from "temporal-polyfill";
 
 import { GoogleCalendar } from "@repo/google-calendar";
 
-import { CALENDAR_DEFAULTS } from "../constants/calendar";
-import { CreateEventInput, UpdateEventInput } from "../schemas/events";
-import { assignColor } from "./colors";
-import {
-  parseGoogleCalendarCalendarListEntry,
-  parseGoogleCalendarEvent,
-  parseGoogleCalendarFreeBusy,
-  toGoogleCalendarAttendeeResponseStatus,
-  toGoogleCalendarEvent,
-} from "./google-calendar/utils";
+import { CALENDAR_DEFAULTS } from "../../constants/calendar";
 import type {
   Calendar,
   CalendarEvent,
   CalendarFreeBusy,
-  CalendarProvider,
-  ResponseToEventInput,
-} from "./interfaces";
-import { ProviderError } from "./utils";
+} from "../../interfaces";
+import type { CreateEventInput, UpdateEventInput } from "../../schemas/events";
+import { ProviderError } from "../lib/provider-error";
+import { assignColor } from "./colors";
+import { parseGoogleCalendarCalendarListEntry } from "./google-calendar/calendars";
+import {
+  parseGoogleCalendarEvent,
+  toGoogleCalendarAttendeeResponseStatus,
+  toGoogleCalendarEvent,
+} from "./google-calendar/events";
+import { parseGoogleCalendarFreeBusy } from "./google-calendar/freebusy";
+import type { CalendarProvider, ResponseToEventInput } from "./interfaces";
 
 interface GoogleCalendarProviderOptions {
   accessToken: string;
