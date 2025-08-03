@@ -4,6 +4,7 @@ import rehypeSanitize from "rehype-sanitize";
 import rehypeSlug from "rehype-slug";
 import rehypeStringify from "rehype-stringify";
 import { unified } from "unified";
+import { env } from "@repo/env/server";
 
 import type {
   MarbleAuthorList,
@@ -16,7 +17,7 @@ import type {
 async function fetchFromMarble<T>(endpoint: string): Promise<T> {
   try {
     const response = await fetch(
-      `${process.env.MARBLE_API_URL}/${process.env.MARBLE_WORKSPACE_KEY}/${endpoint}`,
+      `${env.MARBLE_API_URL}/${env.MARBLE_WORKSPACE_KEY}/${endpoint}`,
     );
     if (!response.ok) {
       throw new Error(
