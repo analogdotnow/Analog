@@ -22,81 +22,60 @@ import { MonthView } from "@/components/event-calendar/views/month-view";
 import { WeekView } from "@/components/event-calendar/views/week-view";
 import { useCalendarState } from "@/hooks/use-calendar-state";
 import { cn } from "@/lib/utils";
-import { useEdgeAutoScroll } from "./event-calendar/drag-and-drop/use-auto-scroll";
-import { type EventCollectionItem } from "./event-calendar/hooks/event-collection";
-import { useScrollToCurrentTime } from "./event-calendar/week-view/use-scroll-to-current-time";
+import type { EventCollectionItem } from "./event-calendar/hooks/event-collection";
 
 interface CalendarContentProps {
   events: EventCollectionItem[];
   scrollContainerRef: React.RefObject<HTMLDivElement | null>;
   dispatchAction: (action: Action) => void;
-  headerRef: React.RefObject<HTMLDivElement | null>;
 }
 
 function CalendarContent({
   events,
   dispatchAction,
   scrollContainerRef,
-  headerRef,
 }: CalendarContentProps) {
   const { currentDate, view } = useCalendarState();
 
-  const scrollToCurrentTime = useScrollToCurrentTime({ scrollContainerRef });
-
-  useEffect(() => {
-    scrollToCurrentTime();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  switch (view) {
-    case "month":
-      return (
-        <MonthView
-          currentDate={currentDate}
-          events={events}
-          dispatchAction={dispatchAction}
-        />
-      );
-
-    case "week":
-      return (
-        <WeekView
-          currentDate={currentDate}
-          events={events}
-          dispatchAction={dispatchAction}
-          headerRef={headerRef}
-        />
-      );
-
-    case "day":
-      return (
-        <DayView
-          currentDate={currentDate}
-          events={events}
-          dispatchAction={dispatchAction}
-        />
-      );
-
-    case "agenda":
-      return (
-        <AgendaView
-          currentDate={currentDate}
-          events={events}
-          dispatchAction={dispatchAction}
-        />
-      );
-
-    default:
-      // Fallback to week view for unknown view types
-      return (
-        <WeekView
-          currentDate={currentDate}
-          events={events}
-          dispatchAction={dispatchAction}
-          headerRef={headerRef}
-        />
-      );
+  if (view === "month") {
+    return (
+      <MonthView
+        currentDate={currentDate}
+        events={events}
+        dispatchAction={dispatchAction}
+      />
+    );
   }
+
+  if (view === "week") {
+    return (
+      <WeekView
+        currentDate={currentDate}
+        events={events}
+        dispatchAction={dispatchAction}
+        scrollContainerRef={scrollContainerRef}
+      />
+    );
+  }
+
+  if (view === "day") {
+    return (
+      <DayView
+        currentDate={currentDate}
+        events={events}
+        dispatchAction={dispatchAction}
+        scrollContainerRef={scrollContainerRef}
+      />
+    );
+  }
+
+  return (
+    <AgendaView
+      currentDate={currentDate}
+      events={events}
+      dispatchAction={dispatchAction}
+    />
+  );
 }
 
 interface CalendarViewProps {
@@ -113,13 +92,10 @@ export function CalendarView({
   const viewPreferences = useViewPreferences();
   const [calendarVisibility] = useCalendarsVisibility();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const headerRef = useRef<HTMLDivElement>(null);
+  const calendarHeaderRef = useRef<HTMLElement | null>(null);
 
   // Cell height comes from Jotai atom so updates trigger a re-render + CSS update
   const cellHeight = useCellHeight();
-
-  // Enable edge auto scroll when dragging events
-  useEdgeAutoScroll(scrollContainerRef, { active: true, headerRef });
 
   const { defaultTimeZone } = useCalendarSettings();
   const filteredEvents = useMemo(() => {
@@ -165,7 +141,7 @@ export function CalendarView({
         } as React.CSSProperties
       }
     >
-      <CalendarHeader ref={headerRef} />
+      <CalendarHeader ref={calendarHeaderRef} />
 
       <div
         className="scrollbar-hidden grow overflow-x-hidden overflow-y-auto"
@@ -175,7 +151,6 @@ export function CalendarView({
           events={filteredEvents}
           dispatchAction={dispatchAction}
           scrollContainerRef={scrollContainerRef}
-          headerRef={headerRef}
         />
       </div>
       {/* <SignalView className="absolute bottom-8 left-1/2 -translate-x-1/2" /> */}

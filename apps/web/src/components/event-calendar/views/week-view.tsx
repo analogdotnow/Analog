@@ -8,7 +8,11 @@ import { Temporal } from "temporal-polyfill";
 import { toDate } from "@repo/temporal";
 import { isToday, isWeekend } from "@repo/temporal/v2";
 
-import { useCalendarSettings, useViewPreferences } from "@/atoms";
+import {
+  useCalendarSettings,
+  useIsDragging,
+  useViewPreferences,
+} from "@/atoms";
 import { DraggableEvent } from "@/components/event-calendar";
 import {
   useEventCollection,
@@ -26,9 +30,11 @@ import {
 } from "@/components/event-calendar/utils";
 import { cn } from "@/lib/utils";
 import { createDraftEvent } from "@/lib/utils/calendar";
+import { useEdgeAutoScroll } from "../drag-and-drop/use-auto-scroll";
 import { EventCollectionItem } from "../hooks/event-collection";
 import { useDoubleClickToCreate } from "../hooks/use-double-click-to-create";
 import { useDragToCreate } from "../hooks/use-drag-to-create";
+import { useScrollToCurrentTime } from "../week-view/use-scroll-to-current-time";
 import { HOURS } from "./constants";
 import { DragPreview } from "./event/drag-preview";
 import { TimeIndicator, TimeIndicatorBackground } from "./time-indicator";
@@ -38,14 +44,14 @@ interface WeekViewProps extends React.ComponentProps<"div"> {
   currentDate: Temporal.PlainDate;
   events: EventCollectionItem[];
   dispatchAction: (action: Action) => void;
-  headerRef: React.RefObject<HTMLDivElement | null>;
+  scrollContainerRef: React.RefObject<HTMLDivElement | null>;
 }
 
 export function WeekView({
   currentDate,
   events,
   dispatchAction,
-  headerRef,
+  scrollContainerRef,
   ...props
 }: WeekViewProps) {
   const viewPreferences = useViewPreferences();
@@ -73,6 +79,16 @@ export function WeekView({
   const eventCollection = useEventCollection(events, visibleDays, "week");
 
   const containerRef = React.useRef<HTMLDivElement>(null);
+  const headerRef = React.useRef<HTMLDivElement>(null);
+
+  useEdgeAutoScroll(scrollContainerRef, { headerRef });
+
+  const scrollToCurrentTime = useScrollToCurrentTime({ scrollContainerRef });
+
+  React.useEffect(() => {
+    scrollToCurrentTime();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div data-slot="week-view" className="isolate flex flex-col" {...props}>
@@ -348,7 +364,7 @@ function WeekViewPositionedEvent({
     return { isFirstDay, isLastDay };
   }, [item.start, item.end, weekStart, weekEnd]);
 
-  const [isDragging, setIsDragging] = React.useState(false);
+  const isDragging = useIsDragging();
 
   const onClick = React.useCallback(
     (e: React.MouseEvent) => {
@@ -378,7 +394,6 @@ function WeekViewPositionedEvent({
         isLastDay={isLastDay}
         onClick={onClick}
         dispatchAction={dispatchAction}
-        setIsDragging={setIsDragging}
         zIndex={isDragging ? 99999 : undefined}
         rows={1}
       />
@@ -397,7 +412,7 @@ function PositionedEvent({
   dispatchAction,
   containerRef,
 }: PositionedEventProps) {
-  const [isDragging, setIsDragging] = React.useState(false);
+  const isDragging = useIsDragging();
 
   const onClick = React.useCallback(
     (e: React.MouseEvent) => {
@@ -428,7 +443,6 @@ function PositionedEvent({
         showTime
         height={positionedEvent.height}
         containerRef={containerRef}
-        setIsDragging={setIsDragging}
       />
     </div>
   );
@@ -531,7 +545,6 @@ function WeekViewDayTimeSlots({
 
   return (
     <motion.div
-      className="touch-pan-y"
       ref={columnRef}
       onPanStart={onDragStart}
       onPan={onDrag}

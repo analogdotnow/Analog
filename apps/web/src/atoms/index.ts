@@ -25,3 +25,14 @@ export {
 } from "./selected-events";
 
 export { cellHeightAtom, useCellHeight, useSetCellHeight } from "./cell-height";
+
+export {
+  isDraggingAtom,
+  isResizingAtom,
+  useIsDragging,
+  useSetIsDragging,
+  useIsResizing,
+  useSetIsResizing,
+} from "./drag-resize-state";
+
+export { jotaiStore } from "./store";

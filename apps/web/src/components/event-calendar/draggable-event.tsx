@@ -9,7 +9,7 @@ import {
 } from "motion/react";
 import { Temporal } from "temporal-polyfill";
 
-import { useCellHeight } from "@/atoms";
+import { useCellHeight, useSetIsDragging, useSetIsResizing } from "@/atoms";
 import { CalendarEvent, EventItem } from "@/components/event-calendar";
 import { EventContextMenu } from "@/components/event-calendar/event-context-menu";
 import { ContextMenuTrigger } from "@/components/ui/context-menu";
@@ -21,7 +21,6 @@ interface DraggableEventProps {
   showTime?: boolean;
   onClick?: (e: React.MouseEvent) => void;
   dispatchAction: (action: Action) => void;
-  setIsDragging?: (isDragging: boolean) => void;
   height?: number;
   isMultiDay?: boolean;
   multiDayWidth?: number;
@@ -66,13 +65,15 @@ export function DraggableEvent({
   "aria-hidden": ariaHidden,
   containerRef,
   rows,
-  setIsDragging,
   zIndex,
 }: DraggableEventProps) {
   const dragRef = React.useRef<HTMLDivElement>(null);
 
   const eventRef = React.useRef(event);
   const heightRef = React.useRef(initialHeight);
+
+  const dragStartRelative = React.useRef<{ x: number; y: number } | null>(null);
+  const resizeStartRelativeY = React.useRef(0);
 
   React.useEffect(() => {
     eventRef.current = event;
@@ -85,27 +86,45 @@ export function DraggableEvent({
   const transform = useMotionTemplate`translate(${left}px,${top}px)`;
 
   const cellHeight = useCellHeight();
+  const setIsDragging = useSetIsDragging();
+  const setIsResizing = useSetIsResizing();
+
   React.useEffect(() => {
     height.set(initialHeight ?? "100%");
   }, [initialHeight, height]);
 
-  const onDragStart = () => {
-    setIsDragging?.(true);
+  const onDragStart = (e: PointerEvent, info: PanInfo) => {
+    // Prevent possible text/image dragging flash on some browsers
+    e.preventDefault();
+    setIsDragging(true);
+
+    if (!containerRef.current) return;
+
+    const rect = containerRef.current.getBoundingClientRect();
+    dragStartRelative.current = {
+      x: info.point.x - rect.left,
+      y: info.point.y - rect.top,
+    };
   };
 
-  const onDrag = (event: PointerEvent, info: PanInfo) => {
-    top.set(info.offset.y);
-    left.set(info.offset.x);
+  const onDrag = (_e: PointerEvent, info: PanInfo) => {
+    if (!containerRef.current || !dragStartRelative.current) return;
+
+    const rect = containerRef.current.getBoundingClientRect();
+    const relativeX = info.point.x - rect.left;
+    const relativeY = info.point.y - rect.top;
+
+    left.set(relativeX - dragStartRelative.current.x);
+    top.set(relativeY - dragStartRelative.current.y);
   };
 
   const onDragEnd = (_e: PointerEvent, info: PanInfo) => {
-    setIsDragging?.(false);
+    setIsDragging(false);
     top.set(0);
     left.set(0);
 
-    const current = eventRef.current;
     // @ts-expect-error -- should both be of the same type
-    const duration = current.start.until(current.end);
+    const duration = eventRef.current.start.until(eventRef.current.end);
 
     const columnDelta = Math.round(
       (info.offset.x /
@@ -113,32 +132,47 @@ export function DraggableEvent({
         7,
     );
 
+    // Calculate vertical movement relative to the container so that auto-scroll is taken into account.
+    let deltaY = info.offset.y;
+
+    if (containerRef.current && dragStartRelative.current !== null) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const relativeCurrentY = info.point.y - rect.top;
+      deltaY = relativeCurrentY - dragStartRelative.current.y;
+    }
+
+    dragStartRelative.current = null;
+
     if (view === "month") {
       if (!rows) {
         return;
       }
 
       const rowDelta = Math.round(
-        (info.offset.y /
-          (containerRef.current?.getBoundingClientRect().height || 0)) *
+        (deltaY / (containerRef.current?.getBoundingClientRect().height || 0)) *
           rows,
       );
 
-      const start = current.start.add({ days: columnDelta + rowDelta * 7 });
+      const start = eventRef.current.start.add({
+        days: columnDelta + rowDelta * 7,
+      });
       const end = start.add(duration);
 
-      dispatchAction({ type: "update", event: { ...current, start, end } });
+      dispatchAction({
+        type: "update",
+        event: { ...eventRef.current, start, end },
+      });
 
       return;
     }
 
     if (view === "day") {
-      if (current.start instanceof Temporal.PlainDate) {
+      if (eventRef.current.start instanceof Temporal.PlainDate) {
         return;
       }
 
-      const minutes = Math.round((info.offset.y / cellHeight) * 60);
-      const start = current.start.add({ minutes }).round({
+      const minutes = Math.round((deltaY / cellHeight) * 60);
+      const start = eventRef.current.start.add({ minutes }).round({
         smallestUnit: "minute",
         roundingIncrement: 15,
         roundingMode: "halfExpand",
@@ -146,22 +180,28 @@ export function DraggableEvent({
 
       const end = start.add(duration);
 
-      dispatchAction({ type: "update", event: { ...current, start, end } });
+      dispatchAction({
+        type: "update",
+        event: { ...eventRef.current, start, end },
+      });
 
       return;
     }
 
-    if (current.start instanceof Temporal.PlainDate) {
-      const start = current.start.add({ days: columnDelta });
+    if (eventRef.current.start instanceof Temporal.PlainDate) {
+      const start = eventRef.current.start.add({ days: columnDelta });
       const end = start.add(duration);
 
-      dispatchAction({ type: "update", event: { ...current, start, end } });
+      dispatchAction({
+        type: "update",
+        event: { ...eventRef.current, start, end },
+      });
 
       return;
     }
 
-    const minutes = Math.round((info.offset.y / cellHeight) * 60);
-    const start = current.start
+    const minutes = Math.round((deltaY / cellHeight) * 60);
+    const start = eventRef.current.start
       .add({ days: columnDelta })
       .add({ minutes })
       .round({
@@ -172,28 +212,65 @@ export function DraggableEvent({
 
     const end = start.add(duration);
 
-    dispatchAction({ type: "update", event: { ...current, start, end } });
+    dispatchAction({
+      type: "update",
+      event: { ...eventRef.current, start, end },
+    });
   };
 
   const startHeight = React.useRef(0);
 
-  const onResizeTopStart = (_e: PointerEvent, info: PanInfo) => {
+  const onResizeTopStart = (e: PointerEvent, info: PanInfo) => {
+    e.preventDefault();
+
+    if (!containerRef.current) {
+      return;
+    }
+
+    setIsResizing(true);
     startHeight.current = heightRef.current ?? 0;
-    height.set(startHeight.current - info.offset.y);
-    top.set(info.offset.y);
+
+    const rect = containerRef.current.getBoundingClientRect();
+    resizeStartRelativeY.current = info.point.y - rect.top;
   };
-  const onResizeBottomStart = (_e: PointerEvent, info: PanInfo) => {
+
+  const onResizeBottomStart = (e: PointerEvent, info: PanInfo) => {
+    e.preventDefault();
+
+    if (!containerRef.current) {
+      return;
+    }
+
+    setIsResizing(true);
     startHeight.current = heightRef.current ?? 0;
-    height.set(startHeight.current + info.offset.y);
+
+    const rect = containerRef.current.getBoundingClientRect();
+    resizeStartRelativeY.current = info.point.y - rect.top;
   };
 
   const onResizeTop = (_e: PointerEvent, info: PanInfo) => {
-    height.set(startHeight.current - info.offset.y);
-    top.set(info.offset.y);
+    if (!containerRef.current) {
+      return;
+    }
+
+    const rect = containerRef.current.getBoundingClientRect();
+    const relativeY = info.point.y - rect.top;
+    const delta = relativeY - resizeStartRelativeY.current;
+
+    height.set(startHeight.current - delta);
+    top.set(delta);
   };
 
   const onResizeBottom = (_e: PointerEvent, info: PanInfo) => {
-    height.set(startHeight.current + info.offset.y);
+    if (!containerRef.current) {
+      return;
+    }
+
+    const rect = containerRef.current.getBoundingClientRect();
+    const relativeY = info.point.y - rect.top;
+    const delta = relativeY - resizeStartRelativeY.current;
+
+    height.set(startHeight.current + delta);
   };
 
   const updateStartTime = React.useCallback(
@@ -237,19 +314,45 @@ export function DraggableEvent({
   );
 
   const onResizeTopEnd = (_: PointerEvent, info: PanInfo) => {
+    setIsResizing(false);
     top.set(0);
-    updateStartTime(info.offset.y);
+
+    if (!containerRef.current) {
+      return;
+    }
+
+    const rect = containerRef.current.getBoundingClientRect();
+    const relativeY = info.point.y - rect.top;
+    const delta = relativeY - resizeStartRelativeY.current;
+
+    updateStartTime(delta);
+
+    resizeStartRelativeY.current = 0;
+    startHeight.current = 0;
   };
   const onResizeBottomEnd = (_: PointerEvent, info: PanInfo) => {
+    setIsResizing(false);
     top.set(0);
-    updateEndTime(info.offset.y);
+
+    if (!containerRef.current) {
+      return;
+    }
+
+    const rect = containerRef.current.getBoundingClientRect();
+    const relativeY = info.point.y - rect.top;
+    const delta = relativeY - resizeStartRelativeY.current;
+
+    updateEndTime(delta);
+
+    resizeStartRelativeY.current = 0;
+    startHeight.current = 0;
   };
 
   if (event.allDay || view === "month") {
     return (
       <motion.div
         ref={dragRef}
-        className="size-full touch-none"
+        className="size-full"
         style={{ transform, height, top, zIndex }}
       >
         <EventContextMenu event={event} dispatchAction={dispatchAction}>
@@ -285,7 +388,7 @@ export function DraggableEvent({
   return (
     <motion.div
       ref={dragRef}
-      className="size-full touch-none"
+      className="size-full"
       style={{ transform, height: height, zIndex }}
     >
       <EventContextMenu event={event} dispatchAction={dispatchAction}>

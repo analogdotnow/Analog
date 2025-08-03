@@ -3,7 +3,7 @@ import { useMotionValue, type PanInfo } from "motion/react";
 import { isHotkeyPressed, useHotkeys } from "react-hotkeys-hook";
 import { Temporal } from "temporal-polyfill";
 
-import { useCellHeight } from "@/atoms";
+import { isDraggingAtom, jotaiStore, useCellHeight } from "@/atoms";
 import { createDraftEvent } from "@/lib/utils/calendar";
 import {
   HOURS_IN_DAY,
@@ -40,7 +40,6 @@ export function useDragToCreate({
   const height = useMotionValue(0);
   const opacity = useMotionValue(0);
   const emptyImageRef = React.useRef<HTMLImageElement | null>(null);
-  const isDragging = React.useRef(false);
   const dragCancelled = React.useRef(false);
   const cellHeight = useCellHeight();
 
@@ -80,7 +79,7 @@ export function useDragToCreate({
   useHotkeys(
     "esc",
     () => {
-      if (isDragging.current) {
+      if (jotaiStore.get(isDraggingAtom)) {
         dragCancelled.current = true;
         top.set(0);
         height.set(0);
@@ -130,7 +129,7 @@ export function useDragToCreate({
       return;
     }
 
-    isDragging.current = true;
+    jotaiStore.set(isDraggingAtom, true);
     dragCancelled.current = false;
 
     // Prevent the default drag behavior that causes the globe icon
@@ -153,7 +152,7 @@ export function useDragToCreate({
       return;
     }
 
-    if (!isDragging.current || dragCancelled.current) {
+    if (!jotaiStore.get(isDraggingAtom) || dragCancelled.current) {
       return;
     }
 
@@ -183,7 +182,7 @@ export function useDragToCreate({
   };
 
   const onDragEnd = (event: PointerEvent, info: PanInfo) => {
-    isDragging.current = false;
+    jotaiStore.set(isDraggingAtom, false);
 
     if (dragCancelled.current) {
       dragCancelled.current = false;
