@@ -1,14 +1,14 @@
 import type { MetadataRoute } from "next";
 
-import { SITE_URL } from "@/constants/site";
 import { getPosts } from "@/lib/blog-query";
+import { URLS } from "@/lib/urls";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const data = await getPosts();
 
   const postPages: MetadataRoute.Sitemap =
     data?.posts?.map((post) => ({
-      url: `${SITE_URL}/blog/${post.slug}`,
+      url: `${URLS.SITE}/blog/${post.slug}`,
       lastModified: new Date(post.publishedAt),
       changeFrequency: "monthly",
       priority: 0.8,
@@ -16,31 +16,31 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [
     {
-      url: SITE_URL,
+      url: URLS.SITE,
       lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 1,
     },
     {
-      url: `${SITE_URL}/login`,
+      url: `${URLS.SITE}/login`,
       lastModified: new Date(),
       changeFrequency: "monthly",
       priority: 0.6,
     },
     {
-      url: `${SITE_URL}/blog`,
+      url: `${URLS.SITE}/blog`,
       lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 0.9,
     },
     {
-      url: `${SITE_URL}/privacy`,
+      url: `${URLS.SITE}/privacy`,
       lastModified: new Date(),
       changeFrequency: "yearly",
       priority: 0.5,
     },
     {
-      url: `${SITE_URL}/terms`,
+      url: `${URLS.SITE}/terms`,
       lastModified: new Date(),
       changeFrequency: "yearly",
       priority: 0.5,
