@@ -30,9 +30,9 @@ export type Post = {
 
 export type Pagination = {
   limit: number;
-  currpage: number;
+  currentPage: number;
   nextPage: number | null;
-  prevPage: number | null;
+  previousPage: number | null;
   totalItems: number;
   totalPages: number;
 };
