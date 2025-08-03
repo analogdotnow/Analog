@@ -2,6 +2,7 @@ import * as React from "react";
 import { useCommandState } from "cmdk";
 import { useAtom, useSetAtom } from "jotai";
 import { useTheme } from "next-themes";
+import { useHotkeys, useHotkeysContext } from "react-hotkeys-hook";
 import { Temporal } from "temporal-polyfill";
 
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
@@ -15,30 +16,27 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-  CommandSeparator,
 } from "../ui/command";
-
-const CommandSubItem = (props: React.ComponentProps<typeof CommandItem>) => {
-  const search = useCommandState((state) => state.search);
-  if (!search) return null;
-  return <CommandItem {...props} />;
-};
-
-type CommandPage = "theme" | "time-format" | "start-of-week" | "account";
 
 export function AppCommandMenu() {
   const [open, setOpen] = React.useState(false);
+  const { disableScope, enableScope, activeScopes } = useHotkeysContext();
 
   React.useEffect(() => {
-    const down = (e: KeyboardEvent) => {
-      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        setOpen((open) => !open);
-      }
-    };
-    document.addEventListener("keydown", down);
-    return () => document.removeEventListener("keydown", down);
-  }, []);
+    if (open) {
+      enableScope("command-menu");
+      disableScope("calendar");
+      disableScope("event");
+    } else {
+      enableScope("calendar");
+      enableScope("event");
+      disableScope("command-menu");
+    }
+  }, [open, disableScope, enableScope]);
+
+  useHotkeys("mod+k", () => setOpen((open) => !open), {
+    preventDefault: true,
+  });
 
   const { setCurrentDate, setView } = useCalendarState();
   const { setTheme } = useTheme();
@@ -47,42 +45,44 @@ export function AppCommandMenu() {
   const [pages, setPages] = React.useState<string[]>([]);
   const page = pages[pages.length - 1];
 
-  const [search, setSearch] = React.useState("");
   const action = (action: () => void) => {
     action();
     setOpen(false);
   };
 
-  return (
-    <CommandDialog open={true} onOpenChange={setOpen} className="max-w-xl" showCloseButton={false}>
-      <Command className=""
-        onKeyDown={(e) => {
-          // Escape goes to previous page
-          // Backspace goes to previous page when search is empty
-          if (e.key === "Escape" || (e.key === "Backspace" && !search)) {
-            e.preventDefault();
-            setPages((pages) => pages.slice(0, -1));
-          }
-        }}
-      >
-        <CommandInput
-          placeholder="Type a command or search..."
-          value={search}
-          onValueChange={setSearch}
-        />
+  const CommandContent = () => {
+    const search = useCommandState((state) => state.search);
+
+    React.useEffect(() => {
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === "Backspace" && !search) {
+          e.preventDefault();
+          setPages((pages) => pages.slice(0, -1));
+        }
+      };
+
+      document.addEventListener("keydown", handleKeyDown);
+      return () => document.removeEventListener("keydown", handleKeyDown);
+    }, [search]);
+
+    return (
+      <>
+        <CommandInput placeholder="Type a command or search..." />
         <CommandList>
           <CommandEmpty>No results found.</CommandEmpty>
 
-          <CommandGroup heading="Calendar">
-            <CommandItem
-              value="today"
-              onSelect={() =>
-                action(() => setCurrentDate(Temporal.Now.plainDateISO()))
-              }
-            >
-              Today
-            </CommandItem>
-          </CommandGroup>
+          {!page ? (
+            <CommandGroup heading="Calendar">
+              <CommandItem
+                value="today"
+                onSelect={() =>
+                  action(() => setCurrentDate(Temporal.Now.plainDateISO()))
+                }
+              >
+                Today
+              </CommandItem>
+            </CommandGroup>
+          ) : null}
 
           {!page ? (
             <CommandGroup heading="Layout">
@@ -166,56 +166,58 @@ export function AppCommandMenu() {
             </CommandGroup>
           ) : null}
 
-          {page === "theme" ? (
+          {page === "theme" || search ? (
             <CommandGroup heading="Appearance">
-              <CommandSubItem
+              <CommandItem
                 value="system"
                 onSelect={() => action(() => setTheme("system"))}
               >
                 Automatic (system)
-              </CommandSubItem>
-              <CommandSubItem
+              </CommandItem>
+              <CommandItem
                 value="light"
                 onSelect={() => action(() => setTheme("light"))}
               >
                 Light
-              </CommandSubItem>
-              <CommandSubItem
+              </CommandItem>
+              <CommandItem
                 value="dark"
                 onSelect={() => action(() => setTheme("dark"))}
               >
                 Dark
-              </CommandSubItem>
+              </CommandItem>
             </CommandGroup>
           ) : null}
 
-          {page === "time-format" ? (
-            <CommandItem onSelect={() => setPages([...pages, "time-format"])}>
-              Change time format
-            </CommandItem>
+          {!page ? (
+            <CommandGroup heading="Localization">
+              <CommandItem onSelect={() => setPages([...pages, "time-format"])}>
+                Change time format
+              </CommandItem>
+            </CommandGroup>
           ) : null}
 
-          {page === "time-format" ? (
-            <>
-              <CommandSubItem
+          {page === "time-format" || search ? (
+            <CommandGroup heading="Localization">
+              <CommandItem
                 onSelect={() =>
                   action(() =>
                     setCalendarSettings((p) => ({ ...p, use12Hour: false })),
                   )
                 }
               >
-                Use 24-hour time format
-              </CommandSubItem>
-              <CommandSubItem
+                Use 24-hour clock
+              </CommandItem>
+              <CommandItem
                 onSelect={() =>
                   action(() =>
                     setCalendarSettings((p) => ({ ...p, use12Hour: true })),
                   )
                 }
               >
-                Use 12-hour time format
-              </CommandSubItem>
-            </>
+                Use 12-hour clock
+              </CommandItem>
+            </CommandGroup>
           ) : null}
 
           {!page ? (
@@ -228,9 +230,9 @@ export function AppCommandMenu() {
             </CommandGroup>
           ) : null}
 
-          {page === "start-of-week" ? (
+          {page === "start-of-week" || search ? (
             <CommandGroup heading="Calendar">
-              <CommandSubItem
+              <CommandItem
                 onSelect={() =>
                   action(() =>
                     setCalendarSettings((p) => ({ ...p, weekStartsOn: 1 })),
@@ -238,8 +240,8 @@ export function AppCommandMenu() {
                 }
               >
                 Monday
-              </CommandSubItem>
-              <CommandSubItem
+              </CommandItem>
+              <CommandItem
                 onSelect={() =>
                   action(() =>
                     setCalendarSettings((p) => ({ ...p, weekStartsOn: 2 })),
@@ -247,8 +249,8 @@ export function AppCommandMenu() {
                 }
               >
                 Tuesday
-              </CommandSubItem>
-              <CommandSubItem
+              </CommandItem>
+              <CommandItem
                 onSelect={() =>
                   action(() =>
                     setCalendarSettings((p) => ({ ...p, weekStartsOn: 3 })),
@@ -256,8 +258,8 @@ export function AppCommandMenu() {
                 }
               >
                 Wednesday
-              </CommandSubItem>
-              <CommandSubItem
+              </CommandItem>
+              <CommandItem
                 onSelect={() =>
                   action(() =>
                     setCalendarSettings((p) => ({ ...p, weekStartsOn: 4 })),
@@ -265,8 +267,8 @@ export function AppCommandMenu() {
                 }
               >
                 Thursday
-              </CommandSubItem>
-              <CommandSubItem
+              </CommandItem>
+              <CommandItem
                 onSelect={() =>
                   action(() =>
                     setCalendarSettings((p) => ({ ...p, weekStartsOn: 5 })),
@@ -274,8 +276,8 @@ export function AppCommandMenu() {
                 }
               >
                 Friday
-              </CommandSubItem>
-              <CommandSubItem
+              </CommandItem>
+              <CommandItem
                 onSelect={() =>
                   action(() =>
                     setCalendarSettings((p) => ({ ...p, weekStartsOn: 6 })),
@@ -283,8 +285,8 @@ export function AppCommandMenu() {
                 }
               >
                 Saturday
-              </CommandSubItem>
-              <CommandSubItem
+              </CommandItem>
+              <CommandItem
                 onSelect={() =>
                   action(() =>
                     setCalendarSettings((p) => ({ ...p, weekStartsOn: 7 })),
@@ -292,10 +294,32 @@ export function AppCommandMenu() {
                 }
               >
                 Sunday
-              </CommandSubItem>
+              </CommandItem>
             </CommandGroup>
           ) : null}
         </CommandList>
+      </>
+    );
+  };
+
+  return (
+    <CommandDialog
+      open={open}
+      onOpenChange={setOpen}
+      className="max-w-xl"
+      showCloseButton={false}
+    >
+      <Command
+        className="h-80 max-h-svh"
+        onKeyDown={(e) => {
+          // We'll handle this inside CommandContent where we have access to search state
+          if (e.key === "Escape") {
+            e.preventDefault();
+            setPages((pages) => pages.slice(0, -1));
+          }
+        }}
+      >
+        <CommandContent />
       </Command>
     </CommandDialog>
   );
