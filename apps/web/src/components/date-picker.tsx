@@ -1,22 +1,29 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { TZDate } from "react-day-picker";
 import { Temporal } from "temporal-polyfill";
 
-import { useCalendarSettings } from "@/atoms/calendar-settings";
+import {
+  useCalendarSettings,
+  useDefaultTimeZone,
+} from "@/atoms/calendar-settings";
 import { Calendar } from "@/components/ui/calendar";
 import { useCalendarState } from "@/hooks/use-calendar-state";
 import { cn } from "@/lib/utils";
 
-function toDate(date: Temporal.PlainDate): Date {
-  return new Date(date.year, date.month - 1, date.day);
+function toTZDate(date: Temporal.PlainDate, timeZone: string): TZDate {
+  return new TZDate(date.year, date.month - 1, date.day, timeZone);
 }
 
 export function DatePicker() {
   const { currentDate, setCurrentDate, view } = useCalendarState();
-  const [displayedDate, setDisplayedDate] = useState<Date>(toDate(currentDate));
+  const defaultTimeZone = useDefaultTimeZone();
+  const [displayedDate, setDisplayedDate] = useState<Date>(
+    toTZDate(currentDate, defaultTimeZone),
+  );
   const [displayedMonth, setDisplayedMonth] = useState<Date>(
-    toDate(currentDate),
+    toTZDate(currentDate, defaultTimeZone),
   );
   const updateSource = useRef<"internal" | "external">("external");
 
@@ -30,7 +37,13 @@ export function DatePicker() {
     }
 
     updateSource.current = "internal";
-    setDisplayedDate(date);
+    const tzDate = new TZDate(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate(),
+      defaultTimeZone,
+    );
+    setDisplayedDate(tzDate);
     setCurrentDate(
       Temporal.PlainDate.from({
         year: date.getFullYear(),
@@ -40,14 +53,24 @@ export function DatePicker() {
     );
   };
 
+  const handleMonthChange = (month: Date) => {
+    const tzMonth = new TZDate(
+      month.getFullYear(),
+      month.getMonth(),
+      month.getDate(),
+      defaultTimeZone,
+    );
+    setDisplayedMonth(tzMonth);
+  };
+
   const settings = useCalendarSettings();
   useEffect(() => {
     if (updateSource.current === "external") {
-      setDisplayedDate(toDate(currentDate));
-      setDisplayedMonth(toDate(currentDate));
+      setDisplayedDate(toTZDate(currentDate, defaultTimeZone));
+      setDisplayedMonth(toTZDate(currentDate, defaultTimeZone));
     }
     updateSource.current = "external";
-  }, [currentDate]);
+  }, [currentDate, defaultTimeZone]);
 
   const isWeekView = view === "week";
   const isDayView = view === "day" || view === "agenda";
@@ -55,6 +78,7 @@ export function DatePicker() {
   return (
     <Calendar
       weekStartsOn={(settings.weekStartsOn % 7) as 0 | 1 | 2 | 3 | 4 | 5 | 6}
+      timeZone={defaultTimeZone}
       animate
       mode="single"
       required
@@ -62,7 +86,7 @@ export function DatePicker() {
       selected={displayedDate}
       onSelect={handleSelect}
       month={displayedMonth}
-      onMonthChange={setDisplayedMonth}
+      onMonthChange={handleMonthChange}
       className={cn("w-full px-0 [&_[role=gridcell]]:w-[33px]")}
       todayClassName={cn(
         "[&>button]:!bg-sidebar-primary [&>button]:!text-sidebar-primary-foreground",
