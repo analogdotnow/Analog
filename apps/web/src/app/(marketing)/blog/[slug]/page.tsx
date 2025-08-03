@@ -9,7 +9,7 @@ import {
   transitionVariants,
 } from "@/lib/transitions";
 
-export const revalidate = 2700;
+export const revalidate = 300;
 
 export default async function PostPage({
   params,
