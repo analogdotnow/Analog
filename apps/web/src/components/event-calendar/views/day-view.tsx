@@ -17,11 +17,11 @@ import { useEdgeAutoScroll } from "../drag-and-drop/use-auto-scroll";
 import { EventCollectionItem } from "../hooks/event-collection";
 import { useDoubleClickToCreate } from "../hooks/use-double-click-to-create";
 import { useDragToCreate } from "../hooks/use-drag-to-create";
+import { useScrollToCurrentTime } from "../week-view/use-scroll-to-current-time";
 import { HOURS } from "./constants";
 import { DragPreview } from "./event/drag-preview";
 import { TimeIndicator, TimeIndicatorBackground } from "./time-indicator";
 import { Timeline } from "./timeline";
-import { useScrollToCurrentTime } from "../week-view/use-scroll-to-current-time";
 
 interface DayViewProps {
   currentDate: Temporal.PlainDate;
@@ -93,7 +93,7 @@ export function DayView({
     scrollToCurrentTime();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  
+
   useEdgeAutoScroll(scrollContainerRef, { headerRef });
 
   const eventCollection = useEventCollection(events, currentDate, "day");
