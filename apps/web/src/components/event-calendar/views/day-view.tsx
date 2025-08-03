@@ -4,7 +4,7 @@ import * as React from "react";
 import { motion } from "motion/react";
 import { Temporal } from "temporal-polyfill";
 
-import { useCalendarSettings } from "@/atoms";
+import { useCalendarSettings, useIsDragging } from "@/atoms";
 import {
   DraggableEvent,
   EventItem,
@@ -13,6 +13,7 @@ import {
 import { useEventCollection } from "@/components/event-calendar/hooks";
 import type { Action } from "@/components/event-calendar/hooks/use-optimistic-events";
 import { cn } from "@/lib/utils";
+import { useEdgeAutoScroll } from "../drag-and-drop/use-auto-scroll";
 import { EventCollectionItem } from "../hooks/event-collection";
 import { useDoubleClickToCreate } from "../hooks/use-double-click-to-create";
 import { useDragToCreate } from "../hooks/use-drag-to-create";
@@ -20,11 +21,13 @@ import { HOURS } from "./constants";
 import { DragPreview } from "./event/drag-preview";
 import { TimeIndicator, TimeIndicatorBackground } from "./time-indicator";
 import { Timeline } from "./timeline";
+import { useScrollToCurrentTime } from "../week-view/use-scroll-to-current-time";
 
 interface DayViewProps {
   currentDate: Temporal.PlainDate;
   events: EventCollectionItem[];
   dispatchAction: (action: Action) => void;
+  scrollContainerRef: React.RefObject<HTMLDivElement | null>;
 }
 
 interface PositionedEventProps {
@@ -47,7 +50,7 @@ function PositionedEvent({
   dispatchAction,
   containerRef,
 }: PositionedEventProps) {
-  const [isDragging, setIsDragging] = React.useState(false);
+  const isDragging = useIsDragging();
 
   return (
     <div
@@ -70,16 +73,29 @@ function PositionedEvent({
         showTime
         height={positionedEvent.height}
         containerRef={containerRef}
-        setIsDragging={setIsDragging}
       />
     </div>
   );
 }
 
-export function DayView({ currentDate, events, dispatchAction }: DayViewProps) {
+export function DayView({
+  currentDate,
+  events,
+  dispatchAction,
+  scrollContainerRef,
+}: DayViewProps) {
   const containerRef = React.useRef<HTMLDivElement | null>(null);
+  const headerRef = React.useRef<HTMLDivElement>(null);
 
-  // Use the new event collection hook
+  const scrollToCurrentTime = useScrollToCurrentTime({ scrollContainerRef });
+
+  React.useEffect(() => {
+    scrollToCurrentTime();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  
+  useEdgeAutoScroll(scrollContainerRef, { headerRef });
+
   const eventCollection = useEventCollection(events, currentDate, "day");
 
   const handleEventClick = (event: CalendarEvent, e: React.MouseEvent) => {
@@ -88,8 +104,8 @@ export function DayView({ currentDate, events, dispatchAction }: DayViewProps) {
   };
 
   return (
-    <div data-slot="day-view" className="contents" ref={containerRef}>
-      <AllDayRow>
+    <div data-slot="day-view" className="contents">
+      <AllDayRow ref={headerRef}>
         {eventCollection.allDayEvents.map((item) => (
           <DayViewPositionedEvent
             key={`spanning-${item.event.id}`}
@@ -100,7 +116,10 @@ export function DayView({ currentDate, events, dispatchAction }: DayViewProps) {
         ))}
       </AllDayRow>
 
-      <div className="relative isolate grid flex-1 grid-cols-[5rem_1fr] overflow-hidden border-border/70">
+      <div
+        ref={containerRef}
+        className="relative isolate grid flex-1 grid-cols-[5rem_1fr] overflow-hidden border-border/70"
+      >
         <TimeIndicatorBackground date={currentDate} />
 
         <Timeline />
@@ -131,9 +150,10 @@ export function DayView({ currentDate, events, dispatchAction }: DayViewProps) {
 
 type AllDayRowProps = React.ComponentProps<"div">;
 
-function AllDayRow({ children, className, ...props }: AllDayRowProps) {
+function AllDayRow({ children, className, ref, ...props }: AllDayRowProps) {
   return (
     <div
+      ref={ref}
       className={cn(
         "sticky top-0 z-30 border-t border-border/70 bg-background/80 backdrop-blur-md",
         className,
@@ -222,7 +242,6 @@ function DayViewTimeSlots({
 
   return (
     <motion.div
-      className="touch-pan-y"
       ref={columnRef}
       onPanStart={onDragStart}
       onPan={onDrag}

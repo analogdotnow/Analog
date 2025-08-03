@@ -16,7 +16,7 @@ export function Timeline() {
   const { use12Hour } = useCalendarSettings();
 
   return (
-    <div className="grid auto-cols-fr border-r border-border/70">
+    <div className="grid auto-cols-fr border-r border-border/70 select-none">
       {HOURS_LEGACY.map((hour, index) => (
         <div
           key={hour.toString()}

@@ -16,7 +16,7 @@ export function TimeIndicator({ date }: TimeIndicatorProps) {
 
   return (
     <div
-      className="pointer-events-none absolute right-0 left-0 z-20"
+      className="pointer-events-none absolute right-0 left-0 z-20 select-none"
       style={{ top: `${currentTimePosition}%` }}
     >
       <div className="relative flex items-center gap-0.5">
@@ -39,7 +39,7 @@ export function TimeIndicatorBackground({
 
   return (
     <div
-      className="pointer-events-none absolute right-0 left-0"
+      className="pointer-events-none absolute right-0 left-0 select-none"
       style={{ top: `${currentTimePosition}%` }}
     >
       <div className="relative flex items-center">
