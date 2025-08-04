@@ -1,3 +1,4 @@
+import { cache } from "react";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import rehypeParse from "rehype-parse";
 import rehypeSanitize from "rehype-sanitize";
@@ -32,25 +33,25 @@ async function fetchFromMarble<T>(endpoint: string): Promise<T> {
   }
 }
 
-export async function getPosts() {
+export const getPosts = cache(async () => {
   return fetchFromMarble<MarblePostList>("posts");
-}
+});
 
-export async function getTags() {
+export const getTags = cache(async () => {
   return fetchFromMarble<MarbleTagList>("tags");
-}
+});
 
-export async function getSinglePost(slug: string) {
+export const getSinglePost = cache(async (slug: string) => {
   return fetchFromMarble<MarblePost>(`posts/${slug}`);
-}
+});
 
-export async function getCategories() {
+export const getCategories = cache(async () => {
   return fetchFromMarble<MarbleCategoryList>("categories");
-}
+});
 
-export async function getAuthors() {
+export const getAuthors = cache(async () => {
   return fetchFromMarble<MarbleAuthorList>("authors");
-}
+});
 
 export async function processHtmlContent(html: string): Promise<string> {
   const processor = unified()
