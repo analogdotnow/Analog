@@ -1,10 +1,4 @@
 import { cache } from "react";
-import rehypeAutolinkHeadings from "rehype-autolink-headings";
-import rehypeParse from "rehype-parse";
-import rehypeSanitize from "rehype-sanitize";
-import rehypeSlug from "rehype-slug";
-import rehypeStringify from "rehype-stringify";
-import { unified } from "unified";
 
 import { env } from "@repo/env/server";
 
@@ -52,15 +46,3 @@ export const getCategories = cache(async () => {
 export const getAuthors = cache(async () => {
   return fetchFromMarble<MarbleAuthorList>("authors");
 });
-
-export async function processHtmlContent(html: string): Promise<string> {
-  const processor = unified()
-    .use(rehypeSanitize)
-    .use(rehypeParse, { fragment: true })
-    .use(rehypeSlug)
-    .use(rehypeAutolinkHeadings, { behavior: "append" })
-    .use(rehypeStringify);
-
-  const file = await processor.process(html);
-  return String(file);
-}

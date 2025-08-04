@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 
 import { Prose } from "@/components/prose";
 import { AnimatedGroup } from "@/components/ui/animated-group";
-import { getSinglePost, processHtmlContent } from "@/lib/blog-query";
+import { getSinglePost } from "@/lib/blog-query";
 import {
   delayedTransitionVariants,
   transitionVariants,
@@ -76,8 +76,6 @@ export default async function PostPage({
   if (!post) {
     return notFound();
   }
-
-  const html = await processHtmlContent(post.content);
 
   return (
     <div className="min-h-[calc(100vh-8rem)] py-20 sm:py-28 md:py-32 lg:py-40">
@@ -156,7 +154,7 @@ export default async function PostPage({
 
                 <div className="h-px bg-border" />
                 <AnimatedGroup variants={delayedTransitionVariants}>
-                  <Prose html={html} className="max-w-3xl" />
+                  <Prose html={post.content} className="max-w-3xl" />
                 </AnimatedGroup>
 
                 {post.attribution && (
