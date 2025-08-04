@@ -33,7 +33,9 @@ interface LegalParagraphProps {
 }
 
 export function LegalParagraph({ children, className }: LegalParagraphProps) {
-  return <p className={cn("pb-4", className)}>{children}</p>;
+  return (
+    <p className={cn("pb-4 text-muted-foreground", className)}>{children}</p>
+  );
 }
 
 interface LegalTextLinkProps {
@@ -52,9 +54,27 @@ export function LegalTextLink({
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className={cn("text-primary hover:underline", className)}
+      className={cn("text-muted-foreground hover:underline", className)}
     >
       {children}
     </a>
+  );
+}
+
+interface LegalListProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+export function LegalList({ children, className }: LegalListProps) {
+  return (
+    <ul
+      className={cn(
+        "mb-4 list-disc space-y-2 pl-6 text-muted-foreground",
+        className,
+      )}
+    >
+      {children}
+    </ul>
   );
 }

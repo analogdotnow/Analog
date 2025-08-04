@@ -4,28 +4,29 @@ import {
   LegalHeading1,
   LegalHeading2,
   LegalHeading3,
+  LegalList,
   LegalParagraph,
   LegalTextLink,
 } from "@/components/landing-page/legal/text";
 import { Card, CardContent } from "@/components/ui/card";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy - Analog Interface",
+  title: "Privacy Policy - Analog",
 };
 
 export default function PrivacyPage() {
   return (
     <main className="relative">
       <div className="relative container mx-auto px-4 py-16">
-        <div className="mx-auto max-w-4xl">
+        <div className="mx-auto max-w-6xl">
           <div className="mb-10 text-center">
             <LegalHeading1>Privacy Policy</LegalHeading1>
           </div>
           <Card className="border-2 border-muted/30 bg-background/80 shadow-none">
             <CardContent className="space-y-8 p-8 text-base leading-relaxed">
               <LegalParagraph>
-                Your privacy is important to us. It is Analog Interface's policy
-                to respect your privacy and comply with any applicable law and
+                Your privacy is important to us. It is Analog's policy to
+                respect your privacy and comply with any applicable law and
                 regulation regarding any personal information we may collect
                 about you, including across our website,{" "}
                 <LegalTextLink href="https://analog.now">
@@ -53,10 +54,10 @@ export default function PrivacyPage() {
               </LegalParagraph>
 
               <LegalParagraph>
-                This policy is effective as of July 17, 2025
+                This policy is effective as of August 4, 2025
               </LegalParagraph>
 
-              <LegalParagraph>Last updated: July 17, 2025</LegalParagraph>
+              <LegalParagraph>Last updated: August 4, 2025</LegalParagraph>
 
               <section>
                 <LegalHeading2>Information We Collect</LegalHeading2>
@@ -107,12 +108,12 @@ export default function PrivacyPage() {
                   When you visit our website or interact with our services, we
                   may automatically collect data about your device, such as:
                 </LegalParagraph>
-                <ul className="mb-4 list-disc space-y-2 pl-6">
+                <LegalList>
                   <li>Device Type</li>
                   <li>Operating system</li>
                   <li>Device settings</li>
                   <li>Geo-location data</li>
-                </ul>
+                </LegalList>
                 <LegalParagraph>
                   Data we collect can depend on the individual settings of your
                   device and software. We recommend checking the policies of
@@ -126,12 +127,73 @@ export default function PrivacyPage() {
                   submit content to us, when you register an account or when you
                   contact us — which may include one or more of the following:
                 </LegalParagraph>
-                <ul className="mb-4 list-disc space-y-2 pl-6">
+                <LegalList>
                   <li>Name</li>
                   <li>Email</li>
-                </ul>
+                </LegalList>
               </section>
 
+              <section>
+                <LegalHeading2>Google User Data</LegalHeading2>
+                <LegalParagraph>
+                  When you link your Google account to Analog, we only ask for
+                  the data needed to make the features you choose work.
+                </LegalParagraph>
+
+                <LegalHeading3>What we access</LegalHeading3>
+                <LegalList>
+                  <li>Your Google email address and basic profile</li>
+                  <li>Your list of calendars from Google Calendar</li>
+                  <li>
+                    Details of your calendar events (e.g. title, time,
+                    description, attendees, etc.)
+                  </li>
+                </LegalList>
+
+                <LegalHeading3>Why we access it</LegalHeading3>
+                <LegalList>
+                  <li>
+                    To let you sign in with Google and link your Google Calendar
+                    account
+                  </li>
+                  <li>To display your calendars and events inside Analog</li>
+                  <li>
+                    To allow you to add and edit events in your calendars from
+                    Analog
+                  </li>
+                </LegalList>
+
+                <LegalParagraph>
+                  We{" "}
+                  <strong className="font-semibold text-primary">never</strong>{" "}
+                  use your Google data for ads, marketing, or profiling.
+                </LegalParagraph>
+                <LegalParagraph>
+                  Human access to Google user data is disallowed except (i) with
+                  your explicit in-app permission, (ii) when strictly necessary
+                  for security or debugging, or (iii) when required by law.
+                </LegalParagraph>
+                <LegalParagraph>
+                  If we change how we use Google user data, we will (1) update
+                  this policy, and (2) prompt you for fresh consent before the
+                  new use begins.
+                </LegalParagraph>
+              </section>
+              <section>
+                <LegalHeading2>Google Limited Use Disclosure</LegalHeading2>
+                <LegalParagraph>
+                  We use certain Google API Services (including, but not limited
+                  to, Google Sign-In) to give you the option of connecting your
+                  Google Account to Analog. When you choose to do so, we may
+                  request access to your Google email address, basic profile,
+                  and Google Calendar data (calendar list &amp; event details)
+                  solely for the purposes listed below. We do not request or
+                  access any other Google user data beyond what is described
+                  here. We request the minimum scope required to implement the
+                  feature you have selected and we never “future-proof” by
+                  asking for more.
+                </LegalParagraph>
+              </section>
               <section>
                 <LegalHeading2>
                   Legitimate Reasons for Processing Your Personal Information
@@ -150,7 +212,7 @@ export default function PrivacyPage() {
                   We may collect personal information from you when you do any
                   of the following on our website:
                 </LegalParagraph>
-                <ul className="mb-4 list-disc space-y-2 pl-6">
+                <LegalList>
                   <li>Register for an account</li>
                   <li>
                     Use a mobile device or web browser to access our content
@@ -160,14 +222,14 @@ export default function PrivacyPage() {
                     technologies
                   </li>
                   <li>When you mention us on social media</li>
-                </ul>
+                </LegalList>
                 <LegalParagraph>
                   We may collect, hold, use, and disclose information for the
                   following purposes, and personal information will not be
                   further processed in a manner that is incompatible with these
                   purposes:
                 </LegalParagraph>
-                <ul className="mb-4 list-disc space-y-2 pl-6">
+                <LegalList>
                   <li>
                     to provide you with our platform's core features and
                     services
@@ -177,6 +239,10 @@ export default function PrivacyPage() {
                     our website
                   </li>
                   <li>to contact and communicate with you</li>
+                  <li>
+                    for advertising and marketing, including to send you
+                    promotional information about our products and services
+                  </li>
                   <li>
                     to enable you to access and use our website, associated
                     applications, and associated social media platforms
@@ -198,7 +264,14 @@ export default function PrivacyPage() {
                     our app, associated applications, and associated social
                     media platforms
                   </li>
-                </ul>
+                </LegalList>
+                <LegalParagraph>
+                  This marketing clause does{" "}
+                  <strong className="font-semibold text-primary">not</strong>{" "}
+                  apply to Google user data obtained via Google API Services,
+                  which we use only as described under “Google API Services User
+                  Data” above.
+                </LegalParagraph>
                 <LegalParagraph>
                   We may combine voluntarily provided and automatically
                   collected personal information with general information or
@@ -233,6 +306,28 @@ export default function PrivacyPage() {
                   information within the bounds of our services. For example,
                   ensuring any passwords associated with accessing your personal
                   information and accounts are secure and confidential.
+                </LegalParagraph>
+                <LegalParagraph>
+                  All Google user data is encrypted in transit (TLS&nbsp;1.3)
+                  and at rest (AES-256).
+                </LegalParagraph>
+                <LegalParagraph>
+                  We accurately represent our identity in every OAuth consent
+                  screen and never share our Google client credentials. If we
+                  discover any compromise of those credentials, we will promptly
+                  rotate them and notify affected users and Google.
+                </LegalParagraph>
+              </section>
+
+              <section>
+                <LegalHeading2>Limited Use Disclosure</LegalHeading2>
+                <LegalParagraph>
+                  Any use and transfer to any other app of information received
+                  from Google APIs will adhere to the{" "}
+                  <LegalTextLink href="https://developers.google.com/terms/api-services-user-data-policy">
+                    Google API Services User Data Policy
+                  </LegalTextLink>
+                  , including the Limited Use requirements.
                 </LegalParagraph>
               </section>
 
@@ -276,7 +371,14 @@ export default function PrivacyPage() {
                 <LegalParagraph>
                   We may disclose personal information to:
                 </LegalParagraph>
-                <ul className="mb-4 list-disc space-y-2 pl-6">
+                <LegalParagraph>
+                  We do{" "}
+                  <strong className="font-semibold text-primary">not</strong>{" "}
+                  sell, rent, or transfer Google user data to third parties for
+                  advertising or any other commercial purpose outside the
+                  user-facing features described in this policy.
+                </LegalParagraph>
+                <LegalList>
                   <li>a parent, subsidiary or affiliate of our company</li>
                   <li>
                     third-party service providers for the purpose of enabling
@@ -310,27 +412,24 @@ export default function PrivacyPage() {
                     an entity that buys, or to which we transfer all or
                     substantially all of our assets and business
                   </li>
-                </ul>
+                </LegalList>
                 <LegalParagraph>
                   Third parties we currently use include:
                 </LegalParagraph>
-                <ul className="mb-4 list-disc space-y-2 pl-6">
+                <LegalList>
                   <li>Resend</li>
-                  <li>Vercel</li>
-                  <li>Supabase</li>
-                  <li>Sentry</li>
-                </ul>
+                  <li>Stripe</li>
+                </LegalList>
               </section>
-
               <section>
                 <LegalHeading2>
                   International Transfers of Personal Information
                 </LegalHeading2>
                 <LegalParagraph>
                   The personal information we collect is stored and/or processed
-                  in Germany, Ireland, Netherlands (the), United States of
-                  America (the) or where we or our partners, affiliates, and
-                  third-party providers maintain facilities.
+                  in Netherlands (the), Germany, Ireland, or where we or our
+                  partners, affiliates, and third-party providers maintain
+                  facilities.
                 </LegalParagraph>
                 <LegalParagraph>
                   The countries to which we store, process, or transfer your
@@ -349,80 +448,120 @@ export default function PrivacyPage() {
                   Your Rights and Controlling Your Personal Information
                 </LegalHeading2>
                 <LegalParagraph>
-                  <strong>Your choice:</strong> By providing personal
-                  information to us, you understand we will collect, hold, use,
-                  and disclose your personal information in accordance with this
-                  privacy policy. You do not have to provide personal
-                  information to us, however, if you do not, it may affect your
-                  use of our website or the products and/or services offered on
-                  or through it.
+                  <strong className="font-semibold text-primary">
+                    Your choice:
+                  </strong>{" "}
+                  By providing personal information to us, you understand we
+                  will collect, hold, use, and disclose your personal
+                  information in accordance with this privacy policy. You do not
+                  have to provide personal information to us, however, if you do
+                  not, it may affect your use of our website or the products
+                  and/or services offered on or through it.
                 </LegalParagraph>
                 <LegalParagraph>
-                  <strong>Information from third parties:</strong> If we receive
-                  personal information about you from a third party, we will
-                  protect it as set out in this privacy policy. If you are a
-                  third party providing personal information about somebody
-                  else, you represent and warrant that you have such person's
-                  consent to provide the personal information to us.
+                  <strong className="font-semibold text-primary">
+                    Information from third parties:
+                  </strong>{" "}
+                  If we receive personal information about you from a third
+                  party, we will protect it as set out in this privacy policy.
+                  If you are a third party providing personal information about
+                  somebody else, you represent and warrant that you have such
+                  person's consent to provide the personal information to us.
                 </LegalParagraph>
                 <LegalParagraph>
-                  <strong>Marketing permission:</strong> If you have previously
-                  agreed to us using your personal information for direct
-                  marketing purposes, you may change your mind at any time by
-                  contacting us using the details below.
+                  <strong className="font-semibold text-primary">
+                    Marketing permission:
+                  </strong>{" "}
+                  If you have previously agreed to us using your personal
+                  information for direct marketing purposes, you may change your
+                  mind at any time by contacting us using the details below.
                 </LegalParagraph>
                 <LegalParagraph>
-                  <strong>Access:</strong> You may request details of the
-                  personal information that we hold about you.
+                  <strong className="font-semibold text-primary">
+                    Access:
+                  </strong>{" "}
+                  You may request details of the personal information that we
+                  hold about you.
                 </LegalParagraph>
                 <LegalParagraph>
-                  <strong>Correction:</strong> If you believe that any
-                  information we hold about you is inaccurate, out of date,
-                  incomplete, irrelevant, or misleading, please contact us using
-                  the details provided in this privacy policy. We will take
-                  reasonable steps to correct any information found to be
-                  inaccurate, incomplete, misleading, or out of date.
+                  <strong className="font-semibold text-primary">
+                    Correction:
+                  </strong>{" "}
+                  If you believe that any information we hold about you is
+                  inaccurate, out of date, incomplete, irrelevant, or
+                  misleading, please contact us using the details provided in
+                  this privacy policy. We will take reasonable steps to correct
+                  any information found to be inaccurate, incomplete,
+                  misleading, or out of date.
                 </LegalParagraph>
                 <LegalParagraph>
-                  <strong>Non-discrimination:</strong> We will not discriminate
-                  against you for exercising any of your rights over your
-                  personal information. Unless your personal information is
-                  required to provide you with a particular service or offer
-                  (for example providing user support), we will not deny you
-                  goods or services and/or charge you different prices or rates
-                  for goods or services, including through granting discounts or
-                  other benefits, or imposing penalties, or provide you with a
-                  different level or quality of goods or services.
+                  <strong className="font-semibold text-primary">
+                    Non-discrimination:
+                  </strong>{" "}
+                  We will not discriminate against you for exercising any of
+                  your rights over your personal information. Unless your
+                  personal information is required to provide you with a
+                  particular service or offer (for example providing user
+                  support), we will not deny you goods or services and/or charge
+                  you different prices or rates for goods or services, including
+                  through granting discounts or other benefits, or imposing
+                  penalties, or provide you with a different level or quality of
+                  goods or services.
                 </LegalParagraph>
                 <LegalParagraph>
-                  <strong>Downloading of Personal Information:</strong> We
-                  provide a means for you to download the personal information
-                  you have shared through our site. Please contact us for more
-                  information.
+                  <strong className="font-semibold text-primary">
+                    Downloading of Personal Information:
+                  </strong>{" "}
+                  We provide a means for you to download the personal
+                  information you have shared through our site. Please contact
+                  us for more information.
                 </LegalParagraph>
                 <LegalParagraph>
-                  <strong>Notification of data breaches:</strong> We will comply
-                  with laws applicable to us in respect of any data breach.
+                  <strong className="font-semibold text-primary">
+                    Notification of data breaches:
+                  </strong>{" "}
+                  We will comply with laws applicable to us in respect of any
+                  data breach.
                 </LegalParagraph>
                 <LegalParagraph>
-                  <strong>Complaints:</strong> If you believe that we have
-                  breached a relevant data protection law and wish to make a
-                  complaint, please contact us using the details below and
-                  provide us with full details of the alleged breach. We will
-                  promptly investigate your complaint and respond to you, in
-                  writing, setting out the outcome of our investigation and the
-                  steps we will take to deal with your complaint. You also have
-                  the right to contact a regulatory body or data protection
-                  authority in relation to your complaint.
+                  <strong className="font-semibold text-primary">
+                    Complaints:
+                  </strong>{" "}
+                  If you believe that we have breached a relevant data
+                  protection law and wish to make a complaint, please contact us
+                  using the details below and provide us with full details of
+                  the alleged breach. We will promptly investigate your
+                  complaint and respond to you, in writing, setting out the
+                  outcome of our investigation and the steps we will take to
+                  deal with your complaint. You also have the right to contact a
+                  regulatory body or data protection authority in relation to
+                  your complaint.
                 </LegalParagraph>
                 <LegalParagraph>
-                  <strong>Unsubscribe:</strong> To unsubscribe from our email
-                  database or opt-out of communications (including marketing
-                  communications), please contact us using the details provided
-                  in this privacy policy, or opt-out using the opt-out
-                  facilities provided in the communication. We may need to
-                  request specific information from you to help us confirm your
-                  identity.
+                  <strong className="font-semibold text-primary">
+                    Unsubscribe:
+                  </strong>{" "}
+                  To unsubscribe from our email database or opt-out of
+                  communications (including marketing communications), please
+                  contact us using the details provided in this privacy policy,
+                  or opt-out using the opt-out facilities provided in the
+                  communication. We may need to request specific information
+                  from you to help us confirm your identity.
+                </LegalParagraph>
+
+                <LegalHeading3>Disconnect Google Account</LegalHeading3>
+                <LegalParagraph>
+                  You may revoke Analog’s access to your Google Account at any
+                  time by visiting{" "}
+                  <LegalTextLink href="https://myaccount.google.com/permissions">
+                    https://myaccount.google.com/permissions
+                  </LegalTextLink>{" "}
+                  or by clicking{" "}
+                  <strong className="font-semibold text-primary">
+                    Disconnect
+                  </strong>{" "}
+                  in your account settings inside Analog. This will delete any
+                  tokens we hold and disable Google-powered features.
                 </LegalParagraph>
               </section>
 
@@ -474,145 +613,11 @@ export default function PrivacyPage() {
                   the opportunity to opt in to or opt out of, as applicable, any
                   new uses of your personal information.
                 </LegalParagraph>
-              </section>
-
-              <section>
-                <LegalHeading2>
-                  Additional Disclosures for U.S. States Privacy Law Compliance.
-                </LegalHeading2>
                 <LegalParagraph>
-                  The following section includes provisions that comply with the
-                  privacy laws of these states (California, Colorado, Delaware,
-                  Florida, Virginia, and Utah) and is applicable only to the
-                  residents of those states. Specific references to a particular
-                  state (in a heading or in the text) are only a reference to
-                  that state's law and applies only to that state's residents.
-                  Non-state specific language applies to all of the states
-                  listed above.
-                </LegalParagraph>
-
-                <LegalHeading3>Do Not Track</LegalHeading3>
-                <LegalParagraph>
-                  Some browsers have a "Do Not Track" feature that lets you tell
-                  websites that you do not want to have your online activities
-                  tracked. At this time, we do not respond to browser "Do Not
-                  Track" signals.
-                </LegalParagraph>
-                <LegalParagraph>
-                  We adhere to the standards outlined in this privacy policy,
-                  ensuring we collect and process personal information lawfully,
-                  fairly, transparently, and with legitimate, legal reasons for
-                  doing so.
-                </LegalParagraph>
-
-                <LegalHeading3>California Privacy Laws - CPPA</LegalHeading3>
-                <LegalParagraph>
-                  Under California Civil Code Section 1798.83, if you live in
-                  California and your business relationship with us is mainly
-                  for personal, family, or household purposes, you may ask us
-                  about the information we release to other organizations for
-                  their marketing purposes. In accordance with your right to
-                  non-discrimination, we may offer you certain financial
-                  incentives permitted by the California Consumer Privacy Act,
-                  and the California Privacy Rights Act (collectively, CCPA)
-                  that can result in different prices, rates, or quality levels
-                  for the goods or services we provide. Any CCPA-permitted
-                  financial incentive we offer will reasonably relate to the
-                  value of your personal information, and we will provide
-                  written terms that describe clearly the nature of such an
-                  offer. Participation in a financial incentive program requires
-                  your prior opt-in consent, which you may revoke at any time.
-                </LegalParagraph>
-                <LegalParagraph>
-                  Under California Civil Code Section 1798.83, if you live in
-                  California and your business relationship with us is mainly
-                  for personal, family, or household purposes, you may ask us
-                  about the information we release to other organizations for
-                  their marketing purposes. To make such a request, please
-                  contact us using the details provided in this privacy policy
-                  with "Request for California privacy information" in the
-                  subject line. You may make this type of request once every
-                  calendar year. We will email you a list of categories of
-                  personal information we revealed to other organisations for
-                  their marketing purposes in the last calendar year, along with
-                  their names and addresses. Not all personal information shared
-                  in this way is covered by Section 1798.83 of the California
-                  Civil Code.
-                </LegalParagraph>
-
-                <LegalHeading3>California Notice of Collection</LegalHeading3>
-                <LegalParagraph>
-                  In the past 12 months, we have collected the following
-                  categories of personal information enumerated in the CCPA:
-                </LegalParagraph>
-                <ul className="mb-4 list-disc space-y-2 pl-6">
-                  <li>
-                    Identifiers, such as name, email address, phone number,
-                    account name, IP address, and an ID or number assigned to
-                    your account.
-                  </li>
-                </ul>
-                <LegalParagraph>
-                  For more information on information we collect, including the
-                  sources we receive information from, review the "Information
-                  We Collect" section. We collect and use these categories of
-                  personal information for the business purposes described in
-                  the "Collection and Use of Information" section, including to
-                  provide and manage our Service.
-                </LegalParagraph>
-
-                <LegalHeading3>Right to Know and Delete</LegalHeading3>
-                <LegalParagraph>
-                  You have rights to delete your personal information we
-                  collected and know certain information about our data
-                  practices in the preceding 12 months. In particular, you have
-                  the right to request the following from us:
-                </LegalParagraph>
-                <ul className="mb-4 list-disc space-y-2 pl-6">
-                  <li>
-                    The categories of personal information we have collected
-                    about you;
-                  </li>
-                  <li>
-                    The categories of sources from which the personal
-                    information was collected;
-                  </li>
-                  <li>
-                    The categories of personal information about you we
-                    disclosed for a business purpose or sold;
-                  </li>
-                  <li>
-                    The categories of third parties to whom the personal
-                    information was disclosed for a business purpose or sold;
-                  </li>
-                  <li>
-                    The business or commercial purpose for collecting or selling
-                    the personal information; and
-                  </li>
-                  <li>
-                    The specific pieces of personal information we have
-                    collected about you.
-                  </li>
-                </ul>
-                <LegalParagraph>
-                  To exercise any of these rights, please contact us using the
-                  details provided in this privacy policy.
-                </LegalParagraph>
-
-                <LegalHeading3>Shine the Light</LegalHeading3>
-                <LegalParagraph>
-                  In addition to the rights discussed above, you have the right
-                  to request information from us regarding the manner in which
-                  we share certain personal information as defined by applicable
-                  statute with third parties and affiliates for their own direct
-                  marketing purposes.
-                </LegalParagraph>
-                <LegalParagraph>
-                  To receive this information, send us a request using the
-                  contact details provided in this privacy policy. Requests must
-                  include "Privacy Rights Request" in the first line of the
-                  description and include your name, street address, city,
-                  state, and ZIP code.
+                  For changes that materially affect how we handle Google user
+                  data, we will (1) email or in-app notify you, (2) update this
+                  policy, and (3) request your explicit consent before the new
+                  use takes effect.
                 </LegalParagraph>
               </section>
 
@@ -628,9 +633,9 @@ export default function PrivacyPage() {
                   personal information for their own purposes (known as "data
                   controllers") and organizations that process personal
                   information on behalf of other organizations (known as "data
-                  processors"). We, Analog Interface, located at the address
-                  provided in our Contact Us section, are a Data Controller with
-                  respect to the personal information you provide to us.
+                  processors"). We, Analog, located at the address provided in
+                  our Contact Us section, are a Data Controller with respect to
+                  the personal information you provide to us.
                 </LegalParagraph>
 
                 <LegalHeading3>
@@ -718,8 +723,11 @@ export default function PrivacyPage() {
                   Your Rights and Controlling Your Personal Information
                 </LegalHeading3>
                 <LegalParagraph>
-                  <strong>Restrict:</strong> You have the right to request that
-                  we restrict the processing of your personal information if:
+                  <strong className="font-semibold text-primary">
+                    Restrict:
+                  </strong>{" "}
+                  You have the right to request that we restrict the processing
+                  of your personal information if:
                 </LegalParagraph>
                 <ol className="mb-4 list-decimal space-y-2 pl-6">
                   <li>
@@ -740,376 +748,46 @@ export default function PrivacyPage() {
                   </li>
                 </ol>
                 <LegalParagraph>
-                  <strong>Objecting to processing:</strong> You have the right
-                  to object to processing of your personal information that is
-                  based on our legitimate interests or public interest. If this
-                  is done, we must provide compelling legitimate grounds for the
-                  processing which overrides your interests, rights, and
-                  freedoms, in order to proceed with the processing of your
-                  personal information.
+                  <strong className="font-semibold text-primary">
+                    Objecting to processing:
+                  </strong>{" "}
+                  You have the right to object to processing of your personal
+                  information that is based on our legitimate interests or
+                  public interest. If this is done, we must provide compelling
+                  legitimate grounds for the processing which overrides your
+                  interests, rights, and freedoms, in order to proceed with the
+                  processing of your personal information.
                 </LegalParagraph>
                 <LegalParagraph>
-                  <strong>Data portability:</strong> You may have the right to
-                  request a copy of the personal information we hold about you.
-                  Where possible, we will provide this information in CSV format
-                  or other easily readable machine format. You may also have the
-                  right to request that we transfer this personal information to
-                  a third party.
+                  <strong className="font-semibold text-primary">
+                    Data portability:
+                  </strong>{" "}
+                  You may have the right to request a copy of the personal
+                  information we hold about you. Where possible, we will provide
+                  this information in CSV format or other easily readable
+                  machine format. You may also have the right to request that we
+                  transfer this personal information to a third party.
                 </LegalParagraph>
                 <LegalParagraph>
-                  <strong>Deletion:</strong> You may have a right to request
-                  that we delete the personal information we hold about you at
-                  any time, and we will take reasonable steps to delete your
-                  personal information from our current records. If you ask us
-                  to delete your personal information, we will let you know how
-                  the deletion affects your use of our website or products and
-                  services. There may be exceptions to this right for specific
-                  legal reasons which, if applicable, we will set out for you in
-                  response to your request. If you terminate or delete your
-                  account, we will delete your personal information within 30
-                  days of the deletion of your account. Please be aware that
-                  search engines and similar third parties may still retain
-                  copies of your personal information that has been made public
-                  at least once, like certain profile information and public
-                  comments, even after you have deleted the information from our
-                  services or deactivated your account.
-                </LegalParagraph>
-              </section>
-
-              <section>
-                <LegalHeading2>
-                  Additional Disclosures for UK General Data Protection
-                  Regulation (UK GDPR) Compliance (UK)
-                </LegalHeading2>
-
-                <LegalHeading3>Data Controller / Data Processor</LegalHeading3>
-                <LegalParagraph>
-                  The GDPR distinguishes between organizations that process
-                  personal information for their own purposes (known as "data
-                  controllers") and organizations that process personal
-                  information on behalf of other organizations (known as "data
-                  processors"). We, Analog Interface, located at the address
-                  provided in our Contact Us section, are a Data Controller with
-                  respect to the personal information you provide to us.
-                </LegalParagraph>
-
-                <LegalHeading3>Third-Party Provided Content</LegalHeading3>
-                <LegalParagraph>
-                  We may indirectly collect personal information about you from
-                  third-parties who have your permission to share it. For
-                  example, if you purchase a product or service from a business
-                  working with us, and give your permission for us to use your
-                  details in order to complete the transaction.
-                </LegalParagraph>
-                <LegalParagraph>
-                  We may also collect publicly available information about you,
-                  such as from any social media and messaging platforms you may
-                  use. The availability of this information will depend on both
-                  the privacy policies and your own privacy settings on such
-                  platforms.
-                </LegalParagraph>
-
-                <LegalHeading3>
-                  Additional Disclosure for Collection and Use of Personal
-                  Information
-                </LegalHeading3>
-                <LegalParagraph>
-                  In addition to the aforementioned purposes warranting the
-                  collection and use of personal information, we may also
-                  conduct marketing and market research activities, including
-                  how visitors use our site, website improvement opportunities
-                  and user experience.
-                </LegalParagraph>
-
-                <LegalHeading3>
-                  Personal Information No Longer Required for Our Purposes
-                </LegalHeading3>
-                <LegalParagraph>
-                  If your personal information is no longer required for our
-                  stated purposes, or if you instruct us under your Data Subject
-                  Rights, we will delete it or make it anonymous by removing all
-                  details that identify you ("Anonymisation"). However, if
-                  necessary, we may retain your personal information for our
-                  compliance with a legal, accounting, or reporting obligation
-                  or for archiving purposes in the public interest, scientific,
-                  or historical research purposes or statistical purposes.
-                </LegalParagraph>
-
-                <LegalHeading3>
-                  Legal Bases for Processing Your Personal Information
-                </LegalHeading3>
-                <LegalParagraph>
-                  Data Protection and Privacy Laws permit us to collect and use
-                  your personal data on a limited number of grounds.. In which
-                  case, we will collect and use your personal information
-                  lawfully, fairly and in a transparent manner. We never
-                  directly market to any person(s) under 18 years of age.
-                </LegalParagraph>
-                <LegalParagraph>
-                  Our lawful bases depend on the services you use and how you
-                  use them. This is a non-exhaustive list of the lawful bases we
-                  use:
-                </LegalParagraph>
-
-                <LegalHeading3>Consent From You</LegalHeading3>
-                <LegalParagraph>
-                  Where you give us consent to collect and use your personal
-                  information for a specific purpose. You may withdraw your
-                  consent at any time using the facilities we provide; however
-                  this will not affect any use of your information that has
-                  already taken place. When you contact us, we assume your
-                  consent based on your positive action of contact, therefore
-                  you consent to your name and email address being used so we
-                  can respond to your enquiry.
-                </LegalParagraph>
-                <LegalParagraph>
-                  Where you agree to receive marketing communications from us,
-                  we will do so based solely on your indication of consent or
-                  until you instruct us not to, which you can do at any time.
-                </LegalParagraph>
-                <LegalParagraph>
-                  While you may request that we delete your contact details at
-                  any time, we cannot recall any email we have already sent. If
-                  you have any further enquiries about how to withdraw your
-                  consent, please feel free to enquire using the details
-                  provided in the Contact Us section of this privacy policy.
-                </LegalParagraph>
-
-                <LegalHeading3>
-                  Performance of a Contract or Transaction
-                </LegalHeading3>
-                <LegalParagraph>
-                  Where you have entered into a contract or transaction with us,
-                  or in order to take preparatory steps prior to our entering
-                  into a contract or transaction with you. For example, if you
-                  contact us with an enquiry, we may require personal
-                  information such as your name and contact details in order to
-                  respond.
-                </LegalParagraph>
-
-                <LegalHeading3>Our Legitimate Interests</LegalHeading3>
-                <LegalParagraph>
-                  Where we assess it is necessary for our legitimate interests,
-                  such as for us to provide, operate, improve and communicate
-                  our services. We consider our legitimate interests to include
-                  research and development, understanding our audience,
-                  marketing and promoting our services, measures taken to
-                  operate our services efficiently, marketing analysis, and
-                  measures taken to protect our legal rights and interests.
-                </LegalParagraph>
-
-                <LegalHeading3>Compliance With the Law</LegalHeading3>
-                <LegalParagraph>
-                  In some cases, we may have a legal obligation to use or keep
-                  your personal information. Such cases may include (but are not
-                  limited to) court orders, criminal investigations, government
-                  requests, and regulatory obligations. For example, we are
-                  required to keep financial records for a period of 7 years. If
-                  you have any further enquiries about how we retain personal
-                  information in order to comply with the law, please feel free
-                  to enquire using the details provided in the Contact Us
-                  section of this privacy policy.
-                </LegalParagraph>
-
-                <LegalHeading3>
-                  International Transfers of Personal Information
-                </LegalHeading3>
-                <LegalParagraph>
-                  The personal information we collect is stored and/or processed
-                  in the United Kingdom by us. Following an adequacy decision by
-                  the EU Commission, the UK has been granted an essentially
-                  equivalent level of protection to that guaranteed under UK
-                  GDPR.
-                </LegalParagraph>
-                <LegalParagraph>
-                  On some occasions, where we share your data with third
-                  parties, they may be based outside of the UK, or the European
-                  Economic Area ("EEA"). These countries to which we store,
-                  process, or transfer your personal information may not have
-                  the same data protection laws as the country in which you
-                  initially provided the information.
-                </LegalParagraph>
-                <LegalParagraph>
-                  If we transfer your personal information to third parties in
-                  other countries:
-                </LegalParagraph>
-                <ul className="mb-4 list-disc space-y-2 pl-6">
-                  <li>
-                    we will perform those transfers in accordance with the
-                    requirements of the UK GDPR (Article 45) and Data Protection
-                    Act 2018;
-                  </li>
-                  <li>
-                    we will adopt appropriate safeguards for protecting the
-                    transferred data, including in transit, such as standard
-                    contractual clauses ("SCCs") or binding corporate rules.
-                  </li>
-                </ul>
-
-                <LegalHeading3>Your Data Subject Rights</LegalHeading3>
-                <LegalParagraph>
-                  <strong>Right to Restrict Processing:</strong> You have the
-                  right to request that we restrict the processing of your
-                  personal information if (i) you are concerned about the
-                  accuracy of your personal information; (ii) you believe your
-                  personal information has been unlawfully processed; (iii) you
-                  need us to maintain the personal information solely for the
-                  purpose of a legal claim; or (iv) we are in the process of
-                  considering your objection in relation to processing on the
-                  basis of legitimate interests.
-                </LegalParagraph>
-                <LegalParagraph>
-                  <strong>Right to Object:</strong> You have the right to object
-                  to processing of your personal information that is based on
-                  our legitimate interests or public interest. If this is done,
-                  we must provide compelling legitimate grounds for the
-                  processing which overrides your interests, rights, and
-                  freedoms, in order to proceed with the processing of your
-                  personal information.
-                </LegalParagraph>
-                <LegalParagraph>
-                  <strong>Right to be Informed:</strong> You have the right to
-                  be informed with how your data is collected, processed, shared
-                  and stored.
-                </LegalParagraph>
-                <LegalParagraph>
-                  <strong>Right of Access:</strong> You may request a copy of
-                  the personal information that we hold about you at any time by
-                  submitting a Data Subject Access Request (DSAR). The statutory
-                  deadline for fulfilling a DSAR request is 30 calendar days
-                  from our receipt of your request.
-                </LegalParagraph>
-                <LegalParagraph>
-                  <strong>Right to Erasure:</strong> In certain circumstances,
-                  you can ask for your personal data to be erased from the
-                  records held by organizations. However this is a qualified
-                  right; it is not absolute, and may only apply in certain
-                  circumstances.
-                </LegalParagraph>
-                <LegalParagraph>
-                  When may the right to erasure apply?
-                </LegalParagraph>
-                <ul className="mb-4 list-disc space-y-2 pl-6">
-                  <li>
-                    When the personal data is no longer necessary for the
-                    purpose for which it was originally collected or processed
-                    for.
-                  </li>
-                  <li>
-                    If consent was the lawful basis for processing personal data
-                    and that consent has been withdrawn. Analog Interface relies
-                    on consent to process personal data in very few
-                    circumstances.
-                  </li>
-                  <li>
-                    The Company is relying on legitimate interests as a legal
-                    basis for processing personal data and an individual has
-                    exercised the right to object and it has been determined
-                    that the Company has no overriding legitimate grounds to
-                    refuse that request.
-                  </li>
-                  <li>
-                    Personal data are being processed for direct marketing
-                    purposes e.g. a person's name and email address, and the
-                    individual objects to that processing.
-                  </li>
-                  <li>
-                    There is legislation that requires that personal data are to
-                    be destroyed.
-                  </li>
-                </ul>
-                <LegalParagraph>
-                  <strong>Right to Portability:</strong> Individuals have the
-                  right to get some of their personal data from an organisation
-                  in a way that is accessible and machine-readable, for example
-                  as a csv file. Associated with this, individuals also have the
-                  right to ask an organisation to transfer their personal data
-                  to another organisation.
-                </LegalParagraph>
-                <LegalParagraph>
-                  However, the right to portability:
-                </LegalParagraph>
-                <ul className="mb-4 list-disc space-y-2 pl-6">
-                  <li>
-                    only applies to personal data which a person has directly
-                    given to Analog Interface in electronic form; and
-                  </li>
-                  <li>
-                    onward transfer will only be available where this is
-                    "technically feasible".
-                  </li>
-                </ul>
-                <LegalParagraph>
-                  <strong>Right to Rectification:</strong> If personal data is
-                  inaccurate, out of date, or incomplete, individuals have the
-                  right to correct, update or complete that data. Collectively
-                  this is referred to as the right to rectification.
-                  Rectification may involve filling the gaps i.e. to have to
-                  have incomplete personal data completed - although this will
-                  depend on the purposes for the processing. This may involve
-                  adding a supplementary statement to the incomplete data to
-                  highlight any inaccuracy or claim thereof.
-                </LegalParagraph>
-                <LegalParagraph>
-                  This right only applies to an individual's own personal data;
-                  a person cannot seek the rectification of another person's
-                  information.
-                </LegalParagraph>
-                <LegalParagraph>
-                  <strong>Notification of data breaches:</strong> Upon discovery
-                  of a data breach, we will investigate the incident and report
-                  it to the UK's data protection regulator and yourself, if we
-                  deem it appropriate to do so.
-                </LegalParagraph>
-                <LegalParagraph>
-                  <strong>Complaints:</strong> You have the right, at any time,
-                  to lodge a complaint with the Information Commissioner's
-                  Office (ICO), the UK supervisory authority for data protection
-                  issues (
-                  <LegalTextLink href="https://www.ico.org.uk">
-                    www.ico.org.uk
-                  </LegalTextLink>
-                  ). We would, however, appreciate the chance to deal with your
-                  concerns before you approach the ICO so please contact us in
-                  the first instance using the details below. Please provide us
-                  with as much information as you can about the alleged breach.
-                  We will promptly investigate your complaint and respond to
-                  you, in writing, setting out the outcome of our investigation
-                  and the steps we will take to deal with your complaint.
-                </LegalParagraph>
-
-                <LegalHeading3>Enquiries, Reports and Escalation</LegalHeading3>
-                <LegalParagraph>
-                  To enquire about Analog Interface's privacy policy, or to
-                  report violations of user privacy, you may contact our Data
-                  Protection Officer using the details in the Contact us section
-                  of this privacy policy.
-                </LegalParagraph>
-                <LegalParagraph>
-                  If we fail to resolve your concern to your satisfaction, you
-                  may also contact the Information Commissioner's Office (ICO),
-                  the UK Data Protection regulator:
-                </LegalParagraph>
-                <LegalParagraph>
-                  Information Commissioner's Office
-                  <br />
-                  Wycliffe House
-                  <br />
-                  Water Lane
-                  <br />
-                  Wilmslow
-                  <br />
-                  Cheshire
-                  <br />
-                  SK9 5AF
-                  <br />
-                  <br />
-                  Tel: 0303 123 1113 (local rate)
-                  <br />
-                  Website:{" "}
-                  <LegalTextLink href="https://www.ico.org.uk">
-                    www.ico.org.uk
-                  </LegalTextLink>
+                  <strong className="font-semibold text-primary">
+                    Deletion:
+                  </strong>{" "}
+                  You may have a right to request that we delete the personal
+                  information we hold about you at any time, and we will take
+                  reasonable steps to delete your personal information from our
+                  current records. If you ask us to delete your personal
+                  information, we will let you know how the deletion affects
+                  your use of our website or products and services. There may be
+                  exceptions to this right for specific legal reasons which, if
+                  applicable, we will set out for you in response to your
+                  request. If you terminate or delete your account, we will
+                  delete your personal information within 30 days of the
+                  deletion of your account. Please be aware that search engines
+                  and similar third parties may still retain copies of your
+                  personal information that has been made public at least once,
+                  like certain profile information and public comments, even
+                  after you have deleted the information from our services or
+                  deactivated your account.
                 </LegalParagraph>
               </section>
 
