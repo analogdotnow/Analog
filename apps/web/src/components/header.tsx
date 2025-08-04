@@ -6,6 +6,27 @@ import { ModeToggle } from "@/components/ui/theme-toggle";
 import { URLS } from "@/lib/urls";
 import { cn } from "@/lib/utils";
 
+const headerItems = [
+  {
+    id: 1,
+    label: "Github",
+    href: URLS.GITHUB,
+    icon: GitHub,
+  },
+  {
+    id: 2,
+    label: "Twitter",
+    href: URLS.TWITTER,
+    icon: Twitter,
+  },
+  {
+    id: 3,
+    label: "Discord",
+    href: URLS.DISCORD,
+    icon: Discord,
+  },
+];
+
 interface HeaderProps {
   className?: string;
 }
@@ -24,28 +45,21 @@ export function Header({ className }: HeaderProps) {
         </Link>
 
         <nav className="flex flex-row items-center justify-center gap-1.5">
-          <Button asChild variant="ghost" size="sm">
-            <a href={URLS.GITHUB} target="_blank" rel="noopener noreferrer">
-              <GitHub className="fill-primary" />
-              <span className="sr-only">GitHub</span>
-            </a>
-          </Button>
-
-          <Button asChild variant="ghost" size="sm">
-            <a href={URLS.TWITTER} target="_blank" rel="noopener noreferrer">
-              <Twitter className="fill-primary" />
-              <span className="sr-only">Twitter</span>
-            </a>
-          </Button>
-
-          <Button asChild variant="ghost" size="sm">
-            <a href={URLS.DISCORD} target="_blank" rel="noopener noreferrer">
-              <Discord className="fill-primary" />
-              <span className="sr-only">Discord</span>
-            </a>
-          </Button>
+          {headerItems.map((item) => (
+            <Button asChild variant="ghost" size="sm" key={item.id}>
+              <a href={item.href} target="_blank" rel="noopener noreferrer">
+                <item.icon className="fill-primary" />
+                <span className="sr-only">{item.label}</span>
+              </a>
+            </Button>
+          ))}
 
           <ModeToggle />
+
+          {/* TODO: Re-enable login button once we ready to launch */}
+          {/* <Button asChild variant="default" size="sm">
+            <Link href="/login">Login</Link>
+          </Button> */}
         </nav>
       </div>
     </header>
