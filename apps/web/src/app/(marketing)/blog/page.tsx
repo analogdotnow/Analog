@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -6,6 +7,10 @@ import { getPosts } from "@/lib/blog-query";
 import { transitionVariants } from "@/lib/transitions";
 
 export const revalidate = 3600;
+
+export const metadata: Metadata = {
+  title: "Blog, Updates & News - Analog",
+};
 
 export default async function BlogPage() {
   const { posts } = await getPosts();

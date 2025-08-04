@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 
@@ -10,6 +11,58 @@ import {
 } from "@/lib/transitions";
 
 export const revalidate = 300;
+
+interface PageProps {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
+  const slug = (await params).slug;
+
+  const data = await getSinglePost(slug);
+
+  if (!data || !data.post) {
+    return {};
+  }
+
+  return {
+    title: `${data.post.title} - Analog`,
+    description: data.post.description,
+    twitter: {
+      title: `${data.post.title} - Analog`,
+      description: data.post.description,
+      card: "summary_large_image",
+      images: [
+        {
+          url: data.post.coverImage,
+          width: "1200",
+          height: "630",
+          alt: data.post.title,
+        },
+      ],
+    },
+    openGraph: {
+      title: `${data.post.title} - Analog`,
+      description: data.post.description,
+      type: "article",
+      images: [
+        {
+          url: data.post.coverImage,
+          width: "1200",
+          height: "630",
+          alt: data.post.title,
+        },
+      ],
+      publishedTime: new Date(data.post.publishedAt).toISOString(),
+      authors: [
+        ...data.post.authors.map((author: { name: string }) => author.name),
+      ],
+    },
+  };
+}
 
 export default async function PostPage({
   params,
