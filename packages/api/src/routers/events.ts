@@ -14,16 +14,16 @@ import { calendarProcedure, createTRPCRouter } from "../trpc";
 
 export const eventsRouter = createTRPCRouter({
   list: calendarProcedure
-    .meta({
-      openapi: {
-        method: "GET",
-        path: "/events",
-        protect: true,
-        summary: "List events",
-        description: "List events for the authenticated user",
-        tags: ["events"],
-      },
-    })
+    // .meta({
+    //   openapi: {
+    //     method: "GET",
+    //     path: "/events",
+    //     protect: true,
+    //     summary: "List events",
+    //     description: "List events for the authenticated user",
+    //     tags: ["events"],
+    //   },
+    // })
     .input(
       z.object({
         calendarIds: z.array(z.string()).default([]),
@@ -32,7 +32,7 @@ export const eventsRouter = createTRPCRouter({
         defaultTimeZone: z.string(),
       }),
     )
-    .output(z.unknown())
+    // .output(z.unknown())
     .query(async ({ ctx, input }) => {
       const allEvents = await Promise.all(
         ctx.providers.map(async ({ client, account }) => {

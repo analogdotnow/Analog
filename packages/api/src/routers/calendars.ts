@@ -12,18 +12,18 @@ import {
 
 export const calendarsRouter = createTRPCRouter({
   list: calendarProcedure
-    .meta({
-      openapi: {
-        method: "GET",
-        path: "/calendars",
-        protect: true,
-        summary: "List user calendars",
-        description: "Get all calendars for the authenticated user",
-        tags: ["calendars"],
-      },
-    })
-    .input(z.void())
-    .output(z.unknown())
+    // .meta({
+    //   openapi: {
+    //     method: "GET",
+    //     path: "/calendars",
+    //     protect: true,
+    //     summary: "List user calendars",
+    //     description: "Get all calendars for the authenticated user",
+    //     tags: ["calendars"],
+    //   },
+    // })
+    // .input(z.void())
+    // .output(z.unknown())
     .query(async ({ ctx }) => {
       const promises = ctx.providers.map(async ({ client, account }) => {
         const calendars = await client.calendars();
