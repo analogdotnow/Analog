@@ -5,6 +5,7 @@
   "exports": {
     ".": "./src/root.ts",
     "./trpc": "./src/trpc.ts",
+    "./openapi": "./src/openapi.ts",
     "./providers/interfaces": "./src/providers/interfaces.ts"
   },
   "scripts": {
@@ -19,6 +20,7 @@
     "superjson": "^2.2.2",
     "superjson-temporal": "^0.3.1",
     "temporal-zod": "https://pkg.pr.new/analogdotnow/temporal-utils/temporal-zod@9c97507",
+    "trpc-to-openapi": "^3.0.0",
     "zod": "^4.0.5"
   },
   "dependencies": {
