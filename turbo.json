@@ -21,7 +21,11 @@
         "MICROSOFT_CLIENT_ID",
         "MICROSOFT_CLIENT_SECRET",
         "ZOOM_CLIENT_ID",
-        "ZOOM_CLIENT_SECRET"
+        "ZOOM_CLIENT_SECRET",
+        "NEXT_PUBLIC_SENTRY_DSN",
+        "SENTRY_DSN",
+        "SENTRY_PROJECT",
+        "SENTRY_ORG"
       ],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
@@ -47,7 +51,11 @@
         "MICROSOFT_CLIENT_ID",
         "MICROSOFT_CLIENT_SECRET",
         "ZOOM_CLIENT_ID",
-        "ZOOM_CLIENT_SECRET"
+        "ZOOM_CLIENT_SECRET",
+        "NEXT_PUBLIC_SENTRY_DSN",
+        "SENTRY_DSN",
+        "SENTRY_PROJECT",
+        "SENTRY_ORG"
       ]
     },
     "lint": {
