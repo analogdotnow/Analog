@@ -15,6 +15,7 @@ import { RightSidebar } from "@/components/right-sidebar";
 import { SidebarInset } from "@/components/ui/sidebar";
 import { EventHotkeys } from "@/lib/hotkeys/event-hotkeys";
 import { useTRPC } from "@/lib/trpc/client";
+import { AppCommandMenu } from "./command-menu/app-command-menu";
 import { useOptimisticEvents } from "./event-calendar/hooks/use-optimistic-events";
 
 export function CalendarLayout() {
@@ -57,6 +58,7 @@ function IsolatedCalendarLayout() {
           />
         </div>
       </SidebarInset>
+      <AppCommandMenu />
       <RightSidebar variant="inset" side="right">
         <EventForm
           selectedEvent={selectedEvents[0]}

@@ -120,13 +120,6 @@ export function CalendarView({
     defaultTimeZone,
   ]);
 
-  const { enableScope } = useHotkeysContext();
-
-  useEffect(() => {
-    enableScope("calendar");
-    enableScope("event");
-  }, [enableScope]);
-
   return (
     <div
       className={cn(
