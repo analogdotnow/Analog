@@ -1,7 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import { Temporal } from "temporal-polyfill";
-import { zZonedDateTimeInstance } from "temporal-zod";
-import { z } from "zod/v3";
+import { z } from "zod";
 
 import { toInstant } from "@repo/temporal";
 
@@ -10,18 +9,30 @@ import {
   createEventInputSchema,
   updateEventInputSchema,
 } from "../schemas/events";
+import { zTemporalZonedDateTime } from "../schemas/temporal";
 import { calendarProcedure, createTRPCRouter } from "../trpc";
 
 export const eventsRouter = createTRPCRouter({
   list: calendarProcedure
+    // .meta({
+    //   openapi: {
+    //     method: "GET",
+    //     path: "/events",
+    //     protect: true,
+    //     summary: "List events",
+    //     description: "List events for the authenticated user",
+    //     tags: ["events"],
+    //   },
+    // })
     .input(
       z.object({
         calendarIds: z.array(z.string()).default([]),
-        timeMin: zZonedDateTimeInstance,
-        timeMax: zZonedDateTimeInstance,
+        timeMin: zTemporalZonedDateTime,
+        timeMax: zTemporalZonedDateTime,
         defaultTimeZone: z.string(),
       }),
     )
+    // .output(z.unknown())
     .query(async ({ ctx, input }) => {
       const allEvents = await Promise.all(
         ctx.providers.map(async ({ client, account }) => {

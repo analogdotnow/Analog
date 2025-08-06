@@ -2,7 +2,7 @@ import "server-only";
 
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { mcp } from "better-auth/plugins";
+import { apiKey, openAPI, mcp } from "better-auth/plugins";
 
 import { db } from "@repo/db";
 import type { account } from "@repo/db/schema";
@@ -96,12 +96,26 @@ export const auth = betterAuth({
     },
   },
   plugins: [
+    apiKey({
+      enableMetadata: true,
+      rateLimit: {
+        enabled: true,
+        timeWindow: 1000 * 60, // 1 minute
+        maxRequests: 100, // 100 requests per minute
+      },
+    }),
+    // only for testing purposes
+    openAPI(),
     mcp({
       loginPage: "/login",
     }),
   ],
+  rateLimit: {
+    storage: "secondary-storage",
+  },
 });
 
 export type Session = typeof auth.$Infer.Session;
 export type User = Session["user"];
 export type Account = typeof account.$inferSelect;
+export type ApiKey = Awaited<ReturnType<typeof auth.api.getApiKey>>;
