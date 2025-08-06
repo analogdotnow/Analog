@@ -1,9 +1,10 @@
 import * as React from "react";
 
+import { isDraggingAtom, isResizingAtom, jotaiStore } from "@/atoms";
+
 interface UseEdgeAutoScrollOptions {
   headerRef?: React.RefObject<HTMLElement | null>;
-
-  active: boolean;
+  enabled?: boolean;
   /**
    * Top edge trigger zone is between topStart < y < topEnd (relative to the container).
    * Defaults: topStart = 0, topEnd = 48.
@@ -24,12 +25,28 @@ export function useEdgeAutoScroll(
   options: UseEdgeAutoScrollOptions,
 ) {
   const {
-    active,
+    enabled = true,
     topThreshold = 96,
     bottomThreshold = 48,
     maxSpeed = 2,
     headerRef,
   } = options;
+
+  // Helper to read current drag / resize status without subscribing React state
+  const isActive = React.useCallback(() => {
+    return (
+      enabled &&
+      (jotaiStore.get(isDraggingAtom) || jotaiStore.get(isResizingAtom))
+    );
+  }, [enabled]);
+
+  React.useEffect(() => {
+    console.log(
+      "headerRef",
+      headerRef?.current?.getBoundingClientRect().height,
+    );
+  }, [headerRef]);
+
   // Animation frame id
   const frame = React.useRef<number | null>(null);
   // Latest pointer Y position
@@ -48,7 +65,7 @@ export function useEdgeAutoScroll(
   React.useEffect(() => {
     const el = containerRef.current;
 
-    if (!el || !active) {
+    if (!el || !enabled) {
       return;
     }
 
@@ -81,6 +98,12 @@ export function useEdgeAutoScroll(
     };
 
     const onPointerMove = (e: PointerEvent) => {
+      // Only handle events when dragging or resizing is active
+      if (!isActive()) {
+        stopLoop();
+        return;
+      }
+
       pointerY.current = e.clientY;
       const rect = el.getBoundingClientRect();
 
@@ -116,7 +139,7 @@ export function useEdgeAutoScroll(
           delayTimeout.current = window.setTimeout(() => {
             isScrolling.current = true;
             startLoop();
-          }, 1000);
+          }, 200);
         }
       }
     };
@@ -144,20 +167,26 @@ export function useEdgeAutoScroll(
       }
     };
 
-    window.addEventListener("pointermove", onPointerMove);
-    window.addEventListener("pointerleave", stopLoop);
+    const abortController = new AbortController();
+
+    window.addEventListener("pointermove", onPointerMove, {
+      signal: abortController.signal,
+    });
+    window.addEventListener("pointerleave", stopLoop, {
+      signal: abortController.signal,
+    });
 
     return () => {
-      window.removeEventListener("pointermove", onPointerMove);
-      window.removeEventListener("pointerleave", stopLoop);
+      abortController.abort();
       stopLoop();
     };
   }, [
-    active,
+    isActive,
     bottomThreshold,
     maxSpeed,
     containerRef,
     headerRef,
     topThreshold,
+    enabled,
   ]);
 }

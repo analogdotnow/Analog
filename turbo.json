@@ -22,6 +22,10 @@
         "MICROSOFT_CLIENT_SECRET",
         "ZOOM_CLIENT_ID",
         "ZOOM_CLIENT_SECRET",
+        "NEXT_PUBLIC_SENTRY_DSN",
+        "SENTRY_DSN",
+        "SENTRY_PROJECT",
+        "SENTRY_ORG",
         "MARBLE_WORKSPACE_KEY",
         "MARBLE_API_URL"
       ],
@@ -50,6 +54,10 @@
         "MICROSOFT_CLIENT_SECRET",
         "ZOOM_CLIENT_ID",
         "ZOOM_CLIENT_SECRET",
+        "NEXT_PUBLIC_SENTRY_DSN",
+        "SENTRY_DSN",
+        "SENTRY_PROJECT",
+        "SENTRY_ORG",
         "MARBLE_WORKSPACE_KEY",
         "MARBLE_API_URL"
       ]

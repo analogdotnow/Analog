@@ -23,6 +23,7 @@ import {
 import {
   CalendarSettings,
   useCalendarSettings,
+  useIsDragging,
   useViewPreferences,
 } from "@/atoms";
 import {
@@ -474,7 +475,7 @@ function PositionedEvent({
     isAfter(eventStart, weekStart) || isSameDay(eventStart, weekStart);
   const isLastDay = isBefore(eventEnd, weekEnd) || isSameDay(eventEnd, weekEnd);
 
-  const [isDragging, setIsDragging] = React.useState(false);
+  const isDragging = useIsDragging();
 
   const handleEventClick = React.useCallback(
     (e: React.MouseEvent, event: CalendarEvent) => {
@@ -503,7 +504,6 @@ function PositionedEvent({
         isLastDay={isLastDay}
         onClick={(e) => handleEventClick(e, evt.event)}
         dispatchAction={dispatchAction}
-        setIsDragging={setIsDragging}
         zIndex={isDragging ? 99999 : undefined}
         rows={rows}
       />
