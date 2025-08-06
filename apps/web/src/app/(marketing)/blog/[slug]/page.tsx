@@ -4,13 +4,20 @@ import { notFound } from "next/navigation";
 
 import { Prose } from "@/components/prose";
 import { AnimatedGroup } from "@/components/ui/animated-group";
-import { getSinglePost } from "@/lib/blog-query";
+import { getSinglePost, getPosts } from "@/lib/blog-query";
 import {
   delayedTransitionVariants,
   transitionVariants,
 } from "@/lib/transitions";
 
 export const revalidate = 300;
+
+export async function generateStaticParams() {
+  const { posts } = await getPosts();
+  return posts.map((post) => ({
+    slug: post.slug,
+  }));
+}
 
 interface PageProps {
   params: Promise<{ slug: string }>;
