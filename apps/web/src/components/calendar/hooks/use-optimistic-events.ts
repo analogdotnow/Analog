@@ -1,5 +1,6 @@
-import { useCallback, useMemo, useOptimistic, useTransition } from "react";
+import { useCallback, useState, useMemo, useOptimistic, useTransition } from "react";
 import { useAtom, useAtomValue } from "jotai";
+import { useQueryClient } from "@tanstack/react-query";
 import * as R from "remeda";
 
 import { isBefore } from "@repo/temporal";
@@ -21,13 +22,61 @@ type OptimisticAction =
   | { type: "update"; event: CalendarEvent }
   | { type: "delete"; eventId: string };
 
+type ConfirmationDialogState = {
+  open: boolean;
+  type: "update" | "delete";
+  event: CalendarEvent | null;
+  onConfirm: (sendUpdate: boolean) => void;
+  onCancel: () => void;
+};
+
+function convertEventToItem(
+  event: CalendarEvent,
+  timeZone: string,
+): EventCollectionItem {
+  return {
+    event,
+    start: convertToZonedDateTime(event.start, timeZone),
+    end: convertToZonedDateTime(event.end, timeZone).subtract({ seconds: 1 }),
+  };
+}
+
+function isUserOnlyAttendee(event: CalendarEvent, userEmail?: string): boolean {
+  if (!event.attendees || event.attendees.length === 0) {
+    return true;
+  }
+
+  if (!userEmail) {
+    return false;
+  }
+
+  const userAttendees = event.attendees.filter(
+    (attendee) => attendee.email === userEmail,
+  );
+
+  return event.attendees.length === 1 && userAttendees.length === 1;
+}
+
 export function useOptimisticEvents() {
-  const { events, createMutation, updateMutation, deleteMutation } =
-    useEvents();
+  const {
+    events,
+    createMutation,
+    updateMutation,
+    deleteMutation,
+    eventsQueryKey,
+  } = useEvents();
   const [selectedEvents, setSelectedEvents] = useAtom(selectedEventsAtom);
   const { defaultTimeZone } = useAtomValue(calendarSettingsAtom);
 
   const [isPending, startTransition] = useTransition();
+  const [confirmationDialog, setConfirmationDialog] =
+    useState<ConfirmationDialogState>({
+      open: false,
+      type: "update",
+      event: null,
+      onConfirm: () => {},
+      onCancel: () => {},
+    });
 
   const [optimisticEvents, applyOptimistic] = useOptimistic(
     events,
@@ -54,6 +103,8 @@ export function useOptimisticEvents() {
     },
   );
 
+  const queryClient = useQueryClient();
+
   const handleEventSave = useCallback(
     (event: CalendarEvent) => {
       startTransition(() => applyOptimistic({ type: "update", event }));
@@ -67,9 +118,63 @@ export function useOptimisticEvents() {
         return;
       }
 
-      updateMutation.mutate(event);
+      if (isUserOnlyAttendee(event, currentUser?.email)) {
+        updateMutation.mutate(event);
+
+        return;
+      }
+
+      const previousEvents = queryClient.getQueryData(eventsQueryKey);
+
+      queryClient.setQueryData(eventsQueryKey, (prev) => {
+        if (!prev) {
+          return prev;
+        }
+
+        const withoutEvent = prev.events.filter((e) => e.id !== event.id);
+
+        const events = insertIntoSorted(
+          withoutEvent,
+          event,
+          (a) => compareTemporal(a.start, event.start) < 0,
+        );
+
+        return {
+          ...prev,
+          events,
+        };
+      });
+
+      setConfirmationDialog({
+        open: true,
+        type: "update",
+        event,
+        onConfirm: (sendUpdate: boolean) => {
+          updateMutation.mutate({
+            ...event,
+            response: {
+              status: "unknown" as const,
+              sendUpdate,
+            },
+          });
+
+          setConfirmationDialog((prev) => ({ ...prev, open: false }));
+        },
+        onCancel: () => {
+          queryClient.setQueryData(eventsQueryKey, previousEvents);
+          setConfirmationDialog((prev) => ({ ...prev, open: false }));
+        },
+      });
     },
-    [applyOptimistic, createMutation, optimisticEvents, updateMutation],
+    [
+      optimisticEvents,
+      currentUser?.email,
+      queryClient,
+      eventsQueryKey,
+      applyOptimistic,
+      createMutation,
+      updateMutation,
+    ],
   );
 
   const asyncUpdateEvent = useCallback(
@@ -85,9 +190,39 @@ export function useOptimisticEvents() {
         return;
       }
 
-      await updateMutation.mutateAsync(event);
+      if (isUserOnlyAttendee(event, currentUser?.email)) {
+        updateMutation.mutate(event);
+
+        return;
+      }
+
+      setConfirmationDialog({
+        open: true,
+        type: "update",
+        event,
+        onConfirm: async (sendUpdate: boolean) => {
+          await updateMutation.mutateAsync({
+            ...event,
+            response: {
+              status: "unknown" as const,
+              sendUpdate,
+            },
+          });
+
+          setConfirmationDialog((prev) => ({ ...prev, open: false }));
+        },
+        onCancel: () => {
+          setConfirmationDialog((prev) => ({ ...prev, open: false }));
+        },
+      });
     },
-    [applyOptimistic, createMutation, optimisticEvents, updateMutation],
+    [
+      applyOptimistic,
+      createMutation,
+      optimisticEvents,
+      updateMutation,
+      currentUser?.email,
+    ],
   );
 
   const handleEventDelete = useCallback(
@@ -105,13 +240,37 @@ export function useOptimisticEvents() {
 
       const deletedEvent = deletedEventItem.event;
 
-      // Remove from selected events first if it's selected
-      setSelectedEvents((prev) => prev.filter((e) => e.id !== eventId));
+      if (isUserOnlyAttendee(deletedEvent, currentUser?.email)) {
+        setSelectedEvents((prev) => prev.filter((e) => e.id !== eventId));
 
-      deleteMutation.mutate({
-        accountId: deletedEvent.accountId,
-        calendarId: deletedEvent.calendarId,
-        eventId,
+        deleteMutation.mutate({
+          accountId: deletedEvent.accountId,
+          calendarId: deletedEvent.calendarId,
+          eventId,
+        });
+
+        return;
+      }
+
+      setConfirmationDialog({
+        open: true,
+        type: "delete",
+        event: deletedEvent,
+        onConfirm: (sendUpdate: boolean) => {
+          setSelectedEvents((prev) => prev.filter((e) => e.id !== eventId));
+
+          deleteMutation.mutate({
+            accountId: deletedEvent.accountId,
+            calendarId: deletedEvent.calendarId,
+            eventId,
+            sendUpdate,
+          });
+
+          setConfirmationDialog((prev) => ({ ...prev, open: false }));
+        },
+        onCancel: () => {
+          setConfirmationDialog((prev) => ({ ...prev, open: false }));
+        },
       });
     },
     [
@@ -166,5 +325,6 @@ export function useOptimisticEvents() {
     isPending,
     dispatchAction,
     dispatchAsyncAction,
+    confirmationDialog,
   };
 }

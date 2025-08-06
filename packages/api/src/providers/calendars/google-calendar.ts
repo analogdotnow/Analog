@@ -199,9 +199,16 @@ export class GoogleCalendarProvider implements CalendarProvider {
     });
   }
 
-  async deleteEvent(calendarId: string, eventId: string): Promise<void> {
+  async deleteEvent(
+    calendarId: string,
+    eventId: string,
+    sendUpdate: boolean,
+  ): Promise<void> {
     return this.withErrorHandler("deleteEvent", async () => {
-      await this.client.calendars.events.delete(eventId, { calendarId });
+      await this.client.calendars.events.delete(eventId, {
+        calendarId,
+        sendUpdates: sendUpdate ? "all" : "none",
+      });
     });
   }
 
