@@ -31,7 +31,14 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
 
 const t = initTRPC
   .context<typeof createTRPCContext>()
-  .meta<OpenApiMeta>()
+  .meta<
+    OpenApiMeta & {
+      mcp?: {
+        enabled?: boolean;
+        description?: string;
+      };
+    }
+  >()
   .create({
     transformer: superjson,
     errorFormatter({ shape, error }) {

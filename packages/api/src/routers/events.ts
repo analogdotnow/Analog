@@ -14,16 +14,20 @@ import { calendarProcedure, createTRPCRouter } from "../trpc";
 
 export const eventsRouter = createTRPCRouter({
   list: calendarProcedure
-    // .meta({
-    //   openapi: {
-    //     method: "GET",
-    //     path: "/events",
-    //     protect: true,
-    //     summary: "List events",
-    //     description: "List events for the authenticated user",
-    //     tags: ["events"],
-    //   },
-    // })
+    .meta({
+      // openapi: {
+      //   method: "GET",
+      //   path: "/events",
+      //   protect: true,
+      //   summary: "List events",
+      //   description: "List events for the authenticated user",
+      //   tags: ["events"],
+      // },
+      mcp: {
+        enabled: true,
+        description: "List events for the authenticated user",
+      },
+    })
     .input(
       z.object({
         calendarIds: z.array(z.string()).default([]),

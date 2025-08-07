@@ -24,6 +24,11 @@ export const calendarsRouter = createTRPCRouter({
     // })
     // .input(z.void())
     // .output(z.unknown())
+    .meta({
+      mcp: {
+        enabled: true,
+      },
+    })
     .query(async ({ ctx }) => {
       const promises = ctx.providers.map(async ({ client, account }) => {
         const calendars = await client.calendars();
