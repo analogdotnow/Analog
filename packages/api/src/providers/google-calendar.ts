@@ -188,6 +188,8 @@ export class GoogleCalendarProvider implements CalendarProvider {
       const updatedEvent = await this.client.calendars.events.update(
         eventId,
         eventToUpdate,
+        // TODO: Handle conflicts gracefully
+        // event.etag ? { headers: { "If-Match": event.etag } } : undefined,
       );
 
       return parseGoogleCalendarEvent({

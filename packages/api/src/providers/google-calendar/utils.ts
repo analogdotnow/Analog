@@ -104,6 +104,7 @@ export function parseGoogleCalendarEvent({
     status: event.status,
     attendees: event.attendees?.map(parseGoogleCalendarAttendee) ?? [],
     url: event.htmlLink,
+    etag: event.etag,
     providerId: "google",
     accountId,
     calendarId: calendar.id,
