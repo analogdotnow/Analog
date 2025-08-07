@@ -8,8 +8,6 @@ import type {
 } from "@trpc/server/unstable-core-do-not-import";
 import { z } from "zod";
 
-import { zTemporalZonedDateTime } from "@/lib/schemas/temporal";
-
 type Tool = {
   name: string;
   description: string;
@@ -60,14 +58,6 @@ export function extractToolsFromProcedures<
       if (schema) {
         const jsonSchema = z.toJSONSchema(schema, {
           unrepresentable: "any",
-          override: (ctx) => {
-            const def = ctx.zodSchema._zod.def
-            if (ctx.zodSchema === zTemporalZonedDateTime) {
-              ctx.jsonSchema.type = "string";
-              ctx.jsonSchema.format = "date-time-ext";
-              ctx.jsonSchema.description = "date-time-ext (RFC 9557)";
-            }
-          },
         });
 
         if (jsonSchema.type === "object") {

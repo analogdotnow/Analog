@@ -9,14 +9,16 @@ import { createMcpHandler } from "@vercel/mcp-adapter";
 import { withMcpAuth } from "better-auth/plugins";
 
 import { appRouter, createCaller } from "@repo/api";
-import { auth, type Session } from "@repo/auth/server";
+import { auth, type McpSession, type Session } from "@repo/auth/server";
 import { db } from "@repo/db";
 import { env } from "@repo/env/server";
 
 import { trpcToMcpAdapter } from "./trpc-to-mcp";
 
-const handler = withMcpAuth(auth, async (_req, mcpSession) => {
-  const tools = trpcToMcpAdapter(appRouter);
+async function getSession(mcpSession: McpSession): Promise<Session | null> {
+  if (!mcpSession) {
+    return null;
+  }
 
   const kv = new Redis({
     url: env.UPSTASH_REDIS_REST_URL,
@@ -35,6 +37,13 @@ const handler = withMcpAuth(auth, async (_req, mcpSession) => {
         sessionToken,
       )
     : null;
+
+  return session;
+}
+
+const handler = withMcpAuth(auth, async (_req, mcpSession) => {
+  const tools = trpcToMcpAdapter(appRouter);
+  const session = await getSession(mcpSession);
 
   if (!session) {
     return NextResponse.json(

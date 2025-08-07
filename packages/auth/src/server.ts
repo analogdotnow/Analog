@@ -2,7 +2,7 @@ import "server-only";
 
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { apiKey, openAPI, mcp } from "better-auth/plugins";
+import { apiKey, mcp, openAPI } from "better-auth/plugins";
 
 import { db } from "@repo/db";
 import type { account } from "@repo/db/schema";
@@ -116,6 +116,7 @@ export const auth = betterAuth({
 });
 
 export type Session = typeof auth.$Infer.Session;
+export type McpSession = Awaited<ReturnType<typeof auth.api.getMcpSession>>;
 export type User = Session["user"];
 export type Account = typeof account.$inferSelect;
 export type ApiKey = Awaited<ReturnType<typeof auth.api.getApiKey>>;
