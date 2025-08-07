@@ -62,6 +62,7 @@ export function TRPCReactProvider(props: Readonly<TRPCReactProviderProps>) {
         httpBatchStreamLink({
           transformer: superjson,
           url: getUrl(),
+          methodOverride: "POST",
           headers: () => {
             const headers = new Headers();
             headers.set("x-trpc-source", "nextjs-react");
