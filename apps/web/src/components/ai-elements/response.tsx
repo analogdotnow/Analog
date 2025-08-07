@@ -31,7 +31,7 @@ function parseIncompleteMarkdown(text: string): string {
   const linkMatch = result.match(linkImagePattern);
   if (linkMatch) {
     // If we have an unterminated [ or ![, remove it and everything after
-    const startIndex = result.lastIndexOf(linkMatch[1]);
+    const startIndex = result.lastIndexOf(linkMatch[1]!);
     result = result.substring(0, startIndex);
   }
 
