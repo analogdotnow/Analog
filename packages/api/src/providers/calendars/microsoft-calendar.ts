@@ -5,16 +5,16 @@ import type {
 } from "@microsoft/microsoft-graph-types";
 import { Temporal } from "temporal-polyfill";
 
-import { CALENDAR_DEFAULTS } from "../constants/calendar";
-import { CreateCalendarInput, UpdateCalendarInput } from "../schemas/calendars";
-import { CreateEventInput, UpdateEventInput } from "../schemas/events";
+import { CALENDAR_DEFAULTS } from "../../constants/calendar";
+import type { Calendar, CalendarEvent } from "../../interfaces";
+import {
+  CreateCalendarInput,
+  UpdateCalendarInput,
+} from "../../schemas/calendars";
+import { CreateEventInput, UpdateEventInput } from "../../schemas/events";
+import { CalendarProvider, ResponseToEventInput } from "../interfaces";
+import { ProviderError } from "../lib/provider-error";
 import { assignColor } from "./colors";
-import type {
-  Calendar,
-  CalendarEvent,
-  CalendarProvider,
-  ResponseToEventInput,
-} from "./interfaces";
 import {
   calendarPath,
   eventResponseStatusPath,
@@ -22,7 +22,6 @@ import {
   parseMicrosoftEvent,
   toMicrosoftEvent,
 } from "./microsoft-calendar/utils";
-import { ProviderError } from "./utils";
 
 interface MicrosoftCalendarProviderOptions {
   accessToken: string;

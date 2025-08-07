@@ -1,7 +1,9 @@
 import GoogleCalendar from "@repo/google-calendar";
 
-import { Conference, ConferencingProvider } from "../interfaces";
-import { ProviderError } from "../utils";
+import { Conference } from "../../interfaces";
+import { parseGoogleCalendarConferenceData } from "../calendars/google-calendar/utils";
+import { ConferencingProvider } from "../interfaces";
+import { ProviderError } from "../lib/provider-error";
 
 interface GoogleMeetProviderOptions {
   accessToken: string;
@@ -58,23 +60,7 @@ export class GoogleMeetProvider implements ConferencingProvider {
         throw new Error("Failed to create conference data");
       }
 
-      const conferenceData = updatedEvent.conferenceData;
-
-      const videoEntry = conferenceData.entryPoints?.find(
-        (e) => e.entryPointType === "video" && e.uri,
-      );
-      const phoneNumbers = conferenceData.entryPoints
-        ?.filter((e) => e.entryPointType === "phone" && e.uri)
-        .map((e) => e.uri as string);
-
-      return {
-        id: conferenceData.conferenceId,
-        name: conferenceData.conferenceSolution?.name || "Google Meet",
-        joinUrl: videoEntry?.uri,
-        meetingCode: videoEntry?.meetingCode ?? conferenceData.conferenceId,
-        phoneNumbers:
-          phoneNumbers && phoneNumbers.length ? phoneNumbers : undefined,
-      };
+      return parseGoogleCalendarConferenceData(updatedEvent)!;
     });
   }
 

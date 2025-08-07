@@ -1,7 +1,6 @@
 import { useCallback, useMemo, useOptimistic, useTransition } from "react";
 import { useAtom } from "jotai";
 import * as R from "remeda";
-import { Temporal } from "temporal-polyfill";
 
 import { compareTemporal } from "@repo/temporal";
 

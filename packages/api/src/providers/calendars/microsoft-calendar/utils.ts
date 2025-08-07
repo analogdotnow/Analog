@@ -7,18 +7,18 @@ import type {
 } from "@microsoft/microsoft-graph-types";
 import { Temporal } from "temporal-polyfill";
 
-import {
-  CreateEventInput,
-  MicrosoftEventMetadata,
-  UpdateEventInput,
-} from "../../schemas/events";
 import type {
   Attendee,
   AttendeeStatus,
   Calendar,
   CalendarEvent,
   Conference,
-} from "../interfaces";
+} from "../../../interfaces";
+import {
+  CreateEventInput,
+  MicrosoftEventMetadata,
+  UpdateEventInput,
+} from "../../../schemas/events";
 import { mapWindowsToIanaTimeZone } from "./windows-timezones";
 
 interface ToMicrosoftDateOptions {
@@ -182,6 +182,7 @@ export function parseMicrosoftEvent({
             },
           }
         : {}),
+      onlineMeeting: event.onlineMeeting,
     },
   };
 }
@@ -287,16 +288,31 @@ function parseMicrosoftConference(
     ?.map((p) => p.number)
     .filter((n): n is string => Boolean(n));
 
+  // TODO: how to handle toll/toll-free numbers and quick dial?
   return {
-    id: event.onlineMeeting?.conferenceId ?? undefined,
+    id: detectMeetingLink(joinUrl)?.id,
+    conferenceId: event.onlineMeeting?.conferenceId ?? undefined,
     name:
       event.onlineMeetingProvider === "teamsForBusiness"
         ? "Microsoft Teams"
-        : "Online Meeting",
-    joinUrl,
-    meetingCode: event.onlineMeeting?.conferenceId ?? undefined,
-    phoneNumbers:
-      phoneNumbers && phoneNumbers.length ? phoneNumbers : undefined,
+        : undefined,
+    video: {
+      joinUrl: {
+        value: joinUrl,
+      },
+      meetingCode: event.onlineMeeting?.conferenceId ?? undefined,
+    },
+    ...(phoneNumbers &&
+      phoneNumbers.length && {
+        phone: phoneNumbers.map((number) => ({
+          joinUrl: {
+            label: number,
+            value: number.startsWith("tel:")
+              ? number
+              : `tel:${number.replace(/[- ]/g, "")}`,
+          },
+        })),
+      }),
   };
 }
 

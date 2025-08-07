@@ -5,7 +5,7 @@ import { z } from "zod/v3";
 
 import { toInstant } from "@repo/temporal";
 
-import { CalendarEvent } from "../providers/interfaces";
+import { CalendarEvent } from "../interfaces";
 import {
   createEventInputSchema,
   updateEventInputSchema,

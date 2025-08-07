@@ -2,8 +2,11 @@ import { Temporal } from "temporal-polyfill";
 
 import { GoogleCalendar } from "@repo/google-calendar";
 
-import { CALENDAR_DEFAULTS } from "../constants/calendar";
-import { CreateEventInput, UpdateEventInput } from "../schemas/events";
+import { CALENDAR_DEFAULTS } from "../../constants/calendar";
+import type { Calendar, CalendarEvent } from "../../interfaces";
+import { CreateEventInput, UpdateEventInput } from "../../schemas/events";
+import { CalendarProvider, ResponseToEventInput } from "../interfaces";
+import { ProviderError } from "../lib/provider-error";
 import { assignColor } from "./colors";
 import {
   parseGoogleCalendarCalendarListEntry,
@@ -11,13 +14,6 @@ import {
   toGoogleCalendarAttendeeResponseStatus,
   toGoogleCalendarEvent,
 } from "./google-calendar/utils";
-import type {
-  Calendar,
-  CalendarEvent,
-  CalendarProvider,
-  ResponseToEventInput,
-} from "./interfaces";
-import { ProviderError } from "./utils";
 
 interface GoogleCalendarProviderOptions {
   accessToken: string;

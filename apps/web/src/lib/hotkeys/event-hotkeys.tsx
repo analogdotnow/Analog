@@ -59,8 +59,12 @@ export function EventHotkeys({
         return;
       }
 
+      if (!selectedEvent.conference?.video?.joinUrl) {
+        return;
+      }
+
       window.open(
-        selectedEvent.conference.joinUrl,
+        selectedEvent.conference.video.joinUrl.value,
         "_blank",
         "noopener,noreferrer",
       );
