@@ -1,19 +1,11 @@
-import { NextResponse } from "next/server";
-import {
-  CallToolRequestSchema,
-  ListToolsRequestSchema,
-} from "@modelcontextprotocol/sdk/types.js";
-import { AnyProcedure } from "@trpc/server";
 import { Redis } from "@upstash/redis";
-import { createMcpHandler } from "@vercel/mcp-adapter";
 import { withMcpAuth } from "better-auth/plugins";
+import { trpcToMcpHandler } from "trpc-to-mcp/adapters/vercel-mcp-adapter";
 
-import { appRouter, createCaller } from "@repo/api";
+import { appRouter } from "@repo/api";
 import { auth, type McpSession, type Session } from "@repo/auth/server";
 import { db } from "@repo/db";
 import { env } from "@repo/env/server";
-
-import { trpcToMcpAdapter } from "./trpc-to-mcp";
 
 async function getSession(mcpSession: McpSession): Promise<Session | null> {
   if (!mcpSession) {
@@ -41,65 +33,27 @@ async function getSession(mcpSession: McpSession): Promise<Session | null> {
   return session;
 }
 
-const handler = withMcpAuth(auth, async (_req, mcpSession) => {
-  const tools = trpcToMcpAdapter(appRouter);
+const handler = withMcpAuth(auth, async (request, mcpSession) => {
   const session = await getSession(mcpSession);
 
-  if (!session) {
-    return NextResponse.json(
-      { error: "Create a session within app" },
-      { status: 401 },
-    );
-  }
-
-  const trpcCaller = createCaller({
-    headers: _req.headers,
-    db,
-    session: session.session,
-    user: session.user,
-  });
-
-  return createMcpHandler(
-    (server) => {
-      server.server.setRequestHandler(ListToolsRequestSchema, () => ({
-        tools,
-      }));
-
-      server.server.setRequestHandler(
-        CallToolRequestSchema,
-        async (request) => {
-          const { name, arguments: args } = request.params;
-
-          const tool = tools.find((t) => t.name === name);
-
-          if (!tool) {
-            return { content: [{ type: "text", text: "Could not find tool" }] };
-          }
-
-          // @ts-expect-error path in router
-          const procedure: AnyProcedure = tool.pathInRouter.reduce(
-            // @ts-expect-error path in router
-            (acc, part) => acc?.[part],
-            trpcCaller,
-          );
-
-          // @ts-expect-error path in router
-          return await procedure(args);
-        },
-      );
+  const handler = trpcToMcpHandler(
+    appRouter,
+    {
+      db,
+      headers: request.headers,
+      session: session?.session,
+      user: session?.user,
     },
     {
-      // Leave empty so it'll be handled with custom requ
-      capabilities: {
-        tools: {},
+      config: {
+        basePath: "/api",
+        verboseLogs: true,
+        maxDuration: 60,
       },
     },
-    {
-      basePath: "/api",
-      verboseLogs: true,
-      maxDuration: 60,
-    },
-  )(_req);
+  );
+
+  return await handler(request);
 });
 
-export { handler as GET, handler as POST, handler as DELETE };
+export { handler as DELETE, handler as GET, handler as POST };
