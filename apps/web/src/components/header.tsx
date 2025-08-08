@@ -6,6 +6,48 @@ import { ModeToggle } from "@/components/ui/theme-toggle";
 import { URLS } from "@/lib/urls";
 import { cn } from "@/lib/utils";
 
+interface SocialItem {
+  id: number;
+  label: string;
+  href: string;
+  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+}
+
+interface NavigationItem {
+  id: number;
+  label: string;
+  href: string;
+}
+
+const socialItems: SocialItem[] = [
+  {
+    id: 1,
+    label: "GitHub",
+    href: URLS.GITHUB,
+    icon: GitHub,
+  },
+  {
+    id: 2,
+    label: "Twitter",
+    href: URLS.TWITTER,
+    icon: Twitter,
+  },
+  {
+    id: 3,
+    label: "Discord",
+    href: URLS.DISCORD,
+    icon: Discord,
+  },
+];
+
+const navigationItems: NavigationItem[] = [
+  // {
+  //   id: 1,
+  //   label: "Blog",
+  //   href: "/blog",
+  // },
+];
+
 interface HeaderProps {
   className?: string;
 }
@@ -18,35 +60,44 @@ export function Header({ className }: HeaderProps) {
         className,
       )}
     >
-      <div className="mx-auto flex w-full max-w-7xl flex-row items-center justify-between">
-        <Link href="/">
-          <Logo />
-        </Link>
+      <div className="mx-auto grid w-full max-w-7xl grid-cols-3 items-center">
+        <div className="flex justify-start">
+          <Link href="/">
+            <Logo />
+          </Link>
+        </div>
 
-        <nav className="flex flex-row items-center justify-center gap-1.5">
-          <Button asChild variant="ghost" size="sm">
-            <a href={URLS.GITHUB} target="_blank" rel="noopener noreferrer">
-              <GitHub className="fill-primary" />
-              <span className="sr-only">GitHub</span>
-            </a>
-          </Button>
+        <nav className="flex items-center justify-center">
+          <div className="hidden flex-row items-center gap-1 md:flex">
+            {navigationItems.map((item) => (
+              <Button asChild variant="ghost" size="sm" key={item.id}>
+                <Link href={item.href} className="text-sm font-medium">
+                  {item.label}
+                </Link>
+              </Button>
+            ))}
+          </div>
+        </nav>
 
-          <Button asChild variant="ghost" size="sm">
-            <a href={URLS.TWITTER} target="_blank" rel="noopener noreferrer">
-              <Twitter className="fill-primary" />
-              <span className="sr-only">Twitter</span>
-            </a>
-          </Button>
-
-          <Button asChild variant="ghost" size="sm">
-            <a href={URLS.DISCORD} target="_blank" rel="noopener noreferrer">
-              <Discord className="fill-primary" />
-              <span className="sr-only">Discord</span>
-            </a>
-          </Button>
+        <div className="flex items-center justify-end gap-1.5">
+          <div className="hidden flex-row items-center gap-1.5 sm:flex">
+            {socialItems.map((item) => (
+              <Button asChild variant="ghost" size="sm" key={item.id}>
+                <a href={item.href} target="_blank" rel="noopener noreferrer">
+                  <item.icon className="fill-primary" />
+                  <span className="sr-only">{item.label}</span>
+                </a>
+              </Button>
+            ))}
+          </div>
 
           <ModeToggle />
-        </nav>
+
+          {/* TODO: Re-enable login button once we ready to launch */}
+          {/* <Button asChild variant="default" size="sm">
+            <Link href="/login">Login</Link>
+          </Button> */}
+        </div>
       </div>
     </header>
   );
