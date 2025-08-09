@@ -1,13 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useQueryClient } from "@tanstack/react-query";
-import { ChevronsUpDown, LogOut, Plus, Settings } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { ChevronsUpDown, LogOut, Settings } from "lucide-react";
 import { useTheme } from "next-themes";
 
 import { authClient } from "@repo/auth/client";
 
-import { AddAccountDialog } from "@/components/add-account-dialog";
 import { SettingsDialog } from "@/components/settings-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -31,16 +30,17 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useCurrentUser } from "@/hooks/accounts";
+import { useTRPC } from "@/lib/trpc/client";
 
 export function NavUser() {
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  const { data: user, isLoading } = useCurrentUser();
+  const trpc = useTRPC();
+  const query = useQuery(trpc.user.me.queryOptions());
   const { theme, setTheme } = useTheme();
 
-  if (isLoading) {
+  if (query.isLoading) {
     return <NavUserSkeleton />;
   }
 
@@ -54,18 +54,18 @@ export function NavUser() {
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarImage src={user?.image ?? undefined} alt={user?.name} />
+                <AvatarImage src={query.data?.image ?? undefined} alt={query.data?.name} />
                 <AvatarFallback className="rounded-lg bg-accent-foreground text-background">
-                  {user?.name
+                  {query.data?.name
                     ?.split(" ")
                     .map((name) => name.charAt(0))
                     .join("")}
                 </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{user?.name}</span>
+                <span className="truncate font-medium">{query.data?.name}</span>
                 <span className="truncate text-xs text-muted-foreground">
-                  {user?.email}
+                  {query.data?.email}
                 </span>
               </div>
               <ChevronsUpDown className="ml-auto size-4" />
@@ -81,15 +81,15 @@ export function NavUser() {
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
                   <AvatarImage
-                    src={user?.image ?? undefined}
-                    alt={user?.name}
+                    src={query.data?.image ?? undefined}
+                    alt={query.data?.name}
                   />
                   <AvatarFallback className="rounded-lg"></AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{user?.name}</span>
+                  <span className="truncate font-medium">{query.data?.name}</span>
                   <span className="truncate text-xs text-muted-foreground">
-                    {user?.email}
+                    {query.data?.email}
                   </span>
                 </div>
               </div>

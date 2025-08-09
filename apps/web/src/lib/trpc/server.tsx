@@ -24,7 +24,7 @@ export const trpc = createTRPCOptionsProxy({
   queryClient: getQueryClient,
 });
 
-const caller = appRouter.createCaller(ctx);
+export const caller = appRouter.createCaller(ctx);
 
 export function HydrateClient(props: { children: ReactNode }) {
   const queryClient = getQueryClient();

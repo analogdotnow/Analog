@@ -2,8 +2,6 @@ import { useMemo } from "react";
 import { useAtomValue } from "jotai";
 import { Temporal } from "temporal-polyfill";
 
-import { eachDayOfInterval, isWeekend } from "@repo/temporal";
-
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { cellHeightAtom } from "@/atoms/cell-height";
 import {
@@ -40,7 +38,9 @@ function getEventCollectionsForMonthSimple(
 ): Map<string, EventCollectionByDay> {
   const map = new Map<string, EventCollectionByDay>();
 
-  if (days.length === 0) return map;
+  if (days.length === 0) {
+    return map;
+  }
 
   // Pre-filter events to those that can possibly overlap with the visible range
   const startDate = days[0]!;
