@@ -1,4 +1,3 @@
-import { useAtomValue } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 
 export interface CalendarSettings {
@@ -26,11 +25,3 @@ export const calendarSettingsAtom = atomWithStorage<CalendarSettings>(
     easterEggsEnabled: false,
   },
 );
-
-export function useCalendarSettings() {
-  return useAtomValue(calendarSettingsAtom);
-}
-
-export function useDefaultTimeZone() {
-  return useAtomValue(calendarSettingsAtom).defaultTimeZone;
-}

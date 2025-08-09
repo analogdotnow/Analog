@@ -1,9 +1,10 @@
 "use client";
 
 import * as React from "react";
+import { useAtomValue } from "jotai";
 import { Temporal } from "temporal-polyfill";
 
-import { useDefaultTimeZone } from "@/atoms/calendar-settings";
+import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 
 type Granularity = "minute" | "second";
 
@@ -35,7 +36,7 @@ export function ZonedDateTimeProvider({
   tick = "minute",
   children,
 }: ZonedDateTimeProviderProps) {
-  const timeZone = useDefaultTimeZone();
+  const timeZone = useAtomValue(calendarSettingsAtom).defaultTimeZone;
 
   const [dateTime, setDateTime] = React.useState(() =>
     Temporal.Now.zonedDateTimeISO(timeZone),

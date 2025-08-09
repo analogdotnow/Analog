@@ -1,11 +1,12 @@
 "use client";
 
 import * as React from "react";
+import { useAtomValue } from "jotai";
 import { motion } from "motion/react";
 import { Temporal } from "temporal-polyfill";
 
-import { useCalendarSettings } from "@/atoms/calendar-settings";
-import { useIsDragging } from "@/atoms/drag-resize-state";
+import { calendarSettingsAtom } from "@/atoms/calendar-settings";
+import { isDraggingAtom } from "@/atoms/drag-resize-state";
 import { DragPreview } from "@/components/calendar/event/drag-preview";
 import { DraggableEvent } from "@/components/calendar/event/draggable-event";
 import { EventItem } from "@/components/calendar/event/event-item";
@@ -52,7 +53,7 @@ function PositionedEvent({
   dispatchAction,
   containerRef,
 }: PositionedEventProps) {
-  const isDragging = useIsDragging();
+  const isDragging = useAtomValue(isDraggingAtom);
 
   return (
     <div
@@ -100,10 +101,13 @@ export function DayView({
 
   const eventCollection = useEventCollection(events, currentDate, "day");
 
-  const handleEventClick = React.useCallback((event: CalendarEvent, e: React.MouseEvent) => {
-    e.stopPropagation();
-    dispatchAction({ type: "select", event });
-  }, [dispatchAction]);
+  const handleEventClick = React.useCallback(
+    (event: CalendarEvent, e: React.MouseEvent) => {
+      e.stopPropagation();
+      dispatchAction({ type: "select", event });
+    },
+    [dispatchAction],
+  );
 
   return (
     <div data-slot="day-view" className="contents">
@@ -225,7 +229,7 @@ function DayViewTimeSlots({
   hours,
   dispatchAction,
 }: DayViewTimeSlotsProps) {
-  const settings = useCalendarSettings();
+  const settings = useAtomValue(calendarSettingsAtom);
   const columnRef = React.useRef<HTMLDivElement>(null);
 
   const { onDragStart, onDrag, onDragEnd, top, height, opacity } =

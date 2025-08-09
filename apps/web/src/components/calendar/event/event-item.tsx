@@ -1,9 +1,10 @@
 "use client";
 
 import * as React from "react";
+import { useAtomValue } from "jotai";
 import { Temporal } from "temporal-polyfill";
 
-import { useCalendarSettings } from "@/atoms/calendar-settings";
+import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import {
   getBorderRadiusClasses,
   getContentPaddingClasses,
@@ -98,7 +99,8 @@ export function EventItem({
     return displayStart.until(displayEnd);
   }, [displayStart, displayEnd]);
 
-  const { defaultTimeZone, locale, use12Hour } = useCalendarSettings();
+  const { defaultTimeZone, locale, use12Hour } =
+    useAtomValue(calendarSettingsAtom);
   const eventTime = React.useMemo(() => {
     if (item.event.allDay) {
       return "All day";

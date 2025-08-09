@@ -1,7 +1,8 @@
 import * as React from "react";
+import { useAtomValue } from "jotai";
 import { Temporal } from "temporal-polyfill";
 
-import { useCellHeight } from "@/atoms/cell-height";
+import { cellHeightAtom } from "@/atoms/cell-height";
 
 interface useScrollToCurrentTimeProps {
   scrollContainerRef: React.RefObject<HTMLDivElement | null>;
@@ -10,7 +11,7 @@ interface useScrollToCurrentTimeProps {
 export function useScrollToCurrentTime({
   scrollContainerRef,
 }: useScrollToCurrentTimeProps) {
-  const cellHeight = useCellHeight();
+  const cellHeight = useAtomValue(cellHeightAtom);
   const scrollToCurrentTime = React.useCallback(() => {
     if (!scrollContainerRef.current) {
       return;

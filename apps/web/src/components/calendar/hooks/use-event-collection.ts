@@ -1,10 +1,11 @@
 import { useMemo } from "react";
+import { useAtomValue } from "jotai";
 import { Temporal } from "temporal-polyfill";
 
 import { eachDayOfInterval, isWeekend } from "@repo/temporal";
 
-import { useDefaultTimeZone } from "@/atoms/calendar-settings";
-import { useCellHeight } from "@/atoms/cell-height";
+import { calendarSettingsAtom } from "@/atoms/calendar-settings";
+import { cellHeightAtom } from "@/atoms/cell-height";
 import {
   calculateWeekViewEventPositions,
   getAllDayEventCollectionsForDays,
@@ -191,8 +192,8 @@ export function useEventCollection(
   daysOrDay: Temporal.PlainDate[] | Temporal.PlainDate,
   viewType: "month" | "week" | "day",
 ): EventCollectionForMonth | EventCollectionForWeek | EventCollectionForDay {
-  const timeZone = useDefaultTimeZone();
-  const cellHeight = useCellHeight();
+  const timeZone = useAtomValue(calendarSettingsAtom).defaultTimeZone;
+  const cellHeight = useAtomValue(cellHeightAtom);
 
   return useMemo(() => {
     // Early return for empty inputs
@@ -249,10 +250,7 @@ export function useEventCollection(
     }
 
     if (viewType === "month") {
-      const eventsByDay = getEventCollectionsForMonthSimple(
-        eventItems,
-        days,
-      );
+      const eventsByDay = getEventCollectionsForMonthSimple(eventItems, days);
       return {
         type: "month" as const,
         eventsByDay,

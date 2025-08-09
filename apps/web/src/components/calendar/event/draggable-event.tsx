@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useAtomValue, useSetAtom } from "jotai";
 import {
   PanInfo,
   motion,
@@ -9,8 +10,8 @@ import {
 } from "motion/react";
 import { Temporal } from "temporal-polyfill";
 
-import { useCellHeight } from "@/atoms/cell-height";
-import { useSetIsDragging, useSetIsResizing } from "@/atoms/drag-resize-state";
+import { cellHeightAtom } from "@/atoms/cell-height";
+import { isDraggingAtom, isResizingAtom } from "@/atoms/drag-resize-state";
 import { EventContextMenu } from "@/components/calendar/event/event-context-menu";
 import { EventItem } from "@/components/calendar/event/event-item";
 import { ContextMenuTrigger } from "@/components/ui/context-menu";
@@ -66,9 +67,9 @@ export function DraggableEvent({
   const height = useMotionValue(initialHeight ?? "100%");
   const transform = useMotionTemplate`translate(${left}px,${top}px)`;
 
-  const cellHeight = useCellHeight();
-  const setIsDragging = useSetIsDragging();
-  const setIsResizing = useSetIsResizing();
+  const cellHeight = useAtomValue(cellHeightAtom);
+  const setIsDragging = useSetAtom(isDraggingAtom);
+  const setIsResizing = useSetAtom(isResizingAtom);
 
   React.useEffect(() => {
     height.set(initialHeight ?? "100%");

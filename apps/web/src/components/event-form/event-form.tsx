@@ -2,11 +2,12 @@
 
 import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useAtomValue } from "jotai";
 import { RepeatIcon } from "lucide-react";
 
 import {
   CalendarSettings,
-  useCalendarSettings,
+  calendarSettingsAtom,
 } from "@/atoms/calendar-settings";
 import type { Action } from "@/components/calendar/hooks/use-optimistic-events";
 import {
@@ -79,7 +80,7 @@ export function EventForm({
   dispatchAsyncAction,
   defaultCalendar,
 }: EventFormProps) {
-  const settings = useCalendarSettings();
+  const settings = useAtomValue(calendarSettingsAtom);
 
   const trpc = useTRPC();
   const query = useQuery(trpc.calendars.list.queryOptions());

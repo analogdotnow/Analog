@@ -1,4 +1,4 @@
-import { atom, useAtomValue } from "jotai";
+import { atom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import { Temporal } from "temporal-polyfill";
 
@@ -21,17 +21,11 @@ export const viewPreferencesAtom = atomWithStorage<ViewPreferences>(
   },
 );
 
-// Store the calendar view preference persistently
 export const calendarViewAtom = atomWithStorage<CalendarView>(
   "analog-calendar-view",
   "week",
 );
 
-// Store the current date in memory (non-persistent)
 export const currentDateAtom = atom<Temporal.PlainDate>(
   Temporal.Now.plainDateISO(),
 );
-
-export function useViewPreferences() {
-  return useAtomValue(viewPreferencesAtom);
-}

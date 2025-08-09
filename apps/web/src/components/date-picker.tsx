@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useAtomValue } from "jotai";
 import { Temporal } from "temporal-polyfill";
 
-import { useCalendarSettings } from "@/atoms/calendar-settings";
+import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { Calendar } from "@/components/ui/calendar";
 import { useCalendarState } from "@/hooks/use-calendar-state";
 import { cn } from "@/lib/utils";
@@ -40,7 +41,7 @@ export function DatePicker() {
     );
   };
 
-  const settings = useCalendarSettings();
+  const settings = useAtomValue(calendarSettingsAtom);
   useEffect(() => {
     if (updateSource.current === "external") {
       setDisplayedDate(toDate(currentDate));

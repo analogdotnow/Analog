@@ -1,7 +1,8 @@
 import * as React from "react";
+import { useAtomValue } from "jotai";
 import { Temporal } from "temporal-polyfill";
 
-import { useCalendarSettings } from "@/atoms/calendar-settings";
+import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { createDraftEvent } from "@/lib/utils/calendar";
 import { TIME_INTERVALS } from "../constants";
 import type { Action } from "./use-optimistic-events";
@@ -28,7 +29,7 @@ export function useDoubleClickToCreate({
   columnRef,
 }: UseDoubleClickToCreateOptions) {
   const { defaultTimeZone, defaultStartTime, defaultEventDuration } =
-    useCalendarSettings();
+    useAtomValue(calendarSettingsAtom);
   const handleDoubleClick = React.useCallback(
     (e: React.MouseEvent) => {
       if (!columnRef?.current) {

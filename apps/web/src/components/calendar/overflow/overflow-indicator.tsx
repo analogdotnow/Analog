@@ -2,12 +2,13 @@
 
 import * as React from "react";
 import { format } from "date-fns";
+import { useAtomValue } from "jotai";
 import { XIcon } from "lucide-react";
 import { Temporal } from "temporal-polyfill";
 
 import { isSameDay, toDate } from "@repo/temporal";
 
-import { useDefaultTimeZone } from "@/atoms/calendar-settings";
+import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { EventItem } from "@/components/calendar/event/event-item";
 import type { Action } from "@/components/calendar/hooks/use-optimistic-events";
 import type { CalendarEvent } from "@/components/calendar/interfaces";
@@ -38,7 +39,7 @@ export function OverflowIndicator({
 }: OverflowIndicatorProps) {
   const [open, setOpen] = React.useState(false);
 
-  const timeZone = useDefaultTimeZone();
+  const timeZone = useAtomValue(calendarSettingsAtom).defaultTimeZone;
 
   const handleEventClick = React.useCallback(
     (event: CalendarEvent) => {

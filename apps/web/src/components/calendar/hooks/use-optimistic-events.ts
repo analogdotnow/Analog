@@ -1,10 +1,10 @@
 import { useCallback, useMemo, useOptimistic, useTransition } from "react";
-import { useAtom } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import * as R from "remeda";
 
 import { isBefore } from "@repo/temporal";
 
-import { useCalendarSettings } from "@/atoms/calendar-settings";
+import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { SelectedEvents, selectedEventsAtom } from "@/atoms/selected-events";
 import type { CalendarEvent, DraftEvent } from "@/lib/interfaces";
 import { EventCollectionItem, convertEventToItem } from "./event-collection";
@@ -25,7 +25,7 @@ export function useOptimisticEvents() {
   const { events, createMutation, updateMutation, deleteMutation } =
     useEvents();
   const [selectedEvents, setSelectedEvents] = useAtom(selectedEventsAtom);
-  const { defaultTimeZone } = useCalendarSettings();
+  const { defaultTimeZone } = useAtomValue(calendarSettingsAtom);
 
   const [isPending, startTransition] = useTransition();
 

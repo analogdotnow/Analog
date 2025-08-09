@@ -3,6 +3,7 @@
 import * as React from "react";
 import { format } from "date-fns";
 import { isWithinInterval } from "interval-temporal";
+import { useAtomValue } from "jotai";
 import { Temporal } from "temporal-polyfill";
 
 import {
@@ -22,10 +23,10 @@ import {
 
 import {
   CalendarSettings,
-  useCalendarSettings,
+  calendarSettingsAtom,
 } from "@/atoms/calendar-settings";
-import { useIsDragging } from "@/atoms/drag-resize-state";
-import { useViewPreferences } from "@/atoms/view-preferences";
+import { isDraggingAtom } from "@/atoms/drag-resize-state";
+import { viewPreferencesAtom } from "@/atoms/view-preferences";
 import { DefaultStartHour } from "@/components/calendar/constants";
 import { DraggableEvent } from "@/components/calendar/event/draggable-event";
 import { useMultiDayOverflow } from "@/components/calendar/hooks/use-multi-day-overflow";
@@ -62,7 +63,7 @@ export function MonthView({
   events,
   dispatchAction,
 }: MonthViewProps) {
-  const settings = useCalendarSettings();
+  const settings = useAtomValue(calendarSettingsAtom);
 
   // Memoize dispatchAction to prevent cascading re-renders
   const memoizedDispatchAction = React.useCallback(dispatchAction, [
@@ -125,8 +126,8 @@ export function MonthView({
 type MonthViewHeaderProps = React.ComponentProps<"div">;
 
 function MonthViewHeader(props: MonthViewHeaderProps) {
-  const viewPreferences = useViewPreferences();
-  const settings = useCalendarSettings();
+  const viewPreferences = useAtomValue(viewPreferencesAtom);
+  const settings = useAtomValue(calendarSettingsAtom);
 
   const weekDays = React.useMemo(() => {
     return [
@@ -185,7 +186,7 @@ function MonthViewWeek({
   currentDate,
 }: MonthViewWeekItemProps) {
   const weekRef = React.useRef<HTMLDivElement>(null);
-  const viewPreferences = useViewPreferences();
+  const viewPreferences = useAtomValue(viewPreferencesAtom);
   const weekStart = week[0]!;
   const weekEnd = week[6]!;
 
@@ -346,8 +347,8 @@ function MonthViewDay({
   dispatchAction,
   currentDate,
 }: MonthViewDayProps) {
-  const viewPreferences = useViewPreferences();
-  const settings = useCalendarSettings();
+  const viewPreferences = useAtomValue(viewPreferencesAtom);
+  const settings = useAtomValue(calendarSettingsAtom);
 
   const handleDayClick = React.useCallback(() => {
     const start = day.toZonedDateTime({
@@ -469,7 +470,7 @@ function PositionedEvent({
     isAfter(eventStart, weekStart) || isSameDay(eventStart, weekStart);
   const isLastDay = isBefore(eventEnd, weekEnd) || isSameDay(eventEnd, weekEnd);
 
-  const isDragging = useIsDragging();
+  const isDragging = useAtomValue(isDraggingAtom);
 
   const handleEventClick = React.useCallback(
     (e: React.MouseEvent, event: CalendarEvent) => {

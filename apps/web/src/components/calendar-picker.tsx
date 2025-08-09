@@ -3,8 +3,9 @@
 import * as React from "react";
 import { useResizeObserver } from "@react-hookz/web";
 import { useQuery } from "@tanstack/react-query";
+import { useAtom } from "jotai";
 
-import { useCalendarsVisibility } from "@/atoms/calendars-visibility";
+import { calendarsVisibilityAtom } from "@/atoms/calendars-visibility";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -56,8 +57,9 @@ function useCalendarList() {
 }
 
 function CalendarListItem({ calendar }: { calendar: Calendar }) {
-  const [calendarsVisibility, setCalendarsVisibility] =
-    useCalendarsVisibility();
+  const [calendarsVisibility, setCalendarsVisibility] = useAtom(
+    calendarsVisibilityAtom,
+  );
   const textRef = React.useRef<HTMLSpanElement>(null);
   const [isTextTruncated, setIsTextTruncated] = React.useState(false);
 
@@ -116,7 +118,7 @@ export function CalendarPicker() {
 
   const { data } = useCalendarList();
 
-  const [calendarVisibility] = useCalendarsVisibility();
+  const [calendarVisibility] = useAtom(calendarsVisibilityAtom);
 
   const visibleCalendars = React.useMemo(() => {
     return data?.accounts

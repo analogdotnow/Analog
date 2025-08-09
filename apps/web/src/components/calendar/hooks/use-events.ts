@@ -1,11 +1,12 @@
 import * as React from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAtomValue } from "jotai";
 import * as R from "remeda";
 import { toast } from "sonner";
 
 import { endOfMonth, isBefore, startOfMonth } from "@repo/temporal";
 
-import { useCalendarSettings } from "@/atoms/calendar-settings";
+import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { useCalendarState } from "@/hooks/use-calendar-state";
 import { useTRPC } from "@/lib/trpc/client";
 import { mapEventsToItems } from "./event-collection";
@@ -27,7 +28,7 @@ export function useEvents() {
   const queryClient = useQueryClient();
   const { currentDate } = useCalendarState();
 
-  const { defaultTimeZone } = useCalendarSettings();
+  const { defaultTimeZone } = useAtomValue(calendarSettingsAtom);
 
   const { timeMin, timeMax } = React.useMemo(() => {
     const start = currentDate

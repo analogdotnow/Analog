@@ -1,9 +1,10 @@
 import { useMemo } from "react";
+import { useAtomValue } from "jotai";
 import { Temporal } from "temporal-polyfill";
 
 import { isWeekend } from "@repo/temporal";
 
-import { useViewPreferences } from "@/atoms/view-preferences";
+import { viewPreferencesAtom } from "@/atoms/view-preferences";
 
 interface GridLayoutOptions {
   /**
@@ -30,7 +31,7 @@ export function useGridLayout(
 ) {
   const { includeTimeColumn = false, timeColumnWidth = "5rem" } = options;
 
-  const viewPreferences = useViewPreferences();
+  const viewPreferences = useAtomValue(viewPreferencesAtom);
 
   const gridTemplateColumns = useMemo(() => {
     const columnSizes = days.map((day) => {

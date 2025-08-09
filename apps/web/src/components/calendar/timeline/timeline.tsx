@@ -1,6 +1,7 @@
 import { format } from "@formkit/tempo";
+import { useAtomValue } from "jotai";
 
-import { useCalendarSettings } from "@/atoms/calendar-settings";
+import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { HOURS } from "./constants";
 
 const HOURS_LEGACY = HOURS.map((hour) => {
@@ -13,7 +14,7 @@ const HOURS_LEGACY = HOURS.map((hour) => {
 });
 
 export function Timeline() {
-  const { use12Hour } = useCalendarSettings();
+  const { use12Hour } = useAtomValue(calendarSettingsAtom);
 
   return (
     <div className="grid auto-cols-fr border-r border-border/70 select-none">

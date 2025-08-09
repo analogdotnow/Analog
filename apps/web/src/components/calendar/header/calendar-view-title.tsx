@@ -1,9 +1,10 @@
 "use client";
 
+import { useAtomValue } from "jotai";
 import { AnimatePresence, Variant, motion } from "motion/react";
 
-import { useCalendarSettings } from "@/atoms/calendar-settings";
-import { useViewPreferences } from "@/atoms/view-preferences";
+import { calendarSettingsAtom } from "@/atoms/calendar-settings";
+import { viewPreferencesAtom } from "@/atoms/view-preferences";
 import { useCalendarState } from "@/hooks/use-calendar-state";
 import { cn } from "@/lib/utils";
 import { getViewTitleData } from "../utils/date-time";
@@ -34,8 +35,8 @@ interface CalendarViewTitleProps {
 
 export function CalendarViewTitle({ className }: CalendarViewTitleProps) {
   const { currentDate, view } = useCalendarState();
-  const settings = useCalendarSettings();
-  const viewPreferences = useViewPreferences();
+  const settings = useAtomValue(calendarSettingsAtom);
+  const viewPreferences = useAtomValue(viewPreferencesAtom);
 
   const titleData = getViewTitleData(currentDate, {
     timeZone: settings.defaultTimeZone,

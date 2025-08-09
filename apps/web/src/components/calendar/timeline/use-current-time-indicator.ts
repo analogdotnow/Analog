@@ -2,18 +2,19 @@
 
 import React from "react";
 import { format } from "@formkit/tempo";
+import { useAtomValue } from "jotai";
 import { Temporal } from "temporal-polyfill";
 
 import { isToday, toDate } from "@repo/temporal";
 
-import { useCalendarSettings } from "@/atoms/calendar-settings";
+import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { useZonedDateTime } from "../context/datetime-provider";
 
 const END_OF_DAY_MINUTES = 1440; // 24 hours * 60 minutes
 
 export function useCurrentTimeIndicator(currentDate: Temporal.PlainDate) {
   const time = useZonedDateTime();
-  const { defaultTimeZone, use12Hour } = useCalendarSettings();
+  const { defaultTimeZone, use12Hour } = useAtomValue(calendarSettingsAtom);
 
   const { currentTimePosition, currentTimeVisible, formattedTime } =
     React.useMemo(() => {

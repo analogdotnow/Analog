@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
-import { useHotkeysContext } from "react-hotkeys-hook";
+import { useMemo, useRef } from "react";
+import { useAtom, useAtomValue } from "jotai";
 
-import { useCalendarSettings } from "@/atoms/calendar-settings";
-import { useCalendarsVisibility } from "@/atoms/calendars-visibility";
-import { useCellHeight } from "@/atoms/cell-height";
-import { useViewPreferences } from "@/atoms/view-preferences";
+import { calendarSettingsAtom } from "@/atoms/calendar-settings";
+import { calendarsVisibilityAtom } from "@/atoms/calendars-visibility";
+import { cellHeightAtom } from "@/atoms/cell-height";
+import { viewPreferencesAtom } from "@/atoms/view-preferences";
 import { AgendaView } from "@/components/calendar/agenda-view/agenda-view";
 import { EventGap, EventHeight } from "@/components/calendar/constants";
 import { DayView } from "@/components/calendar/day-view/day-view";
@@ -84,15 +84,15 @@ export function CalendarView({
   events,
   dispatchAction,
 }: CalendarViewProps) {
-  const viewPreferences = useViewPreferences();
-  const [calendarVisibility] = useCalendarsVisibility();
+  const viewPreferences = useAtomValue(viewPreferencesAtom);
+  const [calendarVisibility] = useAtom(calendarsVisibilityAtom);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const calendarHeaderRef = useRef<HTMLElement | null>(null);
 
   // Cell height comes from Jotai atom so updates trigger a re-render + CSS update
-  const cellHeight = useCellHeight();
+  const cellHeight = useAtomValue(cellHeightAtom);
 
-  const { defaultTimeZone } = useCalendarSettings();
+  const { defaultTimeZone } = useAtomValue(calendarSettingsAtom);
   const filteredEvents = useMemo(() => {
     // First filter past events
     const pastFiltered = filterPastEvents(

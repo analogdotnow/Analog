@@ -165,10 +165,12 @@ function placeIntoLanes(
     const end = e.end.toPlainDate();
 
     // Account for all-day exclusive end dates (already inclusive for timed)
-    const inclusiveEnd = end
+    const inclusiveEnd = end;
 
-    const startDayValue = startOfDay(start, { timeZone }).toInstant().epochMilliseconds;
-    const endDayValue = startOfDay(end, { timeZone }).toInstant().epochMilliseconds;
+    const startDayValue = startOfDay(start, { timeZone }).toInstant()
+      .epochMilliseconds;
+    const endDayValue = startOfDay(end, { timeZone }).toInstant()
+      .epochMilliseconds;
 
     // +1 so a 1-day event has duration === 1
     const duration = start.until(inclusiveEnd).total({ unit: "days" }) + 1;
@@ -181,7 +183,7 @@ function placeIntoLanes(
     if (a.startDayValue !== b.startDayValue) {
       return a.startDayValue - b.startDayValue;
     }
-    
+
     return b.duration - a.duration;
   });
 

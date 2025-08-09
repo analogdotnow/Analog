@@ -1,10 +1,11 @@
 "use client";
 
 import * as React from "react";
+import { useAtomValue } from "jotai";
 import { useHotkeys } from "react-hotkeys-hook";
 import { Temporal } from "temporal-polyfill";
 
-import { useCalendarSettings } from "@/atoms/calendar-settings";
+import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import type { Action } from "@/components/calendar/hooks/use-optimistic-events";
 import { DeleteEventConfirmation } from "@/components/delete-event-confirmation";
 import { useSidebarWithSide } from "@/components/ui/sidebar";
@@ -29,7 +30,7 @@ export function EventHotkeys({
 }: CalendarHotkeysProps) {
   const { open: rightSidebarOpen, setOpen: setRightSidebarOpen } =
     useSidebarWithSide("right");
-  const settings = useCalendarSettings();
+  const settings = useAtomValue(calendarSettingsAtom);
 
   useHotkeys(
     KEYBOARD_SHORTCUTS.CREATE_EVENT,

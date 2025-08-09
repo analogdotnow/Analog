@@ -2,14 +2,15 @@
 
 import * as React from "react";
 import { format } from "date-fns/format";
+import { useAtomValue } from "jotai";
 import { motion } from "motion/react";
 import { Temporal } from "temporal-polyfill";
 
 import { isToday, isWeekend, toDate } from "@repo/temporal";
 
-import { useCalendarSettings } from "@/atoms/calendar-settings";
-import { useIsDragging } from "@/atoms/drag-resize-state";
-import { useViewPreferences } from "@/atoms/view-preferences";
+import { calendarSettingsAtom } from "@/atoms/calendar-settings";
+import { isDraggingAtom } from "@/atoms/drag-resize-state";
+import { viewPreferencesAtom } from "@/atoms/view-preferences";
 import { DragPreview } from "@/components/calendar/event/drag-preview";
 import { DraggableEvent } from "@/components/calendar/event/draggable-event";
 import { useMultiDayOverflow } from "@/components/calendar/hooks/use-multi-day-overflow";
@@ -54,9 +55,9 @@ export function WeekView({
   scrollContainerRef,
   ...props
 }: WeekViewProps) {
-  const viewPreferences = useViewPreferences();
+  const viewPreferences = useAtomValue(viewPreferencesAtom);
 
-  const settings = useCalendarSettings();
+  const settings = useAtomValue(calendarSettingsAtom);
   const { week, visibleDays } = React.useMemo(() => {
     const week = getWeek(currentDate, settings.weekStartsOn);
 
@@ -137,8 +138,8 @@ interface WeekViewHeaderProps {
 }
 
 function WeekViewHeader({ allDays, gridTemplateColumns }: WeekViewHeaderProps) {
-  const viewPreferences = useViewPreferences();
-  const settings = useCalendarSettings();
+  const viewPreferences = useAtomValue(viewPreferencesAtom);
+  const settings = useAtomValue(calendarSettingsAtom);
 
   const timeZone = React.useMemo(() => {
     const value = toDate(allDays[0]!, { timeZone: settings.defaultTimeZone });
@@ -206,8 +207,8 @@ function WeekViewAllDaySection({
   containerRef,
   dispatchAction,
 }: WeekViewAllDaySectionProps) {
-  const viewPreferences = useViewPreferences();
-  const settings = useCalendarSettings();
+  const viewPreferences = useAtomValue(viewPreferencesAtom);
+  const settings = useAtomValue(calendarSettingsAtom);
 
   // Use overflow hook for all-day events
   const overflow = useMultiDayOverflow({
@@ -339,11 +340,7 @@ function WeekViewPositionedEvent({
   dispatchAction,
   containerRef,
 }: WeekViewPositionedEventProps) {
-  const { colStart, span } = getGridPosition(
-    item,
-    weekStart,
-    weekEnd,
-  );
+  const { colStart, span } = getGridPosition(item, weekStart, weekEnd);
 
   const { isFirstDay, isLastDay } = React.useMemo(() => {
     // For single-day events, ensure they are properly marked as first and last day
@@ -353,7 +350,7 @@ function WeekViewPositionedEvent({
     return { isFirstDay, isLastDay };
   }, [item.start, item.end, weekStart, weekEnd]);
 
-  const isDragging = useIsDragging();
+  const isDragging = useAtomValue(isDraggingAtom);
 
   const onClick = React.useCallback(
     (e: React.MouseEvent) => {
@@ -401,7 +398,7 @@ function PositionedEvent({
   dispatchAction,
   containerRef,
 }: PositionedEventProps) {
-  const isDragging = useIsDragging();
+  const isDragging = useAtomValue(isDraggingAtom);
 
   const onClick = React.useCallback(
     (e: React.MouseEvent) => {
@@ -453,8 +450,8 @@ function WeekViewDayColumns({
   dispatchAction,
   containerRef,
 }: WeekViewDayColumnsProps) {
-  const viewPreferences = useViewPreferences();
-  const { defaultTimeZone } = useCalendarSettings();
+  const viewPreferences = useAtomValue(viewPreferencesAtom);
+  const { defaultTimeZone } = useAtomValue(calendarSettingsAtom);
 
   return (
     <>
@@ -514,7 +511,7 @@ function WeekViewDayTimeSlots({
   date,
   dispatchAction,
 }: WeekViewDayTimeSlotsProps) {
-  const { defaultTimeZone } = useCalendarSettings();
+  const { defaultTimeZone } = useAtomValue(calendarSettingsAtom);
 
   const columnRef = React.useRef<HTMLDivElement>(null);
 

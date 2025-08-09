@@ -3,11 +3,12 @@
 import * as React from "react";
 import { RiCalendarEventLine } from "@remixicon/react";
 import { format } from "date-fns";
+import { useAtomValue } from "jotai";
 import { Temporal } from "temporal-polyfill";
 
 import { isToday } from "@repo/temporal";
 
-import { useCalendarSettings } from "@/atoms/calendar-settings";
+import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { AgendaDaysToShow } from "@/components/calendar/constants";
 import { EventItem } from "@/components/calendar/event/event-item";
 import type { EventCollectionItem } from "@/components/calendar/hooks/event-collection";
@@ -33,7 +34,9 @@ export function AgendaView({
     );
 
     return days.map((day) => {
-      const dayEventItems = events.filter((event) => eventOverlapsDay(event, day));
+      const dayEventItems = events.filter((event) =>
+        eventOverlapsDay(event, day),
+      );
 
       return {
         day,
@@ -50,7 +53,7 @@ export function AgendaView({
     [dispatchAction],
   );
 
-  const settings = useCalendarSettings();
+  const settings = useAtomValue(calendarSettingsAtom);
 
   // Check if there are any days with events
   const hasEvents = days.some((day) => day.items.length > 0);
