@@ -1,7 +1,8 @@
 import "server-only";
 
 import { TRPCError, initTRPC } from "@trpc/server";
-import { OpenApiMeta } from "trpc-to-openapi";
+import type { McpMeta } from "trpc-to-mcp";
+import type { OpenApiMeta } from "trpc-to-openapi";
 import { ZodError } from "zod/v3";
 
 import { auth } from "@repo/auth/server";
@@ -31,14 +32,7 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
 
 const t = initTRPC
   .context<typeof createTRPCContext>()
-  .meta<
-    OpenApiMeta & {
-      mcp?: {
-        enabled?: boolean;
-        description?: string;
-      };
-    }
-  >()
+  .meta<OpenApiMeta & McpMeta>()
   .create({
     transformer: superjson,
     errorFormatter({ shape, error }) {
