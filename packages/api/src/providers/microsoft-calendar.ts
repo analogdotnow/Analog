@@ -2,6 +2,7 @@ import { Client } from "@microsoft/microsoft-graph-client";
 import type {
   Calendar as MicrosoftCalendar,
   Event as MicrosoftEvent,
+  ScheduleInformation,
 } from "@microsoft/microsoft-graph-types";
 import { Temporal } from "temporal-polyfill";
 
@@ -12,6 +13,7 @@ import { assignColor } from "./colors";
 import type {
   Calendar,
   CalendarEvent,
+  CalendarFreeBusy,
   CalendarProvider,
   ResponseToEventInput,
 } from "./interfaces";
@@ -20,6 +22,8 @@ import {
   eventResponseStatusPath,
   parseMicrosoftCalendar,
   parseMicrosoftEvent,
+  parseScheduleItem,
+  toMicrosoftDate,
   toMicrosoftEvent,
 } from "./microsoft-calendar/utils";
 import { ProviderError } from "./utils";
@@ -205,6 +209,32 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
           `/me/events/${eventId}/${eventResponseStatusPath(response.status)}`,
         )
         .post({ comment: response.comment, sendResponse: response.sendUpdate });
+    });
+  }
+
+  async freeBusy(
+    schedules: string[],
+    timeMin: Temporal.ZonedDateTime,
+    timeMax: Temporal.ZonedDateTime,
+  ): Promise<CalendarFreeBusy[]> {
+    return this.withErrorHandler("getSchedule", async () => {
+      const body = {
+        schedules,
+        startTime: toMicrosoftDate({ value: timeMin }),
+        endTime: toMicrosoftDate({ value: timeMax }),
+      };
+
+      const response = await this.graphClient
+        .api("/me/calendar/getSchedule")
+        .post(body);
+
+      // TODO: Handle errors
+      const data = response.value as ScheduleInformation[];
+
+      return data.map((info) => ({
+        scheduleId: info.scheduleId as string,
+        busy: info.scheduleItems?.map(parseScheduleItem) ?? [],
+      }));
     });
   }
 

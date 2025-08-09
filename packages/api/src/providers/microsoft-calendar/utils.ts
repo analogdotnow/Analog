@@ -4,6 +4,7 @@ import type {
   Event as MicrosoftEvent,
   Attendee as MicrosoftEventAttendee,
   ResponseStatus as MicrosoftEventAttendeeResponseStatus,
+  ScheduleItem,
 } from "@microsoft/microsoft-graph-types";
 import { Temporal } from "temporal-polyfill";
 
@@ -348,5 +349,30 @@ export function parseMicrosoftAttendee(
     name: attendee.emailAddress?.name ?? undefined,
     status: parseMicrosoftAttendeeStatus(attendee.status?.response),
     type: attendee.type!,
+  };
+}
+
+export function parseScheduleItemStatus(status: ScheduleItem["status"]) {
+  // TODO: Handle additional statuses
+  if (status === "busy" || status === "oof") {
+    return "busy";
+  }
+
+  if (status === "free") {
+    return "free";
+  }
+
+  return "unknown";
+}
+
+export function parseScheduleItem(item: ScheduleItem) {
+  if (!item.start || !item.end) {
+    throw new Error("Schedule item start or end is missing");
+  }
+
+  return {
+    start: parseDateTime(item.start.dateTime!, item.start.timeZone!),
+    end: parseDateTime(item.end.dateTime!, item.end.timeZone!),
+    status: parseScheduleItemStatus(item.status),
   };
 }
