@@ -5,8 +5,8 @@ import { useHotkeys } from "react-hotkeys-hook";
 import { Temporal } from "temporal-polyfill";
 
 import { useCalendarSettings } from "@/atoms/calendar-settings";
+import type { Action } from "@/components/calendar/hooks/use-optimistic-events";
 import { DeleteEventConfirmation } from "@/components/delete-event-confirmation";
-import type { Action } from "@/components/event-calendar/hooks/use-optimistic-events";
 import { useSidebarWithSide } from "@/components/ui/sidebar";
 import type { CalendarEvent, DraftEvent } from "@/lib/interfaces";
 import { createDraftEvent } from "@/lib/utils/calendar";

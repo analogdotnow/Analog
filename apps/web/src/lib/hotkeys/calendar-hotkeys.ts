@@ -7,7 +7,7 @@ import { useCalendarSettings } from "@/atoms/calendar-settings";
 import {
   navigateToNext,
   navigateToPrevious,
-} from "@/components/event-calendar/utils/date-time";
+} from "@/components/calendar/utils/date-time";
 import { useCalendarState } from "@/hooks/use-calendar-state";
 
 export const KEYBOARD_SHORTCUTS = {

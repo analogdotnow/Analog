@@ -8,7 +8,7 @@ import {
   CalendarSettings,
   useCalendarSettings,
 } from "@/atoms/calendar-settings";
-import type { Action } from "@/components/event-calendar/hooks/use-optimistic-events";
+import type { Action } from "@/components/calendar/hooks/use-optimistic-events";
 import {
   createDefaultEvent,
   parseCalendarEvent,

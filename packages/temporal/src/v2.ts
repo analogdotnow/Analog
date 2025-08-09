@@ -5,7 +5,10 @@ interface ToDateOptions {
   timeZone: string;
 }
 
-export function toDate(value: Temporal.Instant | Temporal.ZonedDateTime | Temporal.PlainDate, { timeZone }: ToDateOptions): Date {
+export function toDate(
+  value: Temporal.Instant | Temporal.ZonedDateTime | Temporal.PlainDate,
+  { timeZone }: ToDateOptions,
+): Date {
   if (value instanceof Temporal.PlainDate) {
     return tzDate(
       new Date(value.toString({ calendarName: "never" })),
