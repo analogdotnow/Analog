@@ -10,7 +10,7 @@ import {
 } from "@/components/calendar/utils/date-time";
 import { useCalendarState } from "@/hooks/use-calendar-state";
 
-export const KEYBOARD_SHORTCUTS = {
+const KEYBOARD_SHORTCUTS = {
   MONTH: "m",
   WEEK: "w",
   DAY: "d",

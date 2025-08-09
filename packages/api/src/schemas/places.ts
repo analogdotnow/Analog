@@ -6,7 +6,7 @@ export const autocompleteInputSchema = z.object({
   limit: z.number().int().min(1).max(10).optional().default(5),
 });
 
-export const placeResultSchema = z.object({
+const placeResultSchema = z.object({
   placeId: z.string(),
   displayName: z.string().optional(),
   formattedAddress: z.string(),
@@ -14,4 +14,4 @@ export const placeResultSchema = z.object({
 });
 
 export type AutocompleteInput = z.infer<typeof autocompleteInputSchema>;
-export type PlaceResult = z.infer<typeof placeResultSchema>;
+type PlaceResult = z.infer<typeof placeResultSchema>;

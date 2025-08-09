@@ -41,13 +41,6 @@ export function useEdgeAutoScroll(
     );
   }, [enabled]);
 
-  React.useEffect(() => {
-    console.log(
-      "headerRef",
-      headerRef?.current?.getBoundingClientRect().height,
-    );
-  }, [headerRef]);
-
   // Animation frame id
   const frame = React.useRef<number | null>(null);
   // Latest pointer Y position

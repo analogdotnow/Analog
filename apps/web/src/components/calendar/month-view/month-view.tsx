@@ -18,7 +18,7 @@ import {
   startOfMonth,
   startOfWeek,
   toDate,
-} from "@repo/temporal/v2";
+} from "@repo/temporal";
 
 import {
   CalendarSettings,
@@ -274,16 +274,15 @@ function MonthViewWeek({
       >
         {/* Render only visible events */}
         {overflow.capacityInfo.visibleLanes.map((lane, y) =>
-          lane.map((evt) => {
+          lane.map((item) => {
             return (
               <MemoizedPositionedEvent
                 rows={rows}
-                key={evt.event.id}
+                key={item.event.id}
                 y={y}
-                evt={evt}
+                item={item}
                 weekStart={weekStart}
                 weekEnd={weekEnd}
-                settings={settings}
                 dispatchAction={dispatchAction}
                 containerRef={containerRef}
               />
@@ -384,7 +383,6 @@ function MonthViewDay({
   const dayOverflowEvents = getEventsStartingOnPlainDate(
     overflow.overflowEvents,
     day,
-    settings.defaultTimeZone,
   );
 
   const hasOverflowForDay = dayOverflowEvents.length > 0;
@@ -441,32 +439,30 @@ function MonthViewDay({
 
 interface PositionedEventProps {
   y: number;
-  evt: EventCollectionItem;
+  item: EventCollectionItem;
   weekStart: Temporal.PlainDate;
   weekEnd: Temporal.PlainDate;
-  settings: CalendarSettings;
   dispatchAction: (action: Action) => void;
   containerRef: React.RefObject<HTMLDivElement | null>;
   rows: number;
 }
 function PositionedEvent({
   y,
-  evt,
+  item,
   weekStart,
   weekEnd,
-  settings,
   dispatchAction,
   containerRef,
   rows,
 }: PositionedEventProps) {
   const { colStart, span } = React.useMemo(
-    () => getGridPosition(evt, weekStart, weekEnd, settings.defaultTimeZone),
-    [evt, weekStart, weekEnd, settings.defaultTimeZone],
+    () => getGridPosition(item, weekStart, weekEnd),
+    [item, weekStart, weekEnd],
   );
 
   // Calculate actual first/last day based on event dates
-  const eventStart = evt.start.toPlainDate();
-  const eventEnd = evt.end.toPlainDate();
+  const eventStart = item.start.toPlainDate();
+  const eventEnd = item.end.toPlainDate();
 
   // For single-day events, ensure they are properly marked as first and last day
   const isFirstDay =
@@ -485,7 +481,7 @@ function PositionedEvent({
 
   return (
     <div
-      key={evt.event.id}
+      key={item.event.id}
       className="pointer-events-auto my-[1px] min-w-0"
       style={{
         gridColumn: `${colStart + 1} / span ${span}`,
@@ -495,12 +491,12 @@ function PositionedEvent({
       }}
     >
       <DraggableEvent
-        event={evt.event}
+        item={item}
         view="month"
         containerRef={containerRef}
         isFirstDay={isFirstDay}
         isLastDay={isLastDay}
-        onClick={(e) => handleEventClick(e, evt.event)}
+        onClick={(e) => handleEventClick(e, item.event)}
         dispatchAction={dispatchAction}
         zIndex={isDragging ? 99999 : undefined}
         rows={rows}
@@ -515,10 +511,9 @@ const MemoizedPositionedEvent = React.memo(
   (prevProps, nextProps) => {
     return (
       prevProps.y === nextProps.y &&
-      prevProps.evt === nextProps.evt &&
+      prevProps.item === nextProps.item &&
       prevProps.weekStart.equals(nextProps.weekStart) &&
       prevProps.weekEnd.equals(nextProps.weekEnd) &&
-      prevProps.settings === nextProps.settings &&
       prevProps.dispatchAction === nextProps.dispatchAction &&
       prevProps.containerRef === nextProps.containerRef &&
       prevProps.rows === nextProps.rows

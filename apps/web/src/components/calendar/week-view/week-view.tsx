@@ -5,7 +5,7 @@ import { format } from "date-fns/format";
 import { motion } from "motion/react";
 import { Temporal } from "temporal-polyfill";
 
-import { isToday, isWeekend, toDate } from "@repo/temporal/v2";
+import { isToday, isWeekend, toDate } from "@repo/temporal";
 
 import { useCalendarSettings } from "@/atoms/calendar-settings";
 import { useIsDragging } from "@/atoms/drag-resize-state";
@@ -242,7 +242,6 @@ function WeekViewAllDaySection({
           const dayOverflowEvents = getEventsStartingOnPlainDate(
             overflow.overflowEvents,
             day,
-            settings.defaultTimeZone,
           );
 
           return (
@@ -311,7 +310,6 @@ function WeekViewAllDaySection({
                   item={evt}
                   weekStart={allDays[0]!}
                   weekEnd={allDays[allDays.length - 1]!}
-                  settings={settings}
                   dispatchAction={dispatchAction}
                   containerRef={containerRef}
                 />
@@ -329,7 +327,6 @@ interface WeekViewPositionedEventProps {
   item: EventCollectionItem;
   weekStart: Temporal.PlainDate;
   weekEnd: Temporal.PlainDate;
-  settings: ReturnType<typeof useCalendarSettings>;
   dispatchAction: (action: Action) => void;
   containerRef: React.RefObject<HTMLDivElement | null>;
 }
@@ -339,7 +336,6 @@ function WeekViewPositionedEvent({
   item,
   weekStart,
   weekEnd,
-  settings,
   dispatchAction,
   containerRef,
 }: WeekViewPositionedEventProps) {
@@ -347,7 +343,6 @@ function WeekViewPositionedEvent({
     item,
     weekStart,
     weekEnd,
-    settings.defaultTimeZone,
   );
 
   const { isFirstDay, isLastDay } = React.useMemo(() => {
@@ -381,7 +376,7 @@ function WeekViewPositionedEvent({
       }}
     >
       <DraggableEvent
-        event={item.event}
+        item={item}
         view="month"
         containerRef={containerRef}
         isFirstDay={isFirstDay}
@@ -430,7 +425,7 @@ function PositionedEvent({
       onClick={(e) => e.stopPropagation()}
     >
       <DraggableEvent
-        event={positionedEvent.item.event}
+        item={positionedEvent.item}
         view="week"
         onClick={onClick}
         dispatchAction={dispatchAction}

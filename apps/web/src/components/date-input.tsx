@@ -6,7 +6,7 @@ import { parseDate } from "chrono-node";
 import { useAtomValue } from "jotai";
 import { Temporal } from "temporal-polyfill";
 
-import { toDate } from "@repo/temporal/v2";
+import { toDate } from "@repo/temporal";
 
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { Calendar } from "@/components/ui/calendar";

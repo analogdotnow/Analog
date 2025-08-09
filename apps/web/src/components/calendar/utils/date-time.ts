@@ -15,33 +15,12 @@ import {
   eachDayOfInterval,
   endOfWeek,
   isSameMonth,
-  isWeekend,
   startOfWeek,
   toDate,
-} from "@repo/temporal/v2";
+} from "@repo/temporal";
 
-import { AgendaDaysToShow, TIME_INTERVALS } from "../constants";
+import { AgendaDaysToShow } from "../constants";
 import { CalendarView } from "../interfaces";
-
-export function snapTimeToInterval(time: Date): Date {
-  const snappedTime = new Date(time);
-  const minutes = snappedTime.getMinutes();
-  const remainder = minutes % TIME_INTERVALS.SNAP_TO_MINUTES;
-
-  if (remainder !== 0) {
-    if (remainder < TIME_INTERVALS.SNAP_THRESHOLD) {
-      snappedTime.setMinutes(minutes - remainder);
-    } else {
-      snappedTime.setMinutes(
-        minutes + (TIME_INTERVALS.SNAP_TO_MINUTES - remainder),
-      );
-    }
-    snappedTime.setSeconds(0);
-    snappedTime.setMilliseconds(0);
-  }
-
-  return snappedTime;
-}
 
 export function navigateToPrevious(
   currentDate: Temporal.PlainDate,
@@ -79,13 +58,7 @@ export function navigateToNext(
   }
 }
 
-export function addHoursToDate(date: Date, hours: number): Date {
-  const result = new Date(date);
-  result.setHours(result.getHours() + hours);
-  return result;
-}
-
-export function getMonthTitle(date: Temporal.PlainDate, timeZone: string) {
+function getMonthTitle(date: Temporal.PlainDate, timeZone: string) {
   const value = toDate(date, { timeZone });
   return {
     full: format(value, "MMMM yyyy"),
@@ -99,10 +72,7 @@ interface GetWeekTitleOptions {
   weekStartsOn: 1 | 2 | 3 | 4 | 5 | 6 | 7;
 }
 
-export function getWeekTitle(
-  date: Temporal.PlainDate,
-  options: GetWeekTitleOptions,
-) {
+function getWeekTitle(date: Temporal.PlainDate, options: GetWeekTitleOptions) {
   const start = startOfWeek(date, {
     weekStartsOn: options.weekStartsOn,
   });
@@ -122,7 +92,7 @@ export function getWeekTitle(
   };
 }
 
-export function getDayTitle(date: Temporal.PlainDate, timeZone: string) {
+function getDayTitle(date: Temporal.PlainDate, timeZone: string) {
   const value = toDate(date, { timeZone });
 
   return {
@@ -132,7 +102,7 @@ export function getDayTitle(date: Temporal.PlainDate, timeZone: string) {
   };
 }
 
-export function getAgendaTitle(date: Temporal.PlainDate, timeZone: string) {
+function getAgendaTitle(date: Temporal.PlainDate, timeZone: string) {
   const start = date;
   const end = date.add({ days: AgendaDaysToShow - 1 });
 
@@ -177,12 +147,6 @@ export function getViewTitleData(
   }
 }
 
-export function filterWeekdays(
-  dates: Temporal.PlainDate[],
-): Temporal.PlainDate[] {
-  return dates.filter((date) => !isWeekend(date));
-}
-
 export function isWeekendIndex(dayIndex: number): boolean {
   return dayIndex === 0 || dayIndex === 6;
 }
@@ -216,11 +180,4 @@ export function getWeekDays(value: Temporal.PlainDate): Temporal.PlainDate[] {
   });
 
   return eachDayOfInterval(weekStart, weekEnd);
-}
-
-export function filterDaysByWeekendPreference(
-  days: Temporal.PlainDate[],
-  showWeekends: boolean,
-): Temporal.PlainDate[] {
-  return showWeekends ? days : days.filter((day) => !isWeekend(day));
 }

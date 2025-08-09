@@ -2,15 +2,12 @@ import { useCallback, useMemo, useOptimistic, useTransition } from "react";
 import { useAtom } from "jotai";
 import * as R from "remeda";
 
-import { isBefore } from "@repo/temporal/v2";
+import { isBefore } from "@repo/temporal";
 
 import { useCalendarSettings } from "@/atoms/calendar-settings";
 import { SelectedEvents, selectedEventsAtom } from "@/atoms/selected-events";
 import type { CalendarEvent, DraftEvent } from "@/lib/interfaces";
-import {
-  EventCollectionItem,
-  convertToZonedDateTime,
-} from "./event-collection";
+import { EventCollectionItem, convertEventToItem } from "./event-collection";
 import { useEvents } from "./use-events";
 
 export type Action =
@@ -23,18 +20,6 @@ export type Action =
 type OptimisticAction =
   | { type: "update"; event: CalendarEvent }
   | { type: "delete"; eventId: string };
-
-// Helper function to convert CalendarEvent to EventCollectionItem
-function convertEventToItem(
-  event: CalendarEvent,
-  timeZone: string,
-): EventCollectionItem {
-  return {
-    event,
-    start: convertToZonedDateTime(event.start, timeZone),
-    end: convertToZonedDateTime(event.end, timeZone).subtract({ seconds: 1 }),
-  };
-}
 
 export function useOptimisticEvents() {
   const { events, createMutation, updateMutation, deleteMutation } =
@@ -55,7 +40,6 @@ export function useOptimisticEvents() {
         (item) => item.event.id !== action.event.id,
       );
 
-      // Convert the updated CalendarEvent to EventCollectionItem
       const updatedItem = convertEventToItem(action.event, defaultTimeZone);
 
       const insertIdx = R.sortedIndexWith(withoutEvent, (item) =>

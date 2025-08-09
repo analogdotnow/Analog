@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { useTRPC } from "@/lib/trpc/client";
 
-export function useAccounts() {
+function useAccounts() {
   const trpc = useTRPC();
 
   const { data, isLoading, error } = useQuery(
@@ -16,7 +16,7 @@ export function useAccounts() {
   };
 }
 
-export function useDefaultAccount() {
+function useDefaultAccount() {
   const trpc = useTRPC();
 
   const { data } = useQuery(trpc.accounts.getDefault.queryOptions());

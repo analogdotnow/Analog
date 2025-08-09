@@ -1,5 +1,7 @@
 import { Temporal } from "temporal-polyfill";
 
+import { toZonedDateTime } from "@repo/temporal";
+
 import type { CalendarEvent } from "@/components/calendar/interfaces";
 
 export type EventCollectionItem = {
@@ -8,27 +10,24 @@ export type EventCollectionItem = {
   end: Temporal.ZonedDateTime;
 };
 
-export function convertToZonedDateTime(
-  value: Temporal.PlainDate | Temporal.ZonedDateTime | Temporal.Instant,
-  timeZone: string,
-): Temporal.ZonedDateTime {
-  if (value instanceof Temporal.PlainDate) {
-    return value.toZonedDateTime({ timeZone });
-  }
-  if (value instanceof Temporal.Instant) {
-    return value.toZonedDateTimeISO(timeZone);
-  }
-
-  return value.withTimeZone(timeZone);
-}
-
 export function mapEventsToItems(
   events: CalendarEvent[],
   timeZone: string,
 ): EventCollectionItem[] {
   return events.map((event) => ({
     event,
-    start: convertToZonedDateTime(event.start, timeZone),
-    end: convertToZonedDateTime(event.end, timeZone).subtract({ seconds: 1 }),
+    start: toZonedDateTime(event.start, { timeZone }),
+    end: toZonedDateTime(event.end, { timeZone }).subtract({ seconds: 1 }),
   }));
+}
+
+export function convertEventToItem(
+  event: CalendarEvent,
+  timeZone: string,
+): EventCollectionItem {
+  return {
+    event,
+    start: toZonedDateTime(event.start, { timeZone }),
+    end: toZonedDateTime(event.end, { timeZone }).subtract({ seconds: 1 }),
+  };
 }

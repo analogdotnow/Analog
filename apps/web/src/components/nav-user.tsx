@@ -150,7 +150,7 @@ export function NavUser() {
   );
 }
 
-export function NavUserSkeleton() {
+function NavUserSkeleton() {
   return (
     <SidebarMenu>
       <SidebarMenuItem>

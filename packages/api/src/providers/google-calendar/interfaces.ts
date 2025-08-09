@@ -1,7 +1,7 @@
 import { GoogleCalendar } from "@repo/google-calendar";
 import { GoogleTasks } from "@repo/google-tasks";
 
-export type GoogleCalendarCalendar = GoogleCalendar.Calendars.Calendar;
+type GoogleCalendarCalendar = GoogleCalendar.Calendars.Calendar;
 export type GoogleCalendarCalendarListEntry =
   GoogleCalendar.Users.Me.CalendarListEntry;
 export type GoogleCalendarEvent = GoogleCalendar.Calendars.Events.Event;
@@ -10,7 +10,7 @@ export type GoogleCalendarEventConferenceData =
 
 export type GoogleCalendarEventCreateParams =
   GoogleCalendar.Calendars.Events.EventCreateParams;
-export type GoogleCalendarEventUpdateParams =
+type GoogleCalendarEventUpdateParams =
   GoogleCalendar.Calendars.Events.EventUpdateParams;
 
 export interface GoogleCalendarDate {
@@ -22,12 +22,12 @@ export interface GoogleCalendarDateTime {
   timeZone?: string;
 }
 
-export type AllDayGoogleCalendarEvent = GoogleCalendarEvent & {
+type AllDayGoogleCalendarEvent = GoogleCalendarEvent & {
   start: GoogleCalendarDate;
   end: GoogleCalendarDate;
 };
 
-export type DateTimeGoogleCalendarEvent = GoogleCalendarEvent & {
+type DateTimeGoogleCalendarEvent = GoogleCalendarEvent & {
   start: GoogleCalendarDateTime;
   end: GoogleCalendarDateTime;
 };
@@ -44,4 +44,4 @@ export type GoogleCalendarEventAttendeeResponseStatus =
 export type GoogleTask = GoogleTasks.Tasks.V1.Lists.Tasks.Task;
 export type GoogleTaskUpdateParams =
   GoogleTasks.Tasks.V1.Lists.Tasks.TaskUpdateParams;
-export type GoogleTaskCategory = GoogleTasks.Tasks.V1.Users.Me.TaskList;
+type GoogleTaskCategory = GoogleTasks.Tasks.V1.Users.Me.TaskList;

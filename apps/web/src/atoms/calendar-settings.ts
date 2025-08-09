@@ -34,7 +34,3 @@ export function useCalendarSettings() {
 export function useDefaultTimeZone() {
   return useAtomValue(calendarSettingsAtom).defaultTimeZone;
 }
-
-export function useWeekStartsOn() {
-  return useAtomValue(calendarSettingsAtom).weekStartsOn;
-}

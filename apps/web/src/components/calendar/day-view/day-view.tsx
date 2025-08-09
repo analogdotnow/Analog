@@ -68,7 +68,7 @@ function PositionedEvent({
       onClick={(e) => e.stopPropagation()}
     >
       <DraggableEvent
-        event={positionedEvent.item.event}
+        item={positionedEvent.item}
         view="day"
         onClick={(e) => onEventClick(positionedEvent.item.event, e)}
         dispatchAction={dispatchAction}
@@ -100,10 +100,10 @@ export function DayView({
 
   const eventCollection = useEventCollection(events, currentDate, "day");
 
-  const handleEventClick = (event: CalendarEvent, e: React.MouseEvent) => {
+  const handleEventClick = React.useCallback((event: CalendarEvent, e: React.MouseEvent) => {
     e.stopPropagation();
     dispatchAction({ type: "select", event });
-  };
+  }, [dispatchAction]);
 
   return (
     <div data-slot="day-view" className="contents">
@@ -206,7 +206,7 @@ function DayViewPositionedEvent({
   return (
     <EventItem
       onClick={(e) => handleEventClick(item.event, e)}
-      event={item.event}
+      item={item}
       view="month"
       isFirstDay={isFirstDay}
       isLastDay={isLastDay}

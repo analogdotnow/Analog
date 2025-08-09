@@ -41,16 +41,10 @@ const TOAST_CONFIG = {
 export {
   EventHeight,
   EventGap,
-  WeekCellsHeight,
   AgendaDaysToShow,
   HOURS_IN_DAY,
   MINUTES_IN_HOUR,
   TOTAL_MINUTES_IN_DAY,
-  StartHour,
-  EndHour,
   DefaultStartHour,
-  DefaultEndHour,
-  CALENDAR_CONFIG,
   TIME_INTERVALS,
-  TOAST_CONFIG,
 };

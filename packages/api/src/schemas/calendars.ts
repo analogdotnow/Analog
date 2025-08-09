@@ -1,13 +1,13 @@
 import { z } from "zod/v3";
 
-export const createCalendarInputSchema = z.object({
+const createCalendarInputSchema = z.object({
   name: z.string(),
   description: z.string().optional(),
   timeZone: z.string().optional(),
   accountId: z.string(),
 });
 
-export const updateCalendarInputSchema = createCalendarInputSchema.extend({
+const updateCalendarInputSchema = createCalendarInputSchema.extend({
   id: z.string(),
 });
 

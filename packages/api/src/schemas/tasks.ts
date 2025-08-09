@@ -1,7 +1,7 @@
 import { Temporal } from "@js-temporal/polyfill";
 import { z } from "zod";
 
-export const createTaskCollectionInputSchema = z.object({
+const createTaskCollectionInputSchema = z.object({
   title: z.string(),
 });
 
@@ -31,7 +31,7 @@ export const createTaskInputSchema = z
     path: ["title"],
   });
 
-export const updateTaskInputSchema = createTaskInputSchema
+const updateTaskInputSchema = createTaskInputSchema
   .extend({
     id: z.string(),
   })
@@ -40,7 +40,7 @@ export const updateTaskInputSchema = createTaskInputSchema
     path: ["title"],
   });
 
-export type CreateTaskCollectionInput = z.infer<
+type CreateTaskCollectionInput = z.infer<
   typeof createTaskCollectionInputSchema
 >;
 export type CreateTaskInput = z.infer<typeof createTaskInputSchema>;

@@ -1,11 +1,10 @@
 import { useMemo } from "react";
 import { Temporal } from "temporal-polyfill";
 
-import { eachDayOfInterval, isWeekend } from "@repo/temporal/v2";
+import { eachDayOfInterval, isWeekend } from "@repo/temporal";
 
 import { useDefaultTimeZone } from "@/atoms/calendar-settings";
 import { useCellHeight } from "@/atoms/cell-height";
-import { useViewPreferences } from "@/atoms/view-preferences";
 import {
   calculateWeekViewEventPositions,
   getAllDayEventCollectionsForDays,
@@ -13,13 +12,7 @@ import {
   isAllDayOrMultiDay,
   type PositionedEvent,
 } from "@/components/calendar/utils/event";
-import type { CalendarEvent } from "../interfaces";
 import { EventCollectionItem } from "./event-collection";
-
-export type AllDayCalendarEvent = CalendarEvent & {
-  start: Temporal.PlainDate;
-  end: Temporal.PlainDate;
-};
 
 // Pre-filter events by date range to avoid processing irrelevant events
 function preFilterEventsByDateRange(
@@ -43,7 +36,6 @@ function preFilterEventsByDateRange(
 function getEventCollectionsForMonthSimple(
   items: EventCollectionItem[],
   days: Temporal.PlainDate[],
-  timeZone: string,
 ): Map<string, EventCollectionByDay> {
   const map = new Map<string, EventCollectionByDay>();
 
@@ -55,7 +47,7 @@ function getEventCollectionsForMonthSimple(
   const relevant = preFilterEventsByDateRange(items, startDate, endDate);
 
   for (const day of days) {
-    map.set(day.toString(), getEventCollectionsForDay(relevant, day, timeZone));
+    map.set(day.toString(), getEventCollectionsForDay(relevant, day));
   }
 
   return map;
@@ -86,11 +78,7 @@ function getOptimizedWeekViewEvents(
     };
   }
 
-  const allDayEvents = getAllDayEventCollectionsForDays(
-    relevantItems,
-    days,
-    timeZone,
-  );
+  const allDayEvents = getAllDayEventCollectionsForDays(relevantItems, days);
 
   const positionedEvents = calculateWeekViewEventPositions(
     relevantItems,
@@ -132,9 +120,7 @@ function getOptimizedDayViewEvents(
     };
   }
 
-  const allDayEvents = relevantItems.filter((item) =>
-    isAllDayOrMultiDay(item, timeZone),
-  );
+  const allDayEvents = relevantItems.filter((item) => isAllDayOrMultiDay(item));
 
   // Use the week view positioning logic but for a single day
   const positionedEvents = calculateWeekViewEventPositions(
@@ -168,7 +154,7 @@ export type EventCollectionForWeek = {
   positionedEvents: PositionedEvent[][];
 };
 
-export type EventCollectionForDay = {
+type EventCollectionForDay = {
   type: "day";
   allDayEvents: EventCollectionItem[];
   positionedEvents: PositionedEvent[];
@@ -266,7 +252,6 @@ export function useEventCollection(
       const eventsByDay = getEventCollectionsForMonthSimple(
         eventItems,
         days,
-        timeZone,
       );
       return {
         type: "month" as const,
@@ -280,104 +265,11 @@ export function useEventCollection(
       cellHeight,
       timeZone,
     );
+
     return {
       type: "week" as const,
       allDayEvents,
       positionedEvents,
     };
   }, [eventItems, daysOrDay, viewType, timeZone, cellHeight]);
-}
-
-function filterWeekViewEvents(
-  items: EventCollectionItem[],
-  start: Temporal.PlainDate,
-  end: Temporal.PlainDate,
-  timeZone: string,
-): EventCollectionItem[] {
-  return items.filter((item) => {
-    const eventStart = item.start;
-
-    // All-day events have an exclusive end; subtract one day so the final day is included
-    const eventEnd = item.end;
-    // Get all days that this event spans within the week
-    const eventDays = eachDayOfInterval(
-      Temporal.PlainDate.compare(eventStart, start) === -1 ? start : eventStart,
-      Temporal.PlainDate.compare(eventEnd, end) === 1 ? end : eventEnd,
-      { timeZone },
-    );
-
-    // Check if event has at least one day that's not a weekend
-    const hasNonWeekendDay = eventDays.some((day) => !isWeekend(day));
-
-    return hasNonWeekendDay;
-  });
-}
-
-export function useWeekViewEventCollection(
-  items: EventCollectionItem[],
-  days: Temporal.PlainDate[],
-  timeZone: string,
-): EventCollectionForWeek {
-  const viewPreferences = useViewPreferences();
-  const cellHeight = useCellHeight();
-
-  // return useMemo(() => {
-  //   if (items.length === 0) {
-  //     return {
-  //       type: "week" as const,
-  //       allDayEvents: [],
-  //       positionedEvents: [],
-  //     };
-  //   }
-
-  //   const { allDayEvents, positionedEvents } = getOptimizedWeekViewEvents(
-  //     items,
-  //     days,
-  //     timeZone,
-  //   );
-
-  //   return {
-  //     type: "week" as const,
-  //     allDayEvents,
-  //     positionedEvents,
-  //   };
-  // }, [items, days, timeZone]);
-
-  return useMemo(() => {
-    if (items.length === 0) {
-      return {
-        type: "week" as const,
-        allDayEvents: [],
-        positionedEvents: [],
-      };
-    }
-
-    const { allDayEvents, positionedEvents } = getOptimizedWeekViewEvents(
-      items,
-      days,
-      cellHeight,
-      timeZone,
-    );
-
-    if (!viewPreferences.showWeekends) {
-      const filteredAllDayEvents = filterWeekViewEvents(
-        allDayEvents,
-        days[0]!,
-        days[days.length - 1]!,
-        timeZone,
-      );
-
-      return {
-        type: "week" as const,
-        allDayEvents: filteredAllDayEvents,
-        positionedEvents,
-      };
-    }
-
-    return {
-      type: "week" as const,
-      allDayEvents,
-      positionedEvents,
-    };
-  }, [items, days, timeZone, cellHeight, viewPreferences.showWeekends]);
 }

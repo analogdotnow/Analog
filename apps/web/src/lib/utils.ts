@@ -5,7 +5,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function range(start: number, end: number, step = 1) {
+function range(start: number, end: number, step = 1) {
   const output: number[] = [];
 
   for (let i = start; i <= end; i += step) {
@@ -23,7 +23,7 @@ export function groupArrayIntoChunks<T>(array: T[], chunkSize: number): T[][] {
   return chunks;
 }
 
-export function getConferencingProviderId(uri?: string) {
+function getConferencingProviderId(uri?: string) {
   try {
     if (!uri) {
       return "none";

@@ -1,15 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { differenceInMinutes, isPast } from "date-fns";
 import { Temporal } from "temporal-polyfill";
 
-import { toDate } from "@repo/temporal/v2";
-
-import {
-  useCalendarSettings,
-  useDefaultTimeZone,
-} from "@/atoms/calendar-settings";
+import { useCalendarSettings } from "@/atoms/calendar-settings";
 import {
   getBorderRadiusClasses,
   getContentPaddingClasses,
@@ -17,6 +11,7 @@ import {
 import type { CalendarEvent } from "@/components/calendar/interfaces";
 import { cn } from "@/lib/utils";
 import { formatTime } from "@/lib/utils/format";
+import { EventCollectionItem } from "../hooks/event-collection";
 
 interface EventWrapperProps {
   event: CalendarEvent;
@@ -69,11 +64,11 @@ function EventWrapper({
 }
 
 interface EventItemProps {
-  event: CalendarEvent;
+  item: EventCollectionItem;
   view: "month" | "week" | "day" | "agenda";
   onClick?: (e: React.MouseEvent) => void;
   showTime?: boolean;
-  currentTime?: Date; // For updating time during drag
+  currentTime?: Temporal.ZonedDateTime; // For updating time during drag
   isFirstDay?: boolean;
   isLastDay?: boolean;
   children?: React.ReactNode;
@@ -83,7 +78,7 @@ interface EventItemProps {
 }
 
 export function EventItem({
-  event,
+  item,
   view,
   onClick,
   showTime,
@@ -95,75 +90,35 @@ export function EventItem({
   onMouseDown,
   onTouchStart,
 }: EventItemProps) {
-  const timeZone = useDefaultTimeZone();
   // Use the provided currentTime (for dragging) or the event's actual time
-  const displayStart = React.useMemo(() => {
-    return currentTime || toDate(event.start, { timeZone });
-  }, [currentTime, event.start, timeZone]);
+  const displayStart = currentTime ?? item.start;
+  const displayEnd = currentTime ?? item.end;
 
-  const displayEnd = React.useMemo(() => {
-    return currentTime
-      ? new Date(
-          new Date(currentTime).getTime() +
-            (toDate(event.end, { timeZone }).getTime() -
-              toDate(event.start, { timeZone }).getTime()),
-        )
-      : toDate(event.end, { timeZone });
-  }, [currentTime, event.start, event.end, timeZone]);
-
-  // Calculate event duration in minutes
-  const durationMinutes = React.useMemo(() => {
-    return differenceInMinutes(displayEnd, displayStart);
+  const duration = React.useMemo(() => {
+    return displayStart.until(displayEnd);
   }, [displayStart, displayEnd]);
 
   const { defaultTimeZone, locale, use12Hour } = useCalendarSettings();
   const eventTime = React.useMemo(() => {
-    if (event.allDay) {
+    if (item.event.allDay) {
       return "All day";
     }
 
-    const start = (event.start as Temporal.ZonedDateTime).withTimeZone(
-      defaultTimeZone,
-    );
-    const end = (event.end as Temporal.ZonedDateTime).withTimeZone(
-      defaultTimeZone,
-    );
-
-    // For short events (less than 45 minutes), only show start time
-    if (durationMinutes < 120) {
-      return formatTime({
-        value: start,
-        use12Hour,
-        locale,
-        timeZone: defaultTimeZone,
-      });
-    }
-
-    // For longer events, show both start and end time
-    return `${formatTime({ value: start, use12Hour, locale, timeZone: defaultTimeZone })}`;
-  }, [
-    event.start,
-    event.end,
-    durationMinutes,
-    event.allDay,
-    use12Hour,
-    locale,
-    defaultTimeZone,
-  ]);
+    return `${formatTime({ value: displayStart, use12Hour, locale, timeZone: defaultTimeZone })}`;
+  }, [displayStart, item.event.allDay, use12Hour, locale, defaultTimeZone]);
 
   // Always use the currentTime (if provided) to determine if the event is in the past
-  const isEventInPast = isPast(displayEnd);
-  // if (event.allDay && isLastDay) {
-  //   return null;
-  // }
+  const isEventInPast = false;
 
   const displayTitle =
-    event.title && event.title.length ? event.title : "(untitled)";
+    item.event.title && item.event.title.length
+      ? item.event.title
+      : "(untitled)";
 
   if (view === "month") {
     return (
       <EventWrapper
-        event={event}
+        event={item.event}
         isFirstDay={isFirstDay}
         isLastDay={isLastDay}
         onClick={onClick}
@@ -188,7 +143,7 @@ export function EventItem({
           {
             <span className="pointer-events-none truncate text-[color-mix(in_oklab,var(--foreground),var(--calendar-color)_80%)]">
               {displayTitle}{" "}
-              {!event.allDay && isFirstDay && (
+              {!item.event.allDay && isFirstDay && (
                 <span className="truncate font-normal text-[color-mix(in_oklab,var(--foreground),var(--calendar-color)_80%)] tabular-nums opacity-70 sm:text-[11px]">
                   {eventTime}
                 </span>
@@ -203,13 +158,13 @@ export function EventItem({
   if (view === "week" || view === "day") {
     return (
       <EventWrapper
-        event={event}
+        event={item.event}
         isFirstDay={isFirstDay}
         isLastDay={isLastDay}
         onClick={onClick}
         className={cn(
           "@container/event relative flex gap-x-1.5 py-1 ps-1 pe-2 ring-1 ring-background/80",
-          durationMinutes < 45 && "pe-1",
+          duration.total({ unit: "minute" }) < 45 && "pe-1",
           view === "week" ? "text-[10px] sm:text-xs" : "text-xs",
           className,
         )}
@@ -225,11 +180,11 @@ export function EventItem({
             "pointer-events-none relative flex w-full min-w-0 flex-col items-stretch gap-y-1",
           )}
         >
-          {durationMinutes < 45 ? (
+          {duration.total({ unit: "minute" }) < 45 ? (
             <div
               className={cn(
                 "pointer-events-none absolute top-1/2 right-[1px] left-0 flex -translate-y-1/2 items-center justify-between text-[color-mix(in_oklab,var(--foreground),var(--calendar-color)_80%)]",
-                durationMinutes < 30 && "text-[10px]",
+                duration.total({ unit: "minute" }) < 30 && "text-[10px]",
               )}
             >
               <span className="line-clamp-1 overflow-hidden rounded-sm">
@@ -239,7 +194,7 @@ export function EventItem({
           ) : (
             <>
               <div className="pointer-events-none truncate font-medium text-[color-mix(in_oklab,var(--foreground),var(--calendar-color)_80%)]">
-                {event.title ?? "(untitled)"}{" "}
+                {item.event.title ?? "(untitled)"}{" "}
               </div>
               {showTime ? (
                 <div className="pointer-events-none truncate font-normal text-[color-mix(in_oklab,var(--foreground),var(--calendar-color)_80%)] tabular-nums opacity-70 sm:text-[11px]">
@@ -263,10 +218,11 @@ export function EventItem({
       )} text-[color-mix(in_oklab,var(--foreground),var(--calendar-color)_80%)]`}
       style={
         {
-          "--calendar-color": event.color ?? "var(--color-muted-foreground)",
+          "--calendar-color":
+            item.event.color ?? "var(--color-muted-foreground)",
         } as React.CSSProperties
       }
-      data-past-event={isPast(toDate(event.end, { timeZone })) || undefined}
+      // data-past-event={isPast(toDate(event.end, { timeZone })) || undefined}
       onClick={onClick}
       onMouseDown={onMouseDown}
       onTouchStart={onTouchStart}
@@ -275,21 +231,21 @@ export function EventItem({
         {displayTitle}
       </div>
       <div className="pointer-events-none text-xs opacity-70">
-        {event.allDay ? (
+        {item.event.allDay ? (
           <span>All day</span>
         ) : (
           <span className="uppercase">{eventTime}</span>
         )}
-        {event.location && (
+        {item.event.location && (
           <>
             <span className="px-1 opacity-35"> · </span>
-            <span>{event.location}</span>
+            <span>{item.event.location}</span>
           </>
         )}
       </div>
-      {event.description && (
+      {item.event.description && (
         <div className="pointer-events-none my-1 text-xs opacity-90">
-          {event.description}
+          {item.event.description}
         </div>
       )}
     </button>

@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { Temporal } from "temporal-polyfill";
 
-import { isWeekend } from "@repo/temporal/v2";
+import { isWeekend } from "@repo/temporal";
 
 import { useViewPreferences } from "@/atoms/view-preferences";
 

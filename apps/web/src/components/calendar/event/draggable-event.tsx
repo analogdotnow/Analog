@@ -13,12 +13,12 @@ import { useCellHeight } from "@/atoms/cell-height";
 import { useSetIsDragging, useSetIsResizing } from "@/atoms/drag-resize-state";
 import { EventContextMenu } from "@/components/calendar/event/event-context-menu";
 import { EventItem } from "@/components/calendar/event/event-item";
-import type { CalendarEvent } from "@/components/calendar/interfaces";
 import { ContextMenuTrigger } from "@/components/ui/context-menu";
+import type { EventCollectionItem } from "../hooks/event-collection";
 import type { Action } from "../hooks/use-optimistic-events";
 
 interface DraggableEventProps {
-  event: CalendarEvent;
+  item: EventCollectionItem;
   view: "month" | "week" | "day";
   showTime?: boolean;
   onClick?: (e: React.MouseEvent) => void;
@@ -34,29 +34,8 @@ interface DraggableEventProps {
   zIndex?: number;
 }
 
-interface IsMultiDayEventOptions {
-  event: Pick<CalendarEvent, "start" | "end" | "allDay">;
-  defaultTimeZone: string;
-}
-
-function isMultiDayEvent({ event, defaultTimeZone }: IsMultiDayEventOptions) {
-  if (event.allDay) {
-    return true;
-  }
-
-  const eventStart = event.start as Temporal.ZonedDateTime;
-  const eventEnd = event.end as Temporal.ZonedDateTime;
-
-  return (
-    Temporal.PlainDate.compare(
-      eventStart.withTimeZone(defaultTimeZone).toPlainDate(),
-      eventEnd.withTimeZone(defaultTimeZone).toPlainDate(),
-    ) !== 0
-  );
-}
-
 export function DraggableEvent({
-  event,
+  item,
   view,
   showTime,
   onClick,
@@ -71,16 +50,16 @@ export function DraggableEvent({
 }: DraggableEventProps) {
   const dragRef = React.useRef<HTMLDivElement>(null);
 
-  const eventRef = React.useRef(event);
+  const eventRef = React.useRef(item.event);
   const heightRef = React.useRef(initialHeight);
 
   const dragStartRelative = React.useRef<{ x: number; y: number } | null>(null);
   const resizeStartRelativeY = React.useRef(0);
 
   React.useEffect(() => {
-    eventRef.current = event;
+    eventRef.current = item.event;
     heightRef.current = initialHeight;
-  }, [event, initialHeight]);
+  }, [item.event, initialHeight]);
 
   const top = useMotionValue(0);
   const left = useMotionValue(0);
@@ -332,6 +311,7 @@ export function DraggableEvent({
     resizeStartRelativeY.current = 0;
     startHeight.current = 0;
   };
+
   const onResizeBottomEnd = (_: PointerEvent, info: PanInfo) => {
     setIsResizing(false);
     top.set(0);
@@ -350,17 +330,17 @@ export function DraggableEvent({
     startHeight.current = 0;
   };
 
-  if (event.allDay || view === "month") {
+  if (item.event.allDay || view === "month") {
     return (
       <motion.div
         ref={dragRef}
         className="size-full"
         style={{ transform, height, top, zIndex }}
       >
-        <EventContextMenu event={event} dispatchAction={dispatchAction}>
+        <EventContextMenu event={item.event} dispatchAction={dispatchAction}>
           <ContextMenuTrigger>
             <EventItem
-              event={event}
+              item={item}
               view={view}
               showTime={showTime}
               isFirstDay={isFirstDay}
@@ -370,7 +350,7 @@ export function DraggableEvent({
               // onTouchStart={handleTouchStart}
               aria-hidden={ariaHidden}
             >
-              {!event.readOnly ? (
+              {!item.event.readOnly ? (
                 <>
                   <motion.div
                     className="absolute inset-x-0 inset-y-2 touch-pan-x touch-pan-y"
@@ -393,10 +373,10 @@ export function DraggableEvent({
       className="size-full"
       style={{ transform, height: height, zIndex }}
     >
-      <EventContextMenu event={event} dispatchAction={dispatchAction}>
+      <EventContextMenu event={item.event} dispatchAction={dispatchAction}>
         <ContextMenuTrigger>
           <EventItem
-            event={event}
+            item={item}
             view={view}
             showTime={showTime}
             isFirstDay={isFirstDay}
@@ -406,7 +386,7 @@ export function DraggableEvent({
             // onTouchStart={handleTouchStart}
             aria-hidden={ariaHidden}
           >
-            {!event.readOnly ? (
+            {!item.event.readOnly ? (
               <>
                 <motion.div
                   className="absolute inset-0 touch-pan-x touch-pan-y"

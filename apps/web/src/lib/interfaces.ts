@@ -9,4 +9,4 @@ export type DraftEvent = Partial<CalendarEvent> &
     type: "draft";
   };
 
-export type { Calendar, Attendee };
+export type { Calendar };

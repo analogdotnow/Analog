@@ -234,14 +234,3 @@ export function EventContextMenu({
     </ContextMenu>
   );
 }
-
-export const MemoizedEventContextMenu = React.memo(
-  EventContextMenu,
-  (prevProps, nextProps) => {
-    return (
-      prevProps.event.id === nextProps.event.id &&
-      prevProps.event.accountId === nextProps.event.accountId &&
-      prevProps.event.calendarId === nextProps.event.calendarId
-    );
-  },
-);

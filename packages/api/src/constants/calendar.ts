@@ -6,7 +6,7 @@ export const CALENDAR_DEFAULTS = {
   ORDER_BY: "startTime" as const,
 } as const;
 
-export const colorMap = {
+const colorMap = {
   "1": "sky",
   "2": "emerald",
   "3": "violet",
@@ -20,5 +20,5 @@ export const colorMap = {
   "11": "rose",
 } as const;
 
-export type EventColorId = keyof typeof colorMap;
-export type EventColor = (typeof colorMap)[EventColorId];
+type EventColorId = keyof typeof colorMap;
+type EventColor = (typeof colorMap)[EventColorId];

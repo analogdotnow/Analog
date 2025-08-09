@@ -14,7 +14,7 @@ import { makeQueryClient } from "./query-client";
 
 // IMPORTANT: Create a stable getter for the query client that
 //            will return the same client during the same request.
-export const getQueryClient = cache(makeQueryClient);
+const getQueryClient = cache(makeQueryClient);
 
 const ctx = async () => createContext({ headers: await headers() });
 
@@ -24,7 +24,7 @@ export const trpc = createTRPCOptionsProxy({
   queryClient: getQueryClient,
 });
 
-export const caller = appRouter.createCaller(ctx);
+const caller = appRouter.createCaller(ctx);
 
 export function HydrateClient(props: { children: ReactNode }) {
   const queryClient = getQueryClient();

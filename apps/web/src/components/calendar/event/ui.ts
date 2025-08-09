@@ -35,11 +35,3 @@ export function getBorderRadiusClasses(
     return "rounded-none"; // No rounded corners
   }
 }
-
-export function shouldIgnoreKeyboardEvent(event: KeyboardEvent): boolean {
-  return (
-    event.target instanceof HTMLInputElement ||
-    event.target instanceof HTMLTextAreaElement ||
-    (event.target instanceof HTMLElement && event.target.isContentEditable)
-  );
-}

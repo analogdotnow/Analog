@@ -24,10 +24,6 @@ export function useSetIsDragging(): (
   return useSetAtom(isDraggingAtom);
 }
 
-export function useIsResizing(): boolean {
-  return useAtomValue(isResizingAtom);
-}
-
 export function useSetIsResizing(): (
   value: boolean | ((prev: boolean) => boolean),
 ) => void {

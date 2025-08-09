@@ -7,7 +7,7 @@ export type SelectedEvents = (CalendarEvent | DraftEvent)[];
 
 export const selectedEventsAtom = atom<SelectedEvents>([]);
 
-export function useSelectedEvents() {
+function useSelectedEvents() {
   const [selectedEvents, setSelectedEvents] = useAtom(selectedEventsAtom);
 
   const selectedEvent = selectedEvents[0] ?? null;

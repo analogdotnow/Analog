@@ -9,14 +9,6 @@ import { atom, useAtomValue, useSetAtom } from "jotai";
  */
 export const cellHeightAtom = atom<number>(64);
 
-// Convenient hooks ----------------------------------------------------------------------------------------------------------------
-
 export function useCellHeight(): number {
   return useAtomValue(cellHeightAtom);
-}
-
-export function useSetCellHeight(): (
-  value: number | ((prev: number) => number),
-) => void {
-  return useSetAtom(cellHeightAtom);
 }

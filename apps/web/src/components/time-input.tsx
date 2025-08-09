@@ -9,7 +9,7 @@ import { useAtomValue } from "jotai";
 import { matchSorter } from "match-sorter";
 import { Temporal } from "temporal-polyfill";
 
-import { toDate } from "@repo/temporal/v2";
+import { toDate } from "@repo/temporal";
 
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import {

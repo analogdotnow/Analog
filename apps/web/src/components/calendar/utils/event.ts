@@ -1,29 +1,23 @@
-import { areIntervalsOverlapping, differenceInMinutes } from "date-fns";
-import * as t from "interval-temporal";
+import { areIntervalsOverlapping } from "interval-temporal";
 import { Temporal } from "temporal-polyfill";
 
-import { toDate } from "@repo/temporal/v2";
-import * as T from "@repo/temporal/v2";
+import {
+  endOfDay,
+  isAfter,
+  isBefore,
+  isSameDay,
+  startOfDay,
+} from "@repo/temporal";
 
-import { CalendarEvent } from "@/lib/interfaces";
 import { EventCollectionItem } from "../hooks/event-collection";
-import { EventCollectionByDay } from "../hooks/use-event-collection";
 
 // ============================================================================
 // CORE HELPERS
 // ============================================================================
 
-export function getEventDates(item: EventCollectionItem, timeZone: string) {
-  return {
-    start: toDate(item.start, { timeZone }),
-    end: toDate(item.end, { timeZone }),
-  };
-}
-
 export function eventOverlapsDay(
   item: EventCollectionItem,
   day: Temporal.PlainDate,
-  timeZone: string,
 ): boolean {
   const start = item.start.toPlainDate();
   const end = item.end.toPlainDate();
@@ -31,42 +25,28 @@ export function eventOverlapsDay(
   // For all-day events, the end date is exclusive, so we should not include it in the overlap check
   if (item.event.allDay) {
     const exclusiveEnd = end.subtract({ days: 1 });
+
     return (
-      T.isSameDay(day, start) ||
-      T.isSameDay(day, exclusiveEnd) ||
-      (T.isAfter(day, start) && T.isBefore(day, exclusiveEnd))
+      isSameDay(day, start) ||
+      isSameDay(day, exclusiveEnd) ||
+      (isAfter(day, start) && isBefore(day, exclusiveEnd))
     );
   }
 
   // For timed events, include the end day
   return (
-    T.isSameDay(day, start) ||
-    T.isSameDay(day, end) ||
-    (T.isAfter(day, start) && T.isBefore(day, end))
+    isSameDay(day, start) ||
+    isSameDay(day, end) ||
+    (isAfter(day, start) && isBefore(day, end))
   );
 }
 
-export function isAllDayOrMultiDay(
-  item: EventCollectionItem,
-  timeZone: string,
-): boolean {
-  return item.event.allDay || isMultiDayEvent(item, timeZone);
+export function isAllDayOrMultiDay(item: EventCollectionItem): boolean {
+  return item.event.allDay || isMultiDayEvent(item);
 }
 
-// ============================================================================
-// CORE UTILITIES
-// ============================================================================
-
-export function generateEventId(): string {
-  return Math.random().toString(36).substring(2, 11);
-}
-
-export function isMultiDayEvent(
-  item: EventCollectionItem,
-  timeZone: string,
-): boolean {
-  const { start, end } = getEventDates(item, timeZone);
-  return item.event.allDay || start.getDate() !== end.getDate();
+function isMultiDayEvent(item: EventCollectionItem): boolean {
+  return item.event.allDay || !isSameDay(item.start, item.end);
 }
 
 // ============================================================================
@@ -81,51 +61,17 @@ export function filterPastEvents(
   if (showPastEvents) return events;
 
   const now = Temporal.Now.zonedDateTimeISO(timeZone);
-  return events.filter((event) => T.isAfter(event.end, now));
-}
-
-export function filterVisibleEvents(
-  events: CalendarEvent[],
-  hiddenCalendars: string[],
-): CalendarEvent[] {
-  return events.filter((event) => !hiddenCalendars.includes(event.calendarId));
+  return events.filter((event) => isAfter(event.end, now));
 }
 
 export function getEventsStartingOnPlainDate(
   events: EventCollectionItem[],
   day: Temporal.PlainDate,
-  timeZone: string,
 ): EventCollectionItem[] {
   return events.filter((event) => {
     const eventStart = event.start.toPlainDate();
-    return T.isSameDay(eventStart, day);
+    return isSameDay(eventStart, day);
   });
-}
-
-export function getSpanningEventsForDay(
-  items: EventCollectionItem[],
-  day: Temporal.PlainDate,
-  timeZone: string,
-): EventCollectionItem[] {
-  return items.filter((item) => {
-    if (!isMultiDayEvent(item, timeZone)) return false;
-
-    const start = item.start.toPlainDate();
-    const end = item.end.toPlainDate();
-
-    return (
-      !T.isSameDay(day, start) &&
-      (T.isSameDay(day, end) || (T.isAfter(day, start) && T.isBefore(day, end)))
-    );
-  });
-}
-
-export function getAllEventsForDay(
-  events: EventCollectionItem[],
-  day: Temporal.PlainDate,
-  timeZone: string,
-): EventCollectionItem[] {
-  return events.filter((event) => eventOverlapsDay(event, day, timeZone));
 }
 
 /**
@@ -134,21 +80,20 @@ export function getAllEventsForDay(
 export function getEventCollectionsForDay(
   events: EventCollectionItem[],
   day: Temporal.PlainDate,
-  timeZone: string,
 ) {
   const dayEvents: EventCollectionItem[] = [];
   const spanningEvents: EventCollectionItem[] = [];
   const allEvents: EventCollectionItem[] = [];
 
   events.forEach((event) => {
-    if (!eventOverlapsDay(event, day, timeZone)) return;
+    if (!eventOverlapsDay(event, day)) return;
 
     allEvents.push(event);
     const start = event.start.toPlainDate();
 
-    if (T.isSameDay(day, start)) {
+    if (isSameDay(day, start)) {
       dayEvents.push(event);
-    } else if (isMultiDayEvent(event, timeZone)) {
+    } else if (isMultiDayEvent(event)) {
       spanningEvents.push(event);
     }
   });
@@ -167,17 +112,14 @@ export function getEventCollectionsForDay(
 export function getAllDayEventCollectionsForDays(
   events: EventCollectionItem[],
   days: Temporal.PlainDate[],
-  timeZone: string,
 ) {
   if (days.length === 0) {
     return [];
   }
 
   const allDayEvents = events
-    .filter((event) => isAllDayOrMultiDay(event, timeZone))
-    .filter((event) =>
-      days.some((day) => eventOverlapsDay(event, day, timeZone)),
-    );
+    .filter((event) => isAllDayOrMultiDay(event))
+    .filter((event) => days.some((day) => eventOverlapsDay(event, day)));
 
   return allDayEvents;
 }
@@ -203,11 +145,13 @@ interface EventColumn {
 function getTimedEventsForDay(
   events: EventCollectionItem[],
   day: Temporal.PlainDate,
-  timeZone: string,
 ): EventCollectionItem[] {
   return events.filter((event) => {
-    if (isAllDayOrMultiDay(event, timeZone)) return false;
-    return eventOverlapsDay(event, day, timeZone);
+    if (isAllDayOrMultiDay(event)) {
+      return false;
+    }
+
+    return eventOverlapsDay(event, day);
   });
 }
 
@@ -217,26 +161,12 @@ function getAdjustedEventTimes(
   timeZone: string,
 ) {
   return {
-    start: T.isSameDay(day, item.start, { timeZone })
+    start: isSameDay(day, item.start, { timeZone })
       ? item.start
-      : day.toZonedDateTime(timeZone).withPlainTime({
-          hour: 0,
-          minute: 0,
-          second: 0,
-          millisecond: 0,
-          microsecond: 0,
-          nanosecond: 0,
-        }),
-    end: T.isSameDay(day, item.end, { timeZone })
+      : startOfDay(day, { timeZone }),
+    end: isSameDay(day, item.end, { timeZone })
       ? item.end
-      : day.toZonedDateTime(timeZone).withPlainTime({
-          hour: 23,
-          minute: 59,
-          second: 59,
-          millisecond: 999,
-          microsecond: 999,
-          nanosecond: 999,
-        }),
+      : endOfDay(day, { timeZone }),
   };
 }
 
@@ -260,7 +190,6 @@ function findEventColumn(
   adjustedStart: Temporal.ZonedDateTime,
   adjustedEnd: Temporal.ZonedDateTime,
   columns: EventColumn[][],
-  timeZone: string,
 ): number {
   let columnIndex = 0;
 
@@ -273,7 +202,7 @@ function findEventColumn(
     }
 
     const hasOverlap = column.some((c) => {
-      return t.areIntervalsOverlapping(
+      return areIntervalsOverlapping(
         { start: adjustedStart, end: adjustedEnd },
         { start: c.item.start, end: c.item.end },
       );
@@ -334,22 +263,8 @@ function positionEventsForDay(
   cellHeight: number,
   timeZone: string,
 ): PositionedEvent[] {
-  const timedEvents = getTimedEventsForDay(events, day, timeZone);
-  console.log(
-    JSON.stringify(
-      timedEvents.map((e) => e.event.id),
-      null,
-      2,
-    ),
-  );
-  const sortedEvents = sortEventsForCollisionDetection(timedEvents, timeZone);
-  console.log(
-    JSON.stringify(
-      sortedEvents.map((e) => e.event.id),
-      null,
-      2,
-    ),
-  );
+  const timedEvents = getTimedEventsForDay(events, day);
+  const sortedEvents = sortEventsForCollisionDetection(timedEvents);
   const positioned: PositionedEvent[] = [];
 
   // Group events that start within 24px of each other
@@ -400,18 +315,10 @@ function positionEventsForDay(
       .slice(0, groupIdx)
       .some((previousGroup) => {
         return group.some((groupEvent) => {
-          const { start: groupStart, end: groupEnd } = getEventDates(
-            groupEvent,
-            timeZone,
-          );
           return previousGroup.some((previousEvent) => {
-            const { start: previousStart, end: previousEnd } = getEventDates(
-              previousEvent,
-              timeZone,
-            );
             return areIntervalsOverlapping(
-              { start: groupStart, end: groupEnd },
-              { start: previousStart, end: previousEnd },
+              { start: groupEvent.start, end: groupEvent.end },
+              { start: previousEvent.start, end: previousEvent.end },
             );
           });
         });
@@ -435,18 +342,10 @@ function positionEventsForDay(
       .slice(0, groupIdx)
       .filter((previousGroup) => {
         return group.some((groupEvent) => {
-          const { start: groupStart, end: groupEnd } = getEventDates(
-            groupEvent,
-            timeZone,
-          );
           return previousGroup.some((previousEvent) => {
-            const { start: previousStart, end: previousEnd } = getEventDates(
-              previousEvent,
-              timeZone,
-            );
             return areIntervalsOverlapping(
-              { start: groupStart, end: groupEnd },
-              { start: previousStart, end: previousEnd },
+              { start: groupEvent.start, end: groupEvent.end },
+              { start: previousEvent.start, end: previousEvent.end },
             );
           });
         });
@@ -460,6 +359,7 @@ function positionEventsForDay(
         day,
         timeZone,
       );
+
       const { top, height } = calculateEventDimensions(
         adjustedStart,
         adjustedEnd,
@@ -472,7 +372,6 @@ function positionEventsForDay(
         adjustedStart,
         adjustedEnd,
         columns,
-        timeZone,
       );
 
       // Calculate total columns needed for this group
@@ -529,145 +428,18 @@ export function calculateWeekViewEventPositions(
  */
 function sortEventsForCollisionDetection(
   events: EventCollectionItem[],
-  timeZone: string,
 ): EventCollectionItem[] {
   return [...events].sort((a, b) => {
-    const { start: aStart } = getEventDates(a, timeZone);
-    const { start: bStart } = getEventDates(b, timeZone);
+    const aStart = a.start;
+    const bStart = b.start;
 
-    if (aStart < bStart) return -1;
-    if (aStart > bStart) return 1;
+    if (isBefore(aStart, bStart)) return -1;
+    if (isAfter(aStart, bStart)) return 1;
 
-    const { end: aEnd } = getEventDates(a, timeZone);
-    const { end: bEnd } = getEventDates(b, timeZone);
-    const aDuration = differenceInMinutes(aEnd, aStart);
-    const bDuration = differenceInMinutes(bEnd, bStart);
+    const aEnd = a.end;
+    const bEnd = b.end;
+    const aDuration = aEnd.epochMilliseconds - aStart.epochMilliseconds;
+    const bDuration = bEnd.epochMilliseconds - bStart.epochMilliseconds;
     return bDuration - aDuration;
   });
-}
-
-/**
- * Displaying multi-day events first, then by start time)
- * Used by UI components for rendering order
- */
-export function sortEventsForDisplay(
-  events: EventCollectionItem[],
-  timeZone: string,
-): EventCollectionItem[] {
-  return [...events].sort((a, b) => {
-    const aIsMultiDay = isMultiDayEvent(a, timeZone);
-    const bIsMultiDay = isMultiDayEvent(b, timeZone);
-
-    if (aIsMultiDay && !bIsMultiDay) return -1;
-    if (!aIsMultiDay && bIsMultiDay) return 1;
-
-    return (
-      getEventDates(a, timeZone).start.getTime() -
-      getEventDates(b, timeZone).start.getTime()
-    );
-  });
-}
-
-// ============================================================================
-// PERFORMANCE OPTIMIZATIONS
-// ============================================================================
-
-/**
- * Optimized event overlap checking with early termination
- */
-export function batchEventOverlapCheck(
-  events: EventCollectionItem[],
-  day: Temporal.PlainDate,
-  timeZone: string,
-): EventCollectionItem[] {
-  const result: EventCollectionItem[] = [];
-
-  for (const event of events) {
-    // Early termination: if event starts after the day, skip remaining events
-    // (assuming events are sorted by start time)
-    const eventStart = event.start.toPlainDate();
-    if (Temporal.PlainDate.compare(eventStart, day) > 1) {
-      break;
-    }
-
-    if (eventOverlapsDay(event, day, timeZone)) {
-      result.push(event);
-    }
-  }
-
-  return result;
-}
-
-/**
- * Batch process multiple days with shared event filtering
- */
-export function getEventCollectionsBatch(
-  events: EventCollectionItem[],
-  days: Temporal.PlainDate[],
-  timeZone: string,
-): Map<string, EventCollectionByDay> {
-  if (days.length === 0 || events.length === 0) {
-    return new Map();
-  }
-
-  // Sort events once for all days
-  const result = new Map<string, EventCollectionByDay>();
-
-  // Pre-compute event date ranges for faster filtering
-  const eventRanges = events.map((event) => ({
-    event,
-    start: event.start.toPlainDate(),
-    end: event.end.toPlainDate(),
-    isAllDay: event.event.allDay,
-    isMultiDay: isMultiDayEvent(event, timeZone),
-  }));
-
-  for (const day of days) {
-    const dayEvents: EventCollectionItem[] = [];
-    const spanningEvents: EventCollectionItem[] = [];
-    const allEvents: EventCollectionItem[] = [];
-
-    for (const { event, start, end, isMultiDay } of eventRanges) {
-      // Quick overlap check using pre-computed values
-      let overlaps = false;
-
-      if (isMultiDay) {
-        if (event.event.allDay) {
-          const exclusiveEnd = end.subtract({ days: 1 });
-          overlaps =
-            Temporal.PlainDate.compare(day, start) === 0 ||
-            Temporal.PlainDate.compare(day, exclusiveEnd) === 0 ||
-            (Temporal.PlainDate.compare(day, start) > 0 &&
-              Temporal.PlainDate.compare(day, exclusiveEnd) < 0);
-        } else {
-          overlaps =
-            Temporal.PlainDate.compare(day, start) === 0 ||
-            Temporal.PlainDate.compare(day, end) === 0 ||
-            (Temporal.PlainDate.compare(day, start) > 0 &&
-              Temporal.PlainDate.compare(day, end) < 0);
-        }
-      } else {
-        overlaps = Temporal.PlainDate.compare(day, start) === 0;
-      }
-
-      if (!overlaps) continue;
-
-      allEvents.push(event);
-
-      if (Temporal.PlainDate.compare(day, start) === 0) {
-        dayEvents.push(event);
-      } else if (isMultiDay) {
-        spanningEvents.push(event);
-      }
-    }
-
-    result.set(day.toString(), {
-      dayEvents,
-      spanningEvents,
-      allDayEvents: [...spanningEvents, ...dayEvents],
-      allEvents,
-    });
-  }
-
-  return result;
 }

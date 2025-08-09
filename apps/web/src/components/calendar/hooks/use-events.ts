@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as R from "remeda";
 import { toast } from "sonner";
 
-import { endOfMonth, isBefore, startOfMonth } from "@repo/temporal/v2";
+import { endOfMonth, isBefore, startOfMonth } from "@repo/temporal";
 
 import { useCalendarSettings } from "@/atoms/calendar-settings";
 import { useCalendarState } from "@/hooks/use-calendar-state";

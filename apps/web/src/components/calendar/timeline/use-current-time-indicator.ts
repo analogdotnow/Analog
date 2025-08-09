@@ -4,7 +4,7 @@ import React from "react";
 import { format } from "@formkit/tempo";
 import { Temporal } from "temporal-polyfill";
 
-import { isToday, toDate } from "@repo/temporal/v2";
+import { isToday, toDate } from "@repo/temporal";
 
 import { useCalendarSettings } from "@/atoms/calendar-settings";
 import { useZonedDateTime } from "../context/datetime-provider";

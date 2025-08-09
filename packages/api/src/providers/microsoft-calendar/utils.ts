@@ -29,10 +29,7 @@ interface ToMicrosoftDateOptions {
   };
 }
 
-export function toMicrosoftDate({
-  value,
-  originalTimeZone,
-}: ToMicrosoftDateOptions) {
+function toMicrosoftDate({ value, originalTimeZone }: ToMicrosoftDateOptions) {
   if (value instanceof Temporal.PlainDate) {
     return {
       dateTime: value.toString(),
@@ -340,9 +337,7 @@ function parseMicrosoftAttendeeStatus(
   return "unknown";
 }
 
-export function parseMicrosoftAttendee(
-  attendee: MicrosoftEventAttendee,
-): Attendee {
+function parseMicrosoftAttendee(attendee: MicrosoftEventAttendee): Attendee {
   return {
     email: attendee.emailAddress?.address ?? undefined,
     name: attendee.emailAddress?.name ?? undefined,

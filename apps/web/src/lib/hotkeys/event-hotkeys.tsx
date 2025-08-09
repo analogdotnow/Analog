@@ -11,7 +11,7 @@ import { useSidebarWithSide } from "@/components/ui/sidebar";
 import type { CalendarEvent, DraftEvent } from "@/lib/interfaces";
 import { createDraftEvent } from "@/lib/utils/calendar";
 
-export const KEYBOARD_SHORTCUTS = {
+const KEYBOARD_SHORTCUTS = {
   CREATE_EVENT: "c",
   JOIN_MEETING: "j",
   DELETE_EVENT: "backspace",

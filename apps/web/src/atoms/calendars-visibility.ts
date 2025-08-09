@@ -1,7 +1,7 @@
 import { useAtom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 
-export interface CalendarsVisibility {
+interface CalendarsVisibility {
   hiddenCalendars: string[];
 }
 

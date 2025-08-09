@@ -5,7 +5,7 @@ import { format } from "date-fns";
 import { XIcon } from "lucide-react";
 import { Temporal } from "temporal-polyfill";
 
-import { isSameDay, toDate } from "@repo/temporal/v2";
+import { isSameDay, toDate } from "@repo/temporal";
 
 import { useDefaultTimeZone } from "@/atoms/calendar-settings";
 import { EventItem } from "@/components/calendar/event/event-item";
@@ -106,7 +106,7 @@ export function OverflowIndicator({
                     onClick={() => handleEventClick(item.event)}
                   >
                     <EventItem
-                      event={item.event}
+                      item={item}
                       view="agenda"
                       isFirstDay={isFirstDay}
                       isLastDay={isLastDay}

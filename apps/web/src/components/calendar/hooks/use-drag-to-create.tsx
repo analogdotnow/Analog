@@ -3,15 +3,10 @@ import { useMotionValue, type PanInfo } from "motion/react";
 import { isHotkeyPressed, useHotkeys } from "react-hotkeys-hook";
 import { Temporal } from "temporal-polyfill";
 
-import { useCellHeight } from "@/atoms/cell-height";
 import { isDraggingAtom } from "@/atoms/drag-resize-state";
 import { jotaiStore } from "@/atoms/store";
 import { createDraftEvent } from "@/lib/utils/calendar";
-import {
-  HOURS_IN_DAY,
-  MINUTES_IN_HOUR,
-  TOTAL_MINUTES_IN_DAY,
-} from "../constants";
+import { MINUTES_IN_HOUR, TOTAL_MINUTES_IN_DAY } from "../constants";
 import { Action } from "./use-optimistic-events";
 
 interface UseDragToCreateOptions {
@@ -43,7 +38,6 @@ export function useDragToCreate({
   const opacity = useMotionValue(0);
   const emptyImageRef = React.useRef<HTMLImageElement | null>(null);
   const dragCancelled = React.useRef(false);
-  const cellHeight = useCellHeight();
 
   // Create empty image on client side only to prevent globe icon on Mac Chrome
   React.useEffect(() => {

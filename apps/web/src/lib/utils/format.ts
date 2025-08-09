@@ -1,9 +1,9 @@
 import { format } from "@formkit/tempo";
 import { Temporal } from "temporal-polyfill";
 
-import { toDate } from "@repo/temporal/v2";
+import { toDate } from "@repo/temporal";
 
-export interface FormatTimeOptions {
+interface FormatTimeOptions {
   value: Temporal.ZonedDateTime;
   use12Hour: boolean;
   locale: string;
