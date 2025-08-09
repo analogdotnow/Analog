@@ -10,13 +10,13 @@ import {
 } from "@/atoms/calendar-settings";
 import { AppSidebar } from "@/components/app-sidebar";
 import { CalendarView } from "@/components/calendar-view";
+import { useOptimisticEvents } from "@/components/calendar/hooks/use-optimistic-events";
 import { EventForm } from "@/components/event-form/event-form";
 import { RightSidebar } from "@/components/right-sidebar";
 import { SidebarInset } from "@/components/ui/sidebar";
 import { EventHotkeys } from "@/lib/hotkeys/event-hotkeys";
 import { useTRPC } from "@/lib/trpc/client";
 import { AppCommandMenu } from "./command-menu/app-command-menu";
-import { useOptimisticEvents } from "./event-calendar/hooks/use-optimistic-events";
 
 export function CalendarLayout() {
   const [, setSettings] = useAtom(calendarSettingsAtom);

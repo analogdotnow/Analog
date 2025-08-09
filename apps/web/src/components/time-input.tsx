@@ -28,7 +28,7 @@ interface FormatTimeOptions {
 }
 
 function formatTime({ value, use12Hour, locale }: FormatTimeOptions) {
-  const date = toDate({ value, timeZone: value.timeZoneId });
+  const date = toDate(value, { timeZone: value.timeZoneId });
 
   if (use12Hour) {
     return format({

@@ -1,6 +1,6 @@
 import { MeetingLink } from "./interfaces";
 
-export const meetingServices = [
+const meetingServices = [
   {
     id: "meet",
     label: "Google Meet",

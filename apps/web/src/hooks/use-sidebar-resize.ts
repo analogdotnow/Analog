@@ -1,6 +1,6 @@
 import * as React from "react";
 
-export interface UseSidebarResizeProps {
+interface UseSidebarResizeProps {
   direction?: "left" | "right";
   currentWidth: string;
   onResize: (width: string) => void;
