@@ -16,6 +16,21 @@ import type { Action } from "@/components/calendar/hooks/use-optimistic-events";
 import type { CalendarEvent } from "@/components/calendar/interfaces";
 import { eventOverlapsDay } from "@/components/calendar/utils/event";
 
+function EmptyAgenda() {
+  return (
+    <div className="flex min-h-[70svh] flex-col items-center justify-center py-16 text-center">
+      <RiCalendarEventLine
+        size={32}
+        className="mb-2 text-muted-foreground/50"
+      />
+      <h3 className="text-lg font-medium">No events found</h3>
+      <p className="text-muted-foreground">
+        There are no events scheduled for this time period.
+      </p>
+    </div>
+  );
+}
+
 interface AgendaViewProps {
   currentDate: Temporal.PlainDate;
   events: EventCollectionItem[];
@@ -61,16 +76,7 @@ export function AgendaView({
   return (
     <div className="border-t border-border/70 px-4">
       {!hasEvents ? (
-        <div className="flex min-h-[70svh] flex-col items-center justify-center py-16 text-center">
-          <RiCalendarEventLine
-            size={32}
-            className="mb-2 text-muted-foreground/50"
-          />
-          <h3 className="text-lg font-medium">No events found</h3>
-          <p className="text-muted-foreground">
-            There are no events scheduled for this time period.
-          </p>
-        </div>
+        <EmptyAgenda />
       ) : (
         days.map((day) => {
           if (day.items.length === 0) {

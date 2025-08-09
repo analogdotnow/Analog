@@ -145,7 +145,6 @@ export function DayView({
 
           <MemoizedDayViewTimeSlots
             currentDate={currentDate}
-            hours={HOURS}
             dispatchAction={dispatchAction}
           />
         </div>
@@ -220,13 +219,11 @@ function DayViewPositionedEvent({
 
 interface DayViewTimeSlotsProps {
   currentDate: Temporal.PlainDate;
-  hours: Temporal.PlainTime[];
   dispatchAction: (action: Action) => void;
 }
 
 function DayViewTimeSlots({
   currentDate,
-  hours,
   dispatchAction,
 }: DayViewTimeSlotsProps) {
   const settings = useAtomValue(calendarSettingsAtom);
@@ -254,7 +251,18 @@ function DayViewTimeSlots({
       onPanEnd={onDragEnd}
       onDoubleClick={onDoubleClick}
     >
-      {hours.map((hour) => {
+      <MemoizedHourColumn />
+      <DragPreview style={{ top, height, opacity }} />
+    </motion.div>
+  );
+}
+
+const MemoizedDayViewTimeSlots = React.memo(DayViewTimeSlots);
+
+function HourColumn() {
+  return (
+    <>
+      {HOURS.map((hour) => {
         return (
           <div
             key={hour.toString()}
@@ -262,9 +270,8 @@ function DayViewTimeSlots({
           />
         );
       })}
-      <DragPreview style={{ top, height, opacity }} />
-    </motion.div>
+    </>
   );
 }
 
-const MemoizedDayViewTimeSlots = React.memo(DayViewTimeSlots);
+const MemoizedHourColumn = React.memo(HourColumn);

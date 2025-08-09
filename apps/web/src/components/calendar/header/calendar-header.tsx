@@ -1,16 +1,19 @@
 "use client";
 
-import type { ViewPreferences } from "@/atoms/view-preferences";
+import { CalendarPicker } from "@/components/calendar-picker";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
-import { CalendarPicker } from "../../calendar-picker";
 import { CalendarNavigation } from "./calendar-navigation";
 import { CalendarViewMenu } from "./calendar-view-menu";
 import { CalendarViewTitle } from "./calendar-view-title";
 
 type CalendarHeaderProps = React.ComponentProps<"header">;
 
-export function CalendarHeader({ className, ref }: CalendarHeaderProps) {
+export function CalendarHeader({
+  className,
+  ref,
+  ...props
+}: CalendarHeaderProps) {
   return (
     <header
       className={cn(
@@ -18,6 +21,7 @@ export function CalendarHeader({ className, ref }: CalendarHeaderProps) {
         className,
       )}
       ref={ref}
+      {...props}
     >
       <div className="flex flex-1 items-center gap-1 sm:gap-4">
         <SidebarTrigger className="-ml-1 @max-md/header:hidden" />

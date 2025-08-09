@@ -105,23 +105,26 @@ export function EventContextMenu({
 }: EventContextMenuProps) {
   const responseStatus = event.response?.status;
 
-  const handleRespond = (status: AttendeeStatus) => {
-    if (!responseStatus || status === responseStatus) {
-      return;
-    }
+  const handleRespond = React.useCallback(
+    (status: AttendeeStatus) => {
+      if (!responseStatus || status === responseStatus) {
+        return;
+      }
 
-    dispatchAction({
-      type: "update",
-      event: {
-        ...event,
-        response: { status },
-      },
-    });
-  };
+      dispatchAction({
+        type: "update",
+        event: {
+          ...event,
+          response: { status },
+        },
+      });
+    },
+    [dispatchAction, event, responseStatus],
+  );
 
-  const handleDelete = () => {
+  const handleDelete = React.useCallback(() => {
     dispatchAction({ type: "delete", eventId: event.id });
-  };
+  }, [dispatchAction, event.id]);
 
   return (
     <ContextMenu>
