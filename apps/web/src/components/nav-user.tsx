@@ -54,7 +54,10 @@ export function NavUser() {
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarImage src={query.data?.image ?? undefined} alt={query.data?.name} />
+                <AvatarImage
+                  src={query.data?.image ?? undefined}
+                  alt={query.data?.name}
+                />
                 <AvatarFallback className="rounded-lg bg-accent-foreground text-background">
                   {query.data?.name
                     ?.split(" ")
@@ -87,7 +90,9 @@ export function NavUser() {
                   <AvatarFallback className="rounded-lg"></AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{query.data?.name}</span>
+                  <span className="truncate font-medium">
+                    {query.data?.name}
+                  </span>
                   <span className="truncate text-xs text-muted-foreground">
                     {query.data?.email}
                   </span>

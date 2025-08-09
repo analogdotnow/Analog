@@ -59,7 +59,7 @@ export function getWeekStartsOn(): number {
     if (info && typeof info.getWeekInfo().firstDay === "number") {
       return info.getWeekInfo().firstDay;
     }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (e) {
     // ignore
   }
