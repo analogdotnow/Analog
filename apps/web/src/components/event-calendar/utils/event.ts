@@ -368,21 +368,7 @@ function positionEventsForDay(
   timeZone: string,
 ): PositionedEvent[] {
   const timedEvents = getTimedEventsForDay(events, day, timeZone);
-  console.log(
-    JSON.stringify(
-      timedEvents.map((e) => e.event.id),
-      null,
-      2,
-    ),
-  );
   const sortedEvents = sortEventsForCollisionDetection(timedEvents, timeZone);
-  console.log(
-    JSON.stringify(
-      sortedEvents.map((e) => e.event.id),
-      null,
-      2,
-    ),
-  );
   const positioned: PositionedEvent[] = [];
 
   // Group events that start within 24px of each other

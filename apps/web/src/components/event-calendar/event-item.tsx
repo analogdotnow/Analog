@@ -255,7 +255,7 @@ export function EventItem({
   return (
     <button
       className={`${cn(
-        "@container/event flex w-full flex-col gap-1 rounded p-2 text-left transition outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 data-past-event:line-through data-past-event:opacity-90",
+        "@container/event flex w-full flex-col gap-1 rounded-md border border-event bg-event p-2 text-left transition outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 data-past-event:line-through data-past-event:opacity-90",
         "border-[color-mix(in_oklab,var(--background),var(--calendar-color)_30%)] bg-[color-mix(in_oklab,var(--background),var(--calendar-color)_20%)]",
         className,
       )} text-[color-mix(in_oklab,var(--foreground),var(--calendar-color)_80%)]`}

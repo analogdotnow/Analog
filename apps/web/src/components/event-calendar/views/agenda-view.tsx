@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
+import { format } from "@formkit/tempo";
 import { RiCalendarEventLine } from "@remixicon/react";
-import { format } from "date-fns";
 import { Temporal } from "temporal-polyfill";
 
 import { isToday } from "@repo/temporal/v2";
@@ -79,13 +79,13 @@ export function AgendaView({
               className="relative my-12 border-t border-border/70"
             >
               <span
-                className="absolute -top-3 left-0 flex h-6 items-center bg-background pe-4 text-[10px] uppercase data-today:font-medium sm:pe-4 sm:text-xs"
+                className="absolute -top-3.5 left-0 flex h-6 items-center bg-background pe-4 text-[10px] text-muted-foreground data-today:font-medium sm:pe-4 sm:text-xs"
                 data-today={
                   isToday(day, { timeZone: settings.defaultTimeZone }) ||
                   undefined
                 }
               >
-                {format(day.toString(), "d MMM, EEEE")}
+                {format(day.toString(), "ddd, D MMM")}
               </span>
               <div className="mt-6 space-y-2">
                 {dayEventItems.map((eventItem) => (
