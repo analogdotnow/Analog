@@ -4,7 +4,7 @@ import { appRouter, createContext } from "@repo/api";
 
 const handler = (req: Request) => {
   return createOpenApiFetchHandler({
-    endpoint: "/api",
+    endpoint: "/api/v1",
     req,
     router: appRouter,
     createContext: () => createContext({ headers: req.headers }),
