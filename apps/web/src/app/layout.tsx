@@ -9,6 +9,7 @@ import { Toaster } from "@/components/ui/sonner";
 
 import "./globals.css";
 
+import { URLS } from "@/lib/urls";
 import { Providers } from "./providers";
 
 const geistSans = Geist({
@@ -34,7 +35,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Analog",
     description: "A calendar that understands your life.",
-    url: "https://analog.now",
+    url: URLS.SITE,
     siteName: "Analog",
     images: [
       {
