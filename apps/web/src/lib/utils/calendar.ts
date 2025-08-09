@@ -10,7 +10,7 @@ export function roundTo15Minutes(
   return date.with({ minute: roundedMinutes });
 }
 
-type CreateDraftEventOptions = Omit<DraftEvent, "id" | "type"> &
+export type CreateDraftEventOptions = Omit<DraftEvent, "id" | "type"> &
   Required<Pick<DraftEvent, "start" | "end">>;
 
 export function createDraftEvent(options: CreateDraftEventOptions): DraftEvent {

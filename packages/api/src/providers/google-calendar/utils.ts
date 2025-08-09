@@ -24,7 +24,7 @@ import {
   GoogleTaskUpdateParams,
 } from "./interfaces";
 
-function toGoogleCalendarDate(
+export function toGoogleCalendarDate(
   value: Temporal.PlainDate | Temporal.Instant | Temporal.ZonedDateTime,
 ): GoogleCalendarDate | GoogleCalendarDateTime {
   if (value instanceof Temporal.PlainDate) {
@@ -427,7 +427,7 @@ function parseGoogleCalendarConferenceData(
   return parseGoogleCalendarConferenceFallback(event);
 }
 
-function parseGoogleCalendarAttendee(
+export function parseGoogleCalendarAttendee(
   attendee: GoogleCalendarEventAttendee,
 ): Attendee {
   return {

@@ -34,7 +34,7 @@ const microsoftMetadataSchema = z.object({
 
 const googleMetadataSchema = z.object({});
 
-const dateInputSchema = z.union([
+export const dateInputSchema = z.union([
   zPlainDateInstance,
   zInstantInstance,
   zZonedDateTimeInstance,
@@ -74,4 +74,4 @@ export type CreateEventInput = z.infer<typeof createEventInputSchema>;
 export type UpdateEventInput = z.infer<typeof updateEventInputSchema>;
 
 export type MicrosoftEventMetadata = z.infer<typeof microsoftMetadataSchema>;
-type GoogleEventMetadata = z.infer<typeof googleMetadataSchema>;
+export type GoogleEventMetadata = z.infer<typeof googleMetadataSchema>;

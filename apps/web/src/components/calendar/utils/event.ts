@@ -430,16 +430,12 @@ function sortEventsForCollisionDetection(
   events: EventCollectionItem[],
 ): EventCollectionItem[] {
   return [...events].sort((a, b) => {
-    const aStart = a.start;
-    const bStart = b.start;
+    if (isBefore(a.start, b.start)) return -1;
+    if (isAfter(a.start, b.start)) return 1;
 
-    if (isBefore(aStart, bStart)) return -1;
-    if (isAfter(aStart, bStart)) return 1;
+    const aDuration = a.end.epochMilliseconds - a.start.epochMilliseconds;
+    const bDuration = b.end.epochMilliseconds - b.start.epochMilliseconds;
 
-    const aEnd = a.end;
-    const bEnd = b.end;
-    const aDuration = aEnd.epochMilliseconds - aStart.epochMilliseconds;
-    const bDuration = bEnd.epochMilliseconds - bStart.epochMilliseconds;
     return bDuration - aDuration;
   });
 }

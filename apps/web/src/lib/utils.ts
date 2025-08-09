@@ -5,7 +5,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-function range(start: number, end: number, step = 1) {
+export function range(start: number, end: number, step = 1) {
   const output: number[] = [];
 
   for (let i = start; i <= end; i += step) {

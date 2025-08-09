@@ -89,7 +89,6 @@ export function CalendarView({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const calendarHeaderRef = useRef<HTMLElement | null>(null);
 
-  // Cell height comes from Jotai atom so updates trigger a re-render + CSS update
   const cellHeight = useAtomValue(cellHeightAtom);
 
   const { defaultTimeZone } = useAtomValue(calendarSettingsAtom);

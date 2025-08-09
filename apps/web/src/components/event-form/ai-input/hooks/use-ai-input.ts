@@ -1,6 +1,5 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import { useKeyboardEvent, useToggle } from "@react-hookz/web";
-import { useAtomValue } from "jotai";
 import { toast } from "sonner";
 
 import {
