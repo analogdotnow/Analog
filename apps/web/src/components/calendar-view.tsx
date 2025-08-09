@@ -3,19 +3,14 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useHotkeysContext } from "react-hotkeys-hook";
 
-import {
-  useCalendarSettings,
-  useCalendarsVisibility,
-  useCellHeight,
-  useViewPreferences,
-} from "@/atoms";
-import {
-  CalendarHeader,
-  EventGap,
-  EventHeight,
-} from "@/components/event-calendar";
+import { useCalendarSettings } from "@/atoms/calendar-settings";
+import { useCalendarsVisibility } from "@/atoms/calendars-visibility";
+import { useCellHeight } from "@/atoms/cell-height";
+import { useViewPreferences } from "@/atoms/view-preferences";
+import { CalendarHeader } from "@/components/event-calendar/calendar-header";
+import { EventGap, EventHeight } from "@/components/event-calendar/constants";
 import type { Action } from "@/components/event-calendar/hooks/use-optimistic-events";
-import { filterPastEvents } from "@/components/event-calendar/utils";
+import { filterPastEvents } from "@/components/event-calendar/utils/event";
 import { AgendaView } from "@/components/event-calendar/views/agenda-view";
 import { DayView } from "@/components/event-calendar/views/day-view";
 import { MonthView } from "@/components/event-calendar/views/month-view";

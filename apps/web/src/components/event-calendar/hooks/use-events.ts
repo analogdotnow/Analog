@@ -3,10 +3,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as R from "remeda";
 import { toast } from "sonner";
 
-import { compareTemporal } from "@repo/temporal";
+import { isBefore } from "@repo/temporal/v2";
 import { endOfMonth, startOfMonth } from "@repo/temporal/v2";
 
-import { useCalendarSettings } from "@/atoms";
+import { useCalendarSettings } from "@/atoms/calendar-settings";
 import { useCalendarState } from "@/hooks/use-calendar-state";
 import { useTRPC } from "@/lib/trpc/client";
 import { mapEventsToItems } from "./event-collection";
@@ -33,7 +33,7 @@ export function useEvents() {
   const { timeMin, timeMax } = React.useMemo(() => {
     const start = currentDate
       .subtract({
-        days: 30,
+        days: TIME_RANGE_DAYS_PAST,
       })
       .toZonedDateTime({
         timeZone: defaultTimeZone,
@@ -41,7 +41,7 @@ export function useEvents() {
 
     const end = currentDate
       .add({
-        days: 30,
+        days: TIME_RANGE_DAYS_FUTURE,
       })
       .toZonedDateTime({
         timeZone: defaultTimeZone,
@@ -90,7 +90,7 @@ export function useEvents() {
           const events = insertIntoSorted(
             prev.events || [],
             newEvent,
-            (a) => compareTemporal(a.start, newEvent.start) < 0,
+            (a) => isBefore(a.start, newEvent.start, { timeZone: defaultTimeZone }),
           );
 
           return {
@@ -133,7 +133,7 @@ export function useEvents() {
           const events = insertIntoSorted(
             withoutEvent,
             updatedEvent,
-            (a) => compareTemporal(a.start, updatedEvent.start) < 0,
+            (a) => isBefore(a.start, updatedEvent.start, { timeZone: defaultTimeZone }),
           );
 
           return {

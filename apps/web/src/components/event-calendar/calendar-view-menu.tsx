@@ -4,7 +4,7 @@ import * as React from "react";
 import { useAtom } from "jotai";
 import { ChevronDownIcon } from "lucide-react";
 
-import { ViewPreferences, viewPreferencesAtom } from "@/atoms";
+import { ViewPreferences, viewPreferencesAtom } from "@/atoms/view-preferences";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,

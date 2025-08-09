@@ -3,7 +3,9 @@ import { useMotionValue, type PanInfo } from "motion/react";
 import { isHotkeyPressed, useHotkeys } from "react-hotkeys-hook";
 import { Temporal } from "temporal-polyfill";
 
-import { isDraggingAtom, jotaiStore, useCellHeight } from "@/atoms";
+import { isDraggingAtom } from "@/atoms/drag-resize-state";
+import { jotaiStore } from "@/atoms/store";
+import { useCellHeight } from "@/atoms/cell-height";
 import { createDraftEvent } from "@/lib/utils/calendar";
 import {
   HOURS_IN_DAY,

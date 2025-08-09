@@ -1,4 +1,35 @@
+import { tzDate } from "@formkit/tempo";
 import { Temporal } from "temporal-polyfill";
+
+interface ToDateOptions {
+  timeZone: string;
+}
+
+export function toDate(value: Temporal.Instant | Temporal.ZonedDateTime | Temporal.PlainDate, { timeZone }: ToDateOptions): Date {
+  if (value instanceof Temporal.PlainDate) {
+    return tzDate(
+      new Date(value.toString({ calendarName: "never" })),
+      timeZone,
+    );
+  }
+
+  if (value instanceof Temporal.Instant) {
+    return tzDate(new Date(value.epochMilliseconds), timeZone);
+  }
+
+  return tzDate(
+    new Date(
+      value.year,
+      value.month - 1,
+      value.day,
+      value.hour,
+      value.minute,
+      value.second,
+      value.millisecond,
+    ),
+    timeZone,
+  );
+}
 
 interface StartOfWeekOptions {
   weekStartsOn: 1 | 2 | 3 | 4 | 5 | 6 | 7;
@@ -687,7 +718,7 @@ export function isAfter(
   return Temporal.Instant.compare(instant1, instant2) > 0;
 }
 
-function toInstant(
+export function toInstant(
   date: TemporalConvertible,
   options: IsSameDayOptions,
 ): Temporal.Instant {

@@ -9,7 +9,7 @@ import { useAtomValue } from "jotai";
 import { matchSorter } from "match-sorter";
 import { Temporal } from "temporal-polyfill";
 
-import { toDate } from "@repo/temporal";
+import { toDate } from "@repo/temporal/v2";
 
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import {
@@ -28,7 +28,7 @@ interface FormatTimeOptions {
 }
 
 function formatTime({ value, use12Hour, locale }: FormatTimeOptions) {
-  const date = toDate({ value, timeZone: value.timeZoneId });
+  const date = toDate(value, { timeZone: value.timeZoneId });
 
   if (use12Hour) {
     return format({

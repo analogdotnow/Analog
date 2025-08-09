@@ -1,13 +1,10 @@
 import {
-  differenceInCalendarDays,
-  isAfter,
-  isBefore,
   isSameDay,
   subDays,
 } from "date-fns";
 import { Temporal } from "temporal-polyfill";
 
-import { toDate } from "@repo/temporal";
+import { toDate } from "@repo/temporal/v2";
 
 import { EventCollectionItem } from "../hooks/event-collection";
 import type { CalendarEvent } from "../types";
@@ -164,14 +161,14 @@ function eventsOverlap(
   timeZone: string,
 ): boolean {
   // Convert to JS Date objects in the provided time-zone
-  const start1 = toDate({ value: event1.start, timeZone });
-  const start2 = toDate({ value: event2.start, timeZone });
+  const start1 = toDate(event1.start, { timeZone });
+  const start2 = toDate(event2.start, { timeZone });
 
   // Adjust the end so that all-day events are inclusive (their API end is
   // exclusive). Timed events keep their actual end, which already lands on the
   // correct day.
-  const rawEnd1 = toDate({ value: event1.end, timeZone });
-  const rawEnd2 = toDate({ value: event2.end, timeZone });
+  const rawEnd1 = toDate(event1.end, { timeZone });
+  const rawEnd2 = toDate(event2.end, { timeZone });
 
   const end1 = event1.allDay ? subDays(rawEnd1, 1) : rawEnd1;
   const end2 = event2.allDay ? subDays(rawEnd2, 1) : rawEnd2;
@@ -214,8 +211,8 @@ export function placeIntoLanes(
   }
 
   const cached: CachedEvent[] = events.map((e) => {
-    const start = toDate({ value: e.start, timeZone });
-    const rawEnd = toDate({ value: e.end, timeZone });
+    const start = toDate(e.start, { timeZone });
+    const rawEnd = toDate(e.end, { timeZone });
 
     // Account for all-day exclusive end dates (already inclusive for timed)
     const inclusiveEnd = e.event.allDay ? subDays(rawEnd, 1) : rawEnd;
@@ -283,11 +280,8 @@ export function getWeekSpanningEvents(
   timeZone: string,
 ): CalendarEvent[] {
   return events.filter((event) => {
-    const eventStart = toDate({ value: event.start, timeZone });
-    let eventEnd = toDate({
-      value: event.end.subtract({ seconds: 1 }),
-      timeZone,
-    });
+    const eventStart = toDate(event.start, { timeZone });
+    let eventEnd = toDate(event.end.subtract({ seconds: 1 }), { timeZone });
 
     // For all-day events, the end date is exclusive.
     if (event.allDay) {
@@ -308,11 +302,8 @@ export function isSingleDayEvent(
   event: CalendarEvent,
   timeZone: string,
 ): boolean {
-  const eventStart = toDate({ value: event.start, timeZone });
-  let eventEnd = toDate({
-    value: event.end.subtract({ seconds: 1 }),
-    timeZone,
-  });
+  const eventStart = toDate(event.start, { timeZone });
+  let eventEnd = toDate(event.end.subtract({ seconds: 1 }), { timeZone });
 
   // For all-day events, the end date is exclusive.
   if (event.allDay) {

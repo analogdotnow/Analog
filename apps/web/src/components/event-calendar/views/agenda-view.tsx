@@ -8,14 +8,12 @@ import { Temporal } from "temporal-polyfill";
 import { isToday } from "@repo/temporal/v2";
 
 import { useCalendarSettings } from "@/atoms/calendar-settings";
-import {
-  AgendaDaysToShow,
-  CalendarEvent,
-  EventItem,
-} from "@/components/event-calendar";
+import { AgendaDaysToShow } from "@/components/event-calendar/constants";
+import type { CalendarEvent } from "@/components/event-calendar/types";
+import { EventItem } from "@/components/event-calendar/event-item";
 import { type EventCollectionItem } from "@/components/event-calendar/hooks/event-collection";
 import type { Action } from "@/components/event-calendar/hooks/use-optimistic-events";
-import { getAllEventsForDay } from "@/components/event-calendar/utils";
+import { getAllEventsForDay } from "@/components/event-calendar/utils/event";
 
 interface AgendaViewProps {
   currentDate: Temporal.PlainDate;

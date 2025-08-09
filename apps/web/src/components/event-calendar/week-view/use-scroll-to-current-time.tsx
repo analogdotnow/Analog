@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Temporal } from "temporal-polyfill";
 
-import { useCellHeight } from "@/atoms";
+import { useCellHeight } from "@/atoms/cell-height";
 
 interface useScrollToCurrentTimeProps {
   scrollContainerRef: React.RefObject<HTMLDivElement | null>;

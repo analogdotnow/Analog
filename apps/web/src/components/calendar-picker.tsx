@@ -4,7 +4,7 @@ import * as React from "react";
 import { useResizeObserver } from "@react-hookz/web";
 import { useQuery } from "@tanstack/react-query";
 
-import { useCalendarsVisibility } from "@/atoms";
+import { useCalendarsVisibility } from "@/atoms/calendars-visibility";
 import { Button } from "@/components/ui/button";
 import {
   Command,

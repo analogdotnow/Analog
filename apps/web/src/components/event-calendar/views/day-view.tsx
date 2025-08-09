@@ -4,13 +4,12 @@ import * as React from "react";
 import { motion } from "motion/react";
 import { Temporal } from "temporal-polyfill";
 
-import { useCalendarSettings, useIsDragging } from "@/atoms";
-import {
-  DraggableEvent,
-  EventItem,
-  type CalendarEvent,
-} from "@/components/event-calendar";
-import { useEventCollection } from "@/components/event-calendar/hooks";
+import { useCalendarSettings } from "@/atoms/calendar-settings";
+import { useIsDragging } from "@/atoms/drag-resize-state";
+import { DraggableEvent } from "@/components/event-calendar/draggable-event";
+import { EventItem } from "@/components/event-calendar/event-item";
+import type { CalendarEvent } from "@/components/event-calendar/types";
+import { useEventCollection } from "../hooks/use-event-collection";
 import type { Action } from "@/components/event-calendar/hooks/use-optimistic-events";
 import { cn } from "@/lib/utils";
 import { useEdgeAutoScroll } from "../drag-and-drop/use-auto-scroll";

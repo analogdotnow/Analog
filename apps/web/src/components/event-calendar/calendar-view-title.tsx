@@ -6,7 +6,7 @@ import { useCalendarSettings } from "@/atoms/calendar-settings";
 import { useViewPreferences } from "@/atoms/view-preferences";
 import { useCalendarState } from "@/hooks/use-calendar-state";
 import { cn } from "@/lib/utils";
-import { getViewTitleData } from "./utils";
+import { getViewTitleData } from "./utils/date-time";
 
 const variants: Record<string, Variant> = {
   exit: {

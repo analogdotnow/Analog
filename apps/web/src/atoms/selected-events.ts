@@ -1,6 +1,6 @@
 import { atom, useAtom } from "jotai";
 
-import type { CalendarEvent } from "@/components/event-calendar";
+import type { CalendarEvent } from "@/components/event-calendar/types";
 import { DraftEvent } from "@/lib/interfaces";
 
 export type SelectedEvents = (CalendarEvent | DraftEvent)[];

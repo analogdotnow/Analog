@@ -4,15 +4,15 @@ import * as React from "react";
 import { differenceInMinutes, isPast } from "date-fns";
 import { Temporal } from "temporal-polyfill";
 
-import { toDate } from "@repo/temporal";
+import { toDate } from "@repo/temporal/v2";
 
-import { useCalendarSettings } from "@/atoms";
+import { useCalendarSettings } from "@/atoms/calendar-settings";
 import { useDefaultTimeZone } from "@/atoms/calendar-settings";
-import type { CalendarEvent } from "@/components/event-calendar";
+import type { CalendarEvent } from "@/components/event-calendar/types";
 import {
   getBorderRadiusClasses,
   getContentPaddingClasses,
-} from "@/components/event-calendar/utils";
+} from "@/components/event-calendar/utils/ui";
 import { cn } from "@/lib/utils";
 import { formatTime } from "@/lib/utils/format";
 
@@ -96,17 +96,17 @@ export function EventItem({
   const timeZone = useDefaultTimeZone();
   // Use the provided currentTime (for dragging) or the event's actual time
   const displayStart = React.useMemo(() => {
-    return currentTime || toDate({ value: event.start, timeZone });
+    return currentTime || toDate(event.start, { timeZone });
   }, [currentTime, event.start, timeZone]);
 
   const displayEnd = React.useMemo(() => {
     return currentTime
       ? new Date(
           new Date(currentTime).getTime() +
-            (toDate({ value: event.end, timeZone }).getTime() -
-              toDate({ value: event.start, timeZone }).getTime()),
+            (toDate(event.end, { timeZone }).getTime() -
+              toDate(event.start, { timeZone }).getTime()),
         )
-      : toDate({ value: event.end, timeZone });
+      : toDate(event.end, { timeZone });
   }, [currentTime, event.start, event.end, timeZone]);
 
   // Calculate event duration in minutes
@@ -265,7 +265,7 @@ export function EventItem({
         } as React.CSSProperties
       }
       data-past-event={
-        isPast(toDate({ value: event.end, timeZone })) || undefined
+        isPast(toDate(event.end, { timeZone })) || undefined
       }
       onClick={onClick}
       onMouseDown={onMouseDown}

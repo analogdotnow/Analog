@@ -8,7 +8,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useCalendarNavigation } from "./hooks";
+import { useCalendarNavigation } from "./hooks/use-calendar-navigation";
 
 export function CalendarNavigation() {
   const { handlePrevious, handleNext, handleToday } = useCalendarNavigation();

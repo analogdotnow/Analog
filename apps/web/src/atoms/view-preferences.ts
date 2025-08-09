@@ -2,7 +2,7 @@ import { atom, useAtomValue } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import { Temporal } from "temporal-polyfill";
 
-import type { CalendarView } from "@/components/event-calendar";
+import type { CalendarView } from "@/components/event-calendar/types";
 
 export interface ViewPreferences {
   showWeekends: boolean;

@@ -1,6 +1,6 @@
 import { Temporal } from "temporal-polyfill";
 
-import type { CalendarEvent } from "@/components/event-calendar";
+import type { CalendarEvent } from "@/components/event-calendar/types";
 
 export type EventCollectionItem = {
   event: CalendarEvent;

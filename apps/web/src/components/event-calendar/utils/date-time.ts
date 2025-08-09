@@ -8,10 +8,10 @@
  * - Miscellaneous helpers
  */
 
-import { format, getDay } from "date-fns";
+import { format } from "date-fns";
 import { Temporal } from "temporal-polyfill";
 
-import { toDate } from "@repo/temporal";
+import { toDate } from "@repo/temporal/v2";
 import {
   eachDayOfInterval,
   endOfWeek,
@@ -86,7 +86,7 @@ export function addHoursToDate(date: Date, hours: number): Date {
 }
 
 export function getMonthTitle(date: Temporal.PlainDate, timeZone: string) {
-  const value = toDate({ value: date, timeZone });
+  const value = toDate(date, { timeZone });
   return {
     full: format(value, "MMMM yyyy"),
     medium: "",
@@ -112,8 +112,8 @@ export function getWeekTitle(
     return getMonthTitle(start, options.timeZone);
   }
 
-  const startValue = toDate({ value: start, timeZone: options.timeZone });
-  const endValue = toDate({ value: end, timeZone: options.timeZone });
+  const startValue = toDate(start, { timeZone: options.timeZone });
+  const endValue = toDate(end, { timeZone: options.timeZone });
 
   return {
     full: `${format(startValue, "MMM")} - ${format(endValue, "MMM yyyy")}`,
@@ -123,7 +123,7 @@ export function getWeekTitle(
 }
 
 export function getDayTitle(date: Temporal.PlainDate, timeZone: string) {
-  const value = toDate({ value: date, timeZone });
+  const value = toDate(date, { timeZone });
 
   return {
     full: format(value, "EEE MMMM d, yyyy"),
@@ -140,8 +140,8 @@ export function getAgendaTitle(date: Temporal.PlainDate, timeZone: string) {
     return getMonthTitle(start, timeZone);
   }
 
-  const startValue = toDate({ value: start, timeZone });
-  const endValue = toDate({ value: end, timeZone });
+  const startValue = toDate(start, { timeZone });
+  const endValue = toDate(end, { timeZone });
 
   return {
     full: `${format(startValue, "MMM")} - ${format(endValue, "MMM yyyy")}`,

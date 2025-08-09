@@ -1,16 +1,11 @@
 import {
-  addHours,
   areIntervalsOverlapping,
   differenceInMinutes,
-  getHours,
-  getMinutes,
-  isSameDay,
-  startOfDay,
 } from "date-fns";
 import * as t from "interval-temporal";
 import { Temporal } from "temporal-polyfill";
 
-import { toDate } from "@repo/temporal";
+import { toDate } from "@repo/temporal/v2";
 import * as T from "@repo/temporal/v2";
 
 import { CalendarEvent } from "@/lib/interfaces";
@@ -23,8 +18,8 @@ import { EventCollectionByDay } from "../hooks/use-event-collection";
 
 export function getEventDates(item: EventCollectionItem, timeZone: string) {
   return {
-    start: toDate({ value: item.start, timeZone }),
-    end: toDate({ value: item.end, timeZone }),
+    start: toDate(item.start, { timeZone }),
+    end: toDate(item.end, { timeZone }),
   };
 }
 
@@ -88,8 +83,8 @@ export function filterPastEvents(
 ): EventCollectionItem[] {
   if (showPastEvents) return events;
 
-  const now = new Date();
-  return events.filter((event) => getEventDates(event, timeZone).end >= now);
+  const now = Temporal.Now.zonedDateTimeISO(timeZone);
+  return events.filter((event) => T.isAfter(event.end, now));
 }
 
 export function filterVisibleEvents(
@@ -97,17 +92,6 @@ export function filterVisibleEvents(
   hiddenCalendars: string[],
 ): CalendarEvent[] {
   return events.filter((event) => !hiddenCalendars.includes(event.calendarId));
-}
-
-export function getEventsStartingOnDay(
-  events: EventCollectionItem[],
-  day: Date,
-  timeZone: string,
-): EventCollectionItem[] {
-  return events.filter((event) => {
-    const eventStart = toDate({ value: event.start, timeZone });
-    return isSameDay(day, eventStart);
-  });
 }
 
 export function getEventsStartingOnPlainDate(
@@ -145,20 +129,6 @@ export function getAllEventsForDay(
   timeZone: string,
 ): EventCollectionItem[] {
   return events.filter((event) => eventOverlapsDay(event, day, timeZone));
-}
-
-export function getEventSpanInfoForDay(
-  item: EventCollectionItem,
-  day: Date,
-  timeZone: string,
-) {
-  const { start, end } = getEventDates(item, timeZone);
-  return {
-    eventStart: start,
-    eventEnd: end,
-    isFirstDay: isSameDay(day, start),
-    isLastDay: isSameDay(day, end),
-  };
 }
 
 /**

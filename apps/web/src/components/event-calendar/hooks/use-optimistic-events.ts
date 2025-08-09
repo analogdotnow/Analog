@@ -1,11 +1,10 @@
 import { useCallback, useMemo, useOptimistic, useTransition } from "react";
 import { useAtom } from "jotai";
 import * as R from "remeda";
-import { Temporal } from "temporal-polyfill";
 
-import { compareTemporal } from "@repo/temporal";
+import { isBefore } from "@repo/temporal/v2";
 
-import { useCalendarSettings } from "@/atoms";
+import { useCalendarSettings } from "@/atoms/calendar-settings";
 import { SelectedEvents, selectedEventsAtom } from "@/atoms/selected-events";
 import type { CalendarEvent, DraftEvent } from "@/lib/interfaces";
 import {
@@ -61,7 +60,7 @@ export function useOptimisticEvents() {
 
       const insertIdx = R.sortedIndexWith(
         withoutEvent,
-        (item) => compareTemporal(item.start, updatedItem.start) < 0,
+        (item) => isBefore(item.start, updatedItem.start),
       );
 
       return [

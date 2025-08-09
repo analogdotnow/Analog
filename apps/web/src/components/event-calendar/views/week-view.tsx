@@ -5,29 +5,27 @@ import { format } from "date-fns/format";
 import { motion } from "motion/react";
 import { Temporal } from "temporal-polyfill";
 
-import { toDate } from "@repo/temporal";
+import { toDate } from "@repo/temporal/v2";
 import { isToday, isWeekend } from "@repo/temporal/v2";
 
-import {
-  useCalendarSettings,
-  useIsDragging,
-  useViewPreferences,
-} from "@/atoms";
-import { DraggableEvent } from "@/components/event-calendar";
+import { useCalendarSettings } from "@/atoms/calendar-settings";
+import { useIsDragging } from "@/atoms/drag-resize-state";
+import { useViewPreferences } from "@/atoms/view-preferences";
+import { DraggableEvent } from "@/components/event-calendar/draggable-event";
 import {
   useEventCollection,
-  useGridLayout,
   type EventCollectionForWeek,
-} from "@/components/event-calendar/hooks";
+} from "../hooks/use-event-collection";
+import { useGridLayout } from "../hooks/use-grid-layout";
 import { useMultiDayOverflow } from "@/components/event-calendar/hooks/use-multi-day-overflow";
 import type { Action } from "@/components/event-calendar/hooks/use-optimistic-events";
 import { OverflowIndicator } from "@/components/event-calendar/overflow-indicator";
 import {
   getEventsStartingOnPlainDate,
-  getGridPosition,
-  getWeek,
   type PositionedEvent,
-} from "@/components/event-calendar/utils";
+} from "@/components/event-calendar/utils/event";
+import { getGridPosition } from "@/components/event-calendar/utils/multi-day-layout";
+import { getWeek } from "@/components/event-calendar/utils/date-time";
 import { cn } from "@/lib/utils";
 import { createDraftEvent } from "@/lib/utils/calendar";
 import { useEdgeAutoScroll } from "../drag-and-drop/use-auto-scroll";
@@ -141,10 +139,7 @@ function WeekViewHeader({ allDays, gridTemplateColumns }: WeekViewHeaderProps) {
   const settings = useCalendarSettings();
 
   const timeZone = React.useMemo(() => {
-    const value = toDate({
-      value: allDays[0]!,
-      timeZone: settings.defaultTimeZone,
-    });
+    const value = toDate(allDays[0]!, { timeZone: settings.defaultTimeZone });
 
     const parts = new Intl.DateTimeFormat(settings.locale, {
       timeZoneName: "short",
@@ -165,10 +160,7 @@ function WeekViewHeader({ allDays, gridTemplateColumns }: WeekViewHeaderProps) {
       {allDays.map((day) => {
         const isDayVisible = viewPreferences.showWeekends || !isWeekend(day);
 
-        const value = toDate({
-          value: day,
-          timeZone: settings.defaultTimeZone,
-        });
+        const value = toDate(day, { timeZone: settings.defaultTimeZone });
         return (
           <div
             key={day.toString()}

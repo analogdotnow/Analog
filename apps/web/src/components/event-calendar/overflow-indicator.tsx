@@ -5,11 +5,12 @@ import { format } from "date-fns";
 import { XIcon } from "lucide-react";
 import { Temporal } from "temporal-polyfill";
 
-import { toDate } from "@repo/temporal";
+import { toDate } from "@repo/temporal/v2";
 import { isSameDay } from "@repo/temporal/v2";
 
 import { useDefaultTimeZone } from "@/atoms/calendar-settings";
-import { EventItem, type CalendarEvent } from "@/components/event-calendar";
+import { EventItem } from "@/components/event-calendar/event-item";
+import type { CalendarEvent } from "@/components/event-calendar/types";
 import type { Action } from "@/components/event-calendar/hooks/use-optimistic-events";
 import {
   Popover,
@@ -52,7 +53,7 @@ export function OverflowIndicator({
     return null;
   }
 
-  const legacyDate = toDate({ value: date, timeZone });
+  const legacyDate = toDate(date, { timeZone });
 
   return (
     <Popover open={open} onOpenChange={setOpen}>

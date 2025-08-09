@@ -3,7 +3,6 @@ import { useKeyboardEvent, useToggle } from "@react-hookz/web";
 import { useAtomValue } from "jotai";
 import { toast } from "sonner";
 
-import { apiKeysAtom } from "@/atoms/api-keys";
 import {
   aiInputPredicate,
   generateEventFormData,
@@ -13,9 +12,9 @@ import type { AiOutputData } from "@/lib/schemas/event-form";
 export const useAiInput = (getPrompt: () => string) => {
   const [isLoading, toggleLoading] = useToggle(false);
   const [data, setData] = useState<AiOutputData | null>(null);
-  const apiKeys = useAtomValue(apiKeysAtom);
+  // const apiKeys = useAtomValue(apiKeysAtom);
 
-  const aiKey = useMemo(() => apiKeys["openai"] || null, [apiKeys]);
+  const aiKey = "sk-proj-1234567890";
 
   const enabled = aiKey !== null;
 

@@ -4,10 +4,11 @@ import { useEffect, useMemo, useRef } from "react";
 import { format, isSameDay } from "date-fns";
 import { XIcon } from "lucide-react";
 
-import { toDate } from "@repo/temporal";
+import { toDate } from "@repo/temporal/v2";
 
 import { useDefaultTimeZone } from "@/atoms/calendar-settings";
-import { EventItem, type CalendarEvent } from "@/components/event-calendar";
+import { EventItem } from "@/components/event-calendar/event-item";
+import type { CalendarEvent } from "@/components/event-calendar/types";
 import type { Action } from "@/components/event-calendar/hooks/use-optimistic-events";
 
 interface EventsPopupProps {
@@ -113,8 +114,8 @@ export function EventsPopup({
           <div className="py-2 text-sm text-muted-foreground">No events</div>
         ) : (
           events.map((event) => {
-            const eventStart = toDate({ value: event.start, timeZone });
-            const eventEnd = toDate({ value: event.end, timeZone });
+            const eventStart = toDate(event.start, { timeZone });
+            const eventEnd = toDate(event.end, { timeZone });
             const isFirstDay = isSameDay(date, eventStart);
             const isLastDay = isSameDay(date, eventEnd);
 

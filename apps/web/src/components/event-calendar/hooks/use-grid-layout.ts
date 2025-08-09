@@ -3,7 +3,7 @@ import { Temporal } from "temporal-polyfill";
 
 import { isWeekend } from "@repo/temporal/v2";
 
-import { useViewPreferences } from "@/atoms";
+import { useViewPreferences } from "@/atoms/view-preferences";
 
 interface GridLayoutOptions {
   /**

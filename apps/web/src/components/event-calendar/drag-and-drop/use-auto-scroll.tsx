@@ -1,6 +1,7 @@
 import * as React from "react";
 
-import { isDraggingAtom, isResizingAtom, jotaiStore } from "@/atoms";
+import { isDraggingAtom, isResizingAtom } from "@/atoms/drag-resize-state";
+import { jotaiStore } from "@/atoms/store";
 
 interface UseEdgeAutoScrollOptions {
   headerRef?: React.RefObject<HTMLElement | null>;

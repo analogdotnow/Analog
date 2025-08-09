@@ -5,7 +5,7 @@ import { format } from "date-fns";
 import { isWithinInterval } from "interval-temporal";
 import { Temporal } from "temporal-polyfill";
 
-import { toDate } from "@repo/temporal";
+import { toDate } from "@repo/temporal/v2";
 import {
   eachDayOfInterval,
   endOfMonth,
@@ -20,32 +20,24 @@ import {
   startOfWeek,
 } from "@repo/temporal/v2";
 
-import {
-  CalendarSettings,
-  useCalendarSettings,
-  useIsDragging,
-  useViewPreferences,
-} from "@/atoms";
-import {
-  DraggableEvent,
-  DroppableCell,
-  type CalendarEvent,
-} from "@/components/event-calendar";
+import { CalendarSettings, useCalendarSettings } from "@/atoms/calendar-settings";
+import { useIsDragging } from "@/atoms/drag-resize-state";
+import { useViewPreferences } from "@/atoms/view-preferences";
+import { DraggableEvent } from "@/components/event-calendar/draggable-event";
+import { DroppableCell } from "@/components/event-calendar/droppable-cell";
+import type { CalendarEvent } from "@/components/event-calendar/types";
 import { DefaultStartHour } from "@/components/event-calendar/constants";
 import {
   useEventCollection,
-  useGridLayout,
   type EventCollectionForMonth,
-} from "@/components/event-calendar/hooks";
+} from "../hooks/use-event-collection";
+import { useGridLayout } from "../hooks/use-grid-layout";
 import { useMultiDayOverflow } from "@/components/event-calendar/hooks/use-multi-day-overflow";
 import type { Action } from "@/components/event-calendar/hooks/use-optimistic-events";
 import { OverflowIndicator } from "@/components/event-calendar/overflow-indicator";
-import {
-  getEventsStartingOnPlainDate,
-  getGridPosition,
-  getWeekDays,
-  isWeekendIndex,
-} from "@/components/event-calendar/utils";
+import { getEventsStartingOnPlainDate } from "@/components/event-calendar/utils/event";
+import { getGridPosition } from "@/components/event-calendar/utils/multi-day-layout";
+import { getWeekDays, isWeekendIndex } from "@/components/event-calendar/utils/date-time";
 import { cn, groupArrayIntoChunks } from "@/lib/utils";
 import { createDraftEvent } from "@/lib/utils/calendar";
 import { EventCollectionItem } from "../hooks/event-collection";
@@ -391,7 +383,7 @@ function MonthViewDay({
 
   const hasOverflowForDay = dayOverflowEvents.length > 0;
 
-  const legacyDay = toDate({ value: day, timeZone: settings.defaultTimeZone });
+  const legacyDay = toDate(day, { timeZone: settings.defaultTimeZone });
 
   return (
     <div

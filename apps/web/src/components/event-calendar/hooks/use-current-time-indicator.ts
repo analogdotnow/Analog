@@ -4,7 +4,7 @@ import React from "react";
 import { format } from "@formkit/tempo";
 import { Temporal } from "temporal-polyfill";
 
-import { toDate } from "@repo/temporal";
+import { toDate } from "@repo/temporal/v2";
 import { isToday } from "@repo/temporal/v2";
 
 import { useCalendarSettings } from "@/atoms/calendar-settings";
@@ -34,12 +34,12 @@ export function useCurrentTimeIndicator(currentDate: Temporal.PlainDate) {
 
       const formattedTime = use12Hour
         ? format({
-            date: toDate({ value: time, timeZone: defaultTimeZone }),
+            date: toDate(time, { timeZone: defaultTimeZone }),
             format: "h:mm a",
             tz: defaultTimeZone,
           })
         : format({
-            date: toDate({ value: time, timeZone: defaultTimeZone }),
+            date: toDate(time, { timeZone: defaultTimeZone }),
             format: "HH:mm",
             tz: defaultTimeZone,
           });

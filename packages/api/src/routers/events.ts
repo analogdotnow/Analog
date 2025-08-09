@@ -3,7 +3,7 @@ import { Temporal } from "temporal-polyfill";
 import { zZonedDateTimeInstance } from "temporal-zod";
 import { z } from "zod/v3";
 
-import { toInstant } from "@repo/temporal";
+import { toInstant } from "@repo/temporal/v2";
 
 import { CalendarEvent } from "../providers/interfaces";
 import {
@@ -57,9 +57,7 @@ export const eventsRouter = createTRPCRouter({
 
       const events: CalendarEvent[] = allEvents
         .flat()
-        .map(
-          (v) => [v, toInstant({ value: v.start, timeZone: "UTC" })] as const,
-        )
+        .map((v) => [v, toInstant(v.start, { timeZone: "UTC" })] as const)
         .sort(([, i1], [, i2]) => Temporal.Instant.compare(i1, i2))
         .map(([v]) => v);
 

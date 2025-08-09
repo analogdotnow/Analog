@@ -4,7 +4,7 @@ import * as React from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { Temporal } from "temporal-polyfill";
 
-import { useCalendarSettings } from "@/atoms";
+import { useCalendarSettings } from "@/atoms/calendar-settings";
 import { DeleteEventConfirmation } from "@/components/delete-event-confirmation";
 import type { Action } from "@/components/event-calendar/hooks/use-optimistic-events";
 import { useSidebarWithSide } from "@/components/ui/sidebar";

@@ -9,8 +9,10 @@ import {
 } from "motion/react";
 import { Temporal } from "temporal-polyfill";
 
-import { useCellHeight, useSetIsDragging, useSetIsResizing } from "@/atoms";
-import { CalendarEvent, EventItem } from "@/components/event-calendar";
+import { useCellHeight } from "@/atoms/cell-height";
+import { useSetIsDragging, useSetIsResizing } from "@/atoms/drag-resize-state";
+import type { CalendarEvent } from "@/components/event-calendar/types";
+import { EventItem } from "@/components/event-calendar/event-item";
 import { EventContextMenu } from "@/components/event-calendar/event-context-menu";
 import { ContextMenuTrigger } from "@/components/ui/context-menu";
 import type { Action } from "./hooks/use-optimistic-events";
