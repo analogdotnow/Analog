@@ -74,3 +74,30 @@ export interface Attendee {
 }
 
 export type AttendeeStatus = Attendee["status"];
+
+export type Weekday = "mo" | "tu" | "we" | "th" | "fr" | "sa" | "su";
+export type Frequency = "daily" | "weekly" | "monthly" | "yearly";
+
+export interface Recurrence {
+  frequency: Frequency;
+  interval?: number;
+  count?: number;
+  until?: Temporal.PlainDate | Temporal.ZonedDateTime | Temporal.Instant;
+  byDay?: Weekday[];
+  byMonth?: number[];
+  byMonthDay?: number[];
+  byYearDay?: number[];
+  byWeekNo?: number[];
+  byHour?: number[];
+  byMinute?: number[];
+  bySecond?: number[];
+
+  // bySetPos: number[];
+  // exDate?: Temporal.PlainDate | Temporal.ZonedDateTime | Temporal.Instant;
+  // rDate?: Temporal.PlainDate | Temporal.ZonedDateTime | Temporal.Instant;
+  // tzid?: string;
+  // wkst?: Weekday;
+  // maxIterations?: number;
+  // includeDtstart?: boolean;
+  // dtstart?: Temporal.PlainDate | Temporal.ZonedDateTime | Temporal.Instant;
+}
