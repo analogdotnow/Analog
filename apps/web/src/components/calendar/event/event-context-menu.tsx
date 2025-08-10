@@ -5,7 +5,7 @@ import * as ContextMenuPrimitive from "@radix-ui/react-context-menu";
 import { useQuery } from "@tanstack/react-query";
 import { CheckIcon } from "lucide-react";
 
-import type { AttendeeStatus } from "@repo/api/providers/interfaces";
+import type { AttendeeStatus } from "@repo/api/interfaces";
 
 import { CalendarEvent } from "@/components/calendar/interfaces";
 import {
@@ -177,11 +177,11 @@ export function EventContextMenu({
         {/* Meeting actions */}
         <ContextMenuItem
           className="ps-8 font-medium"
-          disabled={!event.conference?.joinUrl}
+          disabled={!event.conference?.video?.joinUrl}
           asChild
         >
           <a
-            href={event.conference?.joinUrl}
+            href={event.conference?.video?.joinUrl?.value}
             target="_blank"
             rel="noopener noreferrer"
           >

@@ -1,26 +1,26 @@
 import { detectMeetingLink } from "@analog/meeting-links";
 import type {
-  Calendar as MicrosoftCalendar,
   Event as MicrosoftEvent,
   Attendee as MicrosoftEventAttendee,
   ResponseStatus as MicrosoftEventAttendeeResponseStatus,
-  ScheduleItem,
+  OnlineMeetingInfo,
+  OnlineMeetingProviderType,
 } from "@microsoft/microsoft-graph-types";
 import { Temporal } from "temporal-polyfill";
 
-import {
-  CreateEventInput,
-  MicrosoftEventMetadata,
-  UpdateEventInput,
-} from "../../schemas/events";
 import type {
   Attendee,
   AttendeeStatus,
   Calendar,
   CalendarEvent,
   Conference,
-} from "../interfaces";
-import { mapWindowsToIanaTimeZone } from "./windows-timezones";
+} from "../../../interfaces";
+import {
+  CreateEventInput,
+  MicrosoftEventMetadata,
+  UpdateEventInput,
+} from "../../../schemas/events";
+import { parseDateTime, parseTimeZone } from "./utils";
 
 interface ToMicrosoftDateOptions {
   value: Temporal.PlainDate | Temporal.Instant | Temporal.ZonedDateTime;
@@ -63,35 +63,8 @@ export function toMicrosoftDate({
   };
 }
 
-function isValidTimeZone(tz: string) {
-  if (!Intl || !Intl.DateTimeFormat().resolvedOptions().timeZone) {
-    throw new Error("Time zones are not available in this environment");
-  }
-
-  try {
-    Intl.DateTimeFormat(undefined, { timeZone: tz });
-    return true;
-  } catch (error: unknown) {
-    return false;
-  }
-}
-
-function parseTimeZone(timeZone: string) {
-  if (isValidTimeZone(timeZone)) {
-    return timeZone;
-  }
-
-  return mapWindowsToIanaTimeZone(timeZone);
-}
-
 function parseDate(date: string) {
   return Temporal.PlainDate.from(date);
-}
-
-function parseDateTime(dateTime: string, timeZone: string) {
-  const dt = Temporal.PlainDateTime.from(dateTime);
-
-  return dt.toZonedDateTime(parseTimeZone(timeZone) ?? "UTC");
 }
 
 interface ParseMicrosoftEventOptions {
@@ -183,7 +156,46 @@ export function parseMicrosoftEvent({
             },
           }
         : {}),
+      onlineMeeting: event.onlineMeeting,
     },
+  };
+}
+
+function toMicrosoftConferenceData(conference: Conference) {
+  const onlineMeeting: Partial<OnlineMeetingInfo> = {};
+
+  // Set conference ID if available
+  if (conference.conferenceId) {
+    onlineMeeting.conferenceId = conference.conferenceId;
+  }
+
+  // Set join URL from video entry point
+  if (conference.video?.joinUrl?.value) {
+    onlineMeeting.joinUrl = conference.video.joinUrl.value;
+  }
+
+  // Set phone numbers if available
+  if (conference.phone?.length) {
+    onlineMeeting.phones = conference.phone.map((phoneEntry) => ({
+      number: phoneEntry.joinUrl.value.replace(/^tel:/, ""),
+    }));
+  }
+
+  // Determine the provider
+  let onlineMeetingProvider: OnlineMeetingProviderType = "unknown";
+  if (conference.name) {
+    const name = conference.name.toLowerCase();
+    if (name.includes("teams") || name.includes("microsoft")) {
+      onlineMeetingProvider = "teamsForBusiness";
+    } else if (name.includes("skype")) {
+      onlineMeetingProvider = "skypeForBusiness";
+    }
+  }
+
+  return {
+    isOnlineMeeting: true,
+    onlineMeeting,
+    onlineMeetingProvider,
   };
 }
 
@@ -207,44 +219,8 @@ export function toMicrosoftEvent(
     }),
     isAllDay: event.allDay ?? false,
     location: event.location ? { displayName: event.location } : undefined,
-    // ...(event.conference && {
-    //   isOnlineMeeting: true,
-    //   onlineMeeting: {
-    //     conferenceId: event.conference.id,
-    //     joinUrl: event.conference.joinUrl,
-    //     phones: event.conference.phoneNumbers?.map((number) => ({
-    //       number,
-    //     })),
-    //   },
-    //   onlineMeetingProvider: "unknown",
-    // }),
+    // ...(event.conference && toMicrosoftConferenceData(event.conference)),
   };
-}
-
-interface ParseMicrosoftCalendarOptions {
-  accountId: string;
-  calendar: MicrosoftCalendar;
-}
-
-export function parseMicrosoftCalendar({
-  accountId,
-  calendar,
-}: ParseMicrosoftCalendarOptions): Calendar {
-  return {
-    id: calendar.id as string,
-    providerId: "microsoft",
-    name: calendar.name as string,
-    primary: calendar.isDefaultCalendar as boolean,
-    accountId,
-    color: calendar.hexColor as string,
-    readOnly: !calendar.canEdit,
-  };
-}
-
-export function calendarPath(calendarId: string) {
-  return calendarId === "primary"
-    ? "/me/calendar"
-    : `/me/calendars/${calendarId}`;
 }
 
 function parseConferenceFallback(
@@ -258,7 +234,15 @@ function parseConferenceFallback(
     const service = detectMeetingLink(event.location.locationUri);
 
     if (service) {
-      return service;
+      return {
+        id: service.id,
+        name: service.name,
+        video: {
+          joinUrl: {
+            value: service.joinUrl,
+          },
+        },
+      };
     }
   }
 
@@ -272,7 +256,15 @@ function parseConferenceFallback(
     return undefined;
   }
 
-  return service;
+  return {
+    id: service.id,
+    name: service.name,
+    video: {
+      joinUrl: {
+        value: service.joinUrl,
+      },
+    },
+  };
 }
 
 function parseMicrosoftConference(
@@ -288,16 +280,31 @@ function parseMicrosoftConference(
     ?.map((p) => p.number)
     .filter((n): n is string => Boolean(n));
 
+  // TODO: how to handle toll/toll-free numbers and quick dial?
   return {
-    id: event.onlineMeeting?.conferenceId ?? undefined,
+    id: detectMeetingLink(joinUrl)?.id,
+    conferenceId: event.onlineMeeting?.conferenceId ?? undefined,
     name:
       event.onlineMeetingProvider === "teamsForBusiness"
         ? "Microsoft Teams"
-        : "Online Meeting",
-    joinUrl,
-    meetingCode: event.onlineMeeting?.conferenceId ?? undefined,
-    phoneNumbers:
-      phoneNumbers && phoneNumbers.length ? phoneNumbers : undefined,
+        : undefined,
+    video: {
+      joinUrl: {
+        value: joinUrl,
+      },
+      meetingCode: event.onlineMeeting?.conferenceId ?? undefined,
+    },
+    ...(phoneNumbers &&
+      phoneNumbers.length && {
+        phone: phoneNumbers.map((number) => ({
+          joinUrl: {
+            label: number,
+            value: number.startsWith("tel:")
+              ? number
+              : `tel:${number.replace(/[- ]/g, "")}`,
+          },
+        })),
+      }),
   };
 }
 
@@ -345,34 +352,9 @@ export function parseMicrosoftAttendee(
   attendee: MicrosoftEventAttendee,
 ): Attendee {
   return {
-    email: attendee.emailAddress?.address ?? undefined,
+    email: attendee.emailAddress!.address!,
     name: attendee.emailAddress?.name ?? undefined,
     status: parseMicrosoftAttendeeStatus(attendee.status?.response),
     type: attendee.type!,
-  };
-}
-
-export function parseScheduleItemStatus(status: ScheduleItem["status"]) {
-  // TODO: Handle additional statuses
-  if (status === "busy" || status === "oof") {
-    return "busy";
-  }
-
-  if (status === "free") {
-    return "free";
-  }
-
-  return "unknown";
-}
-
-export function parseScheduleItem(item: ScheduleItem) {
-  if (!item.start || !item.end) {
-    throw new Error("Schedule item start or end is missing");
-  }
-
-  return {
-    start: parseDateTime(item.start.dateTime!, item.start.timeZone!),
-    end: parseDateTime(item.end.dateTime!, item.end.timeZone!),
-    status: parseScheduleItemStatus(item.status),
   };
 }

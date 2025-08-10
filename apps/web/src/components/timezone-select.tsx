@@ -1,6 +1,6 @@
 import * as React from "react";
+import { CheckIcon, GlobeEuropeAfricaIcon } from "@heroicons/react/16/solid";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { CheckIcon, GlobeIcon } from "lucide-react";
 import { matchSorter } from "match-sorter";
 
 import { Button } from "@/components/ui/button";
@@ -137,7 +137,7 @@ export function TimezoneSelect({
             className={cn("w-full justify-start gap-2.5 px-1.5", className)}
             disabled={disabled}
           >
-            <GlobeIcon className="size-4 text-muted-foreground/80 hover:text-foreground" />
+            <GlobeEuropeAfricaIcon className="size-4 text-muted-foreground hover:text-foreground" />
             {displayValue ? (
               <span
                 className={cn(

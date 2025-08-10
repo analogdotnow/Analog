@@ -17,6 +17,7 @@ export const calendarsRouter = createTRPCRouter({
 
       return {
         id: account.id,
+        providerAccountId: account.accountId,
         providerId: account.providerId,
         name: account.email,
         calendars: calendars.map((calendar) => ({

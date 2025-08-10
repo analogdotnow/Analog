@@ -29,10 +29,13 @@ export const formSchema = z.object({
   }),
   attendees: z.array(
     z.object({
+      id: z.string().optional(),
       name: z.string().optional(),
       email: z.string(),
       status: z.enum(["accepted", "declined", "tentative", "unknown"]),
-      type: z.enum(["required", "optional", "resource"]).optional(),
+      type: z.enum(["required", "optional", "resource"]),
+      organizer: z.boolean().optional(),
+      comment: z.string().optional(),
     }),
   ),
   providerId: z.enum(["google", "microsoft"]),

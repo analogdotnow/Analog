@@ -1,13 +1,14 @@
-import GoogleTasks from "@repo/google-tasks";
+import { GoogleTasks } from "@repo/google-tasks";
 
-import { parseGoogleTask, toGoogleTask } from "./google-calendar/utils";
-import {
+import type {
   Task,
   TaskCollection,
   TaskCollectionWithTasks,
-  TaskProvider,
-} from "./interfaces";
-import { ProviderError } from "./utils";
+} from "../../interfaces";
+import type { CreateTaskInput, UpdateTaskInput } from "../../schemas/tasks";
+import { ProviderError } from "../lib/provider-error";
+import { parseGoogleTask, toGoogleTask } from "./google-tasks/utils";
+import type { TaskProvider } from "./interfaces";
 
 interface GoogleTasksProviderOptions {
   accessToken: string;
@@ -73,7 +74,7 @@ export class GoogleTasksProvider implements TaskProvider {
     });
   }
 
-  createTask(task: Omit<Task, "id">): Promise<Task> {
+  createTask(task: CreateTaskInput): Promise<Task> {
     return this.withErrorHandler("createTask", async () => {
       const createdTask = await this.client.tasks.v1.lists.tasks.create(
         task.taskCollectionId,
@@ -103,26 +104,25 @@ export class GoogleTasksProvider implements TaskProvider {
     });
   }
 
-  updateTask(task: Task): Promise<Task> {
+  updateTask(task: UpdateTaskInput): Promise<Task> {
     return this.withErrorHandler("updateTask", async () => {
       const updatedTask = await this.client.tasks.v1.lists.tasks.update(
-        task.id!,
+        task.id,
         toGoogleTask(task),
       );
       return parseGoogleTask({
         task: updatedTask,
-        collectionId: task.taskCollectionId!,
+        collectionId: task.taskCollectionId,
         accountId: this.accountId,
       });
     });
   }
 
-  deleteTask(task: Task): Promise<void> {
+  deleteTask(taskCollectionId: string, taskId: string): Promise<void> {
     return this.withErrorHandler("deleteTask", async () => {
-      await this.client.tasks.v1.lists.tasks.delete(
-        task.id!,
-        toGoogleTask(task),
-      );
+      await this.client.tasks.v1.lists.tasks.delete(taskId, {
+        tasklist: taskCollectionId,
+      });
     });
   }
 
