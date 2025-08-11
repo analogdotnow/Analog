@@ -302,7 +302,7 @@ const meetingServices = [
     id: "streamyard",
     label: "StreamYard",
     regex:
-      /https:\/\/(?:www\.)?streamyard\.com\/(?:guest\/)?([a-z0-9]{8,13})(?:\/|\?[^ \n]*)?/,
+      /https:\/\/(?:www\.)?streamyard\.com\/(?:(?:guest|watch)\/)?([A-Za-z0-9]{8,16})(?:\/|\?[^ \n]*)?/,
   },
 ] as const;
 
