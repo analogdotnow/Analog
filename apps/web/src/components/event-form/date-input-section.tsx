@@ -127,7 +127,7 @@ export const DateInputSection = withForm({
             disabled={disabled}
           />
           <div className="pointer-events-none absolute inset-0 grid grid-cols-(--grid-event-form) items-center gap-2">
-            <div className="col-start-1 ps-1.5">
+            <div className="col-start-1 ps-2">
               <ClockIcon className="size-4 text-muted-foreground peer-hover:text-foreground" />
             </div>
             <div className="col-start-3 ps-1.5">
