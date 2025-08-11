@@ -2,13 +2,17 @@ import "server-only";
 
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { openAPI } from "better-auth/plugins";
 
 import { db } from "@repo/db";
-import type { account } from "@repo/db/schema";
+import type { account as accountTable } from "@repo/db/schema";
 import { env } from "@repo/env/server";
 
 import { secondaryStorage } from "./secondary-storage";
-import { createProviderHandler } from "./utils/account-linking";
+import {
+  createProviderHandler,
+  handleUnlinkAccount,
+} from "./utils/account-linking";
 
 export const MICROSOFT_OAUTH_SCOPES = [
   "https://graph.microsoft.com/User.Read",
@@ -63,10 +67,11 @@ export const auth = betterAuth({
       },
     },
   },
+  hooks: {
+    after: handleUnlinkAccount,
+  },
   databaseHooks: {
     account: {
-      // we are using the after hook because better-auth does not
-      // pass additional fields before account creation
       create: {
         after: createProviderHandler,
       },
@@ -94,8 +99,9 @@ export const auth = betterAuth({
       overrideUserInfoOnSignIn: true,
     },
   },
+  plugins: [openAPI()],
 });
 
 export type Session = typeof auth.$Infer.Session;
 export type User = Session["user"];
-export type Account = typeof account.$inferSelect;
+export type Account = typeof accountTable.$inferSelect;

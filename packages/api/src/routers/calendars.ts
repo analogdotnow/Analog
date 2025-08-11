@@ -1,8 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { eq } from "drizzle-orm";
 import { z } from "zod/v3";
-
-import { user } from "@repo/db/schema";
 
 import {
   calendarProcedure,
@@ -70,28 +67,32 @@ export const calendarsRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const account = await ctx.providers.find(
+      const account = ctx.providers.find(
         (provider) => provider.account.id === input.accountId,
       );
 
-      const calendars = await account?.client.calendars();
-      const calendar = calendars?.find(
+      if (!account) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Account not found",
+        });
+      }
+
+      const calendars = await account.client.calendars();
+      const calendar = calendars.find(
         (calendar) => calendar.id === input.calendarId,
       );
 
-      if (!account || !calendar) {
+      if (!calendar) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "Calendar not found",
         });
       }
 
-      await ctx.db
-        .update(user)
-        .set({
-          defaultCalendarId: calendar.id,
-          defaultAccountId: input.accountId,
-        })
-        .where(eq(user.id, ctx.user.id));
+      await ctx.authContext.internalAdapter.updateUser(ctx.user.id, {
+        defaultCalendarId: calendar.id,
+        defaultAccountId: input.accountId,
+      });
     }),
 });

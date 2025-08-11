@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
+import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
 import {
   PersistQueryClientProvider,
   removeOldestQuery,
@@ -21,18 +21,14 @@ import { superjson } from "./superjson";
 
 export const { TRPCProvider, useTRPC } = createTRPCContext<AppRouter>();
 
-function getUrl() {
-  const base = (() => {
-    if (typeof window !== "undefined") return "";
-    if (env.NEXT_PUBLIC_VERCEL_URL)
-      return `https://${env.NEXT_PUBLIC_VERCEL_URL}`;
-    return "http://localhost:3000";
-  })();
-
-  return `${base}/api/trpc`;
+function getBaseUrl() {
+  if (typeof window !== "undefined") return window.location.origin;
+  if (env.NEXT_PUBLIC_VERCEL_URL)
+    return `https://${env.NEXT_PUBLIC_VERCEL_URL}`;
+  return `http://localhost:3000`;
 }
 
-const persister = createSyncStoragePersister({
+const persister = createAsyncStoragePersister({
   storage: typeof window !== "undefined" ? window.localStorage : null,
   throttleTime: 1000,
   retry: removeOldestQuery,
@@ -61,12 +57,11 @@ export function TRPCReactProvider(props: Readonly<TRPCReactProviderProps>) {
         }),
         httpBatchStreamLink({
           transformer: superjson,
-          url: getUrl(),
+          url: getBaseUrl() + "/api/trpc",
           methodOverride: "POST",
           headers: () => {
             const headers = new Headers();
             headers.set("x-trpc-source", "nextjs-react");
-
             return headers;
           },
         }),

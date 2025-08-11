@@ -19,17 +19,8 @@ import { getIp } from "./utils/ip";
 import { getRedis } from "./utils/redis";
 import { superjson } from "./utils/superjson";
 
-type Duration =
-  | `${number} ms`
-  | `${number} s`
-  | `${number} m`
-  | `${number} h`
-  | `${number} d`
-  | `${number}ms`
-  | `${number}s`
-  | `${number}m`
-  | `${number}h`
-  | `${number}d`;
+type Unit = "ms" | "s" | "m" | "h" | "d";
+type Duration = `${number} ${Unit}` | `${number}${Unit}`;
 
 export interface Meta {
   procedureName: string;
@@ -46,6 +37,7 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
   });
 
   return {
+    authContext: await auth.$context,
     db,
     session: session?.session,
     user: session?.user,

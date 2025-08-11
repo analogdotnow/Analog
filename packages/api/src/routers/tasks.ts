@@ -27,7 +27,8 @@ export const tasksRouter = createTRPCRouter({
       const tasks = await client.tasks();
 
       return {
-        id: account.id,
+        accountId: account.id,
+        providerAccountId: account.accountId,
         providerId: account.providerId,
         name: account.email,
         tasks: tasks.map((task) => ({
