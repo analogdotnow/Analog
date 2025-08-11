@@ -30,7 +30,6 @@ import { Calendar, CalendarEvent, DraftEvent } from "@/lib/interfaces";
 import { useTRPC } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
 import { createEventId, isDraftEvent } from "@/lib/utils/calendar";
-import { Button } from "../ui/button";
 import { AttendeeList, AttendeeListItem } from "./attendees/attendee-list";
 import { AttendeeListInput } from "./attendees/attendee-list-input";
 import { CalendarField } from "./calendar-field";
@@ -39,7 +38,7 @@ import { DateInputSection } from "./date-input-section";
 import { DescriptionField } from "./description-field";
 import { FormValues, defaultValues, formSchema, useAppForm } from "./form";
 import { FormRow, FormRowIcon } from "./form-row";
-import { RepeatSelect } from "./repeat-select";
+import { RecurrenceField } from "./recurrences/recurrence-field";
 
 interface GetDefaultValuesOptions {
   event?: CalendarEvent | DraftEvent;
@@ -196,7 +195,7 @@ export function EventForm({
         </form.Field>
       </div>
       <FormContainer>
-        <div className="px-2.5">
+        <div className="px-2">
           <DateInputSection form={form} disabled={disabled} />
         </div>
         <Separator />
@@ -231,15 +230,17 @@ export function EventForm({
               </>
             )}
           </form.Field>
-          <form.Field name="repeat">
+          <form.Field name="recurrence">
             {(field) => (
               <div className="relative col-span-2 col-start-3">
                 <label htmlFor={field.name} className="sr-only">
                   Repeat
                 </label>
-                <RepeatSelect
+                <RecurrenceField
                   id={field.name}
-                  className="ps-8 shadow-none"
+                  className="ps-8"
+                  recurringEventId={event?.recurringEventId}
+                  date={form.state.values.start}
                   value={field.state.value}
                   onChange={field.handleChange}
                   onBlur={field.handleBlur}

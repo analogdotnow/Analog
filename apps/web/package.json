@@ -89,7 +89,7 @@
     "remark-gfm": "^4.0.1",
     "remark-math": "^6.0.0",
     "remeda": "^2.26.1",
-    "rrule-temporal": "^1.1.5",
+    "rrule-temporal": "https://pkg.pr.new/analogdotnow/rrule-temporal@5b1d999",
     "sonner": "^2.0.6",
     "superjson": "^2.2.2",
     "superjson-temporal": "^0.3.1",

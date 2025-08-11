@@ -3,6 +3,8 @@ import { Temporal } from "temporal-polyfill";
 import { zZonedDateTimeInstance } from "temporal-zod";
 import { z } from "zod/v3";
 
+import { recurrenceSchema } from "@repo/api/schemas";
+
 export const { fieldContext, formContext, useFieldContext } =
   createFormHookContexts();
 
@@ -19,9 +21,8 @@ export const formSchema = z.object({
   start: zZonedDateTimeInstance,
   end: zZonedDateTimeInstance,
   isAllDay: z.boolean(),
-  repeat: z.object({
-    type: z.enum(["daily", "weekly", "monthly"]).optional(),
-  }),
+  recurrence: recurrenceSchema.optional(),
+  recurringEventId: z.string().optional(),
   description: z.string(),
   calendar: z.object({
     accountId: z.string(),
@@ -42,7 +43,6 @@ export const formSchema = z.object({
 });
 
 export type FormValues = z.infer<typeof formSchema>;
-export type RepeatType = FormValues["repeat"];
 
 export const defaultValues: FormValues = {
   id: "",
@@ -51,7 +51,8 @@ export const defaultValues: FormValues = {
   end: Temporal.Now.zonedDateTimeISO().add({ hours: 2 }),
   isAllDay: false,
   description: "",
-  repeat: {},
+  recurrence: undefined,
+  recurringEventId: undefined,
   attendees: [],
   calendar: {
     accountId: "",

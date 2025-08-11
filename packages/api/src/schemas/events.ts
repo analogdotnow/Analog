@@ -97,6 +97,10 @@ const googleMetadataSchema = z.object({
         .optional(),
     })
     .optional(),
+  // Preserve original recurrence strings from Google Calendar for debugging/reference
+  originalRecurrence: z.array(z.string()).optional(),
+  // Store the recurring event ID for instances of recurring events
+  recurringEventId: z.string().optional(),
 });
 
 export const dateInputSchema = z.union([
@@ -116,12 +120,100 @@ const attendeeSchema = z.object({
   additionalGuests: z.number().int().optional(),
 });
 
+// export const rruleSchema = z
+//   .object({
+//     /* Required */
+//     freq: z.enum([
+//       "YEARLY",
+//       "MONTHLY",
+//       "WEEKLY",
+//       "DAILY",
+//       "HOURLY",
+//       "MINUTELY",
+//       "SECONDLY",
+//     ]),
+
+//     /* Core modifiers */
+//     interval: z.number().int().gte(1).lte(Number.MAX_SAFE_INTEGER).optional(),
+//     count:    z.number().int().gte(1).lte(Number.MAX_SAFE_INTEGER).optional(),
+//     until:    z.instanceof(Temporal.ZonedDateTime).optional(),
+
+//     /* BY* filters */
+//     byHour:   z.array(z.number().int().gte(0).lte(23)).optional(),
+//     byMinute: z.array(z.number().int().gte(0).lte(59)).optional(),
+//     bySecond: z.array(z.number().int().gte(0).lte(59)).optional(),
+//     byDay:    z.array(weekdayEnum).optional(),
+//     byMonth:  z.array(z.number().int().gte(1).lte(12)).optional(),
+//     byMonthDay: signedList(1, 31).optional(),
+//     byYearDay:  signedList(1, 366).optional(),
+//     byWeekNo:   signedList(1, 53).optional(),
+//     bySetPos:   signedList(1, 366).optional(),
+
+//     /* Week-start */
+//     wkst: weekdayEnum.optional(),
+
+//     /* Inclusions / exclusions */
+//     rDate: z.array(z.instanceof(Temporal.ZonedDateTime)).optional(),
+//     exDate: z.array(z.instanceof(Temporal.ZonedDateTime)).optional(),
+
+//     /* Time-zone context */
+//     tzid: tzidSchema.optional(),
+
+//     /* Generation options */
+//     maxIterations: z.number().int().gte(1).lte(Number.MAX_SAFE_INTEGER).optional(),
+//     includeDtstart: z.boolean().optional(),
+
+//     /* DTSTART (often stored alongside RRULE) */
+//     dtstart: z.instanceof(Temporal.ZonedDateTime).optional(),
+//   })
+//   .strict();
+
+export const recurrenceSchema = z.object({
+  freq: z.enum([
+    "SECONDLY",
+    "MINUTELY",
+    "HOURLY",
+    "DAILY",
+    "WEEKLY",
+    "MONTHLY",
+    "YEARLY",
+  ]),
+  interval: z.number().int().min(1).optional(),
+  count: z.number().int().min(1).optional(),
+  until: dateInputSchema.optional(),
+  byDay: z.array(z.enum(["MO", "TU", "WE", "TH", "FR", "SA", "SU"])).optional(),
+  byMonth: z.array(z.number().int().min(1).max(12)).optional(),
+  byMonthDay: z.array(z.number().int().min(1).max(31)).optional(),
+  byYearDay: z.array(z.number().int().min(1).max(366)).optional(),
+  byWeekNo: z.array(z.number().int().min(1).max(53)).optional(),
+  byHour: z.array(z.number().int().min(0).max(23)).optional(),
+  byMinute: z.array(z.number().int().min(0).max(59)).optional(),
+  bySecond: z.array(z.number().int().min(0).max(59)).optional(),
+  bySetPos: z
+    .array(
+      z
+        .number()
+        .int()
+        .min(-366)
+        .max(366)
+        .refine((val) => val !== 0, {
+          message: "bySetPos values cannot be zero",
+        }),
+    )
+    .optional(),
+  wkst: z.enum(["MO", "TU", "WE", "TH", "FR", "SA", "SU"]).optional(),
+  rDate: z.array(dateInputSchema).optional(),
+  exDate: z.array(dateInputSchema).optional(),
+});
+
 export const createEventInputSchema = z.object({
   id: z.string(),
   title: z.string().optional(),
   start: dateInputSchema,
   end: dateInputSchema,
   allDay: z.boolean().optional(),
+  recurrence: recurrenceSchema.optional(),
+  recurringEventId: z.string().optional(),
   description: z.string().optional(),
   location: z.string().optional(),
   color: z.string().optional(),
