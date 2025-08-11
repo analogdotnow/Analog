@@ -2,8 +2,11 @@ import { Temporal } from "temporal-polyfill";
 
 import { CalendarSettings } from "@/atoms/calendar-settings";
 import { Calendar, CalendarEvent, DraftEvent } from "@/lib/interfaces";
+import { RouterOutputs } from "@/lib/trpc";
 import { createEventId, roundTo15Minutes } from "@/lib/utils/calendar";
 import { FormValues } from "./form";
+
+type CalendarAccounts = RouterOutputs["calendars"]["list"]["accounts"];
 
 interface CreateDefaultEvent {
   settings: CalendarSettings;
@@ -12,9 +15,9 @@ interface CreateDefaultEvent {
 
 export function createDefaultEvent({
   settings,
-  defaultCalendar: calendar,
+  defaultCalendar,
 }: CreateDefaultEvent): FormValues {
-  const timeZone = calendar?.timeZone ?? settings.defaultTimeZone;
+  const timeZone = defaultCalendar?.timeZone ?? settings.defaultTimeZone;
   const now = Temporal.Now.zonedDateTimeISO(timeZone);
 
   const start = roundTo15Minutes(now);
@@ -29,13 +32,12 @@ export function createDefaultEvent({
     end: start.add(duration),
     description: "",
     isAllDay: false,
-    repeat: {},
     attendees: [],
     calendar: {
-      accountId: calendar.accountId,
-      calendarId: calendar.id,
+      accountId: defaultCalendar.accountId,
+      calendarId: defaultCalendar.id,
     },
-    providerId: calendar.providerId,
+    providerId: defaultCalendar.providerId,
   };
 }
 
@@ -59,10 +61,13 @@ function toZonedDateTime({
   return date.toZonedDateTime(defaultTimeZone);
 }
 
+type FormAttendee = FormValues["attendees"][number];
+
 interface ParseDraftEventOptions {
   event: DraftEvent;
   defaultCalendar: Calendar;
   settings: CalendarSettings;
+  accounts?: CalendarAccounts;
 }
 
 export function parseDraftEvent({
@@ -70,6 +75,17 @@ export function parseDraftEvent({
   defaultCalendar,
   settings,
 }: ParseDraftEventOptions): FormValues {
+  const attendees: FormAttendee[] =
+    event.attendees?.map((attendee) => ({
+      id: attendee.id,
+      email: attendee.email ?? "",
+      status: attendee.status,
+      type: attendee.type,
+      name: attendee.name ?? "",
+      organizer: attendee.organizer,
+      comment: attendee.comment,
+    })) ?? [];
+
   return {
     id: event?.id ?? createEventId(),
     title: event.title ?? "",
@@ -83,14 +99,9 @@ export function parseDraftEvent({
     }),
     description: event.description ?? "",
     isAllDay: event.allDay ?? false,
-    repeat: {},
-    attendees:
-      event.attendees?.map((attendee) => ({
-        email: attendee.email ?? "",
-        status: attendee.status,
-        type: attendee.type,
-        name: attendee.name ?? "",
-      })) ?? [],
+    recurrence: event.recurrence,
+    recurringEventId: event.recurringEventId,
+    attendees,
     calendar: {
       accountId: event?.accountId ?? defaultCalendar.accountId,
       calendarId: event?.calendarId ?? defaultCalendar.id,
@@ -102,6 +113,7 @@ export function parseDraftEvent({
 interface ParseCalendarEventOptions {
   event: CalendarEvent;
   settings: CalendarSettings;
+  accounts?: CalendarAccounts;
 }
 
 export function parseCalendarEvent({
@@ -117,21 +129,27 @@ export function parseCalendarEvent({
     defaultTimeZone: settings.defaultTimeZone,
   });
 
+  const attendees: FormAttendee[] =
+    event.attendees?.map((attendee) => ({
+      id: attendee.id,
+      email: attendee.email ?? "",
+      status: attendee.status,
+      type: attendee.type,
+      name: attendee.name ?? "",
+      organizer: attendee.organizer,
+      comment: attendee.comment,
+    })) ?? [];
+
   return {
     id: event.id,
     title: event.title ?? "",
-    start: start,
-    end: end,
+    start,
+    end,
     description: event.description ?? "",
     isAllDay: event.allDay ?? false,
-    repeat: {},
-    attendees:
-      event.attendees?.map((attendee) => ({
-        email: attendee.email ?? "",
-        status: attendee.status,
-        type: attendee.type,
-        name: attendee.name ?? "",
-      })) ?? [],
+    recurrence: event.recurrence,
+    recurringEventId: event.recurringEventId,
+    attendees,
     calendar: {
       accountId: event.accountId ?? "",
       calendarId: event.calendarId ?? "",
@@ -144,6 +162,18 @@ interface ToCalendarEvent {
   values: FormValues;
   event?: CalendarEvent | DraftEvent;
   calendar?: Calendar;
+}
+
+function toResponse(attendees: FormAttendee[]) {
+  const organizer = attendees.find((a) => a.organizer);
+
+  if (!organizer) {
+    return undefined;
+  }
+
+  return {
+    status: organizer.status,
+  };
 }
 
 export function toCalendarEvent({
@@ -162,7 +192,11 @@ export function toCalendarEvent({
     providerId: values.providerId,
     start: values.isAllDay ? values.start.toPlainDate() : values.start,
     end: values.isAllDay ? values.end.toPlainDate() : values.end,
-    color: calendar?.color ?? undefined,
+    color: calendar?.color,
     readOnly: false,
+    attendees: values.attendees.length > 0 ? values.attendees : undefined,
+    recurrence: values.recurrence,
+    recurringEventId: values.recurringEventId,
+    response: toResponse(values.attendees),
   };
 }

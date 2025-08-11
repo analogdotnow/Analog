@@ -1,14 +1,20 @@
 "use client";
 
 import * as React from "react";
+import {
+  ArrowPathIcon,
+  PencilSquareIcon,
+  UsersIcon,
+  VideoCameraIcon,
+} from "@heroicons/react/16/solid";
 import { useQuery } from "@tanstack/react-query";
-import { RepeatIcon } from "lucide-react";
+import { useAtomValue } from "jotai";
 
 import {
   CalendarSettings,
-  useCalendarSettings,
+  calendarSettingsAtom,
 } from "@/atoms/calendar-settings";
-import type { Action } from "@/components/event-calendar/hooks/use-optimistic-events";
+import type { Action } from "@/components/calendar/hooks/use-optimistic-events";
 import {
   createDefaultEvent,
   parseCalendarEvent,
@@ -24,16 +30,15 @@ import { Calendar, CalendarEvent, DraftEvent } from "@/lib/interfaces";
 import { useTRPC } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
 import { createEventId, isDraftEvent } from "@/lib/utils/calendar";
-import {
-  AttendeeList,
-  AttendeeListInput,
-  AttendeeListItem,
-} from "./attendee-list";
+import { AttendeeList, AttendeeListItem } from "./attendees/attendee-list";
+import { AttendeeListInput } from "./attendees/attendee-list-input";
 import { CalendarField } from "./calendar-field";
+import { ConferenceDetails } from "./conference/conference-details";
 import { DateInputSection } from "./date-input-section";
 import { DescriptionField } from "./description-field";
 import { FormValues, defaultValues, formSchema, useAppForm } from "./form";
-import { RepeatSelect } from "./repeat-select";
+import { FormRow, FormRowIcon } from "./form-row";
+import { RecurrenceField } from "./recurrences/recurrence-field";
 
 interface GetDefaultValuesOptions {
   event?: CalendarEvent | DraftEvent;
@@ -79,7 +84,7 @@ export function EventForm({
   dispatchAsyncAction,
   defaultCalendar,
 }: EventFormProps) {
-  const settings = useCalendarSettings();
+  const settings = useAtomValue(calendarSettingsAtom);
 
   const trpc = useTRPC();
   const query = useQuery(trpc.calendars.list.queryOptions());
@@ -89,7 +94,11 @@ export function EventForm({
   const disabled = event?.readOnly;
 
   const form = useAppForm({
-    defaultValues: getDefaultValues({ event, defaultCalendar, settings }),
+    defaultValues: getDefaultValues({
+      event,
+      defaultCalendar,
+      settings,
+    }),
     validators: {
       onBlur: formSchema,
       onSubmit: ({ value }) => {
@@ -186,14 +195,14 @@ export function EventForm({
         </form.Field>
       </div>
       <FormContainer>
-        <div className="px-2.5">
+        <div className="px-2">
           <DateInputSection form={form} disabled={disabled} />
         </div>
         <Separator />
         <FormRow className="gap-x-1">
           <div className="pointer-events-none absolute inset-0 grid grid-cols-(--grid-event-form) items-center gap-2">
             <div className="col-start-3 ps-1.5">
-              <RepeatIcon className="size-4 text-muted-foreground opacity-50 peer-hover:text-foreground" />
+              <ArrowPathIcon className="size-4 text-muted-foreground peer-hover:text-foreground" />
             </div>
           </div>
           <form.Field name="isAllDay">
@@ -221,15 +230,17 @@ export function EventForm({
               </>
             )}
           </form.Field>
-          <form.Field name="repeat">
+          <form.Field name="recurrence">
             {(field) => (
               <div className="relative col-span-2 col-start-3">
                 <label htmlFor={field.name} className="sr-only">
                   Repeat
                 </label>
-                <RepeatSelect
+                <RecurrenceField
                   id={field.name}
-                  className="ps-8 shadow-none"
+                  className="ps-8"
+                  recurringEventId={event?.recurringEventId}
+                  date={form.state.values.start}
                   value={field.state.value}
                   onChange={field.handleChange}
                   onBlur={field.handleBlur}
@@ -240,27 +251,32 @@ export function EventForm({
           </form.Field>
         </FormRow>
         <Separator />
+        {event?.conference ? (
+          <>
+            <FormRow>
+              <FormRowIcon icon={VideoCameraIcon} />
+              <div className="col-span-4 col-start-1 flex flex-col pe-1">
+                <ConferenceDetails conference={event?.conference} />
+              </div>
+            </FormRow>
+            <Separator />
+          </>
+        ) : null}
         <FormRow>
-          <div className="pointer-events-none absolute inset-0 grid grid-cols-(--grid-event-form) items-start gap-2 pt-2">
-            <div className="col-start-1 ps-4">
-              <Icons.Attendees className="size-4 text-muted-foreground opacity-50 peer-hover:text-foreground" />
-            </div>
-          </div>
+          <FormRowIcon icon={UsersIcon} />
           <form.Field name="attendees" mode="array">
             {(field) => {
               return (
                 <>
-                  <div className="col-span-4 col-start-1 flex flex-col">
+                  <div className="col-span-4 col-start-1 flex flex-col pe-1">
                     <AttendeeList
-                      className={cn(field.state.value.length > 0 && "py-2")}
+                      className={cn(field.state.value.length > 0 && "py-0.5")}
                     >
                       {field.state.value.filter(Boolean).map((v, i) => {
                         return (
-                          <form.Field
-                            key={`${field.name}-${v.email}`}
-                            name={`attendees[${i}]`}
-                          >
+                          <form.Field key={i} name={`attendees[${i}]`}>
                             {(subField) => {
+                              // This is a workaround, for some reason the value is sometimes undefined
                               if (!subField.state.value) {
                                 return null;
                               }
@@ -271,6 +287,19 @@ export function EventForm({
                                   email={subField.state.value.email}
                                   status={subField.state.value.status}
                                   type={subField.state.value.type}
+                                  organizer={subField.state.value.organizer}
+                                  disabled={disabled}
+                                  onRemove={() => {
+                                    field.removeValue(i);
+                                    field.handleBlur();
+                                  }}
+                                  onToggleOptional={(type) => {
+                                    subField.handleChange({
+                                      ...subField.state.value,
+                                      type,
+                                    });
+                                    subField.handleBlur();
+                                  }}
                                 />
                               );
                             }}
@@ -281,14 +310,15 @@ export function EventForm({
                   </div>
                   <div
                     className={cn(
-                      "col-span-4 col-start-1",
-                      field.state.value.length > 0 && "col-span-3 col-start-2",
+                      "col-span-4 col-start-1 flex flex-col gap-y-2",
+                      field.state.value.length > 0 &&
+                        "col-span-3 col-start-2 ps-2 pt-1",
                     )}
                   >
                     <AttendeeListInput
                       className={cn(
                         "ps-8",
-                        field.state.value.length > 0 && "ps-3",
+                        field.state.value.length > 0 && "ps-2.5",
                       )}
                       onComplete={(email) => {
                         field.pushValue({
@@ -299,6 +329,9 @@ export function EventForm({
                         });
                       }}
                       disabled={disabled}
+                      unConfirmed={
+                        field.state.meta.isDirty && !field.state.meta.isBlurred
+                      }
                     />
                   </div>
                 </>
@@ -308,11 +341,7 @@ export function EventForm({
         </FormRow>
         <Separator />
         <FormRow>
-          <div className="pointer-events-none absolute inset-0 grid grid-cols-(--grid-event-form) items-start gap-2 pt-2">
-            <div className="col-start-1 ps-4">
-              <Icons.Notes className="size-4 text-muted-foreground opacity-50 peer-hover:text-foreground" />
-            </div>
-          </div>
+          <FormRowIcon icon={PencilSquareIcon} />
           <form.Field name="description">
             {(field) => (
               <div className="col-span-4 col-start-1">
@@ -355,24 +384,6 @@ export function EventForm({
         </form.Field>
       </div>
     </form>
-  );
-}
-
-function FormRow({
-  className,
-  children,
-  ...props
-}: React.ComponentProps<"div">) {
-  return (
-    <div
-      className={cn(
-        "relative grid grid-cols-(--grid-event-form) items-center px-2",
-        className,
-      )}
-      {...props}
-    >
-      {children}
-    </div>
   );
 }
 

@@ -2,8 +2,8 @@ import { TRPCError } from "@trpc/server";
 import { Temporal } from "temporal-polyfill";
 import { z } from "zod/v3";
 
+import { Conference } from "../interfaces";
 import { accountToConferencingProvider } from "../providers";
-import { Conference } from "../providers/interfaces";
 import { calendarProcedure, createTRPCRouter } from "../trpc";
 
 export const conferencingRouter = createTRPCRouter({

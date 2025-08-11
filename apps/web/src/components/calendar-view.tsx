@@ -1,28 +1,23 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
-import { useHotkeysContext } from "react-hotkeys-hook";
+import { useMemo, useRef } from "react";
+import { useAtom, useAtomValue } from "jotai";
 
-import {
-  useCalendarSettings,
-  useCalendarsVisibility,
-  useCellHeight,
-  useViewPreferences,
-} from "@/atoms";
-import {
-  CalendarHeader,
-  EventGap,
-  EventHeight,
-} from "@/components/event-calendar";
-import type { Action } from "@/components/event-calendar/hooks/use-optimistic-events";
-import { filterPastEvents } from "@/components/event-calendar/utils";
-import { AgendaView } from "@/components/event-calendar/views/agenda-view";
-import { DayView } from "@/components/event-calendar/views/day-view";
-import { MonthView } from "@/components/event-calendar/views/month-view";
-import { WeekView } from "@/components/event-calendar/views/week-view";
+import { calendarSettingsAtom } from "@/atoms/calendar-settings";
+import { calendarsVisibilityAtom } from "@/atoms/calendars-visibility";
+import { cellHeightAtom } from "@/atoms/cell-height";
+import { viewPreferencesAtom } from "@/atoms/view-preferences";
+import { AgendaView } from "@/components/calendar/agenda-view/agenda-view";
+import { EventGap, EventHeight } from "@/components/calendar/constants";
+import { DayView } from "@/components/calendar/day-view/day-view";
+import { CalendarHeader } from "@/components/calendar/header/calendar-header";
+import type { EventCollectionItem } from "@/components/calendar/hooks/event-collection";
+import type { Action } from "@/components/calendar/hooks/use-optimistic-events";
+import { MonthView } from "@/components/calendar/month-view/month-view";
+import { filterPastEvents } from "@/components/calendar/utils/event";
+import { WeekView } from "@/components/calendar/week-view/week-view";
 import { useCalendarState } from "@/hooks/use-calendar-state";
 import { cn } from "@/lib/utils";
-import type { EventCollectionItem } from "./event-calendar/hooks/event-collection";
 
 interface CalendarContentProps {
   events: EventCollectionItem[];
@@ -89,15 +84,14 @@ export function CalendarView({
   events,
   dispatchAction,
 }: CalendarViewProps) {
-  const viewPreferences = useViewPreferences();
-  const [calendarVisibility] = useCalendarsVisibility();
+  const viewPreferences = useAtomValue(viewPreferencesAtom);
+  const [calendarVisibility] = useAtom(calendarsVisibilityAtom);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const calendarHeaderRef = useRef<HTMLElement | null>(null);
 
-  // Cell height comes from Jotai atom so updates trigger a re-render + CSS update
-  const cellHeight = useCellHeight();
+  const cellHeight = useAtomValue(cellHeightAtom);
 
-  const { defaultTimeZone } = useCalendarSettings();
+  const { defaultTimeZone } = useAtomValue(calendarSettingsAtom);
   const filteredEvents = useMemo(() => {
     // First filter past events
     const pastFiltered = filterPastEvents(
@@ -119,13 +113,6 @@ export function CalendarView({
     calendarVisibility.hiddenCalendars,
     defaultTimeZone,
   ]);
-
-  const { enableScope } = useHotkeysContext();
-
-  useEffect(() => {
-    enableScope("calendar");
-    enableScope("event");
-  }, [enableScope]);
 
   return (
     <div

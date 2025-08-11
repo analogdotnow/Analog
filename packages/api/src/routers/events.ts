@@ -1,11 +1,10 @@
 import { TRPCError } from "@trpc/server";
 import { Temporal } from "temporal-polyfill";
-import { transformMcpProcedure } from "trpc-to-mcp";
 import { z } from "zod";
 
 import { toInstant } from "@repo/temporal";
 
-import { CalendarEvent } from "../providers/interfaces";
+import { CalendarEvent } from "../interfaces";
 import {
   createEventInputSchema,
   updateEventInputSchema,
@@ -14,73 +13,63 @@ import { zTemporalZonedDateTime } from "../schemas/temporal";
 import { calendarProcedure, createTRPCRouter } from "../trpc";
 
 export const eventsRouter = createTRPCRouter({
-  list: transformMcpProcedure(
-    calendarProcedure
-      .meta({
-        mcp: {
-          enabled: true,
-          name: "list_calendar_events",
-          description: "List events for the authenticated user",
-        },
-      })
-      .input(
-        z.object({
-          calendarIds: z.array(z.string()).default([]),
-          timeMin: zTemporalZonedDateTime,
-          timeMax: zTemporalZonedDateTime,
-          defaultTimeZone: z.string(),
-        }),
-      )
-      .query(async ({ ctx, input }) => {
-        const allEvents = await Promise.all(
-          ctx.providers.map(async ({ client, account }) => {
-            const calendars = await client.calendars();
-
-            const requestedCalendars =
-              input.calendarIds.length === 0
-                ? calendars
-                : calendars.filter((cal) => input.calendarIds.includes(cal.id));
-
-            const providerEvents = await Promise.all(
-              requestedCalendars.map(async (calendar) => {
-                const events = await client.events(
-                  calendar,
-                  input.timeMin,
-                  input.timeMax,
-                  input.defaultTimeZone,
-                );
-
-                return events.map((event) => ({
-                  ...event,
-                  calendarId: calendar.id,
-                  providerId: account.providerId,
-                  accountId: account.accountId,
-                  color: calendar.color,
-                }));
-              }),
-            );
-
-            return providerEvents.flat();
-          }),
-        );
-
-        const events: CalendarEvent[] = allEvents
-          .flat()
-          .map(
-            (v) => [v, toInstant({ value: v.start, timeZone: "UTC" })] as const,
-          )
-          .sort(([, i1], [, i2]) => Temporal.Instant.compare(i1, i2))
-          .map(([v]) => v);
-
-        return { events };
+  list: calendarProcedure
+    .meta({
+      mcp: {
+        enabled: true,
+        name: "list_calendar_events",
+        description: "List events for the authenticated user",
+      },
+    })
+    .input(
+      z.object({
+        calendarIds: z.array(z.string()).default([]),
+        timeMin: zTemporalZonedDateTime,
+        timeMax: zTemporalZonedDateTime,
+        defaultTimeZone: z.string(),
       }),
-    (output) => {
-      return output.events.map((event) => ({
-        type: "text",
-        text: `${event.title} from ${event.calendarId} calendar will be on ${event.start.toLocaleString()} with ${event.attendees?.map((a) => a.name).join(", ")}`,
-      }));
-    },
-  ),
+    )
+    .query(async ({ ctx, input }) => {
+      const allEvents = await Promise.all(
+        ctx.providers.map(async ({ client, account }) => {
+          const calendars = await client.calendars();
+
+          const requestedCalendars =
+            input.calendarIds.length === 0
+              ? calendars
+              : calendars.filter((cal) => input.calendarIds.includes(cal.id));
+
+          const providerEvents = await Promise.all(
+            requestedCalendars.map(async (calendar) => {
+              const events = await client.events(
+                calendar,
+                input.timeMin,
+                input.timeMax,
+                input.defaultTimeZone,
+              );
+
+              return events.map((event) => ({
+                ...event,
+                calendarId: calendar.id,
+                providerId: account.providerId,
+                accountId: account.accountId,
+                color: calendar.color,
+              }));
+            }),
+          );
+
+          return providerEvents.flat();
+        }),
+      );
+
+      const events: CalendarEvent[] = allEvents
+        .flat()
+        .map((v) => [v, toInstant(v.start, { timeZone: "UTC" })] as const)
+        .sort(([, i1], [, i2]) => Temporal.Instant.compare(i1, i2))
+        .map(([v]) => v);
+
+      return { events };
+    }),
   create: calendarProcedure
     .input(createEventInputSchema)
     .mutation(async ({ ctx, input }) => {

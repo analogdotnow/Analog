@@ -11,69 +11,51 @@ import {
 } from "../trpc";
 
 export const calendarsRouter = createTRPCRouter({
-  list: calendarProcedure
-    // .meta({
-    //   openapi: {
-    //     method: "GET",
-    //     path: "/calendars",
-    //     protect: true,
-    //     summary: "List user calendars",
-    //     description: "Get all calendars for the authenticated user",
-    //     tags: ["calendars"],
-    //   },
-    // })
-    // .input(z.void())
-    // .output(z.unknown())
-    .meta({
-      mcp: {
-        enabled: true,
-      },
-    })
-    .query(async ({ ctx }) => {
-      const promises = ctx.providers.map(async ({ client, account }) => {
-        const calendars = await client.calendars();
-
-        return {
-          id: account.id,
-          providerId: account.providerId,
-          name: account.email,
-          calendars: calendars.map((calendar) => ({
-            ...calendar,
-          })),
-        };
-      });
-
-      const accounts = await Promise.all(promises);
-
-      const defaultAccount =
-        ctx.accounts.find(
-          (account) => account.id === ctx.user.defaultAccountId,
-        ) ?? ctx.accounts.at(0)!;
-
-      const calendars = accounts.flatMap((account) => account.calendars);
-
-      const defaultCalendar =
-        calendars.find(
-          (calendar) => calendar.id === ctx.user.defaultCalendarId,
-        ) ??
-        calendars.find(
-          (calendar) =>
-            calendar.accountId === defaultAccount.accountId && calendar.primary,
-        );
-
-      if (!defaultCalendar) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Default calendar not found",
-        });
-      }
+  list: calendarProcedure.query(async ({ ctx }) => {
+    const promises = ctx.providers.map(async ({ client, account }) => {
+      const calendars = await client.calendars();
 
       return {
-        defaultCalendar,
-        defaultAccount,
-        accounts,
+        id: account.id,
+        providerId: account.providerId,
+        name: account.email,
+        calendars: calendars.map((calendar) => ({
+          ...calendar,
+        })),
       };
-    }),
+    });
+
+    const accounts = await Promise.all(promises);
+
+    const defaultAccount =
+      ctx.accounts.find(
+        (account) => account.id === ctx.user.defaultAccountId,
+      ) ?? ctx.accounts.at(0)!;
+
+    const calendars = accounts.flatMap((account) => account.calendars);
+
+    const defaultCalendar =
+      calendars.find(
+        (calendar) => calendar.id === ctx.user.defaultCalendarId,
+      ) ??
+      calendars.find(
+        (calendar) =>
+          calendar.accountId === defaultAccount.accountId && calendar.primary,
+      );
+
+    if (!defaultCalendar) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Default calendar not found",
+      });
+    }
+
+    return {
+      defaultCalendar,
+      defaultAccount,
+      accounts,
+    };
+  }),
   getDefault: protectedProcedure.query(async ({ ctx }) => {
     return {
       defaultCalendarId: ctx.user.defaultCalendarId ?? null,

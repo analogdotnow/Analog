@@ -1,6 +1,6 @@
 import * as React from "react";
+import { ArrowRightIcon, ClockIcon } from "@heroicons/react/16/solid";
 import { useField } from "@tanstack/react-form";
-import { ArrowRight, Clock } from "lucide-react";
 import { Temporal } from "temporal-polyfill";
 
 import { DateInput } from "@/components/date-input";
@@ -20,8 +20,6 @@ export const DateInputSection = withForm({
     const isAllDayField = useField({ name: "isAllDay", form });
     const isSameTimezone =
       startField.state.value.timeZoneId === endField.state.value.timeZoneId;
-    const [isStartTimeOpen, setStartTimeOpen] = React.useState(false);
-    const [isEndTimeOpen, setIsEndTimeOpen] = React.useState(false);
     const [openTimePicker, setOpenTimePicker] = React.useState<
       "start" | "end" | null
     >(null);
@@ -130,10 +128,10 @@ export const DateInputSection = withForm({
           />
           <div className="pointer-events-none absolute inset-0 grid grid-cols-(--grid-event-form) items-center gap-2">
             <div className="col-start-1 ps-1.5">
-              <Clock className="size-4 text-muted-foreground peer-hover:text-foreground" />
+              <ClockIcon className="size-4 text-muted-foreground peer-hover:text-foreground" />
             </div>
             <div className="col-start-3 ps-1.5">
-              <ArrowRight className="size-4 text-muted-foreground hover:text-foreground" />
+              <ArrowRightIcon className="size-4 text-muted-foreground hover:text-foreground" />
             </div>
           </div>
         </div>
@@ -168,10 +166,10 @@ export const DateInputSection = withForm({
           {isAllDay ? (
             <div className="pointer-events-none absolute inset-0 grid grid-cols-(--grid-event-form) items-center gap-2">
               <div className="col-start-1 ps-1.5">
-                <Clock className="size-4 text-muted-foreground peer-hover:text-foreground" />
+                <ClockIcon className="size-4 text-muted-foreground peer-hover:text-foreground" />
               </div>
               <div className="col-start-3 ps-1.5">
-                <ArrowRight className="size-4 text-muted-foreground hover:text-foreground" />
+                <ArrowRightIcon className="size-4 text-muted-foreground hover:text-foreground" />
               </div>
             </div>
           ) : null}

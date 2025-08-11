@@ -21,7 +21,13 @@
         "MICROSOFT_CLIENT_ID",
         "MICROSOFT_CLIENT_SECRET",
         "ZOOM_CLIENT_ID",
-        "ZOOM_CLIENT_SECRET"
+        "ZOOM_CLIENT_SECRET",
+        "NEXT_PUBLIC_SENTRY_DSN",
+        "SENTRY_DSN",
+        "SENTRY_PROJECT",
+        "SENTRY_ORG",
+        "MARBLE_WORKSPACE_KEY",
+        "MARBLE_API_URL"
       ],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
@@ -47,7 +53,13 @@
         "MICROSOFT_CLIENT_ID",
         "MICROSOFT_CLIENT_SECRET",
         "ZOOM_CLIENT_ID",
-        "ZOOM_CLIENT_SECRET"
+        "ZOOM_CLIENT_SECRET",
+        "NEXT_PUBLIC_SENTRY_DSN",
+        "SENTRY_DSN",
+        "SENTRY_PROJECT",
+        "SENTRY_ORG",
+        "MARBLE_WORKSPACE_KEY",
+        "MARBLE_API_URL"
       ]
     },
     "lint": {

@@ -1,11 +1,13 @@
 import * as React from "react";
 import { format } from "@formkit/tempo";
+import { useAtom } from "jotai";
 import { useTheme } from "next-themes";
 import { useHotkeys } from "react-hotkeys-hook";
 
 import DarkTheme from "@/assets/theme-dark.svg";
 import LightTheme from "@/assets/theme-light.svg";
 import SystemTheme from "@/assets/theme-system.svg";
+import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import {
@@ -16,7 +18,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { useCalendarSettings } from "../hooks/use-calendar-settings";
 import {
   SettingsPage,
   SettingsSection,
@@ -92,7 +93,7 @@ function ThemePicker() {
 }
 
 function StartOfWeekPicker() {
-  const [calendarSettings, setCalendarSettings] = useCalendarSettings();
+  const [calendarSettings, setCalendarSettings] = useAtom(calendarSettingsAtom);
   const value = weekDays[calendarSettings.weekStartsOn - 1];
 
   return (
@@ -129,7 +130,7 @@ function StartOfWeekPicker() {
 }
 
 function TimeFormatPicker() {
-  const [calendarSettings, setCalendarSettings] = useCalendarSettings();
+  const [calendarSettings, setCalendarSettings] = useAtom(calendarSettingsAtom);
 
   const time = React.useRef(new Date());
 
@@ -164,7 +165,7 @@ function TimeFormatPicker() {
 }
 
 function EasterEggSelector() {
-  const [calendarSettings, setCalendarSettings] = useCalendarSettings();
+  const [calendarSettings, setCalendarSettings] = useAtom(calendarSettingsAtom);
   const [easterEggSettingsVisible, setEasterEggSettingsVisible] =
     React.useState(false);
 

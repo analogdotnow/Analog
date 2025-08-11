@@ -8,7 +8,7 @@ import { Temporal } from "temporal-polyfill";
 
 import { toDate } from "@repo/temporal";
 
-import { calendarSettingsAtom } from "@/atoms";
+import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import {
@@ -62,11 +62,11 @@ export function DateInput({
       return undefined;
     }
 
-    return toDate({ value: minValue, timeZone: minValue.timeZoneId });
+    return toDate(minValue, { timeZone: minValue.timeZoneId });
   }, [minValue]);
 
   React.useEffect(() => {
-    const date = toDate({ value, timeZone: value.timeZoneId });
+    const date = toDate(value, { timeZone: value.timeZoneId });
     setDate(date);
     setMonth(date);
     setInput(formatDate({ date, locale }));
@@ -100,7 +100,7 @@ export function DateInput({
       const date = parseDate(newValue);
 
       if (!date || (minDate && date < minDate)) {
-        const date = toDate({ value, timeZone: value.timeZoneId });
+        const date = toDate(value, { timeZone: value.timeZoneId });
         setDate(date);
         setMonth(date);
         setInput(formatDate({ date, locale }));

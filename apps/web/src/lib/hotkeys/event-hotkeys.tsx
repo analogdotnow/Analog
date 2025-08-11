@@ -1,17 +1,18 @@
 "use client";
 
 import * as React from "react";
+import { useAtomValue } from "jotai";
 import { useHotkeys } from "react-hotkeys-hook";
 import { Temporal } from "temporal-polyfill";
 
-import { useCalendarSettings } from "@/atoms";
+import { calendarSettingsAtom } from "@/atoms/calendar-settings";
+import type { Action } from "@/components/calendar/hooks/use-optimistic-events";
 import { DeleteEventConfirmation } from "@/components/delete-event-confirmation";
-import type { Action } from "@/components/event-calendar/hooks/use-optimistic-events";
 import { useSidebarWithSide } from "@/components/ui/sidebar";
 import type { CalendarEvent, DraftEvent } from "@/lib/interfaces";
 import { createDraftEvent } from "@/lib/utils/calendar";
 
-export const KEYBOARD_SHORTCUTS = {
+const KEYBOARD_SHORTCUTS = {
   CREATE_EVENT: "c",
   JOIN_MEETING: "j",
   DELETE_EVENT: "backspace",
@@ -29,7 +30,7 @@ export function EventHotkeys({
 }: CalendarHotkeysProps) {
   const { open: rightSidebarOpen, setOpen: setRightSidebarOpen } =
     useSidebarWithSide("right");
-  const settings = useCalendarSettings();
+  const settings = useAtomValue(calendarSettingsAtom);
 
   useHotkeys(
     KEYBOARD_SHORTCUTS.CREATE_EVENT,
@@ -59,8 +60,12 @@ export function EventHotkeys({
         return;
       }
 
+      if (!selectedEvent.conference?.video?.joinUrl) {
+        return;
+      }
+
       window.open(
-        selectedEvent.conference.joinUrl,
+        selectedEvent.conference.video.joinUrl.value,
         "_blank",
         "noopener,noreferrer",
       );

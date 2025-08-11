@@ -1,7 +1,8 @@
 import { Temporal } from "temporal-polyfill";
 
-import { Conference, ConferencingProvider } from "../interfaces";
-import { ProviderError } from "../utils";
+import type { Conference } from "../../interfaces";
+import { ProviderError } from "../lib/provider-error";
+import type { ConferencingProvider } from "./interfaces";
 
 interface ZoomProviderOptions {
   accessToken: string;
@@ -96,10 +97,14 @@ export class ZoomProvider implements ConferencingProvider {
       const conference: Conference = {
         id: data.uuid ?? String(data.id),
         name: "Zoom Meeting",
-        joinUrl: data.join_url ?? undefined,
+        video: {
+          joinUrl: {
+            value: data.join_url ?? "",
+          },
+          meetingCode: String(data.id),
+          password: data.password ?? undefined,
+        },
         hostUrl: data.start_url ?? undefined,
-        meetingCode: String(data.id),
-        password: data.password ?? undefined,
       };
 
       return conference;

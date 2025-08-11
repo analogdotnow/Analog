@@ -1,6 +1,7 @@
 import * as React from "react";
+import { useAtomValue } from "jotai";
 
-import { useCalendarSettings } from "@/atoms/calendar-settings";
+import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { DatePicker } from "@/components/date-picker";
 import { SubwaySurfers } from "@/components/easter-eggs/subway-surfers";
 import { NavUser } from "@/components/nav-user";
@@ -13,7 +14,7 @@ import {
 } from "@/components/ui/sidebar";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const calendarSettings = useCalendarSettings();
+  const calendarSettings = useAtomValue(calendarSettingsAtom);
 
   return (
     <Sidebar {...props}>

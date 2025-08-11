@@ -2,7 +2,7 @@ import { PlacesClient } from "@googlemaps/places";
 
 import { env } from "@repo/env/server";
 
-import { ProviderError } from "../utils";
+import { ProviderError } from "../lib/provider-error";
 import type {
   AutocompleteOptions,
   PlaceResult,

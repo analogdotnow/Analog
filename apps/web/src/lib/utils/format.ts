@@ -3,7 +3,7 @@ import { Temporal } from "temporal-polyfill";
 
 import { toDate } from "@repo/temporal";
 
-export interface FormatTimeOptions {
+interface FormatTimeOptions {
   value: Temporal.ZonedDateTime;
   use12Hour: boolean;
   locale: string;
@@ -16,7 +16,7 @@ export function formatTime({
   locale,
   timeZone,
 }: FormatTimeOptions) {
-  const date = toDate({ value, timeZone: timeZone ?? value.timeZoneId });
+  const date = toDate(value, { timeZone: timeZone ?? value.timeZoneId });
 
   if (use12Hour) {
     return format({

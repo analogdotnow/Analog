@@ -66,6 +66,7 @@ export const events = pgTable(
     url: text("url"),
 
     syncToken: text("sync_token"),
+    recurringEventId: text("recurring_event_id"),
 
     calendarId: text("calendar_id")
       .notNull()

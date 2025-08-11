@@ -1,21 +1,35 @@
 import { tzDate } from "@formkit/tempo";
 import { Temporal } from "temporal-polyfill";
 
+import { TemporalConvertible } from "./interfaces";
+
 interface ToDateOptions {
-  value: Temporal.Instant | Temporal.ZonedDateTime | Temporal.PlainDate;
   timeZone: string;
 }
 
-export function toDate({ value, timeZone }: ToDateOptions): Date {
+export function toDate(
+  value: Temporal.ZonedDateTime,
+  options?: ToDateOptions,
+): Date;
+export function toDate(value: Temporal.Instant, options: ToDateOptions): Date;
+export function toDate(value: Temporal.PlainDate, options: ToDateOptions): Date;
+export function toDate(
+  value: Temporal.Instant | Temporal.ZonedDateTime | Temporal.PlainDate,
+  options: ToDateOptions,
+): Date;
+export function toDate(
+  value: Temporal.Instant | Temporal.ZonedDateTime | Temporal.PlainDate,
+  options?: ToDateOptions,
+): Date {
   if (value instanceof Temporal.PlainDate) {
     return tzDate(
       new Date(value.toString({ calendarName: "never" })),
-      timeZone,
+      options!.timeZone,
     );
   }
 
   if (value instanceof Temporal.Instant) {
-    return tzDate(new Date(value.epochMilliseconds), timeZone);
+    return tzDate(new Date(value.epochMilliseconds), options!.timeZone);
   }
 
   return tzDate(
@@ -28,65 +42,66 @@ export function toDate({ value, timeZone }: ToDateOptions): Date {
       value.second,
       value.millisecond,
     ),
-    timeZone,
+    options?.timeZone ?? value.timeZoneId,
   );
 }
 
 interface ToInstantOptions {
-  value: Temporal.Instant | Temporal.ZonedDateTime | Temporal.PlainDate;
   timeZone: string;
 }
 
-export function toInstant({ value, timeZone }: ToInstantOptions) {
-  if (value instanceof Temporal.Instant) {
-    return value.toZonedDateTimeISO(timeZone).toInstant();
+export function toInstant(
+  date: TemporalConvertible,
+  options: ToInstantOptions,
+): Temporal.Instant {
+  if (date instanceof Temporal.Instant) {
+    return date;
   }
 
-  if (value instanceof Temporal.ZonedDateTime) {
-    return value.withTimeZone(timeZone).toInstant();
+  if (date instanceof Temporal.ZonedDateTime) {
+    return date.toInstant();
   }
 
-  return value.toZonedDateTime(timeZone).toInstant();
+  // PlainDate - convert to start of day in the specified timezone
+  return date.toZonedDateTime(options.timeZone).toInstant();
 }
 
 interface ToPlainDateOptions {
-  value: Temporal.Instant | Temporal.ZonedDateTime | Temporal.PlainDate;
   timeZone: string;
 }
 
-export function toPlainDate({ value, timeZone }: ToPlainDateOptions) {
-  if (value instanceof Temporal.PlainDate) {
-    return value;
+export function toPlainDate(
+  date: Temporal.PlainDate | Temporal.ZonedDateTime | Temporal.Instant,
+  options: ToPlainDateOptions,
+): Temporal.PlainDate {
+  if (date instanceof Temporal.PlainDate) {
+    return date;
   }
 
-  if (value instanceof Temporal.Instant) {
-    return value.toZonedDateTimeISO(timeZone).toPlainDate();
+  if (date instanceof Temporal.ZonedDateTime) {
+    return date.withTimeZone(options.timeZone).toPlainDate();
   }
 
-  return value.withTimeZone(timeZone).toPlainDate();
+  return date.toZonedDateTimeISO(options.timeZone).toPlainDate();
 }
 
-export interface ToPlainYearMonthOptions {
-  value: Temporal.Instant | Temporal.ZonedDateTime | Temporal.PlainDate;
+interface ToZonedDateTimeOptions {
   timeZone: string;
 }
 
-export function toPlainYearMonth({ value, timeZone }: ToPlainYearMonthOptions) {
-  if (value instanceof Temporal.PlainDate) {
-    return value.toPlainYearMonth();
+export function toZonedDateTime(
+  date: Temporal.ZonedDateTime | Temporal.Instant | Temporal.PlainDate,
+  options: ToZonedDateTimeOptions,
+): Temporal.ZonedDateTime {
+  if (date instanceof Temporal.ZonedDateTime) {
+    return date.withTimeZone(options.timeZone);
   }
 
-  return toPlainDate({ value, timeZone }).toPlainYearMonth();
-}
+  if (date instanceof Temporal.PlainDate) {
+    return date.toZonedDateTime(options.timeZone);
+  }
 
-export function compareTemporal(
-  a: Temporal.PlainDate | Temporal.Instant | Temporal.ZonedDateTime,
-  b: Temporal.PlainDate | Temporal.Instant | Temporal.ZonedDateTime,
-) {
-  return Temporal.Instant.compare(
-    toInstant({ value: a, timeZone: "UTC" }),
-    toInstant({ value: b, timeZone: "UTC" }),
-  );
+  return date.toZonedDateTimeISO(options.timeZone);
 }
 
 export function toDateWeekStartsOn(
