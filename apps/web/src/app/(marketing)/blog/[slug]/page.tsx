@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 
 import { Prose } from "@/components/prose";
 import { AnimatedGroup } from "@/components/ui/animated-group";
-import { getSinglePost, getPosts } from "@/lib/blog-query";
+import { getPosts, getSinglePost } from "@/lib/blog-query";
 import {
   delayedTransitionVariants,
   transitionVariants,
