@@ -49,6 +49,7 @@ const handler = withMcpAuth(auth, async (request, mcpSession) => {
         basePath: "/api",
         verboseLogs: true,
         maxDuration: 60,
+        disableSse: true,
       },
     },
   );
