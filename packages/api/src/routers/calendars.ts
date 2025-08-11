@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
-import { z } from "zod";
+import { z } from "zod/v3";
 
 import { user } from "@repo/db/schema";
 
@@ -17,6 +17,7 @@ export const calendarsRouter = createTRPCRouter({
 
       return {
         id: account.id,
+        providerAccountId: account.accountId,
         providerId: account.providerId,
         name: account.email,
         calendars: calendars.map((calendar) => ({

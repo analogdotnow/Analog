@@ -1,6 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { Temporal } from "temporal-polyfill";
-import { z } from "zod";
+import { zZonedDateTimeInstance } from "temporal-zod";
+import { z } from "zod/v3";
 
 import { toInstant } from "@repo/temporal";
 
@@ -9,23 +10,15 @@ import {
   createEventInputSchema,
   updateEventInputSchema,
 } from "../schemas/events";
-import { zTemporalZonedDateTime } from "../schemas/temporal";
 import { calendarProcedure, createTRPCRouter } from "../trpc";
 
 export const eventsRouter = createTRPCRouter({
   list: calendarProcedure
-    .meta({
-      mcp: {
-        enabled: true,
-        name: "list_calendar_events",
-        description: "List events for the authenticated user",
-      },
-    })
     .input(
       z.object({
         calendarIds: z.array(z.string()).default([]),
-        timeMin: zTemporalZonedDateTime,
-        timeMax: zTemporalZonedDateTime,
+        timeMin: zZonedDateTimeInstance,
+        timeMax: zZonedDateTimeInstance,
         defaultTimeZone: z.string(),
       }),
     )

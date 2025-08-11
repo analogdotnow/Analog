@@ -58,7 +58,7 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
   };
 };
 
-const t = initTRPC
+export const t = initTRPC
   .context<typeof createTRPCContext>()
   .meta<Meta>()
   .create({
