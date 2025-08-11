@@ -2,7 +2,7 @@ import { Channel, ChannelHeaders } from "./headers";
 import { GoogleCalendar } from "@repo/google-calendar";
 import { db } from "@repo/db";
 import { calendars } from "@repo/db/schema";
-import { parseGoogleCalendarCalendarListEntry } from "../utils";
+import { parseGoogleCalendarCalendarListEntry } from "../../calendars/google-calendar/calendars";
 import { Account } from "@repo/auth/server";
 import { revalidateTag } from "next/cache";
 

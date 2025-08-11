@@ -6,7 +6,7 @@ import { db } from "@repo/db";
 import { calendars, events } from "@repo/db/schema";
 import { GoogleCalendar } from "@repo/google-calendar";
 
-import { parseGoogleCalendarEvent } from "../utils";
+import { parseGoogleCalendarEvent } from "../../calendars/google-calendar/events";
 import { Channel, ChannelHeaders } from "./headers";
 import { CalendarEvent } from "../../interfaces";
 import { revalidateTag } from "next/cache";
