@@ -32,7 +32,6 @@ export function createDefaultEvent({
     end: start.add(duration),
     description: "",
     isAllDay: false,
-    repeat: {},
     attendees: [],
     calendar: {
       accountId: defaultCalendar.accountId,
@@ -100,7 +99,8 @@ export function parseDraftEvent({
     }),
     description: event.description ?? "",
     isAllDay: event.allDay ?? false,
-    repeat: {},
+    recurrence: event.recurrence,
+    recurringEventId: event.recurringEventId,
     attendees,
     calendar: {
       accountId: event?.accountId ?? defaultCalendar.accountId,
@@ -147,7 +147,8 @@ export function parseCalendarEvent({
     end,
     description: event.description ?? "",
     isAllDay: event.allDay ?? false,
-    repeat: {},
+    recurrence: event.recurrence,
+    recurringEventId: event.recurringEventId,
     attendees,
     calendar: {
       accountId: event.accountId ?? "",
@@ -191,9 +192,11 @@ export function toCalendarEvent({
     providerId: values.providerId,
     start: values.isAllDay ? values.start.toPlainDate() : values.start,
     end: values.isAllDay ? values.end.toPlainDate() : values.end,
-    color: calendar?.color ?? undefined,
+    color: calendar?.color,
     readOnly: false,
     attendees: values.attendees.length > 0 ? values.attendees : undefined,
+    recurrence: values.recurrence,
+    recurringEventId: values.recurringEventId,
     response: toResponse(values.attendees),
   };
 }

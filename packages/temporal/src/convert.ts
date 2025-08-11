@@ -8,18 +8,28 @@ interface ToDateOptions {
 }
 
 export function toDate(
+  value: Temporal.ZonedDateTime,
+  options?: ToDateOptions,
+): Date;
+export function toDate(value: Temporal.Instant, options: ToDateOptions): Date;
+export function toDate(value: Temporal.PlainDate, options: ToDateOptions): Date;
+export function toDate(
   value: Temporal.Instant | Temporal.ZonedDateTime | Temporal.PlainDate,
   options: ToDateOptions,
+): Date;
+export function toDate(
+  value: Temporal.Instant | Temporal.ZonedDateTime | Temporal.PlainDate,
+  options?: ToDateOptions,
 ): Date {
   if (value instanceof Temporal.PlainDate) {
     return tzDate(
       new Date(value.toString({ calendarName: "never" })),
-      options.timeZone,
+      options!.timeZone,
     );
   }
 
   if (value instanceof Temporal.Instant) {
-    return tzDate(new Date(value.epochMilliseconds), options.timeZone);
+    return tzDate(new Date(value.epochMilliseconds), options!.timeZone);
   }
 
   return tzDate(
@@ -32,7 +42,7 @@ export function toDate(
       value.second,
       value.millisecond,
     ),
-    options.timeZone,
+    options?.timeZone ?? value.timeZoneId,
   );
 }
 

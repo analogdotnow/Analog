@@ -72,20 +72,20 @@ function parseTemporal(
 }
 
 const WEEKDAY_MAP: Record<string, Weekday> = {
-  MO: "mo",
-  TU: "tu",
-  WE: "we",
-  TH: "th",
-  FR: "fr",
-  SA: "sa",
-  SU: "su",
+  MO: "MO",
+  TU: "TU",
+  WE: "WE",
+  TH: "TH",
+  FR: "FR",
+  SA: "SA",
+  SU: "SU",
 };
 
 const FREQUENCY_MAP: Record<string, Frequency> = {
-  DAILY: "daily",
-  WEEKLY: "weekly",
-  MONTHLY: "monthly",
-  YEARLY: "yearly",
+  DAILY: "DAILY",
+  WEEKLY: "WEEKLY",
+  MONTHLY: "MONTHLY",
+  YEARLY: "YEARLY",
 };
 
 /**
@@ -113,11 +113,11 @@ export function fromRRule(rrule: string, timeZone: string = "UTC"): Recurrence {
 
     switch (key.toUpperCase()) {
       case "FREQ": {
-        const frequency = FREQUENCY_MAP[value.toUpperCase()];
-        if (!frequency) {
-          throw new Error(`Unsupported frequency: ${value}`);
+        const freq = FREQUENCY_MAP[value.toUpperCase()];
+        if (!freq) {
+          throw new Error(`Unsupported freq ${value}`);
         }
-        recurrence.frequency = frequency;
+        recurrence.freq = freq;
         break;
       }
 
@@ -246,15 +246,171 @@ export function fromRRule(rrule: string, timeZone: string = "UTC"): Recurrence {
         break;
       }
 
+      case "BYSETPOS": {
+        const setPositions = value.split(",").map((pos) => {
+          const num = parseInt(pos);
+          if (isNaN(num) || num === 0 || num < -366 || num > 366) {
+            throw new Error(`Invalid set position: ${pos}`);
+          }
+          return num;
+        });
+        recurrence.bySetPos = setPositions;
+        break;
+      }
+
+      case "WKST": {
+        const weekStart = WEEKDAY_MAP[value.toUpperCase()];
+        if (!weekStart) {
+          throw new Error(`Invalid week start: ${value}`);
+        }
+        recurrence.wkst = weekStart;
+        break;
+      }
+
       default:
-        // Ignore unsupported RRULE properties (like WKST, BYSETPOS, etc.)
+        // Ignore unsupported RRULE properties
         break;
     }
   }
 
-  if (!recurrence.frequency) {
+  if (!recurrence.freq) {
     throw new Error("RRULE must include FREQ parameter");
   }
 
   return recurrence as Recurrence;
+}
+
+/**
+ * Parses an RDATE string into an array of dates
+ * @param rDateString - The RDATE string to parse (e.g., "RDATE:20231225T120000Z,20231226T120000Z")
+ * @param timeZone - Time zone for parsing floating dates
+ * @returns Array of Temporal date objects
+ * @throws Error if the RDATE string is malformed
+ */
+export function fromRDate(
+  rDateString: string,
+  timeZone: string = "UTC",
+): (Temporal.PlainDate | Temporal.ZonedDateTime | Temporal.Instant)[] {
+  if (!rDateString.startsWith("RDATE:")) {
+    throw new Error('Invalid RDATE: must start with "RDATE:"');
+  }
+
+  // Remove "RDATE:" prefix and split by comma
+  const dateBody = rDateString.substring(6);
+  if (!dateBody.trim()) {
+    return [];
+  }
+
+  const dateStrings = dateBody.split(",");
+  const dates: (
+    | Temporal.PlainDate
+    | Temporal.ZonedDateTime
+    | Temporal.Instant
+  )[] = [];
+
+  for (const dateString of dateStrings) {
+    try {
+      const parsed = parseTemporal(dateString.trim(), timeZone);
+      dates.push(parsed);
+    } catch {
+      throw new Error(`Invalid RDATE date: ${dateString}`);
+    }
+  }
+
+  return dates;
+}
+
+/**
+ * Parses an EXDATE string into an array of dates
+ * @param exDateString - The EXDATE string to parse (e.g., "EXDATE:20231225T120000Z,20231226T120000Z")
+ * @param timeZone - Time zone for parsing floating dates
+ * @returns Array of Temporal date objects
+ * @throws Error if the EXDATE string is malformed
+ */
+export function fromExDate(
+  exDateString: string,
+  timeZone: string = "UTC",
+): (Temporal.PlainDate | Temporal.ZonedDateTime | Temporal.Instant)[] {
+  if (!exDateString.startsWith("EXDATE:")) {
+    throw new Error('Invalid EXDATE: must start with "EXDATE:"');
+  }
+
+  // Remove "EXDATE:" prefix and split by comma
+  const dateBody = exDateString.substring(7);
+  if (!dateBody.trim()) {
+    return [];
+  }
+
+  const dateStrings = dateBody.split(",");
+  const dates: (
+    | Temporal.PlainDate
+    | Temporal.ZonedDateTime
+    | Temporal.Instant
+  )[] = [];
+
+  for (const dateString of dateStrings) {
+    try {
+      const parsed = parseTemporal(dateString.trim(), timeZone);
+      dates.push(parsed);
+    } catch {
+      throw new Error(`Invalid EXDATE date: ${dateString}`);
+    }
+  }
+
+  return dates;
+}
+
+/**
+ * Parses a complete recurrence specification from multiple iCalendar properties
+ * @param properties - Array of iCalendar property strings (RRULE, RDATE, EXDATE)
+ * @param timeZone - Time zone for parsing floating dates
+ * @returns Complete Recurrence object
+ * @throws Error if no RRULE is found or if any property is malformed
+ */
+export function fromRecurrenceProperties(
+  properties: string[],
+  timeZone: string = "UTC",
+): Recurrence {
+  let recurrence: Recurrence | null = null;
+  const rDates: (
+    | Temporal.PlainDate
+    | Temporal.ZonedDateTime
+    | Temporal.Instant
+  )[] = [];
+  const exDates: (
+    | Temporal.PlainDate
+    | Temporal.ZonedDateTime
+    | Temporal.Instant
+  )[] = [];
+
+  for (const property of properties) {
+    const trimmed = property.trim();
+
+    if (trimmed.startsWith("RRULE:")) {
+      if (recurrence) {
+        throw new Error("Multiple RRULE properties are not allowed");
+      }
+      recurrence = fromRRule(trimmed, timeZone);
+    } else if (trimmed.startsWith("RDATE:")) {
+      const dates = fromRDate(trimmed, timeZone);
+      rDates.push(...dates);
+    } else if (trimmed.startsWith("EXDATE:")) {
+      const dates = fromExDate(trimmed, timeZone);
+      exDates.push(...dates);
+    }
+  }
+
+  if (!recurrence) {
+    throw new Error("RRULE property is required");
+  }
+
+  // Add RDATE and EXDATE arrays to the recurrence if they exist
+  if (rDates.length > 0) {
+    recurrence.rDate = rDates;
+  }
+  if (exDates.length > 0) {
+    recurrence.exDate = exDates;
+  }
+
+  return recurrence;
 }

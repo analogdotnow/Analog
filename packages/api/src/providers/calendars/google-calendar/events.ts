@@ -7,8 +7,11 @@ import {
   Calendar,
   CalendarEvent,
   Conference,
+  Recurrence,
 } from "../../../interfaces";
 import { CreateEventInput, UpdateEventInput } from "../../../schemas/events";
+import { toRecurrenceProperties } from "../../../utils/recurrences/export";
+import { fromRecurrenceProperties } from "../../../utils/recurrences/parse";
 import {
   GoogleCalendarDate,
   GoogleCalendarDateTime,
@@ -69,19 +72,36 @@ function parseResponseStatus(event: GoogleCalendarEvent) {
   };
 }
 
+function parseRecurrence(
+  event: GoogleCalendarEvent,
+  timeZone: string,
+): Recurrence | undefined {
+  if (!event.recurrence) {
+    return undefined;
+  }
+
+  return fromRecurrenceProperties(event.recurrence, timeZone);
+}
+
 interface ParsedGoogleCalendarEventOptions {
   calendar: Calendar;
   accountId: string;
   event: GoogleCalendarEvent;
+  defaultTimeZone?: string;
 }
 
 export function parseGoogleCalendarEvent({
   calendar,
   accountId,
   event,
+  defaultTimeZone = "UTC",
 }: ParsedGoogleCalendarEventOptions): CalendarEvent {
   const isAllDay = !event.start?.dateTime;
   const response = parseResponseStatus(event);
+  const recurrence = parseRecurrence(
+    event,
+    event.start?.timeZone ?? defaultTimeZone,
+  );
 
   return {
     // ID should always be present if not defined Google Calendar will generate one
@@ -107,6 +127,16 @@ export function parseGoogleCalendarEvent({
     readOnly: calendar.readOnly,
     conference: parseGoogleCalendarConferenceData(event),
     ...(response && { response }),
+    ...(recurrence && { recurrence }),
+    recurringEventId: event.recurringEventId,
+    metadata: {
+      ...(event.recurrence && {
+        originalRecurrence: event.recurrence,
+      }),
+      ...(event.recurringEventId && {
+        recurringEventId: event.recurringEventId,
+      }),
+    },
   };
 }
 
@@ -156,6 +186,11 @@ export function toGoogleCalendarEvent(
       : undefined,
     // Should always be 1 to ensure conference data is retained for all event modification requests.
     conferenceDataVersion: 1,
+    // TODO: how to handle recurrence when the time zone is changed (i.e. until, rDate, exDate).
+    ...(event.recurrence && {
+      recurrence: toRecurrenceProperties(event.recurrence),
+    }),
+    recurringEventId: event.recurringEventId,
   };
 }
 

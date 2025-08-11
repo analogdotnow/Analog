@@ -22,6 +22,8 @@ export interface CalendarEvent {
   };
   metadata?: Record<string, unknown>;
   conference?: Conference;
+  recurrence?: Recurrence;
+  recurringEventId?: string;
 }
 
 export interface ConferenceEntryPoint {
@@ -75,11 +77,18 @@ export interface Attendee {
 
 export type AttendeeStatus = Attendee["status"];
 
-export type Weekday = "mo" | "tu" | "we" | "th" | "fr" | "sa" | "su";
-export type Frequency = "daily" | "weekly" | "monthly" | "yearly";
+export type Weekday = "MO" | "TU" | "WE" | "TH" | "FR" | "SA" | "SU";
+export type Frequency =
+  | "SECONDLY"
+  | "MINUTELY"
+  | "HOURLY"
+  | "DAILY"
+  | "WEEKLY"
+  | "MONTHLY"
+  | "YEARLY";
 
 export interface Recurrence {
-  frequency: Frequency;
+  freq: Frequency;
   interval?: number;
   count?: number;
   until?: Temporal.PlainDate | Temporal.ZonedDateTime | Temporal.Instant;
@@ -92,11 +101,11 @@ export interface Recurrence {
   byMinute?: number[];
   bySecond?: number[];
 
-  // bySetPos: number[];
-  // exDate?: Temporal.PlainDate | Temporal.ZonedDateTime | Temporal.Instant;
-  // rDate?: Temporal.PlainDate | Temporal.ZonedDateTime | Temporal.Instant;
+  bySetPos?: number[];
+  exDate?: (Temporal.PlainDate | Temporal.ZonedDateTime | Temporal.Instant)[];
+  rDate?: (Temporal.PlainDate | Temporal.ZonedDateTime | Temporal.Instant)[];
   // tzid?: string;
-  // wkst?: Weekday;
+  wkst?: Weekday;
   // maxIterations?: number;
   // includeDtstart?: boolean;
   // dtstart?: Temporal.PlainDate | Temporal.ZonedDateTime | Temporal.Instant;

@@ -97,6 +97,10 @@ const googleMetadataSchema = z.object({
         .optional(),
     })
     .optional(),
+  // Preserve original recurrence strings from Google Calendar for debugging/reference
+  originalRecurrence: z.array(z.string()).optional(),
+  // Store the recurring event ID for instances of recurring events
+  recurringEventId: z.string().optional(),
 });
 
 export const dateInputSchema = z.union([
@@ -165,11 +169,19 @@ const attendeeSchema = z.object({
 //   .strict();
 
 export const recurrenceSchema = z.object({
-  frequency: z.enum(["daily", "weekly", "monthly", "yearly"]),
+  freq: z.enum([
+    "SECONDLY",
+    "MINUTELY",
+    "HOURLY",
+    "DAILY",
+    "WEEKLY",
+    "MONTHLY",
+    "YEARLY",
+  ]),
   interval: z.number().int().min(1).optional(),
   count: z.number().int().min(1).optional(),
   until: dateInputSchema.optional(),
-  byDay: z.array(z.enum(["mo", "tu", "we", "th", "fr", "sa", "su"])).optional(),
+  byDay: z.array(z.enum(["MO", "TU", "WE", "TH", "FR", "SA", "SU"])).optional(),
   byMonth: z.array(z.number().int().min(1).max(12)).optional(),
   byMonthDay: z.array(z.number().int().min(1).max(31)).optional(),
   byYearDay: z.array(z.number().int().min(1).max(366)).optional(),
@@ -177,6 +189,21 @@ export const recurrenceSchema = z.object({
   byHour: z.array(z.number().int().min(0).max(23)).optional(),
   byMinute: z.array(z.number().int().min(0).max(59)).optional(),
   bySecond: z.array(z.number().int().min(0).max(59)).optional(),
+  bySetPos: z
+    .array(
+      z
+        .number()
+        .int()
+        .min(-366)
+        .max(366)
+        .refine((val) => val !== 0, {
+          message: "bySetPos values cannot be zero",
+        }),
+    )
+    .optional(),
+  wkst: z.enum(["MO", "TU", "WE", "TH", "FR", "SA", "SU"]).optional(),
+  rDate: z.array(dateInputSchema).optional(),
+  exDate: z.array(dateInputSchema).optional(),
 });
 
 export const createEventInputSchema = z.object({
@@ -186,6 +213,7 @@ export const createEventInputSchema = z.object({
   end: dateInputSchema,
   allDay: z.boolean().optional(),
   recurrence: recurrenceSchema.optional(),
+  recurringEventId: z.string().optional(),
   description: z.string().optional(),
   location: z.string().optional(),
   color: z.string().optional(),
