@@ -25,7 +25,9 @@
         "NEXT_PUBLIC_SENTRY_DSN",
         "SENTRY_DSN",
         "SENTRY_PROJECT",
-        "SENTRY_ORG"
+        "SENTRY_ORG",
+        "MARBLE_WORKSPACE_KEY",
+        "MARBLE_API_URL"
       ],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
@@ -55,7 +57,9 @@
         "NEXT_PUBLIC_SENTRY_DSN",
         "SENTRY_DSN",
         "SENTRY_PROJECT",
-        "SENTRY_ORG"
+        "SENTRY_ORG",
+        "MARBLE_WORKSPACE_KEY",
+        "MARBLE_API_URL"
       ]
     },
     "lint": {
