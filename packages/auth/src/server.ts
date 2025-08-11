@@ -2,7 +2,6 @@ import "server-only";
 
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { openAPI } from "better-auth/plugins";
 
 import { db } from "@repo/db";
 import type { account as accountTable } from "@repo/db/schema";
@@ -99,7 +98,6 @@ export const auth = betterAuth({
       overrideUserInfoOnSignIn: true,
     },
   },
-  plugins: [openAPI()],
 });
 
 export type Session = typeof auth.$Infer.Session;
