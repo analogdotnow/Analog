@@ -1,4 +1,4 @@
-import { Temporal } from "@js-temporal/polyfill";
+import { Temporal } from "temporal-polyfill";
 
 import type { Task } from "../../../interfaces";
 import type { CreateTaskInput, UpdateTaskInput } from "../../../schemas/tasks";

@@ -1,4 +1,4 @@
-import { Temporal } from "@js-temporal/polyfill";
+import { Temporal } from "temporal-polyfill";
 import { z } from "zod";
 
 export const createTaskCollectionInputSchema = z.object({
