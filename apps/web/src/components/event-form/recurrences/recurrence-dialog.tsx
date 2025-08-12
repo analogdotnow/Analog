@@ -87,8 +87,8 @@ export function RecurrenceDialog({
 }: RecurrenceDialogProps) {
   const [open, setOpen] = React.useState(false);
 
-  const form = useForm({
-    defaultValues: {
+  const defaultValues = React.useMemo(() => {
+    return {
       freq: recurrence?.freq ?? "WEEKLY",
       interval: recurrence?.interval,
       endType: recurrence?.until ? "on" : recurrence?.count ? "after" : "never",
@@ -104,8 +104,17 @@ export function RecurrenceDialog({
       byMonthDay: recurrence?.byMonthDay,
       byYearDay: recurrence?.byYearDay,
       byWeekNo: recurrence?.byWeekNo,
-    },
-    onSubmit: ({ value }) => {
+    };
+  }, [recurrence, start]);
+
+  const form = useForm({
+    defaultValues,
+    onSubmit: ({ value, formApi }) => {
+      if (formApi.state.isDefaultValue) {
+        setOpen(false);
+        return;
+      }
+
       // Validate/transform using the schema, then bubble up
       const parsed = formRecurrenceSchema.parse(value);
       // Remove endType and filter fields based on the selected end type
@@ -174,10 +183,10 @@ export function RecurrenceDialog({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="daily">Day</SelectItem>
-                      <SelectItem value="weekly">Week</SelectItem>
-                      <SelectItem value="monthly">Month</SelectItem>
-                      <SelectItem value="yearly">Year</SelectItem>
+                      <SelectItem value="DAILY">Day</SelectItem>
+                      <SelectItem value="WEEKLY">Week</SelectItem>
+                      <SelectItem value="MONTHLY">Month</SelectItem>
+                      <SelectItem value="YEARLY">Year</SelectItem>
                     </SelectContent>
                   </Select>
                 )}
