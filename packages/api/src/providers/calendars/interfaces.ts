@@ -39,7 +39,11 @@ export interface CalendarProvider {
     eventId: string,
     event: UpdateEventInput,
   ): Promise<CalendarEvent>;
-  deleteEvent(calendarId: string, eventId: string): Promise<void>;
+  deleteEvent(
+    calendarId: string,
+    eventId: string,
+    sendUpdate?: boolean,
+  ): Promise<void>;
   responseToEvent(
     calendarId: string,
     eventId: string,
