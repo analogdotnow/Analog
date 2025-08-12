@@ -23,5 +23,9 @@
     "turbo": "^2.5.5"
   },
   "packageManager": "bun@1.2.18",
-  "workspaces": ["apps/*", "packages/*", "tooling/*"]
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "tooling/*"
+  ]
 }

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { SlidersVertical, UsersRound } from "lucide-react";
+import { Key, SlidersVertical, UsersRound } from "lucide-react";
 
 import {
   Dialog,
@@ -10,6 +10,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accounts } from "./tabs/accounts";
+import { ApiKeys } from "./tabs/api-keys";
 import { General } from "./tabs/general";
 
 interface SettingsDialogProps {
@@ -43,6 +44,12 @@ export function SettingsDialog({ children }: SettingsDialogProps) {
               >
                 <UsersRound className="size-4" /> Accounts
               </TabsTrigger>
+              <TabsTrigger
+                value="api"
+                className="w-full justify-start gap-3 border-none data-[state=active]:bg-muted data-[state=active]:shadow-none"
+              >
+                <Key className="size-4" /> API Keys
+              </TabsTrigger>
             </TabsList>
             <Separator
               orientation="vertical"
@@ -55,6 +62,9 @@ export function SettingsDialog({ children }: SettingsDialogProps) {
                 </TabsContent>
                 <TabsContent value="general" className="mt-0 h-full">
                   <General />
+                </TabsContent>
+                <TabsContent value="api" className="mt-0 h-full">
+                  <ApiKeys />
                 </TabsContent>
               </div>
             </div>

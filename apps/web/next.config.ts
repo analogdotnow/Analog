@@ -14,6 +14,40 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async headers() {
+    // For routes that are public
+    const headers = [
+      { key: "Access-Control-Allow-Credentials", value: "true" },
+      { key: "Access-Control-Allow-Origin", value: "*" },
+      {
+        key: "Access-Control-Allow-Methods",
+        value: "GET, POST, PUT, PATCH, DELETE, OPTIONS",
+      },
+      {
+        key: "Access-Control-Allow-Headers",
+        value: "Authorization, Content-Type, X-CSRF-Token, X-API-Key",
+      },
+    ];
+
+    return [
+      {
+        source: "/api/mcp/:path*",
+        headers,
+      },
+      {
+        source: "/api/auth/mcp/:path*",
+        headers,
+      },
+      {
+        source: "/api/v1/:path*",
+        headers,
+      },
+      {
+        source: "/api/openapi.json",
+        headers,
+      },
+    ];
+  },
   webpack(config) {
     // Grab the existing rule that handles SVG imports
     // @ts-expect-error any

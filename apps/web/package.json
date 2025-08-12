@@ -21,6 +21,7 @@
     "@hookform/resolvers": "^5.1.1",
     "@icons-pack/react-simple-icons": "^13.7.0",
     "@internationalized/date": "^3.8.2",
+    "@modelcontextprotocol/sdk": "^1.17.1",
     "@number-flow/react": "^0.5.10",
     "@radix-ui/react-alert-dialog": "^1.1.14",
     "@radix-ui/react-avatar": "^1.1.10",
@@ -95,6 +96,8 @@
     "superjson-temporal": "^0.3.1",
     "tailwind-merge": "^3.3.1",
     "temporal-polyfill": "^0.3.0",
+    "trpc-to-mcp": "^1.3.2",
+    "trpc-to-openapi": "^3.0.0",
     "tw-animate-css": "^1.3.5",
     "use-stick-to-bottom": "^1.1.1",
     "zod": "^4.0.5"

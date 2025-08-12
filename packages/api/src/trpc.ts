@@ -2,6 +2,8 @@ import "server-only";
 
 import { TRPCError, initTRPC } from "@trpc/server";
 import { Ratelimit } from "@upstash/ratelimit";
+import type { McpMeta } from "trpc-to-mcp";
+import type { OpenApiMeta } from "trpc-to-openapi";
 import { ZodError } from "zod/v3";
 
 import { auth } from "@repo/auth/server";
@@ -30,14 +32,15 @@ type Duration =
   | `${number}h`
   | `${number}d`;
 
-export interface Meta {
-  procedureName: string;
-  ratelimit: {
-    namespace: string;
-    limit: number;
-    duration: Duration;
+export type Meta = OpenApiMeta &
+  McpMeta & {
+    procedureName: string;
+    ratelimit: {
+      namespace: string;
+      limit: number;
+      duration: Duration;
+    };
   };
-}
 
 export const createTRPCContext = async (opts: { headers: Headers }) => {
   const session = await auth.api.getSession({
