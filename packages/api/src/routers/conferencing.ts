@@ -23,7 +23,7 @@ export const conferencingRouter = createTRPCRouter({
     )
     .mutation(async ({ input, ctx }) => {
       const provider = ctx.providers.find(
-        ({ account }) => account.accountId === input.calendarAccountId,
+        (provider) => provider.account.id === input.calendarAccountId,
       );
 
       if (!provider) {
