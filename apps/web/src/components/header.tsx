@@ -63,7 +63,7 @@ export function Header({ className }: HeaderProps) {
       <div className="mx-auto grid w-full max-w-7xl grid-cols-3 items-center">
         <div className="flex justify-start">
           <Link href="/">
-            <Logo />
+            <Logo className="h-6" />
           </Link>
         </div>
 

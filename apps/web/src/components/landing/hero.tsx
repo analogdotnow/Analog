@@ -21,50 +21,51 @@ export function Hero() {
   prefetch(trpc.earlyAccess.getWaitlistCount.queryOptions());
 
   return (
-    <div className="flex w-full max-w-6xl flex-col gap-12  md:gap-16">
+    <div className="flex w-full max-w-6xl flex-col gap-12 md:gap-16">
       <AnimatedGroup variants={transitionVariants}>
         <div className="flex flex-col gap-12 px-4 md:px-6">
           <div className="flex flex-col gap-y-4">
-          <AnimatedGroup variants={transitionVariants}>
-            <Link
-              href="#link"
-              className="group mx-auto flex w-fit items-center gap-2 rounded-full border bg-muted/30 p-1 pl-2.5 shadow-sm shadow-neutral-300/20 dark:shadow-neutral-950/20 dark:shadow-md transition-colors duration-300 hover:bg-background dark:border-border/10 dark:hover:border-border/20"
-            >
-              <span className="inline-flex items-center gap-2 text-sm text-foreground">
-                <GitHub className="size-4 fill-primary" />
-                GitHub
-                <span className="inline-flex items-center gap-2">
-                  <StarIcon className="size-3 fill-primary stroke-primary group-hover:fill-yellow-500 group-hover:stroke-yellow-500 transition-colors duration-500" />
-                  1.0k
+            <AnimatedGroup variants={transitionVariants}>
+              <Link
+                href="#link"
+                className="group mx-auto flex w-fit items-center gap-2 rounded-full border bg-muted/30 p-1 pl-2.5 shadow-sm shadow-neutral-300/20 transition-colors duration-300 hover:bg-background dark:border-border/10 dark:shadow-md dark:shadow-neutral-950/20 dark:hover:border-border/20"
+              >
+                <span className="inline-flex items-center gap-2 text-sm text-foreground">
+                  <GitHub className="size-4 fill-primary" />
+                  GitHub
+                  <span className="inline-flex items-center gap-2">
+                    <StarIcon className="size-3 fill-primary stroke-primary transition-colors duration-500 group-hover:fill-yellow-500 group-hover:stroke-yellow-500" />
+                    1.0k
+                  </span>
                 </span>
-              </span>
-              <span className="block h-6 w-0.5 border-l bg-white dark:border-background dark:bg-neutral-700/20"></span>
+                <span className="block h-6 w-0.5 border-l bg-white dark:border-background dark:bg-neutral-700/20"></span>
 
-              <div className="size-6 overflow-hidden rounded-full bg-muted/40 duration-500 group-hover:bg-muted">
-                <div className="flex w-12 -translate-x-1/2 duration-500 ease-in-out group-hover:translate-x-0">
-                  <span className="flex size-6">
-                    <ArrowRight className="m-auto size-3" />
-                  </span>
-                  <span className="flex size-6">
-                    <ArrowRight className="m-auto size-3" />
-                  </span>
+                <div className="size-6 overflow-hidden rounded-full bg-muted/40 duration-500 group-hover:bg-muted">
+                  <div className="flex w-12 -translate-x-1/2 duration-500 ease-in-out group-hover:translate-x-0">
+                    <span className="flex size-6">
+                      <ArrowRight className="m-auto size-3" />
+                    </span>
+                    <span className="flex size-6">
+                      <ArrowRight className="m-auto size-3" />
+                    </span>
+                  </div>
                 </div>
-              </div>
-            </Link>
-          </AnimatedGroup>
+              </Link>
+            </AnimatedGroup>
 
-          <div className="flex flex-col items-center justify-center gap-3 text-center md:gap-6">
-            <h1 className="font-satoshi text-4xl leading-tight md:text-5xl">
-              Reimagining the Calendar, <br /> to make the most of your time
-            </h1>
-            <p>
-              Analog is an AI native calendar that redefines what it means to use a calendar.
-              {/* Calendars have been the same for decades. */}
-            </p>
-            {/* <p className="max-w-xl text-base text-muted-foreground md:text-lg">
+            <div className="flex flex-col items-center justify-center gap-3 text-center md:gap-6">
+              <h1 className="font-satoshi text-4xl leading-tight md:text-5xl">
+                Reimagining the Calendar, <br /> to make the most of your time
+              </h1>
+              <p>
+                Analog is an AI native calendar that redefines what it means to
+                use a calendar.
+                {/* Calendars have been the same for decades. */}
+              </p>
+              {/* <p className="max-w-xl text-base text-muted-foreground md:text-lg">
               Analog redefines what it means to use a calendar. Analog is an AI-powered calendar that understands your life, and helps you organize and save time. It's an AI-powered calendar that understands your life, and helps you organize and save time.
             </p> */}
-          </div>
+            </div>
           </div>
 
           {/* <HydrateClient>

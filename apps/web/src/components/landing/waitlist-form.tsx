@@ -60,16 +60,14 @@ export function WaitlistForm({ className }: WaitlistFormProps) {
         >
           <Input
             placeholder="example@0.email"
-            className="h-11 w-full rounded-lg px-4 text-base font-medium outline border-border/40 placeholder:font-medium placeholder:text-muted-foreground md:text-base"
+            className="h-11 w-full rounded-lg border-border/40 px-4 text-base font-medium outline placeholder:font-medium placeholder:text-muted-foreground md:text-base"
             {...register("email")}
           />
           <Button
-            className="h-11 w-full text-base sm:w-fit bg-neutral-100 rounded-lg"
+            className="h-11 w-full rounded-lg bg-neutral-100 text-base sm:w-fit"
             type="submit"
           >
-            <span className="pl-1">
-            Join Waitlist
-            </span>
+            <span className="pl-1">Join Waitlist</span>
             <ChevronRight className="h-5 w-5" />
           </Button>
         </form>

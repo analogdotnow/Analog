@@ -19,34 +19,44 @@ function Nav() {
       </Button> */}
 
       <div className="flex flex-row items-center justify-center gap-x-2">
-      <Button className="hover:bg-transparent dark:hover:bg-transparent" variant="ghost" size="sm" asChild>
-        <a
-          href="https://x.com/analogdotnow"
-          target="_blank"
-          rel="noopener noreferrer"
+        <Button
+          className="hover:bg-transparent dark:hover:bg-transparent"
+          variant="ghost"
+          size="sm"
+          asChild
         >
-          <Twitter className="fill-primary" />
-          <span className="sr-only">Twitter</span>
-        </a>
-      </Button>
+          <a
+            href="https://x.com/analogdotnow"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Twitter className="fill-primary" />
+            <span className="sr-only">Twitter</span>
+          </a>
+        </Button>
 
-      <Button className="hover:bg-transparent dark:hover:bg-transparent" variant="ghost" size="sm" asChild>
-        <a
-          href="https://discord.gg/K3AsABDKUm"
-          target="_blank"
-          rel="noopener noreferrer"
+        <Button
+          className="hover:bg-transparent dark:hover:bg-transparent"
+          variant="ghost"
+          size="sm"
+          asChild
         >
-          <Discord className="fill-primary" />
-          <span className="sr-only">Discord</span>
-        </a>
-      </Button>
+          <a
+            href="https://discord.gg/K3AsABDKUm"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Discord className="fill-primary" />
+            <span className="sr-only">Discord</span>
+          </a>
+        </Button>
       </div>
 
       {/* <ModeToggle /> */}
 
       <Button className="rounded-lg" asChild>
-          <Link href="/login">Sign in</Link>
-        </Button>
+        <Link href="/login">Sign in</Link>
+      </Button>
     </nav>
   );
 }
@@ -55,7 +65,6 @@ export function Header() {
     <header className="fixed inset-x-0 top-0 z-50 mx-auto flex w-full max-w-6xl p-6 backdrop-blur-md md:p-12">
       <div className="flex w-full items-center justify-between">
         <Logo className="h-6" />
-
         <Nav />
       </div>
     </header>
