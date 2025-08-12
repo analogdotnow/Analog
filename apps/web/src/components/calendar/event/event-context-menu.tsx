@@ -224,12 +224,13 @@ export function EventContextMenu({
         </ContextMenuItem>
 
         <ContextMenuItem
-          className="ps-8 font-medium text-red-400 hover:text-red-400 dark:hover:text-red-400"
+          className="ps-8 font-medium"
           disabled={event.readOnly}
+          variant="destructive"
           onClick={handleDelete}
         >
           Delete
-          <KeyboardShortcut className="ml-auto bg-transparent text-red-400">
+          <KeyboardShortcut className="ml-auto bg-transparent">
             ⌫
           </KeyboardShortcut>
         </ContextMenuItem>
