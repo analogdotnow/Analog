@@ -11,6 +11,9 @@ import { useCalendarState } from "@/hooks/use-calendar-state";
 import { useTRPC } from "@/lib/trpc/client";
 import { mapEventsToItems } from "./event-collection";
 
+const TIME_RANGE_DAYS_PAST = 30;
+const TIME_RANGE_DAYS_FUTURE = 30;
+
 export function insertIntoSorted<T>(
   array: T[],
   item: T,

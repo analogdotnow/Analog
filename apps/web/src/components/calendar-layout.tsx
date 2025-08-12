@@ -16,8 +16,8 @@ import { RightSidebar } from "@/components/right-sidebar";
 import { SidebarInset } from "@/components/ui/sidebar";
 import { EventHotkeys } from "@/lib/hotkeys/event-hotkeys";
 import { useTRPC } from "@/lib/trpc/client";
+import { AttendeeConfirmationDialog } from "./calendar/attendee-confirmation-dialog";
 import { AppCommandMenu } from "./command-menu/app-command-menu";
-import { AttendeeConfirmationDialog } from "./event-calendar/attendee-confirmation-dialog";
 
 export function CalendarLayout() {
   const [, setSettings] = useAtom(calendarSettingsAtom);
@@ -72,7 +72,7 @@ function IsolatedCalendarLayout() {
           defaultCalendar={query.data?.defaultCalendar}
         />
       </RightSidebar>
-      <AttendeeConfirmationDialog confirmationDialog={confirmationDialog} />
+      <AttendeeConfirmationDialog dialog={confirmationDialog} />
     </>
   );
 }

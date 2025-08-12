@@ -5,7 +5,6 @@ import { Conference, ConferenceEntryPoint } from "@repo/api/interfaces";
 import { cn } from "@/lib/utils";
 import { CopyButton } from "../copy-button";
 
-// Conference Item composition components
 function ConferenceItem({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -66,7 +65,7 @@ interface ConferenceVideoProps {
 
 function ConferenceVideo({ name, entryPoint }: ConferenceVideoProps) {
   return (
-    <div className="flex h-8 flex-col gap-2">
+    <div className="flex flex-col gap-1">
       <ConferenceItem>
         <ConferenceItemLabel>{name}</ConferenceItemLabel>
         <ConferenceItemLink
@@ -84,7 +83,7 @@ function ConferenceVideo({ name, entryPoint }: ConferenceVideoProps) {
       </ConferenceItem>
       {entryPoint.meetingCode && (
         <ConferenceItem>
-          <ConferenceItemLabel>Meeting Code</ConferenceItemLabel>
+          <ConferenceItemLabel>Code</ConferenceItemLabel>
           <ConferenceItemContent>
             {entryPoint.meetingCode}
           </ConferenceItemContent>
@@ -97,7 +96,7 @@ function ConferenceVideo({ name, entryPoint }: ConferenceVideoProps) {
       )}
       {entryPoint.accessCode && (
         <ConferenceItem>
-          <ConferenceItemLabel>Access Code</ConferenceItemLabel>
+          <ConferenceItemLabel>Code</ConferenceItemLabel>
           <ConferenceItemContent>{entryPoint.accessCode}</ConferenceItemContent>
           <ConferenceItemActions>
             <CopyButton value={entryPoint.accessCode}>

@@ -1,5 +1,7 @@
 "use client";
 
+import * as React from "react";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,47 +23,62 @@ interface ConfirmationDialogState {
 }
 
 interface AttendeeConfirmationDialogProps {
-  confirmationDialog: ConfirmationDialogState;
+  dialog: ConfirmationDialogState;
 }
 
 export function AttendeeConfirmationDialog({
-  confirmationDialog,
+  dialog,
 }: AttendeeConfirmationDialogProps) {
+  const confirmedRef = React.useRef(false);
+
+  const onClose = React.useCallback(() => {
+    if (confirmedRef.current) {
+      confirmedRef.current = false;
+      return;
+    }
+
+    dialog.onCancel();
+  }, [dialog]);
+
   return (
     <AlertDialog
-      open={confirmationDialog.open}
+      open={dialog.open}
       onOpenChange={(open) => {
         if (!open) {
-          confirmationDialog.onCancel();
+          onClose();
         }
       }}
     >
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>
-            {confirmationDialog.type === "update"
-              ? "Update Event"
-              : "Delete Event"}
+            {dialog.type === "update" ? "Update Event" : "Delete Event"}
           </AlertDialogTitle>
           <AlertDialogDescription>
-            {confirmationDialog.type === "update"
+            {dialog.type === "update"
               ? "This event has other attendees. How would you like to proceed?"
               : "This event has other attendees. Do you want to notify them about the deletion?"}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter className="sm:justify-between">
-          <AlertDialogCancel onClick={confirmationDialog.onCancel}>
-            Discard
-          </AlertDialogCancel>
+          <AlertDialogCancel>Discard</AlertDialogCancel>
           <div className="flex gap-2">
             <AlertDialogAction
               variant="outline"
-              onClick={() => confirmationDialog.onConfirm(false)}
+              onClick={() => {
+                confirmedRef.current = true;
+                dialog.onConfirm(false);
+              }}
             >
-              {confirmationDialog.type === "update" ? "Save" : "Delete"}
+              {dialog.type === "update" ? "Save" : "Delete"}
             </AlertDialogAction>
-            <AlertDialogAction onClick={() => confirmationDialog.onConfirm(true)}>
-              {confirmationDialog.type === "update"
+            <AlertDialogAction
+              onClick={() => {
+                confirmedRef.current = true;
+                dialog.onConfirm(true);
+              }}
+            >
+              {dialog.type === "update"
                 ? "Save and notify attendees"
                 : "Delete and notify attendees"}
             </AlertDialogAction>
