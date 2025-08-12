@@ -106,7 +106,7 @@ function parseBlockedTime(event: MicrosoftEvent) {
   }
 
   const blockedTimeProperty = event.singleValueExtendedProperties.find(
-    (prop) => prop && prop.id && prop.id.includes("blockedTime"),
+    (prop) => prop && prop.id && prop.id.includes("Name blockedTime"),
   );
 
   if (!blockedTimeProperty?.value) {
