@@ -58,10 +58,11 @@ export function NavUser() {
                   src={query.data?.image ?? undefined}
                   alt={query.data?.name}
                 />
-                <AvatarFallback className="rounded-lg bg-accent-foreground text-background">
+                <AvatarFallback className="rounded-lg">
                   {query.data?.name
                     ?.split(" ")
                     .map((name) => name.charAt(0))
+                    .slice(0, 2)
                     .join("")}
                 </AvatarFallback>
               </Avatar>
@@ -87,7 +88,13 @@ export function NavUser() {
                     src={query.data?.image ?? undefined}
                     alt={query.data?.name}
                   />
-                  <AvatarFallback className="rounded-lg"></AvatarFallback>
+                  <AvatarFallback className="rounded-lg">
+                    {query.data?.name
+                      ?.split(" ")
+                      .map((name) => name.charAt(0))
+                      .slice(0, 2)
+                      .join("")}
+                  </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">
