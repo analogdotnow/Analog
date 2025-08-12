@@ -45,9 +45,9 @@ export const createProviderHandler = async (
   await db
     .update(accountTable)
     .set({
-      name: profile.user.name ?? "",
+      name: profile.user.name,
       email: profile.user.email ?? "",
-      image: profile.user.image ?? "",
+      image: profile.user.image,
     })
     .where(eq(accountTable.id, account.id));
 
@@ -98,7 +98,5 @@ export const handleUnlinkAccount = createAuthMiddleware(async (ctx) => {
       },
       ctx,
     );
-
-    console.log("unlinked account");
   }
 });

@@ -21,11 +21,15 @@ import { superjson } from "./superjson";
 
 export const { TRPCProvider, useTRPC } = createTRPCContext<AppRouter>();
 
-function getBaseUrl() {
-  if (typeof window !== "undefined") return window.location.origin;
-  if (env.NEXT_PUBLIC_VERCEL_URL)
-    return `https://${env.NEXT_PUBLIC_VERCEL_URL}`;
-  return `http://localhost:3000`;
+function getUrl() {
+  const base = (() => {
+    if (typeof window !== "undefined") return "";
+    if (env.NEXT_PUBLIC_VERCEL_URL)
+      return `https://${env.NEXT_PUBLIC_VERCEL_URL}`;
+    return "http://localhost:3000";
+  })();
+
+  return `${base}/api/trpc`;
 }
 
 const persister = createAsyncStoragePersister({
@@ -57,11 +61,12 @@ export function TRPCReactProvider(props: Readonly<TRPCReactProviderProps>) {
         }),
         httpBatchStreamLink({
           transformer: superjson,
-          url: getBaseUrl() + "/api/trpc",
+          url: getUrl(),
           methodOverride: "POST",
           headers: () => {
             const headers = new Headers();
             headers.set("x-trpc-source", "nextjs-react");
+
             return headers;
           },
         }),
