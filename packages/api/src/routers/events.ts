@@ -131,6 +131,7 @@ export const eventsRouter = createTRPCRouter({
         accountId: z.string(),
         calendarId: z.string(),
         eventId: z.string(),
+        sendUpdate: z.boolean().optional().default(true),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -145,7 +146,11 @@ export const eventsRouter = createTRPCRouter({
         });
       }
 
-      await provider.client.deleteEvent(input.calendarId, input.eventId);
+      await provider.client.deleteEvent(
+        input.calendarId,
+        input.eventId,
+        input.sendUpdate,
+      );
 
       return { success: true };
     }),

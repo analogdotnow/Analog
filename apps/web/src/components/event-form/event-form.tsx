@@ -21,7 +21,6 @@ import {
   parseDraftEvent,
   toCalendarEvent,
 } from "@/components/event-form/utils";
-import * as Icons from "@/components/icons";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
@@ -30,6 +29,7 @@ import { Calendar, CalendarEvent, DraftEvent } from "@/lib/interfaces";
 import { useTRPC } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
 import { createEventId, isDraftEvent } from "@/lib/utils/calendar";
+import { isUserOnlyAttendee } from "@/lib/utils/events";
 import { AttendeeList, AttendeeListItem } from "./attendees/attendee-list";
 import { AttendeeListInput } from "./attendees/attendee-list-input";
 import { CalendarField } from "./calendar-field";
@@ -39,6 +39,7 @@ import { DescriptionField } from "./description-field";
 import { FormValues, defaultValues, formSchema, useAppForm } from "./form";
 import { FormRow, FormRowIcon } from "./form-row";
 import { RecurrenceField } from "./recurrences/recurrence-field";
+import { SendUpdateButton } from "./send-update-button";
 
 interface GetDefaultValuesOptions {
   event?: CalendarEvent | DraftEvent;
@@ -90,15 +91,20 @@ export function EventForm({
   const query = useQuery(trpc.calendars.list.queryOptions());
 
   const [event, setEvent] = React.useState(selectedEvent);
+  const [manualSubmit, setManualSubmit] = React.useState(false);
 
   const disabled = event?.readOnly;
 
-  const form = useAppForm({
-    defaultValues: getDefaultValues({
+  const defaultValues = React.useMemo(() => {
+    return getDefaultValues({
       event,
       defaultCalendar,
       settings,
-    }),
+    });
+  }, [event, defaultCalendar, settings]);
+
+  const form = useAppForm({
+    defaultValues,
     validators: {
       onBlur: formSchema,
       onSubmit: ({ value }) => {
@@ -115,6 +121,7 @@ export function EventForm({
         }
 
         const isNewEvent = !selectedEvent || isDraftEvent(selectedEvent);
+
         if (isNewEvent && value.title.trim() === "") {
           return {
             fields: {
@@ -126,19 +133,39 @@ export function EventForm({
         return undefined;
       },
     },
-    onSubmit: async ({ value }) => {
+    onSubmit: async ({ value, formApi }) => {
       const calendar = query.data?.accounts
         .flatMap((a) => a.calendars)
         .find((c) => c.id === value.calendar.calendarId);
 
+      console.log("value", formApi.state.isDirty);
+
+      if (!formApi.state.isDirty) {
+        return;
+      }
+
       await dispatchAsyncAction({
         type: "update",
         event: toCalendarEvent({ values: value, event, calendar }),
+        force: {
+          sendUpdate: true,
+        },
       });
+
+      setManualSubmit(false);
     },
     listeners: {
       onBlur: async ({ formApi }) => {
-        if (!formApi.state.isValid || !formApi.state.isDirty) {
+        if (!formApi.state.isValid || formApi.state.isDefaultValue) {
+          setManualSubmit(false);
+          return;
+        }
+
+        if (
+          formApi.state.fieldMeta.attendees.isDirty ||
+          !isUserOnlyAttendee(formApi.state.values.attendees)
+        ) {
+          setManualSubmit(true);
           return;
         }
 
@@ -147,16 +174,36 @@ export function EventForm({
     },
   });
 
+  const saveEvent = React.useCallback(async () => {
+    const calendar = query.data?.accounts
+      .flatMap((a) => a.calendars)
+      .find((c) => c.id === form.state.values.calendar.calendarId);
+
+    if (!calendar) {
+      return;
+    }
+
+    await dispatchAsyncAction({
+      type: "update",
+      event: toCalendarEvent({ values: form.state.values, event, calendar }),
+    });
+  }, [dispatchAsyncAction, event, form.state.values, query.data?.accounts]);
+
   React.useEffect(() => {
     // If the form is modified and the event changes, keep the modified values
     if (form.state.isDirty && selectedEvent?.id === event?.id) {
       return;
     }
 
+    if (!form.state.isDefaultValue) {
+      saveEvent();
+    }
+
+    setManualSubmit(false);
     setEvent(selectedEvent);
 
     form.reset();
-  }, [selectedEvent, event, form]);
+  }, [selectedEvent, event, form, saveEvent]);
 
   return (
     <form
@@ -338,6 +385,16 @@ export function EventForm({
               );
             }}
           </form.Field>
+          {manualSubmit ? (
+            <SendUpdateButton
+              className="col-span-4 col-start-1"
+              onSave={() => form.handleSubmit({ meta: { sendUpdate: true } })}
+              onSaveWithoutNotifying={() =>
+                form.handleSubmit({ meta: { sendUpdate: false } })
+              }
+              onDiscard={() => form.reset()}
+            />
+          ) : null}
         </FormRow>
         <Separator />
         <FormRow>

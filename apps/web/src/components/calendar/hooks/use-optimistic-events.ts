@@ -1,4 +1,12 @@
-import { useCallback, useMemo, useOptimistic, useTransition } from "react";
+import {
+  useCallback,
+  useMemo,
+  useOptimistic,
+  useState,
+  useTransition,
+} from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { deepEqual } from "fast-equals";
 import { useAtom, useAtomValue } from "jotai";
 import * as R from "remeda";
 
@@ -7,27 +15,49 @@ import { isBefore } from "@repo/temporal";
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { SelectedEvents, selectedEventsAtom } from "@/atoms/selected-events";
 import type { CalendarEvent, DraftEvent } from "@/lib/interfaces";
+import { isUserOnlyAttendee } from "@/lib/utils/events";
 import { EventCollectionItem, convertEventToItem } from "./event-collection";
-import { useEvents } from "./use-events";
+import { insertIntoSorted, useEvents } from "./use-events";
 
 export type Action =
   | { type: "draft"; event: DraftEvent }
-  | { type: "update"; event: CalendarEvent }
+  | { type: "update"; event: CalendarEvent; force?: { sendUpdate: boolean } }
   | { type: "select"; event: CalendarEvent }
   | { type: "unselect"; eventId?: string }
-  | { type: "delete"; eventId: string };
+  | { type: "delete"; eventId: string; force?: { sendUpdate: boolean } };
 
 type OptimisticAction =
   | { type: "update"; event: CalendarEvent }
   | { type: "delete"; eventId: string };
 
+type ConfirmationDialogState = {
+  open: boolean;
+  type: "update" | "delete";
+  event: CalendarEvent | null;
+  onConfirm: (sendUpdate: boolean) => void;
+  onCancel: () => void;
+};
+
 export function useOptimisticEvents() {
-  const { events, createMutation, updateMutation, deleteMutation } =
-    useEvents();
+  const {
+    events,
+    createMutation,
+    updateMutation,
+    deleteMutation,
+    eventsQueryKey,
+  } = useEvents();
   const [selectedEvents, setSelectedEvents] = useAtom(selectedEventsAtom);
   const { defaultTimeZone } = useAtomValue(calendarSettingsAtom);
 
   const [isPending, startTransition] = useTransition();
+  const [confirmationDialog, setConfirmationDialog] =
+    useState<ConfirmationDialogState>({
+      open: false,
+      type: "update",
+      event: null,
+      onConfirm: () => {},
+      onCancel: () => {},
+    });
 
   const [optimisticEvents, applyOptimistic] = useOptimistic(
     events,
@@ -54,8 +84,10 @@ export function useOptimisticEvents() {
     },
   );
 
+  const queryClient = useQueryClient();
+
   const handleEventSave = useCallback(
-    (event: CalendarEvent) => {
+    (event: CalendarEvent, force?: { sendUpdate: boolean }) => {
       startTransition(() => applyOptimistic({ type: "update", event }));
 
       const exists = optimisticEvents.find(
@@ -67,13 +99,76 @@ export function useOptimisticEvents() {
         return;
       }
 
-      updateMutation.mutate(event);
+      if (deepEqual(event, exists.event)) {
+        return;
+      }
+
+      if (force || !event.attendees || isUserOnlyAttendee(event.attendees)) {
+        updateMutation.mutate({
+          ...event,
+          response: force
+            ? {
+                status: "unknown" as const,
+                sendUpdate: force.sendUpdate,
+              }
+            : undefined,
+        });
+        return;
+      }
+
+      const previousEvents = queryClient.getQueryData(eventsQueryKey);
+
+      queryClient.setQueryData(eventsQueryKey, (prev) => {
+        if (!prev) {
+          return prev;
+        }
+
+        const withoutEvent = prev.events.filter((e) => e.id !== event.id);
+
+        const events = insertIntoSorted(withoutEvent, event, (a) =>
+          isBefore(a.start, event.start, { timeZone: defaultTimeZone }),
+        );
+
+        return {
+          ...prev,
+          events,
+        };
+      });
+
+      setConfirmationDialog({
+        open: true,
+        type: "update",
+        event,
+        onConfirm: (sendUpdate: boolean) => {
+          updateMutation.mutate({
+            ...event,
+            response: {
+              status: "unknown" as const,
+              sendUpdate,
+            },
+          });
+
+          setConfirmationDialog((prev) => ({ ...prev, open: false }));
+        },
+        onCancel: () => {
+          queryClient.setQueryData(eventsQueryKey, previousEvents);
+          setConfirmationDialog((prev) => ({ ...prev, open: false }));
+        },
+      });
     },
-    [applyOptimistic, createMutation, optimisticEvents, updateMutation],
+    [
+      optimisticEvents,
+      queryClient,
+      eventsQueryKey,
+      applyOptimistic,
+      createMutation,
+      updateMutation,
+      defaultTimeZone,
+    ],
   );
 
   const asyncUpdateEvent = useCallback(
-    async (event: CalendarEvent) => {
+    async (event: CalendarEvent, force?: { sendUpdate: boolean }) => {
       startTransition(() => applyOptimistic({ type: "update", event }));
 
       const exists = optimisticEvents.find(
@@ -85,13 +180,48 @@ export function useOptimisticEvents() {
         return;
       }
 
-      await updateMutation.mutateAsync(event);
+      if (deepEqual(event, exists.event)) {
+        return;
+      }
+
+      if (force || !event.attendees || isUserOnlyAttendee(event.attendees)) {
+        await updateMutation.mutateAsync({
+          ...event,
+          response: force
+            ? {
+                status: "unknown" as const,
+                sendUpdate: force.sendUpdate,
+              }
+            : undefined,
+        });
+        return;
+      }
+
+      setConfirmationDialog({
+        open: true,
+        type: "update",
+        event,
+        onConfirm: async (sendUpdate: boolean) => {
+          await updateMutation.mutateAsync({
+            ...event,
+            response: {
+              status: "unknown" as const,
+              sendUpdate,
+            },
+          });
+
+          setConfirmationDialog((prev) => ({ ...prev, open: false }));
+        },
+        onCancel: () => {
+          setConfirmationDialog((prev) => ({ ...prev, open: false }));
+        },
+      });
     },
     [applyOptimistic, createMutation, optimisticEvents, updateMutation],
   );
 
   const handleEventDelete = useCallback(
-    (eventId: string) => {
+    (eventId: string, force?: { sendUpdate: boolean }) => {
       startTransition(() => applyOptimistic({ type: "delete", eventId }));
 
       const deletedEventItem = optimisticEvents.find(
@@ -105,13 +235,44 @@ export function useOptimisticEvents() {
 
       const deletedEvent = deletedEventItem.event;
 
-      // Remove from selected events first if it's selected
-      setSelectedEvents((prev) => prev.filter((e) => e.id !== eventId));
+      if (
+        force ||
+        !deletedEvent.attendees ||
+        isUserOnlyAttendee(deletedEvent.attendees)
+      ) {
+        setSelectedEvents((prev) => prev.filter((e) => e.id !== eventId));
 
-      deleteMutation.mutate({
-        accountId: deletedEvent.accountId,
-        calendarId: deletedEvent.calendarId,
-        eventId,
+        deleteMutation.mutate({
+          accountId: deletedEvent.accountId,
+          calendarId: deletedEvent.calendarId,
+          eventId,
+          sendUpdate: force?.sendUpdate,
+        });
+
+        return;
+      }
+
+      setConfirmationDialog({
+        open: true,
+        type: "delete",
+        event: deletedEvent,
+        onConfirm: (sendUpdate: boolean) => {
+          setSelectedEvents((prev) => prev.filter((e) => e.id !== eventId));
+
+          deleteMutation.mutate({
+            accountId: deletedEvent.accountId,
+            calendarId: deletedEvent.calendarId,
+            eventId,
+            sendUpdate,
+          });
+
+          setConfirmationDialog((prev) => ({ ...prev, open: false }));
+        },
+        onCancel: () => {
+          // Revert the optimistic delete
+          applyOptimistic({ type: "update", event: deletedEvent });
+          setConfirmationDialog((prev) => ({ ...prev, open: false }));
+        },
       });
     },
     [
@@ -130,9 +291,9 @@ export function useOptimisticEvents() {
       } else if (action.type === "unselect") {
         setSelectedEvents([]);
       } else if (action.type === "update") {
-        handleEventSave(action.event);
+        handleEventSave(action.event, action.force);
       } else if (action.type === "delete") {
-        handleEventDelete(action.eventId);
+        handleEventDelete(action.eventId, action.force);
       }
     },
     [handleEventSave, handleEventDelete, setSelectedEvents],
@@ -141,7 +302,7 @@ export function useOptimisticEvents() {
   const dispatchAsyncAction = useCallback(
     async (action: Action) => {
       if (action.type === "update") {
-        await asyncUpdateEvent(action.event);
+        await asyncUpdateEvent(action.event, action.force);
       }
     },
     [asyncUpdateEvent],
@@ -166,5 +327,6 @@ export function useOptimisticEvents() {
     isPending,
     dispatchAction,
     dispatchAsyncAction,
+    confirmationDialog,
   };
 }

@@ -16,6 +16,7 @@ import { RightSidebar } from "@/components/right-sidebar";
 import { SidebarInset } from "@/components/ui/sidebar";
 import { EventHotkeys } from "@/lib/hotkeys/event-hotkeys";
 import { useTRPC } from "@/lib/trpc/client";
+import { AttendeeConfirmationDialog } from "./calendar/attendee-confirmation-dialog";
 import { AppCommandMenu } from "./command-menu/app-command-menu";
 
 export function CalendarLayout() {
@@ -40,8 +41,13 @@ function IsolatedCalendarLayout() {
   const trpc = useTRPC();
   const query = useQuery(trpc.calendars.list.queryOptions());
 
-  const { events, selectedEvents, dispatchAction, dispatchAsyncAction } =
-    useOptimisticEvents();
+  const {
+    events,
+    selectedEvents,
+    dispatchAction,
+    dispatchAsyncAction,
+    confirmationDialog,
+  } = useOptimisticEvents();
 
   return (
     <>
@@ -66,6 +72,7 @@ function IsolatedCalendarLayout() {
           defaultCalendar={query.data?.defaultCalendar}
         />
       </RightSidebar>
+      <AttendeeConfirmationDialog dialog={confirmationDialog} />
     </>
   );
 }

@@ -190,7 +190,11 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
    * @param calendarId - The calendar identifier
    * @param eventId - The event identifier
    */
-  async deleteEvent(calendarId: string, eventId: string): Promise<void> {
+  async deleteEvent(
+    calendarId: string,
+    eventId: string,
+    sendUpdate: boolean = true,
+  ): Promise<void> {
     await this.withErrorHandler("deleteEvent", async () => {
       await this.graphClient
         .api(`${calendarPath(calendarId)}/events/${eventId}`)

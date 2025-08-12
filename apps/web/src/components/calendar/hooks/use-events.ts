@@ -14,7 +14,7 @@ import { mapEventsToItems } from "./event-collection";
 const TIME_RANGE_DAYS_PAST = 30;
 const TIME_RANGE_DAYS_FUTURE = 30;
 
-function insertIntoSorted<T>(
+export function insertIntoSorted<T>(
   array: T[],
   item: T,
   predicate: (value: T, index: number, data: readonly T[]) => boolean,
@@ -69,9 +69,10 @@ export function useEvents() {
   );
 
   const events = React.useMemo(() => {
-    if (!query.data?.events) return [];
+    if (!query.data?.events) {
+      return [];
+    }
 
-    // Map to EventCollectionItem early with default time zone
     return mapEventsToItems(query.data.events, defaultTimeZone);
   }, [query.data, defaultTimeZone]);
 
@@ -193,5 +194,6 @@ export function useEvents() {
     createMutation,
     updateMutation,
     deleteMutation,
+    eventsQueryKey,
   };
 }
