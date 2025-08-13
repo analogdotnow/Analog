@@ -60,19 +60,26 @@ export const conferencingRouter = createTRPCRouter({
       let conference: Conference | undefined = undefined;
 
       if (input.providerId !== "none" && conferencingAccount) {
-        const conferencingProvider = accountToConferencingProvider(
-          conferencingAccount,
-          input.providerId as "google" | "zoom",
-        );
+        try {
+          const conferencingProvider = accountToConferencingProvider(
+            conferencingAccount,
+            input.providerId as "google" | "zoom",
+          );
 
-        conference = await conferencingProvider.createConference(
-          input.agenda,
-          input.startTime,
-          input.endTime,
-          input.timeZone,
-          input.calendarId,
-          input.eventId,
-        );
+          conference = await conferencingProvider.createConference(
+            input.agenda,
+            input.startTime,
+            input.endTime,
+            input.timeZone,
+            input.calendarId,
+            input.eventId,
+          );
+        } catch (error) {
+          throw new TRPCError({
+            code: "PRECONDITION_FAILED",
+            message: error instanceof Error ? error.message : "Unknown error",
+          });
+        }
       }
 
       const startInstant = Temporal.Instant.from(input.startTime);
