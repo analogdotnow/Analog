@@ -40,13 +40,18 @@ function accountToProvider<
   providerMap: TProviderMap,
 ): TProvider {
   if (!activeAccount.accessToken || !activeAccount.refreshToken) {
-    throw new Error("Invalid account");
+    const missingToken = !activeAccount.accessToken ? 'access token' : 'refresh token';
+    const errorMessage = `Invalid account: Missing ${missingToken} for provider '${activeAccount.providerId}' (accountId: ${activeAccount.accountId})`;
+    console.error(errorMessage);
+    throw new Error(errorMessage);
   }
 
   const Provider = providerMap[activeAccount.providerId as keyof TProviderMap];
 
   if (!Provider) {
-    throw new Error("Provider not supported");
+    const errorMessage = `Provider not supported: '${activeAccount.providerId}' (accountId: ${activeAccount.accountId})`;
+    console.error(errorMessage);
+    throw new Error(errorMessage);
   }
 
   return new Provider({
@@ -78,13 +83,18 @@ export function accountToConferencingProvider(
   providerId: "google" | "zoom",
 ): ConferencingProvider {
   if (!activeAccount.accessToken || !activeAccount.refreshToken) {
-    throw new Error("Invalid account");
+    const missingToken = !activeAccount.accessToken ? 'access token' : 'refresh token';
+    const errorMessage = `Invalid account: Missing ${missingToken} for provider '${activeAccount.providerId}' (accountId: ${activeAccount.accountId})`;
+    console.error(errorMessage);
+    throw new Error(errorMessage);
   }
 
   const Provider = supportedConferencingProviders[providerId];
 
   if (!Provider) {
-    throw new Error("Conferencing provider not supported");
+    const errorMessage = `Conferencing provider not supported: '${providerId}' for account '${activeAccount.providerId}' (accountId: ${activeAccount.accountId})`;
+    console.error(errorMessage);
+    throw new Error(errorMessage);
   }
 
   return new Provider({
