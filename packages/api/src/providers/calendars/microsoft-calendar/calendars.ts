@@ -17,6 +17,7 @@ export function parseMicrosoftCalendar({
     name: calendar.name as string,
     primary: calendar.isDefaultCalendar as boolean,
     accountId,
+    providerAccountId: accountId,
     color: calendar.hexColor as string,
     readOnly: !calendar.canEdit,
   };

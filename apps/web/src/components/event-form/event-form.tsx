@@ -138,8 +138,6 @@ export function EventForm({
         .flatMap((a) => a.calendars)
         .find((c) => c.id === value.calendar.calendarId);
 
-      console.log("value", formApi.state.isDirty);
-
       if (!formApi.state.isDirty) {
         return;
       }

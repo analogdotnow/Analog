@@ -1,13 +1,14 @@
 import * as React from "react";
 
-import {
-  CalendarListPicker,
-  CalenderAccount,
-} from "@/components/calendar-picker";
 import { Button } from "@/components/ui/button";
 import { PopoverTrigger } from "@/components/ui/popover";
 import type { Calendar } from "@/lib/interfaces";
 import { cn } from "@/lib/utils";
+import {
+  CalendarColorIndicator,
+  CalendarListPicker,
+  CalenderAccount,
+} from "./calendar-list-picker";
 
 interface CalendarFieldProps {
   id: string;
@@ -53,22 +54,12 @@ export function CalendarField({
         asChild
       >
         <Button variant="ghost" className="grow justify-start text-sm">
-          <div className="size-5 p-1">
-            <div
-              className={cn(
-                "size-3 rounded-[4px] bg-(--calendar-color)",
-                selected?.primary &&
-                  "outline-2 outline-offset-2 outline-(--calendar-color)",
-                disabled && "opacity-50",
-              )}
-              style={
-                {
-                  "--calendar-color":
-                    selected?.color ?? "var(--color-muted-foreground)",
-                } as React.CSSProperties
-              }
-            />
-          </div>
+          <CalendarColorIndicator
+            primary={selected?.primary ?? false}
+            calendarId={selected?.id ?? ""}
+            accountId={selected?.accountId ?? ""}
+            disabled={disabled}
+          />
           {selected?.name}
         </Button>
       </PopoverTrigger>

@@ -32,7 +32,7 @@ function CalendarRadioItem({
     <ContextMenuPrimitive.RadioItem
       data-slot="context-menu-radio-item"
       className={cn(
-        "peer relative size-3 shrink-0 rounded-[4px] outline-hidden",
+        "peer relative size-3 shrink-0 rounded-[4px] outline-hidden transition-opacity duration-150 hover:opacity-80",
         "ring-offset-2 ring-offset-popover focus-visible:border-ring focus-visible:ring-[1px] focus-visible:ring-ring/50",
         "aria-invalid:border-destructive aria-invalid:ring-destructive/20 data-[state=checked]:border-primary",
         "bg-(--calendar-color) disabled:bg-muted",

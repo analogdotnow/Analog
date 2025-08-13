@@ -18,7 +18,6 @@ import type {
 } from "../../schemas/calendars";
 import type { CreateEventInput, UpdateEventInput } from "../../schemas/events";
 import { ProviderError } from "../lib/provider-error";
-import { assignColor } from "./colors";
 import type { CalendarProvider, ResponseToEventInput } from "./interfaces";
 import {
   calendarPath,
@@ -60,9 +59,8 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
         )
         .get();
 
-      return (response.value as MicrosoftCalendar[]).map((calendar, idx) => ({
+      return (response.value as MicrosoftCalendar[]).map((calendar) => ({
         ...parseMicrosoftCalendar({ calendar, accountId: this.accountId }),
-        color: assignColor(idx),
       }));
     });
   }

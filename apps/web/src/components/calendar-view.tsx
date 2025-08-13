@@ -3,8 +3,11 @@
 import { useMemo, useRef } from "react";
 import { useAtom, useAtomValue } from "jotai";
 
+import {
+  calendarPreferencesAtom,
+  getCalendarPreference,
+} from "@/atoms/calendar-preferences";
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
-import { calendarsVisibilityAtom } from "@/atoms/calendars-visibility";
 import { cellHeightAtom } from "@/atoms/cell-height";
 import { viewPreferencesAtom } from "@/atoms/view-preferences";
 import { AgendaView } from "@/components/calendar/agenda-view/agenda-view";
@@ -85,7 +88,7 @@ export function CalendarView({
   dispatchAction,
 }: CalendarViewProps) {
   const viewPreferences = useAtomValue(viewPreferencesAtom);
-  const [calendarVisibility] = useAtom(calendarsVisibilityAtom);
+  const [calendarPreferences] = useAtom(calendarPreferencesAtom);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const calendarHeaderRef = useRef<HTMLElement | null>(null);
 
@@ -100,17 +103,19 @@ export function CalendarView({
       defaultTimeZone,
     );
 
-    // Then filter by calendar visibility - need to check the event.event.calendarId
-    return pastFiltered.filter(
-      (eventItem) =>
-        !calendarVisibility.hiddenCalendars.includes(
-          eventItem.event.calendarId,
-        ),
-    );
+    return pastFiltered.filter((eventItem) => {
+      const preference = getCalendarPreference(
+        calendarPreferences,
+        eventItem.event.accountId,
+        eventItem.event.calendarId,
+      );
+
+      return !(preference?.hidden === true);
+    });
   }, [
     events,
     viewPreferences.showPastEvents,
-    calendarVisibility.hiddenCalendars,
+    calendarPreferences,
     defaultTimeZone,
   ]);
 

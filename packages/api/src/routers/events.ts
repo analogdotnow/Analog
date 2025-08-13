@@ -45,9 +45,8 @@ export const eventsRouter = createTRPCRouter({
                 ...event,
                 calendarId: calendar.id,
                 providerId: account.providerId,
-                accountId: account.id,
+                accountId: account.accountId,
                 providerAccountId: account.accountId,
-                color: calendar.color,
               }));
             }),
           );
@@ -68,7 +67,7 @@ export const eventsRouter = createTRPCRouter({
     .input(createEventInputSchema)
     .mutation(async ({ ctx, input }) => {
       const provider = ctx.providers.find(
-        ({ account }) => account.id === input.accountId,
+        ({ account }) => account.accountId === input.accountId,
       );
 
       if (!provider?.client) {
@@ -97,7 +96,7 @@ export const eventsRouter = createTRPCRouter({
     .input(updateEventInputSchema)
     .mutation(async ({ ctx, input }) => {
       const provider = ctx.providers.find(
-        ({ account }) => account.id === input.accountId,
+        ({ account }) => account.accountId === input.accountId,
       );
 
       if (!provider?.client) {
@@ -137,7 +136,7 @@ export const eventsRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       const provider = ctx.providers.find(
-        ({ account }) => account.id === input.accountId,
+        ({ account }) => account.accountId === input.accountId,
       );
 
       if (!provider?.client) {
@@ -170,7 +169,7 @@ export const eventsRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       const provider = ctx.providers.find(
-        ({ account }) => account.id === input.accountId,
+        ({ account }) => account.accountId === input.accountId,
       );
 
       if (!provider?.client) {
