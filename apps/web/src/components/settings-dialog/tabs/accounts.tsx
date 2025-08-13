@@ -117,7 +117,7 @@ function DefaultCalendarPicker() {
               </SelectLabel>
               {account.calendars.map((calendar) => (
                 <SelectItem
-                  key={`${account.id}-${calendar.id}`}
+                  key={`${calendar.accountId}-${calendar.id}`}
                   value={calendar.id}
                   className="py-1.5 text-sm"
                   disabled={calendar.readOnly}

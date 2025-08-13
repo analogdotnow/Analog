@@ -10,6 +10,7 @@ import {
   getContentPaddingClasses,
 } from "@/components/calendar/event/ui";
 import type { CalendarEvent } from "@/components/calendar/interfaces";
+import { calendarColorVariable } from "@/lib/css";
 import { cn } from "@/lib/utils";
 import { formatTime } from "@/lib/utils/format";
 import { EventCollectionItem } from "../hooks/event-collection";
@@ -22,7 +23,7 @@ interface EventWrapperProps {
   onClick?: (e: React.MouseEvent) => void;
   className?: string;
   children: React.ReactNode;
-  isEventInPast: boolean;
+  isEventInPast?: boolean;
   onMouseDown?: (e: React.MouseEvent) => void;
   onTouchStart?: (e: React.TouchEvent) => void;
 }
@@ -117,10 +118,14 @@ export function EventItem({
       ? item.event.title
       : "(untitled)";
 
+  const color =
+    item.event.color ??
+    `var(${calendarColorVariable(item.event.accountId, item.event.calendarId)}, var(--color-muted-foreground))`;
+
   if (view === "month") {
     return (
       <EventWrapper
-        event={item.event}
+        event={{ ...item.event, color }}
         isFirstDay={isFirstDay}
         isLastDay={isLastDay}
         onClick={onClick}
@@ -160,7 +165,7 @@ export function EventItem({
   if (view === "week" || view === "day") {
     return (
       <EventWrapper
-        event={item.event}
+        event={{ ...item.event, color }}
         isFirstDay={isFirstDay}
         isLastDay={isLastDay}
         onClick={onClick}
@@ -220,8 +225,7 @@ export function EventItem({
       )} text-[color-mix(in_oklab,var(--foreground),var(--calendar-color)_80%)]`}
       style={
         {
-          "--calendar-color":
-            item.event.color ?? "var(--color-muted-foreground)",
+          "--calendar-color": color,
         } as React.CSSProperties
       }
       // data-past-event={isPast(toDate(event.end, { timeZone })) || undefined}

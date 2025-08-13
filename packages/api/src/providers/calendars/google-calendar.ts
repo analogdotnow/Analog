@@ -10,7 +10,6 @@ import type {
 } from "../../interfaces";
 import type { CreateEventInput, UpdateEventInput } from "../../schemas/events";
 import { ProviderError } from "../lib/provider-error";
-import { assignColor } from "./colors";
 import { parseGoogleCalendarCalendarListEntry } from "./google-calendar/calendars";
 import {
   parseGoogleCalendarEvent,
@@ -43,16 +42,13 @@ export class GoogleCalendarProvider implements CalendarProvider {
 
       if (!items) return [];
 
-      return items.map((calendar, index) => {
+      return items.map((calendar) => {
         const parsedCalendar = parseGoogleCalendarCalendarListEntry({
           accountId: this.accountId,
           entry: calendar,
         });
 
-        return {
-          ...parsedCalendar,
-          color: assignColor(index),
-        };
+        return parsedCalendar;
       });
     });
   }

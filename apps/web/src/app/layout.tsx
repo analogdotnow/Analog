@@ -73,7 +73,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${satoshi.variable} flex min-h-screen flex-col`}
       >
         <Providers>
-          <Toaster richColors closeButton position="bottom-right" />
+          <Toaster richColors position="top-center" />
           {children}
         </Providers>
         <SimpleAnalytics collectDnt />

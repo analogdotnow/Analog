@@ -8,6 +8,7 @@ export interface Calendar {
   timeZone?: string;
   primary: boolean;
   accountId: string;
+  providerAccountId: string;
   color?: string;
   readOnly: boolean;
 }
