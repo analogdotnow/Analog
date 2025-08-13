@@ -124,7 +124,11 @@ export function parseGoogleCalendarEvent({
     providerId: "google",
     accountId,
     calendarId: calendar.id,
-    readOnly: calendar.readOnly,
+    readOnly:
+      calendar.readOnly ||
+      ["birthday", "focusTime", "outOfOffice", "workingLocation"].includes(
+        event.eventType ?? "",
+      ),
     conference: parseGoogleCalendarConferenceData(event),
     ...(response && { response }),
     ...(recurrence && { recurrence }),
