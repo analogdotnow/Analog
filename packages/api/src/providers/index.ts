@@ -1,3 +1,5 @@
+import { TRPCError } from "@trpc/server";
+
 import { account } from "@repo/db/schema";
 
 import { GoogleCalendarProvider } from "./calendars/google-calendar";
@@ -40,10 +42,15 @@ function accountToProvider<
   providerMap: TProviderMap,
 ): TProvider {
   if (!activeAccount.accessToken || !activeAccount.refreshToken) {
-    const missingToken = !activeAccount.accessToken ? 'access token' : 'refresh token';
+    const missingToken = !activeAccount.accessToken
+      ? "access token"
+      : "refresh token";
     const errorMessage = `Invalid account: Missing ${missingToken} for provider '${activeAccount.providerId}' (accountId: ${activeAccount.accountId})`;
     console.error(errorMessage);
-    throw new Error(errorMessage);
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: errorMessage,
+    });
   }
 
   const Provider = providerMap[activeAccount.providerId as keyof TProviderMap];
@@ -51,7 +58,10 @@ function accountToProvider<
   if (!Provider) {
     const errorMessage = `Provider not supported: '${activeAccount.providerId}' (accountId: ${activeAccount.accountId})`;
     console.error(errorMessage);
-    throw new Error(errorMessage);
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: errorMessage,
+    });
   }
 
   return new Provider({
@@ -83,10 +93,15 @@ export function accountToConferencingProvider(
   providerId: "google" | "zoom",
 ): ConferencingProvider {
   if (!activeAccount.accessToken || !activeAccount.refreshToken) {
-    const missingToken = !activeAccount.accessToken ? 'access token' : 'refresh token';
+    const missingToken = !activeAccount.accessToken
+      ? "access token"
+      : "refresh token";
     const errorMessage = `Invalid account: Missing ${missingToken} for provider '${activeAccount.providerId}' (accountId: ${activeAccount.accountId})`;
     console.error(errorMessage);
-    throw new Error(errorMessage);
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: errorMessage,
+    });
   }
 
   const Provider = supportedConferencingProviders[providerId];
@@ -94,7 +109,10 @@ export function accountToConferencingProvider(
   if (!Provider) {
     const errorMessage = `Conferencing provider not supported: '${providerId}' for account '${activeAccount.providerId}' (accountId: ${activeAccount.accountId})`;
     console.error(errorMessage);
-    throw new Error(errorMessage);
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: errorMessage,
+    });
   }
 
   return new Provider({
