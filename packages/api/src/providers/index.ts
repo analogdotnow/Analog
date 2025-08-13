@@ -41,26 +41,26 @@ function accountToProvider<
   activeAccount: typeof account.$inferSelect,
   providerMap: TProviderMap,
 ): TProvider {
-  if (!activeAccount.accessToken || !activeAccount.refreshToken) {
-    const missingToken = !activeAccount.accessToken
-      ? "access token"
-      : "refresh token";
-    const errorMessage = `Invalid account: Missing ${missingToken} for provider '${activeAccount.providerId}' (accountId: ${activeAccount.accountId})`;
-    console.error(errorMessage);
+  if (!activeAccount.accessToken) {
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: errorMessage,
+      message: `Invalid account: Missing access token for provider '${activeAccount.providerId}' (accountId: ${activeAccount.accountId})`,
+    });
+  }
+
+  if (!activeAccount.refreshToken) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: `Invalid account: Missing refresh token for provider '${activeAccount.providerId}' (accountId: ${activeAccount.accountId})`,
     });
   }
 
   const Provider = providerMap[activeAccount.providerId as keyof TProviderMap];
 
   if (!Provider) {
-    const errorMessage = `Provider not supported: '${activeAccount.providerId}' (accountId: ${activeAccount.accountId})`;
-    console.error(errorMessage);
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: errorMessage,
+      message: `Provider not supported: '${activeAccount.providerId}' (accountId: ${activeAccount.accountId})`,
     });
   }
 
@@ -92,26 +92,26 @@ export function accountToConferencingProvider(
   activeAccount: typeof account.$inferSelect,
   providerId: "google" | "zoom",
 ): ConferencingProvider {
-  if (!activeAccount.accessToken || !activeAccount.refreshToken) {
-    const missingToken = !activeAccount.accessToken
-      ? "access token"
-      : "refresh token";
-    const errorMessage = `Invalid account: Missing ${missingToken} for provider '${activeAccount.providerId}' (accountId: ${activeAccount.accountId})`;
-    console.error(errorMessage);
+  if (!activeAccount.accessToken) {
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: errorMessage,
+      message: `Invalid account: Missing access token for provider '${activeAccount.providerId}' (accountId: ${activeAccount.accountId})`,
+    });
+  }
+
+  if (!activeAccount.refreshToken) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: `Invalid account: Missing refresh token for provider '${activeAccount.providerId}' (accountId: ${activeAccount.accountId})`,
     });
   }
 
   const Provider = supportedConferencingProviders[providerId];
 
   if (!Provider) {
-    const errorMessage = `Conferencing provider not supported: '${providerId}' for account '${activeAccount.providerId}' (accountId: ${activeAccount.accountId})`;
-    console.error(errorMessage);
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: errorMessage,
+      message: `Conferencing provider not supported: '${providerId}' for account '${activeAccount.providerId}' (accountId: ${activeAccount.accountId})`,
     });
   }
 
