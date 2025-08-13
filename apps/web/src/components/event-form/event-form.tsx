@@ -3,6 +3,7 @@
 import * as React from "react";
 import {
   ArrowPathIcon,
+  MapPinIcon,
   PencilSquareIcon,
   UsersIcon,
   VideoCameraIcon,
@@ -38,6 +39,7 @@ import { DateInputSection } from "./date-input-section";
 import { DescriptionField } from "./description-field";
 import { FormValues, defaultValues, formSchema, useAppForm } from "./form";
 import { FormRow, FormRowIcon } from "./form-row";
+import { LocationField } from "./location-field";
 import { RecurrenceField } from "./recurrences/recurrence-field";
 import { SendUpdateButton } from "./send-update-button";
 
@@ -120,7 +122,7 @@ export function EventForm({
           };
         }
 
-        const isNewEvent = !selectedEvent || isDraftEvent(selectedEvent);
+        const isNewEvent = !event || isDraftEvent(event);
 
         if (isNewEvent && value.title.trim() === "") {
           return {
@@ -178,6 +180,12 @@ export function EventForm({
       .find((c) => c.id === form.state.values.calendar.calendarId);
 
     if (!calendar) {
+      return;
+    }
+
+    const isNewEvent = !event || isDraftEvent(event);
+
+    if (isNewEvent && form.state.values.title.trim() === "") {
       return;
     }
 
@@ -307,6 +315,28 @@ export function EventForm({
             <Separator />
           </>
         ) : null}
+        <FormRow>
+          <FormRowIcon icon={MapPinIcon} />
+          <form.Field name="location">
+            {(field) => (
+              <div className="col-span-4 col-start-1">
+                <label htmlFor={field.name} className="sr-only">
+                  Location
+                </label>
+                <LocationField
+                  id={field.name}
+                  name={field.name}
+                  value={field.state.value}
+                  onBlur={field.handleBlur}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    field.handleChange(e.target.value)
+                  }
+                />
+              </div>
+            )}
+          </form.Field>
+        </FormRow>
+        <Separator />
         <FormRow>
           <FormRowIcon icon={UsersIcon} />
           <form.Field name="attendees" mode="array">
