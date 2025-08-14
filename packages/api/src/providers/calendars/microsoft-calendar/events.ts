@@ -100,6 +100,36 @@ function parseResponseStatus(
     : undefined;
 }
 
+function parseBlockedTime(event: MicrosoftEvent) {
+  if (!event.singleValueExtendedProperties) {
+    return undefined;
+  }
+
+  const blockedTimeProperty = event.singleValueExtendedProperties.find(
+    (prop) => prop && prop.id && prop.id.includes("Name blockedTime"),
+  );
+
+  if (!blockedTimeProperty?.value) {
+    return undefined;
+  }
+
+  try {
+    const parsed = JSON.parse(blockedTimeProperty.value);
+    const result: { before?: number; after?: number } = {};
+
+    if (typeof parsed.before === "number" && parsed.before > 0) {
+      result.before = parsed.before;
+    }
+    if (typeof parsed.after === "number" && parsed.after > 0) {
+      result.after = parsed.after;
+    }
+
+    return Object.keys(result).length > 0 ? result : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export function parseMicrosoftEvent({
   accountId,
   calendar,
@@ -112,6 +142,7 @@ export function parseMicrosoftEvent({
   }
 
   const responseStatus = parseResponseStatus(event);
+  const blockedTime = parseBlockedTime(event);
 
   return {
     id: event.id!,
@@ -157,6 +188,7 @@ export function parseMicrosoftEvent({
           }
         : {}),
       onlineMeeting: event.onlineMeeting,
+      ...(blockedTime && { blockedTime }),
     },
   };
 }
@@ -199,10 +231,30 @@ function toMicrosoftConferenceData(conference: Conference) {
   };
 }
 
+function toMicrosoftBlockedTime(blockedTime: {
+  before?: number;
+  after?: number;
+}) {
+  return [
+    {
+      id: `String {${crypto.randomUUID()}} Name blockedTime`,
+      value: JSON.stringify(blockedTime),
+    },
+  ];
+}
+
 export function toMicrosoftEvent(
   event: CreateEventInput | UpdateEventInput,
 ): MicrosoftEvent {
   const metadata = event.metadata as MicrosoftEventMetadata | undefined;
+  const blockedTimeProperties =
+    event.metadata &&
+    "blockedTime" in event.metadata &&
+    event.metadata.blockedTime
+      ? toMicrosoftBlockedTime(
+          event.metadata.blockedTime as { before?: number; after?: number },
+        )
+      : undefined;
 
   return {
     subject: event.title,
@@ -220,6 +272,9 @@ export function toMicrosoftEvent(
     isAllDay: event.allDay ?? false,
     location: event.location ? { displayName: event.location } : undefined,
     // ...(event.conference && toMicrosoftConferenceData(event.conference)),
+    ...(blockedTimeProperties && {
+      singleValueExtendedProperties: blockedTimeProperties,
+    }),
   };
 }
 

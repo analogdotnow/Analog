@@ -67,6 +67,12 @@ const microsoftMetadataSchema = z.object({
       tollNumber: z.string().optional(),
     })
     .optional(),
+  blockedTime: z
+    .object({
+      before: z.number().int().positive().optional(),
+      after: z.number().int().positive().optional(),
+    })
+    .optional(),
 });
 
 const googleMetadataSchema = z.object({
@@ -101,6 +107,15 @@ const googleMetadataSchema = z.object({
   originalRecurrence: z.array(z.string()).optional(),
   // Store the recurring event ID for instances of recurring events
   recurringEventId: z.string().optional(),
+  // Extended properties for custom data
+  private: z.record(z.string(), z.string()).optional(),
+  shared: z.record(z.string(), z.string()).optional(),
+  blockedTime: z
+    .object({
+      before: z.number().int().positive().optional(),
+      after: z.number().int().positive().optional(),
+    })
+    .optional(),
 });
 
 export const dateInputSchema = z.union([

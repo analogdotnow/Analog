@@ -116,6 +116,7 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
         .filter(
           `start/dateTime ge '${startTime}' and end/dateTime le '${endTime}'`,
         )
+        .expand("singleValueExtendedProperties")
         .orderby("start/dateTime")
         .top(CALENDAR_DEFAULTS.MAX_EVENTS_PER_CALENDAR)
         .get();
@@ -133,6 +134,7 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
     return this.withErrorHandler("createEvent", async () => {
       const createdEvent: MicrosoftEvent = await this.graphClient
         .api(`${calendarPath(calendar.id)}/events`)
+        .expand("singleValueExtendedProperties")
         .post(toMicrosoftEvent(event));
 
       return parseMicrosoftEvent({
@@ -160,6 +162,7 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
       // First, perform the regular event update
       const updatedEvent: MicrosoftEvent = await this.graphClient
         .api(`${calendarPath(calendar.id)}/events/${eventId}`)
+        .expand("singleValueExtendedProperties")
         .patch(toMicrosoftEvent(event));
 
       // Then, handle response status update if present (Microsoft-specific approach)
