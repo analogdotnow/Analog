@@ -44,7 +44,7 @@ export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "pg",
   }),
-  secondaryStorage: secondaryStorage(),
+  // secondaryStorage: secondaryStorage(),
   account: {
     accountLinking: {
       enabled: true,
