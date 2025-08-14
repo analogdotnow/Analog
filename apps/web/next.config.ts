@@ -72,6 +72,13 @@ export default withSentryConfig(withSimpleAnalytics(nextConfig), {
   // For all available options, see:
   // https://www.npmjs.com/package/@sentry/webpack-plugin#options
 
+  sourcemaps: {
+    disable: false,
+    assets: ["**/*.js", "**/*.js.map"],
+    ignore: ["**/node_modules/**"],
+    deleteSourcemapsAfterUpload: true,
+  },
+
   // Only print logs for uploading source maps in CI
   silent: !process.env.CI,
 
