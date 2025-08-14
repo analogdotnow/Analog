@@ -30,6 +30,11 @@ export interface CalendarProvider {
     timeMax: Temporal.ZonedDateTime,
     timeZone?: string,
   ): Promise<CalendarEvent[]>;
+  event(
+    calendar: Calendar,
+    eventId: string,
+    timeZone?: string,
+  ): Promise<CalendarEvent>;
   createEvent(
     calendar: Calendar,
     event: CreateEventInput,
