@@ -17,7 +17,11 @@ import {
   toGoogleCalendarEvent,
 } from "./google-calendar/events";
 import { parseGoogleCalendarFreeBusy } from "./google-calendar/freebusy";
-import type { CalendarProvider, ResponseToEventInput } from "./interfaces";
+import type {
+  CalendarProvider,
+  GetEventsOptions,
+  ResponseToEventInput,
+} from "./interfaces";
 
 interface GoogleCalendarProviderOptions {
   accessToken: string;
@@ -90,24 +94,26 @@ export class GoogleCalendarProvider implements CalendarProvider {
     });
   }
 
-  async events(
-    calendar: Calendar,
-    timeMin: Temporal.ZonedDateTime,
-    timeMax: Temporal.ZonedDateTime,
-  ): Promise<CalendarEvent[]> {
+  async events(input: GetEventsOptions): Promise<CalendarEvent[]> {
     return this.withErrorHandler("events", async () => {
-      const { items } = await this.client.calendars.events.list(calendar.id, {
-        timeMin: timeMin.withTimeZone("UTC").toInstant().toString(),
-        timeMax: timeMax.withTimeZone("UTC").toInstant().toString(),
-        singleEvents: CALENDAR_DEFAULTS.SINGLE_EVENTS,
-        orderBy: CALENDAR_DEFAULTS.ORDER_BY,
-        maxResults: CALENDAR_DEFAULTS.MAX_EVENTS_PER_CALENDAR,
-      });
+      const timeMax = input.timeMax ?? input.timeMin.add({ years: 1 });
+
+      const { items } = await this.client.calendars.events.list(
+        input.calendar.id,
+        {
+          timeMin: input.timeMin.withTimeZone("UTC").toInstant().toString(),
+          timeMax: timeMax.withTimeZone("UTC").toInstant().toString(),
+          singleEvents: CALENDAR_DEFAULTS.SINGLE_EVENTS,
+          orderBy: CALENDAR_DEFAULTS.ORDER_BY,
+          maxResults:
+            input.maxResults ?? CALENDAR_DEFAULTS.MAX_EVENTS_PER_CALENDAR,
+        },
+      );
 
       return (
         items?.map((event) =>
           parseGoogleCalendarEvent({
-            calendar,
+            calendar: input.calendar,
             accountId: this.accountId,
             event,
           }),

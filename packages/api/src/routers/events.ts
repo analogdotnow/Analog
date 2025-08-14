@@ -15,31 +15,85 @@ import { calendarProcedure, createTRPCRouter } from "../trpc";
 export const eventsRouter = createTRPCRouter({
   list: calendarProcedure
     .input(
-      z.object({
-        calendarIds: z.array(z.string()).default([]),
-        timeMin: zZonedDateTimeInstance,
-        timeMax: zZonedDateTimeInstance,
-        defaultTimeZone: z.string(),
-      }),
+      z
+        .object({
+          timeMin: zZonedDateTimeInstance,
+          timeMax: zZonedDateTimeInstance.optional(),
+          defaultTimeZone: z.string(),
+          maxResults: z.number().positive().default(500),
+        })
+        .refine(
+          (data) => data.timeMax !== undefined || data.maxResults !== undefined,
+          {
+            message: "Either timeMax or maxResults must be provided",
+            path: ["timeMax"],
+          },
+        ),
     )
     .query(async ({ ctx, input }) => {
       const allEvents = await Promise.all(
         ctx.providers.map(async ({ client, account }) => {
           const calendars = await client.calendars();
 
-          const requestedCalendars =
-            input.calendarIds.length === 0
-              ? calendars
-              : calendars.filter((cal) => input.calendarIds.includes(cal.id));
+          const providerEvents = await Promise.all(
+            calendars.map(async (calendar) => {
+              const events = await client.events({
+                calendar,
+                timeMin: input.timeMin,
+                timeMax: input.timeMax,
+                timeZone: input.defaultTimeZone,
+                maxResults: input.maxResults,
+              });
+
+              return events.map((event) => ({
+                ...event,
+                calendarId: calendar.id,
+                providerId: account.providerId,
+                accountId: account.accountId,
+                providerAccountId: account.accountId,
+              }));
+            }),
+          );
+
+          return providerEvents.flat();
+        }),
+      );
+
+      let events: CalendarEvent[] = allEvents
+        .flat()
+        .map((v) => [v, toInstant(v.start, { timeZone: "UTC" })] as const)
+        .sort(([, i1], [, i2]) => Temporal.Instant.compare(i1, i2))
+        .map(([v]) => v);
+
+      // Apply maxResults limit if specified
+      if (input.maxResults) {
+        events = events.slice(0, input.maxResults);
+      }
+
+      return { events };
+    }),
+  listUpcoming: calendarProcedure
+    .input(
+      z.object({
+        defaultTimeZone: z.string(),
+        maxResults: z.number().positive().default(10),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const now = Temporal.Now.zonedDateTimeISO(input.defaultTimeZone);
+
+      const allEvents = await Promise.all(
+        ctx.providers.map(async ({ client, account }) => {
+          const calendars = await client.calendars();
 
           const providerEvents = await Promise.all(
-            requestedCalendars.map(async (calendar) => {
-              const events = await client.events(
+            calendars.map(async (calendar) => {
+              const events = await client.events({
                 calendar,
-                input.timeMin,
-                input.timeMax,
-                input.defaultTimeZone,
-              );
+                timeMin: now,
+                timeZone: input.defaultTimeZone,
+                maxResults: input.maxResults,
+              });
 
               return events.map((event) => ({
                 ...event,

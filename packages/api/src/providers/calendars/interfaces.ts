@@ -13,6 +13,14 @@ export interface ResponseToEventInput {
   sendUpdate: boolean;
 }
 
+export interface GetEventsOptions {
+  calendar: Calendar;
+  timeMin: Temporal.ZonedDateTime;
+  timeMax?: Temporal.ZonedDateTime;
+  timeZone?: string;
+  maxResults?: number;
+}
+
 export interface CalendarProvider {
   providerId: "google" | "microsoft";
   calendars(): Promise<Calendar[]>;
@@ -24,12 +32,7 @@ export interface CalendarProvider {
     calendar: Partial<Calendar>,
   ): Promise<Calendar>;
   deleteCalendar(calendarId: string): Promise<void>;
-  events(
-    calendar: Calendar,
-    timeMin: Temporal.ZonedDateTime,
-    timeMax: Temporal.ZonedDateTime,
-    timeZone?: string,
-  ): Promise<CalendarEvent[]>;
+  events(input: GetEventsOptions): Promise<CalendarEvent[]>;
   createEvent(
     calendar: Calendar,
     event: CreateEventInput,

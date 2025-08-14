@@ -18,7 +18,11 @@ import type {
 } from "../../schemas/calendars";
 import type { CreateEventInput, UpdateEventInput } from "../../schemas/events";
 import { ProviderError } from "../lib/provider-error";
-import type { CalendarProvider, ResponseToEventInput } from "./interfaces";
+import type {
+  CalendarProvider,
+  GetEventsOptions,
+  ResponseToEventInput,
+} from "./interfaces";
 import {
   calendarPath,
   parseMicrosoftCalendar,
@@ -100,28 +104,31 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
     });
   }
 
-  async events(
-    calendar: Calendar,
-    timeMin: Temporal.ZonedDateTime,
-    timeMax: Temporal.ZonedDateTime,
-    timeZone: string,
-  ): Promise<CalendarEvent[]> {
+  async events(input: GetEventsOptions): Promise<CalendarEvent[]> {
     return this.withErrorHandler("events", async () => {
-      const startTime = timeMin.withTimeZone("UTC").toInstant().toString();
+      const timeMax = input.timeMax ?? input.timeMin.add({ years: 1 });
+      const startTime = input.timeMin
+        .withTimeZone("UTC")
+        .toInstant()
+        .toString();
       const endTime = timeMax.withTimeZone("UTC").toInstant().toString();
 
       const response = await this.graphClient
-        .api(`${calendarPath(calendar.id)}/events`)
-        .header("Prefer", `outlook.timezone="${timeZone}"`)
+        .api(`${calendarPath(input.calendar.id)}/events`)
+        .header("Prefer", `outlook.timezone="${input.timeZone ?? "UTC"}"`)
         .filter(
           `start/dateTime ge '${startTime}' and end/dateTime le '${endTime}'`,
         )
         .orderby("start/dateTime")
-        .top(CALENDAR_DEFAULTS.MAX_EVENTS_PER_CALENDAR)
+        .top(input.maxResults ?? CALENDAR_DEFAULTS.MAX_EVENTS_PER_CALENDAR)
         .get();
 
       return (response.value as MicrosoftEvent[]).map((event: MicrosoftEvent) =>
-        parseMicrosoftEvent({ event, accountId: this.accountId, calendar }),
+        parseMicrosoftEvent({
+          event,
+          accountId: this.accountId,
+          calendar: input.calendar,
+        }),
       );
     });
   }
