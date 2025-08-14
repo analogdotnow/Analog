@@ -13,6 +13,14 @@ export interface ResponseToEventInput {
   sendUpdate: boolean;
 }
 
+export interface GetEventsOptions {
+  calendar: Calendar;
+  timeMin: Temporal.ZonedDateTime;
+  timeMax?: Temporal.ZonedDateTime;
+  timeZone?: string;
+  maxResults?: number;
+}
+
 export interface CalendarProvider {
   providerId: "google" | "microsoft";
   calendars(): Promise<Calendar[]>;
