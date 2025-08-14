@@ -116,6 +116,24 @@ export class GoogleCalendarProvider implements CalendarProvider {
     });
   }
 
+  async event(
+    calendar: Calendar,
+    eventId: string,
+    _timeZone?: string,
+  ): Promise<CalendarEvent> {
+    return this.withErrorHandler("event", async () => {
+      const event = await this.client.calendars.events.retrieve(eventId, {
+        calendarId: calendar.id,
+      });
+
+      return parseGoogleCalendarEvent({
+        calendar,
+        accountId: this.accountId,
+        event,
+      });
+    });
+  }
+
   async createEvent(
     calendar: Calendar,
     event: CreateEventInput,

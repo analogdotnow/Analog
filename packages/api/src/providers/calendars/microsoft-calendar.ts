@@ -126,6 +126,30 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
     });
   }
 
+  async event(
+    calendar: Calendar,
+    eventId: string,
+    timeZone?: string,
+  ): Promise<CalendarEvent> {
+    return this.withErrorHandler("event", async () => {
+      const request = this.graphClient.api(
+        `${calendarPath(calendar.id)}/events/${eventId}`,
+      );
+
+      if (timeZone) {
+        request.header("Prefer", `outlook.timezone="${timeZone}"`);
+      }
+
+      const event: MicrosoftEvent = await request.get();
+
+      return parseMicrosoftEvent({
+        event,
+        accountId: this.accountId,
+        calendar,
+      });
+    });
+  }
+
   async createEvent(
     calendar: Calendar,
     event: CreateEventInput,
