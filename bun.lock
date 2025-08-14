@@ -135,6 +135,7 @@
         "@repo/db": "workspace:*",
         "@repo/env": "workspace:*",
         "@repo/google-calendar": "workspace:*",
+        "@repo/google-routes": "workspace:*",
         "@repo/google-tasks": "workspace:*",
         "@repo/temporal": "workspace:*",
         "@upstash/ratelimit": "^2.0.5",
@@ -225,6 +226,20 @@
         "@repo/typescript-config": "workspace:*",
         "@types/node": "^22.9.0",
         "typescript": "^5.8.3",
+      },
+    },
+    "packages/google-routes": {
+      "name": "@repo/google-routes",
+      "version": "0.1.0",
+      "devDependencies": {
+        "@repo/eslint-config": "workspace:*",
+        "@repo/typescript-config": "workspace:*",
+        "@types/node": "^22.9.0",
+        "eslint": "^9.31.0",
+        "typescript": "^5.8.3",
+      },
+      "peerDependencies": {
+        "temporal-polyfill": "^0.3.0",
       },
     },
     "packages/google-tasks": {
@@ -1179,6 +1194,8 @@
     "@repo/eslint-config": ["@repo/eslint-config@workspace:tooling/eslint-config"],
 
     "@repo/google-calendar": ["@repo/google-calendar@workspace:packages/google-calendar"],
+
+    "@repo/google-routes": ["@repo/google-routes@workspace:packages/google-routes"],
 
     "@repo/google-tasks": ["@repo/google-tasks@workspace:packages/google-tasks"],
 

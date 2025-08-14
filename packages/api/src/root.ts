@@ -1,6 +1,7 @@
 import "server-only";
 
 import { accountsRouter } from "./routers/accounts";
+import { aiRouter } from "./routers/ai";
 import { calendarsRouter } from "./routers/calendars";
 import { conferencingRouter } from "./routers/conferencing";
 import { earlyAccessRouter } from "./routers/early-access";
@@ -25,6 +26,7 @@ export const appRouter = createTRPCRouter({
   conferencing: conferencingRouter,
   earlyAccess: earlyAccessRouter,
   places: placesRouter,
+  ai: aiRouter,
 });
 
 export type AppRouter = typeof appRouter;
