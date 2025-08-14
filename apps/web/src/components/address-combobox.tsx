@@ -1,9 +1,12 @@
 "use client";
 
 import * as React from "react";
+import { LinkIcon, MapIcon } from "@heroicons/react/16/solid";
 import { Command as CommandPrimitive } from "cmdk";
 import { LoaderCircle } from "lucide-react";
 
+import { CopyButton } from "@/components/event-form/copy-button";
+import { Button } from "@/components/ui/button";
 import {
   Command,
   CommandEmpty,
@@ -15,6 +18,18 @@ import { cn } from "@/lib/utils";
 import { usePlacesSearch } from "./use-places-search";
 
 type AddressItem = { value: string; label: string };
+
+function googleMapsSearchLink(value: string): string {
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(value)}`;
+}
+
+function detectLocationType(value: string): "text" | "url" {
+  if (value.startsWith("http://") || value.startsWith("https://")) {
+    return "url";
+  }
+
+  return "text";
+}
 
 function useDebounce<T>(value: T, delay: number): T {
   const [debounced, setDebounced] = React.useState(value);
@@ -90,29 +105,73 @@ export function AddressCombobox({
     [items, onValueChange, onSubmit],
   );
 
+  const locationType = detectLocationType(value ?? "");
+
   return (
     <Command shouldFilter={false} className="overflow-visible">
-      <CommandPrimitive.Input
-        ref={inputRef}
-        id={id}
-        name={name}
-        placeholder="Location"
-        value={value}
-        onInput={(e) => {
-          onValueChange?.(e.currentTarget.value);
-        }}
-        onKeyDown={handleKeyDown}
-        onFocus={() => setOpen(true)}
-        onBlur={(e) => {
-          setOpen(false);
-          onBlur?.(e);
-        }}
-        className={cn(
-          "flex h-8 w-full rounded-md border border-input bg-transparent px-3 py-0.5 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50",
-          "placeholder:font-light",
-          className,
-        )}
-      />
+      <div className="group/address-input relative flex items-center">
+        <CommandPrimitive.Input
+          ref={inputRef}
+          id={id}
+          name={name}
+          placeholder="Location"
+          value={value}
+          onInput={(e) => {
+            onValueChange?.(e.currentTarget.value);
+          }}
+          onKeyDown={handleKeyDown}
+          onFocus={() => setOpen(true)}
+          onBlur={(e) => {
+            setOpen(false);
+            onBlur?.(e);
+          }}
+          className={cn(
+            "flex h-8 w-full rounded-md border border-input bg-transparent px-3 py-0.5 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50",
+            "placeholder:font-light",
+            "peer/address-input group-hover/address-input:not-focus:pr-20",
+            className,
+          )}
+        />
+        {value?.trim().length ? (
+          <div className="absolute inset-y-0 right-1 z-10 hidden items-center gap-1 group-hover/address-input:flex peer-hover/address-input:flex peer-focus/address-input:hidden">
+            <CopyButton
+              value={value ?? ""}
+              disabled={!value || value.trim().length === 0}
+            >
+              <span className="sr-only">Copy address</span>
+            </CopyButton>
+            {locationType === "text" ? (
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                className="size-7 text-muted-foreground"
+              >
+                <a
+                  href={googleMapsSearchLink(value)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <MapIcon className="size-4" />
+                  <span className="sr-only">Open in Google Maps</span>
+                </a>
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                className="size-7 text-muted-foreground"
+              >
+                <a href={value} target="_blank" rel="noopener noreferrer">
+                  <LinkIcon className="size-4" />
+                  <span className="sr-only">Open link</span>
+                </a>
+              </Button>
+            )}
+          </div>
+        ) : null}
+      </div>
       <div className="relative">
         {open && debouncedSearch ? (
           <CommandList className="absolute top-1.5 z-50 w-full rounded-md border border-border bg-background">
