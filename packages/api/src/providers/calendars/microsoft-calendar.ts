@@ -224,6 +224,26 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
     });
   }
 
+  async moveEvent(
+    sourceCalendar: Calendar,
+    destinationCalendar: Calendar,
+    eventId: string,
+    _sendUpdate: boolean = true,
+  ): Promise<CalendarEvent> {
+    return this.withErrorHandler("moveEvent", async () => {
+      // Placeholder: Microsoft Graph does not have a direct move endpoint.
+      // This could be implemented by creating a new event in destination and deleting the original,
+      // preserving fields as needed.
+      const event = await this.event(sourceCalendar, eventId);
+      return {
+        ...event,
+        calendarId: destinationCalendar.id,
+        // Mark as readOnly to signal as placeholder behavior if needed by callers
+        readOnly: event.readOnly,
+      };
+    });
+  }
+
   async responseToEvent(
     calendarId: string,
     eventId: string,

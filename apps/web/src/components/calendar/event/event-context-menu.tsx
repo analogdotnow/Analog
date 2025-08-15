@@ -8,6 +8,7 @@ import { CheckIcon } from "lucide-react";
 import type { AttendeeStatus } from "@repo/api/interfaces";
 
 import { CalendarEvent } from "@/components/calendar/interfaces";
+import { canMoveBetweenCalendars } from "@/components/calendar/utils/move";
 import {
   ContextMenu,
   ContextMenuCheckboxItem,
@@ -17,7 +18,11 @@ import {
   ContextMenuSeparator,
 } from "@/components/ui/context-menu";
 import { KeyboardShortcut } from "@/components/ui/keyboard-shortcut";
-import { Tooltip, TooltipContent } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useTRPC } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
 import { Action } from "../hooks/use-optimistic-events";
@@ -57,14 +62,31 @@ function CalendarRadioItem({
 }
 
 interface EventContextMenuCalendarListProps {
-  disabled?: boolean;
+  event: CalendarEvent;
+  dispatchAction: (action: Action) => void;
 }
 
 function EventContextMenuCalendarList({
-  disabled,
+  event,
+  dispatchAction,
 }: EventContextMenuCalendarListProps) {
   const trpc = useTRPC();
   const calendarQuery = useQuery(trpc.calendars.list.queryOptions());
+
+  const moveEvent = React.useCallback(
+    (accountId: string, calendarId: string) => {
+      dispatchAction({
+        type: "move",
+        eventId: event.id,
+        source: {
+          accountId: event.accountId,
+          calendarId: event.calendarId,
+        },
+        destination: { accountId, calendarId },
+      });
+    },
+    [dispatchAction, event],
+  );
 
   return (
     <div className="mb-1 flex scrollbar-hidden gap-3 overflow-x-auto px-2 py-2">
@@ -72,15 +94,18 @@ function EventContextMenuCalendarList({
         <React.Fragment key={index}>
           {account.calendars.map((calendar, index) => (
             <Tooltip key={index}>
-              <CalendarRadioItem
-                value={`${calendar.accountId}-${calendar.id}`}
-                style={
-                  {
-                    "--calendar-color": calendar.color,
-                  } as React.CSSProperties
-                }
-                disabled={disabled}
-              ></CalendarRadioItem>
+              <TooltipTrigger asChild>
+                <CalendarRadioItem
+                  value={`${calendar.accountId}-${calendar.id}`}
+                  style={
+                    {
+                      "--calendar-color": calendar.color,
+                    } as React.CSSProperties
+                  }
+                  disabled={!canMoveBetweenCalendars(event, calendar)}
+                  onSelect={() => moveEvent(calendar.accountId, calendar.id)}
+                />
+              </TooltipTrigger>
               <TooltipContent className="w-full max-w-48" sideOffset={8}>
                 <span className="break-all">{calendar.name}</span>
               </TooltipContent>
@@ -117,6 +142,7 @@ export function EventContextMenu({
           ...event,
           response: { status },
         },
+        force: { sendUpdate: true },
       });
     },
     [dispatchAction, event, responseStatus],
@@ -131,7 +157,10 @@ export function EventContextMenu({
       {children}
       <ContextMenuContent className="w-64">
         <ContextMenuRadioGroup value={`${event.accountId}-${event.calendarId}`}>
-          <EventContextMenuCalendarList disabled />
+          <EventContextMenuCalendarList
+            event={event}
+            dispatchAction={dispatchAction}
+          />
         </ContextMenuRadioGroup>
 
         <ContextMenuSeparator />

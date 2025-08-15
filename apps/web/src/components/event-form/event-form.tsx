@@ -415,7 +415,7 @@ export function EventForm({
           </form.Field>
           {manualSubmit ? (
             <SendUpdateButton
-              className="col-span-4 col-start-1"
+              className="col-span-4 col-start-1 pt-2"
               onSave={() => form.handleSubmit({ meta: { sendUpdate: true } })}
               onSaveWithoutNotifying={() =>
                 form.handleSubmit({ meta: { sendUpdate: false } })

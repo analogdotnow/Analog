@@ -54,6 +54,12 @@ export interface CalendarProvider {
     eventId: string,
     response: ResponseToEventInput,
   ): Promise<void>;
+  moveEvent(
+    sourceCalendar: Calendar,
+    destinationCalendar: Calendar,
+    eventId: string,
+    sendUpdate?: boolean,
+  ): Promise<CalendarEvent>;
   freeBusy(
     schedules: string[],
     timeMin: Temporal.ZonedDateTime,
