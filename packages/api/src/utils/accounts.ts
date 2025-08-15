@@ -37,9 +37,30 @@ export async function getDefaultAccount(user: User, headers: Headers) {
   });
 
   const ctx = await auth.$context;
-  await ctx.internalAdapter.updateUser(user.id, {
-    defaultAccountId: account!.id,
-  });
+
+  // Validate parameters before database update
+  if (!user.id || !account?.id) {
+    console.error("Invalid parameters for default account update:", {
+      userId: user.id,
+      accountId: account?.id,
+    });
+  } else {
+    try {
+      await ctx.internalAdapter.updateUser(user.id, {
+        defaultAccountId: account.id,
+      });
+    } catch (error) {
+      console.error("Failed to update user default account:", {
+        userId: user.id,
+        accountId: account.id,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+
+      // Continue with the flow but log the error
+      // The account can still be used even if it's not set as default
+    }
+  }
 
   return await withAccessToken(account!, headers);
 }
