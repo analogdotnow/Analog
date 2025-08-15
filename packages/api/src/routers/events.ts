@@ -191,7 +191,7 @@ export const eventsRouter = createTRPCRouter({
         ctx.providers,
         move.source.accountId,
       );
-      
+
       const destinationProvider = findProviderOrThrow(
         ctx.providers,
         move.destination.accountId,
