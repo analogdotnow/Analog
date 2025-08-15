@@ -193,9 +193,24 @@ export const calendarsRouter = createTRPCRouter({
         });
       }
 
-      await ctx.authContext.internalAdapter.updateUser(ctx.user.id, {
-        defaultCalendarId: calendar.id,
-        defaultAccountId: input.accountId,
-      });
+      try {
+        await ctx.authContext.internalAdapter.updateUser(ctx.user.id, {
+          defaultCalendarId: calendar.id,
+          defaultAccountId: input.accountId,
+        });
+      } catch (error) {
+        console.error("Failed to update user default calendar:", {
+          userId: ctx.user.id,
+          calendarId: calendar.id,
+          accountId: input.accountId,
+          error: error instanceof Error ? error.message : String(error),
+        });
+
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to update default calendar settings",
+          cause: error,
+        });
+      }
     }),
 });

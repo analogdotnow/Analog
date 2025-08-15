@@ -55,9 +55,20 @@ export const createProviderHandler = async (
     return;
   }
 
-  await ctx?.context.internalAdapter.updateUser(account.userId, {
-    defaultAccountId: account.id,
-  });
+  try {
+    await ctx?.context.internalAdapter.updateUser(account.userId, {
+      defaultAccountId: account.id,
+    });
+  } catch (error) {
+    console.error("Failed to update user default account:", {
+      userId: account.userId,
+      accountId: account.id,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    
+    // Don't throw here as this is not critical for the account creation flow
+    // The user can set their default account later
+  }
 };
 
 export const handleUnlinkAccount = createAuthMiddleware(async (ctx) => {
@@ -90,13 +101,26 @@ export const handleUnlinkAccount = createAuthMiddleware(async (ctx) => {
     const calendars = await calendarProvider.calendars();
     const primaryCalendar = calendars.find((calendar) => calendar.primary);
 
-    await ctx.context.internalAdapter.updateUser(
-      user.id,
-      {
+    try {
+      await ctx.context.internalAdapter.updateUser(
+        user.id,
+        {
+          defaultAccountId: newDefaultAccount.id,
+          defaultCalendarId: primaryCalendar?.id,
+        },
+        ctx,
+      );
+    } catch (error) {
+      console.error("Failed to update user during account unlink:", {
+        userId: user.id,
         defaultAccountId: newDefaultAccount.id,
         defaultCalendarId: primaryCalendar?.id,
-      },
-      ctx,
-    );
+        error: error instanceof Error ? error.message : String(error),
+      });
+      
+      throw new APIError("INTERNAL_SERVER_ERROR", {
+        message: "Failed to update user default settings during account unlink",
+      });
+    }
   }
 });
