@@ -112,14 +112,18 @@ export const handleUnlinkAccount = createAuthMiddleware(async (ctx) => {
 
     // Validate parameters before database update
     if (!user.id || !newDefaultAccount.id) {
-      console.error("Invalid parameters for user update during account unlink:", {
-        userId: user.id,
-        newDefaultAccountId: newDefaultAccount.id,
-        primaryCalendarId: primaryCalendar?.id,
-      });
+      console.error(
+        "Invalid parameters for user update during account unlink:",
+        {
+          userId: user.id,
+          newDefaultAccountId: newDefaultAccount.id,
+          primaryCalendarId: primaryCalendar?.id,
+        },
+      );
 
       throw new APIError("INTERNAL_SERVER_ERROR", {
-        message: "Invalid parameters for updating user default settings during account unlink",
+        message:
+          "Invalid parameters for updating user default settings during account unlink",
       });
     }
 
