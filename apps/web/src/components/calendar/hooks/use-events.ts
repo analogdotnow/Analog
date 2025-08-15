@@ -115,7 +115,7 @@ export function useEvents() {
 
   const updateMutation = useMutation(
     trpc.events.update.mutationOptions({
-      onMutate: async (updatedEvent) => {
+      onMutate: async ({ data, move }) => {
         await queryClient.cancelQueries({ queryKey: eventsQueryKey });
 
         const previousEvents = queryClient.getQueryData(eventsQueryKey);
@@ -125,12 +125,18 @@ export function useEvents() {
             return prev;
           }
 
-          const withoutEvent = prev.events.filter(
-            (e) => e.id !== updatedEvent.id,
-          );
+          const withoutEvent = prev.events.filter((e) => e.id !== data.id);
+
+          const updatedEvent = {
+            ...data,
+            ...(move?.destination && {
+              accountId: move.destination.accountId,
+              calendarId: move.destination.calendarId,
+            }),
+          };
 
           const events = insertIntoSorted(withoutEvent, updatedEvent, (a) =>
-            isBefore(a.start, updatedEvent.start, {
+            isBefore(a.start, data.start, {
               timeZone: defaultTimeZone,
             }),
           );
@@ -189,11 +195,54 @@ export function useEvents() {
     }),
   );
 
+  const moveMutation = useMutation(
+    trpc.events.move.mutationOptions({
+      onMutate: async (input) => {
+        await queryClient.cancelQueries({ queryKey: eventsQueryKey });
+
+        const previousEvents = queryClient.getQueryData(eventsQueryKey);
+
+        queryClient.setQueryData(eventsQueryKey, (prev) => {
+          if (!prev) {
+            return prev;
+          }
+
+          const events = prev.events.map((event) => {
+            if (event.id !== input.eventId) return event;
+
+            return {
+              ...event,
+              accountId: input.destination.accountId,
+              calendarId: input.destination.calendarId,
+              providerId: "google" as const,
+            };
+          });
+
+          return {
+            ...prev,
+            events,
+          };
+        });
+
+        return { previousEvents };
+      },
+      onError: (_error, _variables, context) => {
+        if (context?.previousEvents) {
+          queryClient.setQueryData(eventsQueryKey, context.previousEvents);
+        }
+      },
+      onSettled: () => {
+        queryClient.invalidateQueries({ queryKey: eventsQueryKey });
+      },
+    }),
+  );
+
   return {
     events,
     createMutation,
     updateMutation,
     deleteMutation,
+    moveMutation,
     eventsQueryKey,
   };
 }

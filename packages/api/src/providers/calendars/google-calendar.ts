@@ -226,6 +226,27 @@ export class GoogleCalendarProvider implements CalendarProvider {
     });
   }
 
+  async moveEvent(
+    sourceCalendar: Calendar,
+    destinationCalendar: Calendar,
+    eventId: string,
+    sendUpdate: boolean = true,
+  ): Promise<CalendarEvent> {
+    return this.withErrorHandler("moveEvent", async () => {
+      const moved = await this.client.calendars.events.move(eventId, {
+        calendarId: sourceCalendar.id,
+        destination: destinationCalendar.id,
+        sendUpdates: sendUpdate ? "all" : "none",
+      });
+
+      return parseGoogleCalendarEvent({
+        calendar: destinationCalendar,
+        accountId: this.accountId,
+        event: moved,
+      });
+    });
+  }
+
   async acceptEvent(calendarId: string, eventId: string): Promise<void> {
     return this.withErrorHandler("acceptEvent", async () => {
       const event = await this.client.calendars.events.retrieve(eventId, {

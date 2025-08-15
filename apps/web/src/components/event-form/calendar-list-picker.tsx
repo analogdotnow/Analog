@@ -62,11 +62,13 @@ export function CalendarListPickerItem({
   calendar,
   onSelect,
 }: CalendarListPickerItemProps) {
+  const canMove = !calendar.readOnly && calendar.providerId === "google";
+
   return (
     <CommandItem
       value={`${calendar.name}`}
       onSelect={() => onSelect(calendar)}
-      disabled={calendar.readOnly}
+      disabled={!canMove}
     >
       <CalendarColorIndicator
         primary={calendar.primary}
@@ -86,6 +88,7 @@ interface CalendarListPickerProps extends React.ComponentProps<typeof Popover> {
 
 export function CalendarListPicker({
   children,
+  value,
   items,
   onSelect,
   ...props

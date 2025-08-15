@@ -11,6 +11,7 @@ import {
   updateEventInputSchema,
 } from "../schemas/events";
 import { calendarProcedure, createTRPCRouter } from "../trpc";
+import { findCalendarOrThrow, findProviderOrThrow } from "../utils";
 
 export const eventsRouter = createTRPCRouter({
   list: calendarProcedure
@@ -133,37 +134,155 @@ export const eventsRouter = createTRPCRouter({
       return { event };
     }),
   update: calendarProcedure
-    .input(updateEventInputSchema)
+    .input(
+      z.object({
+        data: updateEventInputSchema,
+        move: z
+          .object({
+            source: z.object({
+              accountId: z.string(),
+              calendarId: z.string(),
+            }),
+            destination: z.object({
+              accountId: z.string(),
+              calendarId: z.string(),
+            }),
+          })
+          .optional(),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
-      const provider = ctx.providers.find(
-        ({ account }) => account.accountId === input.accountId,
+      const { data, move } = input;
+
+      // If no move provided, perform a regular update on the current calendar
+      if (!move) {
+        const provider = ctx.providers.find(
+          ({ account }) => account.accountId === data.accountId,
+        );
+
+        if (!provider?.client) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: `Calendar client not found for accountId: ${data.accountId}`,
+          });
+        }
+
+        const calendars = await provider.client.calendars();
+        const calendar = calendars.find((c) => c.id === data.calendarId);
+
+        if (!calendar) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: `Calendar not found for accountId: ${data.accountId}`,
+          });
+        }
+
+        const event = await provider.client.updateEvent(
+          calendar,
+          data.id,
+          data,
+        );
+
+        return { event };
+      }
+
+      // With move provided, move the event first, then apply updates if needed
+      const sourceProvider = findProviderOrThrow(
+        ctx.providers,
+        move.source.accountId,
+      );
+      
+      const destinationProvider = findProviderOrThrow(
+        ctx.providers,
+        move.destination.accountId,
       );
 
-      if (!provider?.client) {
+      const [sourceCalendars, destinationCalendars] = await Promise.all([
+        sourceProvider.client.calendars(),
+        destinationProvider.client.calendars(),
+      ]);
+
+      const sourceCalendar = findCalendarOrThrow(
+        sourceCalendars,
+        move.source.calendarId,
+      );
+      const destinationCalendar = findCalendarOrThrow(
+        destinationCalendars,
+        move.destination.calendarId,
+      );
+
+      // If destination is the same as source, just update
+      if (
+        move.source.accountId === move.destination.accountId &&
+        move.source.calendarId === move.destination.calendarId
+      ) {
+        const event = await sourceProvider.client.updateEvent(
+          sourceCalendar,
+          data.id,
+          data,
+        );
+        return { event };
+      }
+
+      // Moving is only supported for Google accounts
+      if (
+        sourceProvider.client.providerId !== "google" ||
+        destinationProvider.client.providerId !== "google"
+      ) {
         throw new TRPCError({
-          code: "NOT_FOUND",
-          message: `Calendar client not found for accountId: ${input.accountId}`,
+          code: "BAD_REQUEST",
+          message: "Moving events is only supported for Google accounts",
         });
       }
 
-      const calendars = await provider.client.calendars();
+      // Same Google account → use native move then update
+      if (move.source.accountId === move.destination.accountId) {
+        const moved = await sourceProvider.client.moveEvent(
+          sourceCalendar,
+          destinationCalendar,
+          data.id,
+          data.response?.sendUpdate ?? true,
+        );
 
-      const calendar = calendars.find((c) => c.id === input.calendarId);
+        const updated = await destinationProvider.client.updateEvent(
+          destinationCalendar,
+          moved.id,
+          {
+            ...data,
+            id: moved.id,
+            accountId: move.destination.accountId,
+            calendarId: move.destination.calendarId,
+          },
+        );
 
-      if (!calendar) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: `Calendar not found for accountId: ${input.accountId}`,
-        });
+        return { event: updated };
       }
 
-      const event = await provider.client.updateEvent(
-        calendar,
-        input.id,
-        input,
+      console.log("different google accounts", {
+        sourceProvider,
+        destinationProvider,
+        sourceCalendar,
+        destinationCalendar,
+      });
+
+      // Different Google accounts → clone then delete
+      const created = await destinationProvider.client.createEvent(
+        destinationCalendar,
+        {
+          ...data,
+          id: crypto.randomUUID(),
+          accountId: move.destination.accountId,
+          calendarId: destinationCalendar.id,
+        },
       );
 
-      return { event };
+      await sourceProvider.client.deleteEvent(
+        sourceCalendar.id,
+        data.id,
+        data.response?.sendUpdate ?? true,
+      );
+
+      return { event: created };
     }),
   delete: calendarProcedure
     .input(
@@ -193,6 +312,93 @@ export const eventsRouter = createTRPCRouter({
       );
 
       return { success: true };
+    }),
+  move: calendarProcedure
+    .input(
+      z.object({
+        source: z.object({
+          providerId: z.enum(["google"]),
+          accountId: z.string(),
+          calendarId: z.string(),
+        }),
+        destination: z.object({
+          providerId: z.enum(["google"]),
+          accountId: z.string(),
+          calendarId: z.string(),
+        }),
+        eventId: z.string(),
+        sendUpdate: z.boolean().optional().default(true),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const sourceProvider = findProviderOrThrow(
+        ctx.providers,
+        input.source.accountId,
+      );
+      const destinationProvider = findProviderOrThrow(
+        ctx.providers,
+        input.destination.accountId,
+      );
+
+      const [sourceCalendars, destinationCalendars] = await Promise.all([
+        sourceProvider.client.calendars(),
+        destinationProvider.client.calendars(),
+      ]);
+
+      const sourceCalendar = findCalendarOrThrow(
+        sourceCalendars,
+        input.source.calendarId,
+      );
+
+      const destinationCalendar = findCalendarOrThrow(
+        destinationCalendars,
+        input.destination.calendarId,
+      );
+
+      // Same Google account → use native move
+      if (input.source.accountId === input.destination.accountId) {
+        const event = await sourceProvider.client.moveEvent(
+          sourceCalendar,
+          destinationCalendar,
+          input.eventId,
+          input.sendUpdate,
+        );
+
+        return { event };
+      }
+
+      // Different Google accounts → clone then delete
+      const sourceEvent = await sourceProvider.client.event(
+        sourceCalendar,
+        input.eventId,
+      );
+
+      console.log("different google accounts", {
+        sourceProvider,
+        destinationProvider,
+        sourceCalendar,
+        destinationCalendar,
+      });
+
+      // TODO: what happens to attendees?
+      const created = await destinationProvider.client.createEvent(
+        destinationCalendar,
+        {
+          ...sourceEvent,
+          id: crypto.randomUUID(),
+          accountId: input.destination.accountId,
+          calendarId: input.destination.calendarId,
+          providerId: "google",
+        },
+      );
+
+      await sourceProvider.client.deleteEvent(
+        sourceCalendar.id,
+        input.eventId,
+        input.sendUpdate,
+      );
+
+      return { event: created };
     }),
   respondToInvite: calendarProcedure
     .input(
