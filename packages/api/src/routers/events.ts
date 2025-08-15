@@ -1,4 +1,5 @@
 import { TRPCError } from "@trpc/server";
+import * as R from "remeda";
 import { Temporal } from "temporal-polyfill";
 import { zZonedDateTimeInstance } from "temporal-zod";
 import { z } from "zod/v3";
@@ -24,7 +25,7 @@ export const eventsRouter = createTRPCRouter({
       }),
     )
     .query(async ({ ctx, input }) => {
-      const allEvents = await Promise.all(
+      const results = await Promise.all(
         ctx.providers.map(async ({ client, account }) => {
           const calendars = await client.calendars();
 
@@ -35,20 +36,25 @@ export const eventsRouter = createTRPCRouter({
 
           const providerEvents = await Promise.all(
             requestedCalendars.map(async (calendar) => {
-              const events = await client.events(
+              const { events, recurringMasterEvents } = await client.events(
                 calendar,
                 input.timeMin,
                 input.timeMax,
                 input.defaultTimeZone,
               );
 
-              return events.map((event) => ({
+              const mapped = events.map((event) => ({
                 ...event,
                 calendarId: calendar.id,
                 providerId: account.providerId,
                 accountId: account.accountId,
                 providerAccountId: account.accountId,
               }));
+
+              return {
+                events: mapped,
+                recurringMasterEvents: Object.values(recurringMasterEvents),
+              };
             }),
           );
 
@@ -56,13 +62,23 @@ export const eventsRouter = createTRPCRouter({
         }),
       );
 
-      const events: CalendarEvent[] = allEvents
+      const s = results.flat();
+      const allRecurringMasterEvents = s
+        .map((e) => e.recurringMasterEvents)
+        .flat();
+
+      const recurringMasterEvents: Record<string, CalendarEvent> = R.mergeAll(
+        allRecurringMasterEvents.map((e) => ({ [e.id]: e })),
+      );
+
+      const events: CalendarEvent[] = s
+        .map((e) => e.events)
         .flat()
         .map((v) => [v, toInstant(v.start, { timeZone: "UTC" })] as const)
         .sort(([, i1], [, i2]) => Temporal.Instant.compare(i1, i2))
         .map(([v]) => v);
 
-      return { events };
+      return { events, recurringMasterEvents };
     }),
   get: calendarProcedure
     .input(

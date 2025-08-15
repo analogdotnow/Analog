@@ -94,7 +94,11 @@ export class GoogleCalendarProvider implements CalendarProvider {
     calendar: Calendar,
     timeMin: Temporal.ZonedDateTime,
     timeMax: Temporal.ZonedDateTime,
-  ): Promise<CalendarEvent[]> {
+    timeZone?: string,
+  ): Promise<{
+    events: CalendarEvent[];
+    recurringMasterEvents: CalendarEvent[];
+  }> {
     return this.withErrorHandler("events", async () => {
       const { items } = await this.client.calendars.events.list(calendar.id, {
         timeMin: timeMin.withTimeZone("UTC").toInstant().toString(),
@@ -104,22 +108,39 @@ export class GoogleCalendarProvider implements CalendarProvider {
         maxResults: CALENDAR_DEFAULTS.MAX_EVENTS_PER_CALENDAR,
       });
 
-      return (
+      const events: CalendarEvent[] =
         items?.map((event) =>
           parseGoogleCalendarEvent({
             calendar,
             accountId: this.accountId,
             event,
+            defaultTimeZone: timeZone ?? "UTC",
           }),
-        ) ?? []
+        ) ?? [];
+
+      const instances = events.filter((e) => e.recurringEventId);
+      const masters = new Set<string>([]);
+
+      for (const instance of instances) {
+        masters.add(instance.recurringEventId!);
+      }
+
+      if (masters.size === 0) {
+        return { events, recurringMasterEvents: [] };
+      }
+
+      const recurringMasterEvents = await Promise.all(
+        Array.from(masters).map((id) => this.event(calendar, id, timeZone)),
       );
+
+      return { events, recurringMasterEvents };
     });
   }
 
   async event(
     calendar: Calendar,
     eventId: string,
-    _timeZone?: string,
+    timeZone?: string,
   ): Promise<CalendarEvent> {
     return this.withErrorHandler("event", async () => {
       const event = await this.client.calendars.events.retrieve(eventId, {
@@ -130,6 +151,7 @@ export class GoogleCalendarProvider implements CalendarProvider {
         calendar,
         accountId: this.accountId,
         event,
+        defaultTimeZone: timeZone ?? "UTC",
       });
     });
   }

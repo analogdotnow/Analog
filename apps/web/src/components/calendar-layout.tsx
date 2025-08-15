@@ -17,6 +17,7 @@ import { SidebarInset } from "@/components/ui/sidebar";
 import { EventHotkeys } from "@/lib/hotkeys/event-hotkeys";
 import { useTRPC } from "@/lib/trpc/client";
 import { AttendeeConfirmationDialog } from "./calendar/attendee-confirmation-dialog";
+import { RecurringEditScopeDialog } from "./calendar/recurring-edit-scope-dialog";
 import { AppCommandMenu } from "./command-menu/app-command-menu";
 
 export function CalendarLayout() {
@@ -47,6 +48,7 @@ function IsolatedCalendarLayout() {
     dispatchAction,
     dispatchAsyncAction,
     confirmationDialog,
+    recurringScopeDialog,
   } = useOptimisticEvents();
 
   return (
@@ -73,6 +75,12 @@ function IsolatedCalendarLayout() {
         />
       </RightSidebar>
       <AttendeeConfirmationDialog dialog={confirmationDialog} />
+      <RecurringEditScopeDialog
+        open={recurringScopeDialog.open}
+        onInstance={recurringScopeDialog.onInstance}
+        onSeries={recurringScopeDialog.onSeries}
+        onCancel={recurringScopeDialog.onCancel}
+      />
     </>
   );
 }

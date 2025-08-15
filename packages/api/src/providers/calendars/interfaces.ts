@@ -29,7 +29,10 @@ export interface CalendarProvider {
     timeMin: Temporal.ZonedDateTime,
     timeMax: Temporal.ZonedDateTime,
     timeZone?: string,
-  ): Promise<CalendarEvent[]>;
+  ): Promise<{
+    events: CalendarEvent[];
+    recurringMasterEvents: CalendarEvent[];
+  }>;
   event(
     calendar: Calendar,
     eventId: string,

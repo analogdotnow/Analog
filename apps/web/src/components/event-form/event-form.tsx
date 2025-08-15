@@ -10,6 +10,7 @@ import {
 } from "@heroicons/react/16/solid";
 import { useQuery } from "@tanstack/react-query";
 import { useAtomValue } from "jotai";
+import { useOnClickOutside } from 'usehooks-ts'
 
 import {
   CalendarSettings,
@@ -105,6 +106,9 @@ export function EventForm({
     });
   }, [event, defaultCalendar, settings]);
 
+  const ref = React.useRef<HTMLFormElement>(null);
+  const focusRef = React.useRef(false);
+  
   const form = useAppForm({
     defaultValues,
     validators: {
@@ -152,19 +156,25 @@ export function EventForm({
         },
       });
 
+      focusRef.current = false;
+
       setManualSubmit(false);
     },
     listeners: {
       onBlur: async ({ formApi }) => {
+        focusRef.current = true;
+
         if (!formApi.state.isValid || formApi.state.isDefaultValue) {
           setManualSubmit(false);
           return;
         }
 
-        if (
+        const requiresConfirmation = 
           formApi.state.fieldMeta.attendees.isDirty ||
           !isUserOnlyAttendee(formApi.state.values.attendees)
-        ) {
+          || event?.recurringEventId !== undefined
+
+        if (requiresConfirmation) {
           setManualSubmit(true);
           return;
         }
@@ -173,6 +183,33 @@ export function EventForm({
       },
     },
   });
+
+  const handleClickOutside = React.useCallback(async () => {
+    const requiresConfirmation = 
+      !isUserOnlyAttendee(event?.attendees ?? [])
+      || event?.recurringEventId !== undefined
+
+    if (!requiresConfirmation || focusRef.current === false) {
+      return;
+    }
+
+    const calendar = query.data?.accounts
+      .flatMap((a) => a.calendars)
+      .find((c) => c.id === form.state.values.calendar.calendarId);
+
+    if (!calendar) {
+      return;
+    }
+
+    focusRef.current = false;
+
+    await dispatchAsyncAction({
+      type: "update",
+      event: toCalendarEvent({ values: form.state.values, event, calendar }),
+    });
+  }, [dispatchAsyncAction, event, form.state.values, query.data?.accounts]);
+
+  useOnClickOutside(ref as React.RefObject<HTMLElement>, handleClickOutside);
 
   const saveEvent = React.useCallback(async () => {
     const calendar = query.data?.accounts
@@ -207,13 +244,18 @@ export function EventForm({
 
     setManualSubmit(false);
     setEvent(selectedEvent);
+    focusRef.current = true;
 
     form.reset();
   }, [selectedEvent, event, form, saveEvent]);
 
   return (
     <form
+      ref={ref}
       className={cn("flex flex-col gap-y-1")}
+      onFocusCapture={() => {
+        focusRef.current = true;
+      }}
       onSubmit={async (e) => {
         e.preventDefault();
         e.stopPropagation();

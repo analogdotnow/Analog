@@ -15,16 +15,16 @@ import { insertIntoSorted, useEvents } from "./use-events";
 
 export type Action =
   | { type: "draft"; event: DraftEvent }
-  | { type: "update"; event: CalendarEvent; force?: { sendUpdate: boolean } }
+  | { type: "update"; event: CalendarEvent; force?: { sendUpdate?: boolean, recurrenceScope?: "instance" | "series" } }
   | { type: "select"; event: CalendarEvent }
   | { type: "unselect"; eventId?: string }
-  | { type: "delete"; eventId: string; force?: { sendUpdate: boolean } }
+  | { type: "delete"; eventId: string; force?: { sendUpdate?: boolean, recurrenceScope?: "instance" | "series" } }
   | {
       type: "move";
       eventId: string;
       source: { accountId: string; calendarId: string };
       destination: { accountId: string; calendarId: string };
-      force?: { sendUpdate: boolean };
+      force?: { sendUpdate?: boolean, recurrenceScope?: "instance" | "series" };
     };
 
 type OptimisticAction =
@@ -39,6 +39,14 @@ type ConfirmationDialogState = {
   onCancel: () => void;
 };
 
+type RecurringEditScopeDialogState = {
+  open: boolean;
+  event: CalendarEvent | null;
+  onInstance: () => void;
+  onSeries: () => void;
+  onCancel: () => void;
+};
+
 export function useOptimisticEvents() {
   const {
     events,
@@ -47,6 +55,7 @@ export function useOptimisticEvents() {
     deleteMutation,
     moveMutation,
     eventsQueryKey,
+    masterRecurringEvents,
   } = useEvents();
   const [selectedEvents, setSelectedEvents] = useAtom(selectedEventsAtom);
   const { defaultTimeZone } = useAtomValue(calendarSettingsAtom);
@@ -58,6 +67,15 @@ export function useOptimisticEvents() {
       type: "update",
       event: null,
       onConfirm: () => {},
+      onCancel: () => {},
+    });
+
+  const [recurringScopeDialog, setRecurringScopeDialog] =
+    React.useState<RecurringEditScopeDialogState>({
+      open: false,
+      event: null,
+      onInstance: () => {},
+      onSeries: () => {},
       onCancel: () => {},
     });
 
@@ -89,7 +107,10 @@ export function useOptimisticEvents() {
   const queryClient = useQueryClient();
 
   const handleEventSave = React.useCallback(
-    (event: CalendarEvent, force?: { sendUpdate: boolean }) => {
+    (
+      event: CalendarEvent,
+      force?: { sendUpdate?: boolean; recurrenceScope?: "instance" | "series" },
+    ) => {
       startTransition(() => applyOptimistic({ type: "update", event }));
 
       const exists = optimisticEvents.find(
@@ -105,7 +126,430 @@ export function useOptimisticEvents() {
         return;
       }
 
-      if (force || !event.attendees || isUserOnlyAttendee(event.attendees)) {
+      // If editing a recurring instance, ask for scope before proceeding
+      if (event.recurringEventId) {
+        // Bypass dialog if recurrenceScope is provided
+        if (force?.recurrenceScope === "instance") {
+          const isCalendarChanged =
+            !!exists &&
+            (event.accountId !== exists.event.accountId ||
+              event.calendarId !== exists.event.calendarId);
+
+          if (force?.sendUpdate !== undefined || !event.attendees || isUserOnlyAttendee(event.attendees)) {
+            updateMutation.mutate({
+              data: {
+                ...event,
+                ...(isCalendarChanged && {
+                  accountId: exists.event.accountId,
+                  calendarId: exists.event.calendarId,
+                }),
+                ...(force?.sendUpdate !== undefined && {
+                  response: {
+                    status: event.response?.status ?? "unknown",
+                    sendUpdate: force.sendUpdate,
+                  },
+                }),
+              },
+              ...(isCalendarChanged && {
+                move: {
+                  source: {
+                    accountId: exists.event.accountId,
+                    calendarId: exists.event.calendarId,
+                  },
+                  destination: {
+                    accountId: event.accountId,
+                    calendarId: event.calendarId,
+                  },
+                },
+              }),
+            });
+            return;
+          }
+
+          // attendee confirmation still required
+          const previousEvents = queryClient.getQueryData(eventsQueryKey);
+          setConfirmationDialog({
+            open: true,
+            type: "update",
+            event,
+            onConfirm: (sendUpdate: boolean) => {
+              const isCalendarChangedConfirm =
+                !!exists &&
+                (event.accountId !== exists.event.accountId ||
+                  event.calendarId !== exists.event.calendarId);
+
+              updateMutation.mutate({
+                data: {
+                  ...event,
+                  ...(isCalendarChangedConfirm && {
+                    accountId: exists.event.accountId,
+                    calendarId: exists.event.calendarId,
+                  }),
+                  response: {
+                    status: event.response?.status ?? "unknown",
+                    sendUpdate,
+                  },
+                },
+                ...(isCalendarChangedConfirm && {
+                  move: {
+                    source: {
+                      accountId: exists.event.accountId,
+                      calendarId: exists.event.calendarId,
+                    },
+                    destination: {
+                      accountId: event.accountId,
+                      calendarId: event.calendarId,
+                    },
+                  },
+                }),
+              });
+
+              setConfirmationDialog((prev) => ({ ...prev, open: false }));
+            },
+            onCancel: () => {
+              queryClient.setQueryData(eventsQueryKey, previousEvents);
+              setConfirmationDialog((prev) => ({ ...prev, open: false }));
+            },
+          });
+          return;
+        }
+
+        if (force?.recurrenceScope === "series") {
+          const master = masterRecurringEvents[event.recurringEventId!];
+          const previousEvents = queryClient.getQueryData(eventsQueryKey);
+          if (!master) {
+            // fallback to instance behavior
+            const isCalendarChanged =
+              !!exists &&
+              (event.accountId !== exists.event.accountId ||
+                event.calendarId !== exists.event.calendarId);
+            updateMutation.mutate({
+              data: {
+                ...event,
+                ...(isCalendarChanged && {
+                  accountId: exists.event.accountId,
+                  calendarId: exists.event.calendarId,
+                }),
+                ...(force?.sendUpdate !== undefined && {
+                  response: {
+                    status: event.response?.status ?? "unknown",
+                    sendUpdate: force.sendUpdate,
+                  },
+                }),
+              },
+              ...(isCalendarChanged && {
+                move: {
+                  source: {
+                    accountId: exists.event.accountId,
+                    calendarId: exists.event.calendarId,
+                  },
+                  destination: {
+                    accountId: event.accountId,
+                    calendarId: event.calendarId,
+                  },
+                },
+              }),
+            });
+            return;
+          }
+
+          const seriesUpdate = {
+            ...event,
+            id: master.id,
+            recurringEventId: undefined,
+            accountId: event.accountId,
+            calendarId: event.calendarId,
+          } as CalendarEvent;
+
+          const isSeriesCalendarChanged =
+            master.accountId !== seriesUpdate.accountId ||
+            master.calendarId !== seriesUpdate.calendarId;
+
+          if (force?.sendUpdate !== undefined || !seriesUpdate.attendees || isUserOnlyAttendee(seriesUpdate.attendees)) {
+            updateMutation.mutate({
+              data: {
+                ...seriesUpdate,
+                ...(force?.sendUpdate !== undefined && {
+                  response: {
+                    status: seriesUpdate.response?.status ?? "unknown",
+                    sendUpdate: force.sendUpdate,
+                  },
+                }),
+              },
+              ...(isSeriesCalendarChanged && {
+                move: {
+                  source: {
+                    accountId: master.accountId,
+                    calendarId: master.calendarId,
+                  },
+                  destination: {
+                    accountId: seriesUpdate.accountId,
+                    calendarId: seriesUpdate.calendarId,
+                  },
+                },
+              }),
+            });
+            return;
+          }
+
+          // attendee confirmation for series
+          setConfirmationDialog({
+            open: true,
+            type: "update",
+            event: seriesUpdate,
+            onConfirm: (sendUpdate: boolean) => {
+              const moveForSeries = isSeriesCalendarChanged
+                ? {
+                    source: {
+                      accountId: master.accountId,
+                      calendarId: master.calendarId,
+                    },
+                    destination: {
+                      accountId: seriesUpdate.accountId,
+                      calendarId: seriesUpdate.calendarId,
+                    },
+                  }
+                : undefined;
+
+              updateMutation.mutate({
+                data: {
+                  ...seriesUpdate,
+                  response: {
+                    status: seriesUpdate.response?.status ?? "unknown",
+                    sendUpdate,
+                  },
+                },
+                ...(moveForSeries && { move: moveForSeries }),
+              });
+
+              setConfirmationDialog((prev) => ({ ...prev, open: false }));
+            },
+            onCancel: () => {
+              queryClient.setQueryData(eventsQueryKey, previousEvents);
+              setConfirmationDialog((prev) => ({ ...prev, open: false }));
+            },
+          });
+          return;
+        }
+
+        const previousEvents = queryClient.getQueryData(eventsQueryKey);
+
+        setRecurringScopeDialog({
+          open: true,
+          event,
+          onInstance: () => {
+            // Proceed with instance update below (same logic as non-recurring branch)
+            const isCalendarChanged =
+              !!exists &&
+              (event.accountId !== exists.event.accountId ||
+                event.calendarId !== exists.event.calendarId);
+
+            if (force || !event.attendees || isUserOnlyAttendee(event.attendees)) {
+              updateMutation.mutate({
+                data: {
+                  ...event,
+                  ...(isCalendarChanged && {
+                    accountId: exists.event.accountId,
+                    calendarId: exists.event.calendarId,
+                  }),
+                  ...(force && {
+                    response: {
+                      status: event.response?.status ?? "unknown",
+                      sendUpdate: force.sendUpdate,
+                    },
+                  }),
+                },
+                ...(isCalendarChanged && {
+                  move: {
+                    source: {
+                      accountId: exists.event.accountId,
+                      calendarId: exists.event.calendarId,
+                    },
+                    destination: {
+                      accountId: event.accountId,
+                      calendarId: event.calendarId,
+                    },
+                  },
+                }),
+              });
+              setRecurringScopeDialog((prev) => ({ ...prev, open: false }));
+              return;
+            }
+
+            // Ask attendee confirmation
+            setConfirmationDialog({
+              open: true,
+              type: "update",
+              event,
+              onConfirm: (sendUpdate: boolean) => {
+                const isCalendarChangedConfirm =
+                  !!exists &&
+                  (event.accountId !== exists.event.accountId ||
+                    event.calendarId !== exists.event.calendarId);
+
+                updateMutation.mutate({
+                  data: {
+                    ...event,
+                    ...(isCalendarChangedConfirm && {
+                      accountId: exists.event.accountId,
+                      calendarId: exists.event.calendarId,
+                    }),
+                    response: {
+                      status: event.response?.status ?? "unknown",
+                      sendUpdate,
+                    },
+                  },
+                  ...(isCalendarChangedConfirm && {
+                    move: {
+                      source: {
+                        accountId: exists.event.accountId,
+                        calendarId: exists.event.calendarId,
+                      },
+                      destination: {
+                        accountId: event.accountId,
+                        calendarId: event.calendarId,
+                      },
+                    },
+                  }),
+                });
+
+                setConfirmationDialog((prev) => ({ ...prev, open: false }));
+                setRecurringScopeDialog((prev) => ({ ...prev, open: false }));
+              },
+              onCancel: () => {
+                queryClient.setQueryData(eventsQueryKey, previousEvents);
+                setConfirmationDialog((prev) => ({ ...prev, open: false }));
+                setRecurringScopeDialog((prev) => ({ ...prev, open: false }));
+              },
+            });
+          },
+          onSeries: () => {
+            const master = masterRecurringEvents[event.recurringEventId!];
+            if (!master) {
+              // Fallback to instance behavior if master not found
+              setRecurringScopeDialog((prev) => ({ ...prev, open: false }));
+              const isCalendarChanged =
+                !!exists &&
+                (event.accountId !== exists.event.accountId ||
+                  event.calendarId !== exists.event.calendarId);
+              updateMutation.mutate({
+                data: {
+                  ...event,
+                  ...(isCalendarChanged && {
+                    accountId: exists.event.accountId,
+                    calendarId: exists.event.calendarId,
+                  }),
+                },
+                ...(isCalendarChanged && {
+                  move: {
+                    source: {
+                      accountId: exists.event.accountId,
+                      calendarId: exists.event.calendarId,
+                    },
+                    destination: {
+                      accountId: event.accountId,
+                      calendarId: event.calendarId,
+                    },
+                  },
+                }),
+              });
+              return;
+            }
+
+            const seriesUpdate = {
+              ...event,
+              id: master.id,
+              recurringEventId: undefined,
+              accountId: event.accountId,
+              calendarId: event.calendarId,
+            } as CalendarEvent;
+
+            const isSeriesCalendarChanged =
+              master.accountId !== seriesUpdate.accountId ||
+              master.calendarId !== seriesUpdate.calendarId;
+
+            if (
+              force ||
+              !seriesUpdate.attendees ||
+              isUserOnlyAttendee(seriesUpdate.attendees)
+            ) {
+              updateMutation.mutate({
+                data: {
+                  ...seriesUpdate,
+                  ...(force && {
+                    response: {
+                      status: seriesUpdate.response?.status ?? "unknown",
+                      sendUpdate: force.sendUpdate,
+                    },
+                  }),
+                },
+                ...(isSeriesCalendarChanged && {
+                  move: {
+                    source: {
+                      accountId: master.accountId,
+                      calendarId: master.calendarId,
+                    },
+                    destination: {
+                      accountId: seriesUpdate.accountId,
+                      calendarId: seriesUpdate.calendarId,
+                    },
+                  },
+                }),
+              });
+              setRecurringScopeDialog((prev) => ({ ...prev, open: false }));
+              return;
+            }
+
+            // Ask attendee confirmation for series update
+            setConfirmationDialog({
+              open: true,
+              type: "update",
+              event: seriesUpdate,
+              onConfirm: (sendUpdate: boolean) => {
+                const moveForSeries = isSeriesCalendarChanged
+                  ? {
+                      source: {
+                        accountId: master.accountId,
+                        calendarId: master.calendarId,
+                      },
+                      destination: {
+                        accountId: seriesUpdate.accountId,
+                        calendarId: seriesUpdate.calendarId,
+                      },
+                    }
+                  : undefined;
+
+                updateMutation.mutate({
+                  data: {
+                    ...seriesUpdate,
+                    response: {
+                      status: seriesUpdate.response?.status ?? "unknown",
+                      sendUpdate,
+                    },
+                  },
+                  ...(moveForSeries && { move: moveForSeries }),
+                });
+
+                setConfirmationDialog((prev) => ({ ...prev, open: false }));
+                setRecurringScopeDialog((prev) => ({ ...prev, open: false }));
+              },
+              onCancel: () => {
+                queryClient.setQueryData(eventsQueryKey, previousEvents);
+                setConfirmationDialog((prev) => ({ ...prev, open: false }));
+                setRecurringScopeDialog((prev) => ({ ...prev, open: false }));
+              },
+            });
+          },
+          onCancel: () => {
+            queryClient.setQueryData(eventsQueryKey, previousEvents);
+            setRecurringScopeDialog((prev) => ({ ...prev, open: false }));
+          },
+        });
+
+        return;
+      }
+
+      if (force?.sendUpdate !== undefined || !event.attendees || isUserOnlyAttendee(event.attendees)) {
         const isCalendarChanged =
           !!exists &&
           (event.accountId !== exists.event.accountId ||
@@ -118,7 +562,7 @@ export function useOptimisticEvents() {
               accountId: exists.event.accountId,
               calendarId: exists.event.calendarId,
             }),
-            ...(force && {
+            ...(force?.sendUpdate !== undefined && {
               response: {
                 status: event.response?.status ?? "unknown",
                 sendUpdate: force.sendUpdate,
@@ -212,11 +656,15 @@ export function useOptimisticEvents() {
       createMutation,
       updateMutation,
       defaultTimeZone,
+      masterRecurringEvents,
     ],
   );
 
   const asyncUpdateEvent = React.useCallback(
-    async (event: CalendarEvent, force?: { sendUpdate: boolean }) => {
+    async (
+      event: CalendarEvent,
+      force?: { sendUpdate?: boolean; recurrenceScope?: "instance" | "series" },
+    ) => {
       startTransition(() => applyOptimistic({ type: "update", event }));
 
       const exists = optimisticEvents.find(
@@ -229,6 +677,371 @@ export function useOptimisticEvents() {
       }
 
       if (deepEqual(event, exists.event)) {
+        return;
+      }
+
+      // If editing a recurring instance, ask for scope before proceeding (async)
+      if (event.recurringEventId) {
+        // Bypass dialog if recurrenceScope is provided (async)
+        if (force?.recurrenceScope === "instance") {
+          const isCalendarChanged =
+            !!exists &&
+            (event.accountId !== exists.event.accountId ||
+              event.calendarId !== exists.event.calendarId);
+
+          if (force?.sendUpdate !== undefined || !event.attendees || isUserOnlyAttendee(event.attendees)) {
+            await updateMutation.mutateAsync({
+              data: {
+                ...event,
+                ...(force?.sendUpdate !== undefined && {
+                  response: {
+                    status: event.response?.status ?? "unknown",
+                    sendUpdate: force.sendUpdate,
+                  },
+                }),
+              },
+              ...(isCalendarChanged && {
+                move: {
+                  source: {
+                    accountId: exists.event.accountId,
+                    calendarId: exists.event.calendarId,
+                  },
+                  destination: {
+                    accountId: event.accountId,
+                    calendarId: event.calendarId,
+                  },
+                },
+              }),
+            });
+            return;
+          }
+
+          // attendee confirmation still required
+          const previousEvents = queryClient.getQueryData(eventsQueryKey);
+          await new Promise<void>((resolve) => {
+            setConfirmationDialog({
+              open: true,
+              type: "update",
+              event,
+              onConfirm: async (sendUpdate: boolean) => {
+                const isCalendarChangedConfirm =
+                  !!exists &&
+                  (event.accountId !== exists.event.accountId ||
+                    event.calendarId !== exists.event.calendarId);
+
+                await updateMutation.mutateAsync({
+                  data: {
+                    ...event,
+                    response: {
+                      status: event.response?.status ?? "unknown",
+                      sendUpdate,
+                    },
+                  },
+                  ...(isCalendarChangedConfirm && {
+                    move: {
+                      source: {
+                        accountId: exists.event.accountId,
+                        calendarId: exists.event.calendarId,
+                      },
+                      destination: {
+                        accountId: event.accountId,
+                        calendarId: event.calendarId,
+                      },
+                    },
+                  }),
+                });
+                setConfirmationDialog((prev) => ({ ...prev, open: false }));
+                resolve();
+              },
+              onCancel: () => {
+                queryClient.setQueryData(eventsQueryKey, previousEvents);
+                setConfirmationDialog((prev) => ({ ...prev, open: false }));
+                resolve();
+              },
+            });
+          });
+          return;
+        }
+
+        if (force?.recurrenceScope === "series") {
+          const master = masterRecurringEvents[event.recurringEventId!];
+          const previousEvents = queryClient.getQueryData(eventsQueryKey);
+          if (!master) {
+            await updateMutation.mutateAsync({
+              data: { ...event },
+            });
+            return;
+          }
+
+          const seriesUpdate = {
+            ...event,
+            id: master.id,
+            recurringEventId: undefined,
+            accountId: event.accountId,
+            calendarId: event.calendarId,
+          } as CalendarEvent;
+
+          const isSeriesCalendarChanged =
+            master.accountId !== seriesUpdate.accountId ||
+            master.calendarId !== seriesUpdate.calendarId;
+
+          if (force?.sendUpdate !== undefined || !seriesUpdate.attendees || isUserOnlyAttendee(seriesUpdate.attendees)) {
+            await updateMutation.mutateAsync({
+              data: {
+                ...seriesUpdate,
+                ...(force?.sendUpdate !== undefined && {
+                  response: {
+                    status: seriesUpdate.response?.status ?? "unknown",
+                    sendUpdate: force.sendUpdate,
+                  },
+                }),
+              },
+              ...(isSeriesCalendarChanged && {
+                move: {
+                  source: {
+                    accountId: master.accountId,
+                    calendarId: master.calendarId,
+                  },
+                  destination: {
+                    accountId: seriesUpdate.accountId,
+                    calendarId: seriesUpdate.calendarId,
+                  },
+                },
+              }),
+            });
+            return;
+          }
+
+          await new Promise<void>((resolve) => {
+            setConfirmationDialog({
+              open: true,
+              type: "update",
+              event: seriesUpdate,
+              onConfirm: async (sendUpdate: boolean) => {
+                const moveForSeries = isSeriesCalendarChanged
+                  ? {
+                      source: {
+                        accountId: master.accountId,
+                        calendarId: master.calendarId,
+                      },
+                      destination: {
+                        accountId: seriesUpdate.accountId,
+                        calendarId: seriesUpdate.calendarId,
+                      },
+                    }
+                  : undefined;
+
+                await updateMutation.mutateAsync({
+                  data: {
+                    ...seriesUpdate,
+                    response: {
+                      status: seriesUpdate.response?.status ?? "unknown",
+                      sendUpdate,
+                    },
+                  },
+                  ...(moveForSeries && { move: moveForSeries }),
+                });
+                setConfirmationDialog((prev) => ({ ...prev, open: false }));
+                resolve();
+              },
+              onCancel: () => {
+                queryClient.setQueryData(eventsQueryKey, previousEvents);
+                setConfirmationDialog((prev) => ({ ...prev, open: false }));
+                resolve();
+              },
+            });
+          });
+          return;
+        }
+
+        const previousEvents = queryClient.getQueryData(eventsQueryKey);
+
+        await new Promise<void>((resolve) => {
+          setRecurringScopeDialog({
+            open: true,
+            event,
+            onInstance: async () => {
+              const isCalendarChanged =
+                !!exists &&
+                (event.accountId !== exists.event.accountId ||
+                  event.calendarId !== exists.event.calendarId);
+
+              if (force || !event.attendees || isUserOnlyAttendee(event.attendees)) {
+                await updateMutation.mutateAsync({
+                  data: {
+                    ...event,
+                    ...(force && {
+                      response: {
+                        status: event.response?.status ?? "unknown",
+                        sendUpdate: force.sendUpdate,
+                      },
+                    }),
+                  },
+                  ...(isCalendarChanged && {
+                    move: {
+                      source: {
+                        accountId: exists.event.accountId,
+                        calendarId: exists.event.calendarId,
+                      },
+                      destination: {
+                        accountId: event.accountId,
+                        calendarId: event.calendarId,
+                      },
+                    },
+                  }),
+                });
+                setRecurringScopeDialog((prev) => ({ ...prev, open: false }));
+                resolve();
+                return;
+              }
+
+              setConfirmationDialog({
+                open: true,
+                type: "update",
+                event,
+                onConfirm: async (sendUpdate: boolean) => {
+                  const isCalendarChangedConfirm =
+                    !!exists &&
+                    (event.accountId !== exists.event.accountId ||
+                      event.calendarId !== exists.event.calendarId);
+
+                  await updateMutation.mutateAsync({
+                    data: {
+                      ...event,
+                      response: {
+                        status: event.response?.status ?? "unknown",
+                        sendUpdate,
+                      },
+                    },
+                    ...(isCalendarChangedConfirm && {
+                      move: {
+                        source: {
+                          accountId: exists.event.accountId,
+                          calendarId: exists.event.calendarId,
+                        },
+                        destination: {
+                          accountId: event.accountId,
+                          calendarId: event.calendarId,
+                        },
+                      },
+                    }),
+                  });
+                  setConfirmationDialog((prev) => ({ ...prev, open: false }));
+                  setRecurringScopeDialog((prev) => ({ ...prev, open: false }));
+                  resolve();
+                },
+                onCancel: () => {
+                  queryClient.setQueryData(eventsQueryKey, previousEvents);
+                  setConfirmationDialog((prev) => ({ ...prev, open: false }));
+                  setRecurringScopeDialog((prev) => ({ ...prev, open: false }));
+                  resolve();
+                },
+              });
+            },
+            onSeries: async () => {
+              const master = masterRecurringEvents[event.recurringEventId!];
+              if (!master) {
+                setRecurringScopeDialog((prev) => ({ ...prev, open: false }));
+                await updateMutation.mutateAsync({
+                  data: { ...event },
+                });
+                resolve();
+                return;
+              }
+
+              const seriesUpdate = {
+                ...event,
+                id: master.id,
+                recurringEventId: undefined,
+                accountId: event.accountId,
+                calendarId: event.calendarId,
+              } as CalendarEvent;
+
+              const isSeriesCalendarChanged =
+                master.accountId !== seriesUpdate.accountId ||
+                master.calendarId !== seriesUpdate.calendarId;
+
+              if (
+                force ||
+                !seriesUpdate.attendees ||
+                isUserOnlyAttendee(seriesUpdate.attendees)
+              ) {
+                await updateMutation.mutateAsync({
+                  data: {
+                    ...seriesUpdate,
+                    ...(force && {
+                      response: {
+                        status: seriesUpdate.response?.status ?? "unknown",
+                        sendUpdate: force.sendUpdate,
+                      },
+                    }),
+                  },
+                  ...(isSeriesCalendarChanged && {
+                    move: {
+                      source: {
+                        accountId: master.accountId,
+                        calendarId: master.calendarId,
+                      },
+                      destination: {
+                        accountId: seriesUpdate.accountId,
+                        calendarId: seriesUpdate.calendarId,
+                      },
+                    },
+                  }),
+                });
+                setRecurringScopeDialog((prev) => ({ ...prev, open: false }));
+                resolve();
+                return;
+              }
+
+              setConfirmationDialog({
+                open: true,
+                type: "update",
+                event: seriesUpdate,
+                onConfirm: async (sendUpdate: boolean) => {
+                  const moveForSeries = isSeriesCalendarChanged
+                    ? {
+                        source: {
+                          accountId: master.accountId,
+                          calendarId: master.calendarId,
+                        },
+                        destination: {
+                          accountId: seriesUpdate.accountId,
+                          calendarId: seriesUpdate.calendarId,
+                        },
+                      }
+                    : undefined;
+
+                  await updateMutation.mutateAsync({
+                    data: {
+                      ...seriesUpdate,
+                      response: {
+                        status: seriesUpdate.response?.status ?? "unknown",
+                        sendUpdate,
+                      },
+                    },
+                    ...(moveForSeries && { move: moveForSeries }),
+                  });
+                  setConfirmationDialog((prev) => ({ ...prev, open: false }));
+                  setRecurringScopeDialog((prev) => ({ ...prev, open: false }));
+                  resolve();
+                },
+                onCancel: () => {
+                  queryClient.setQueryData(eventsQueryKey, previousEvents);
+                  setConfirmationDialog((prev) => ({ ...prev, open: false }));
+                  setRecurringScopeDialog((prev) => ({ ...prev, open: false }));
+                  resolve();
+                },
+              });
+            },
+            onCancel: () => {
+              queryClient.setQueryData(eventsQueryKey, previousEvents);
+              setRecurringScopeDialog((prev) => ({ ...prev, open: false }));
+              resolve();
+            },
+          });
+        });
+
         return;
       }
 
@@ -303,11 +1116,19 @@ export function useOptimisticEvents() {
         },
       });
     },
-    [applyOptimistic, createMutation, optimisticEvents, updateMutation],
+    [
+      applyOptimistic,
+      createMutation,
+      optimisticEvents,
+      updateMutation,
+      masterRecurringEvents,
+      queryClient,
+      eventsQueryKey,
+    ],
   );
 
   const handleEventDelete = React.useCallback(
-    (eventId: string, force?: { sendUpdate: boolean }) => {
+    (eventId: string, force?: { sendUpdate?: boolean, recurrenceScope?: "instance" | "series" }) => {
       const deletedEventItem = optimisticEvents.find(
         (item) => item.event.id === eventId,
       );
@@ -491,5 +1312,6 @@ export function useOptimisticEvents() {
     dispatchAction,
     dispatchAsyncAction,
     confirmationDialog,
+    recurringScopeDialog,
   };
 }

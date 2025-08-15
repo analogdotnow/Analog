@@ -105,7 +105,10 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
     timeMin: Temporal.ZonedDateTime,
     timeMax: Temporal.ZonedDateTime,
     timeZone: string,
-  ): Promise<CalendarEvent[]> {
+  ): Promise<{
+    events: CalendarEvent[];
+    recurringMasterEvents: CalendarEvent[];
+  }> {
     return this.withErrorHandler("events", async () => {
       const startTime = timeMin.withTimeZone("UTC").toInstant().toString();
       const endTime = timeMax.withTimeZone("UTC").toInstant().toString();
@@ -120,9 +123,12 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
         .top(CALENDAR_DEFAULTS.MAX_EVENTS_PER_CALENDAR)
         .get();
 
-      return (response.value as MicrosoftEvent[]).map((event: MicrosoftEvent) =>
-        parseMicrosoftEvent({ event, accountId: this.accountId, calendar }),
+      const events = (response.value as MicrosoftEvent[]).map(
+        (event: MicrosoftEvent) =>
+          parseMicrosoftEvent({ event, accountId: this.accountId, calendar }),
       );
+
+      return { events, recurringMasterEvents: [] };
     });
   }
 

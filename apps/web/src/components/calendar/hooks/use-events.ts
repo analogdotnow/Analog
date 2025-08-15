@@ -10,6 +10,7 @@ import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { useCalendarState } from "@/hooks/use-calendar-state";
 import { useTRPC } from "@/lib/trpc/client";
 import { mapEventsToItems } from "./event-collection";
+import { Temporal } from "temporal-polyfill";
 
 const TIME_RANGE_DAYS_PAST = 30;
 const TIME_RANGE_DAYS_FUTURE = 30;
@@ -23,9 +24,8 @@ export function insertIntoSorted<T>(
   return [...array.slice(0, index), item, ...array.slice(index)];
 }
 
-export function useEvents() {
+export function useEventQueryParams() {
   const trpc = useTRPC();
-  const queryClient = useQueryClient();
   const { currentDate } = useCalendarState();
 
   const { defaultTimeZone } = useAtomValue(calendarSettingsAtom);
@@ -53,20 +53,40 @@ export function useEvents() {
     };
   }, [defaultTimeZone, currentDate]);
 
-  const eventsQueryKey = React.useMemo(
+  const queryKey = React.useMemo(
     () =>
       trpc.events.list.queryOptions({ timeMin, timeMax, defaultTimeZone })
         .queryKey,
     [trpc.events.list, timeMin, timeMax, defaultTimeZone],
   );
 
-  const query = useQuery(
-    trpc.events.list.queryOptions({
-      timeMin,
-      timeMax,
-      defaultTimeZone,
-    }),
+  return { timeMin, timeMax, defaultTimeZone, queryKey };
+}
+
+interface UseEventQueryOptions {
+  timeMin: Temporal.ZonedDateTime;
+  timeMax: Temporal.ZonedDateTime;
+  defaultTimeZone: string;
+}
+
+function useEventQuery({
+  timeMin,
+  timeMax,
+  defaultTimeZone,
+}: UseEventQueryOptions) {
+  const trpc = useTRPC();
+
+  return useQuery(
+    trpc.events.list.queryOptions({ timeMin, timeMax, defaultTimeZone }),
   );
+}
+
+export function useEvents() {
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+  const { timeMin, timeMax, defaultTimeZone, queryKey } = useEventQueryParams();
+
+  const query = useEventQuery({ timeMin, timeMax, defaultTimeZone });
 
   const events = React.useMemo(() => {
     if (!query.data?.events) {
@@ -79,11 +99,11 @@ export function useEvents() {
   const createMutation = useMutation(
     trpc.events.create.mutationOptions({
       onMutate: async (newEvent) => {
-        await queryClient.cancelQueries({ queryKey: eventsQueryKey });
+        await queryClient.cancelQueries({ queryKey });
 
-        const previousEvents = queryClient.getQueryData(eventsQueryKey);
+        const previousEvents = queryClient.getQueryData(queryKey);
 
-        queryClient.setQueryData(eventsQueryKey, (prev) => {
+        queryClient.setQueryData(queryKey, (prev) => {
           if (!prev) {
             return undefined;
           }
@@ -104,11 +124,11 @@ export function useEvents() {
         toast.error(err.message);
 
         if (context?.previousEvents) {
-          queryClient.setQueryData(eventsQueryKey, context.previousEvents);
+          queryClient.setQueryData(queryKey, context.previousEvents);
         }
       },
       onSettled: () => {
-        queryClient.invalidateQueries({ queryKey: eventsQueryKey });
+        queryClient.invalidateQueries({ queryKey });
       },
     }),
   );
@@ -116,11 +136,11 @@ export function useEvents() {
   const updateMutation = useMutation(
     trpc.events.update.mutationOptions({
       onMutate: async ({ data, move }) => {
-        await queryClient.cancelQueries({ queryKey: eventsQueryKey });
+        await queryClient.cancelQueries({ queryKey });
 
-        const previousEvents = queryClient.getQueryData(eventsQueryKey);
+        const previousEvents = queryClient.getQueryData(queryKey);
 
-        queryClient.setQueryData(eventsQueryKey, (prev) => {
+        queryClient.setQueryData(queryKey, (prev) => {
           if (!prev) {
             return prev;
           }
@@ -153,11 +173,11 @@ export function useEvents() {
         toast.error(error.message);
 
         if (context?.previousEvents) {
-          queryClient.setQueryData(eventsQueryKey, context.previousEvents);
+          queryClient.setQueryData(queryKey, context.previousEvents);
         }
       },
       onSettled: () => {
-        queryClient.invalidateQueries({ queryKey: eventsQueryKey });
+        queryClient.invalidateQueries({ queryKey });
       },
     }),
   );
@@ -165,11 +185,11 @@ export function useEvents() {
   const deleteMutation = useMutation(
     trpc.events.delete.mutationOptions({
       onMutate: async ({ eventId }) => {
-        await queryClient.cancelQueries({ queryKey: eventsQueryKey });
+        await queryClient.cancelQueries({ queryKey });
 
-        const previousEvents = queryClient.getQueryData(eventsQueryKey);
+        const previousEvents = queryClient.getQueryData(queryKey);
 
-        queryClient.setQueryData(eventsQueryKey, (prev) => {
+        queryClient.setQueryData(queryKey, (prev) => {
           if (!prev) {
             return prev;
           }
@@ -186,11 +206,11 @@ export function useEvents() {
         toast.error(error.message);
 
         if (context?.previousEvents) {
-          queryClient.setQueryData(eventsQueryKey, context.previousEvents);
+          queryClient.setQueryData(queryKey, context.previousEvents);
         }
       },
       onSettled: () => {
-        queryClient.invalidateQueries({ queryKey: eventsQueryKey });
+        queryClient.invalidateQueries({ queryKey });
       },
     }),
   );
@@ -198,11 +218,11 @@ export function useEvents() {
   const moveMutation = useMutation(
     trpc.events.move.mutationOptions({
       onMutate: async (input) => {
-        await queryClient.cancelQueries({ queryKey: eventsQueryKey });
+        await queryClient.cancelQueries({ queryKey });
 
-        const previousEvents = queryClient.getQueryData(eventsQueryKey);
+        const previousEvents = queryClient.getQueryData(queryKey);
 
-        queryClient.setQueryData(eventsQueryKey, (prev) => {
+        queryClient.setQueryData(queryKey, (prev) => {
           if (!prev) {
             return prev;
           }
@@ -228,11 +248,11 @@ export function useEvents() {
       },
       onError: (_error, _variables, context) => {
         if (context?.previousEvents) {
-          queryClient.setQueryData(eventsQueryKey, context.previousEvents);
+          queryClient.setQueryData(queryKey, context.previousEvents);
         }
       },
       onSettled: () => {
-        queryClient.invalidateQueries({ queryKey: eventsQueryKey });
+        queryClient.invalidateQueries({ queryKey });
       },
     }),
   );
@@ -243,6 +263,7 @@ export function useEvents() {
     updateMutation,
     deleteMutation,
     moveMutation,
-    eventsQueryKey,
+    eventsQueryKey: queryKey,
+    masterRecurringEvents: query.data?.recurringMasterEvents ?? {},
   };
 }
