@@ -55,19 +55,28 @@ export const createProviderHandler = async (
     return;
   }
 
-  try {
-    await ctx?.context.internalAdapter.updateUser(account.userId, {
-      defaultAccountId: account.id,
-    });
-  } catch (error) {
-    console.error("Failed to update user default account:", {
+  // Validate parameters before database update
+  if (!account.userId || !account.id) {
+    console.error("Invalid parameters for default account update:", {
       userId: account.userId,
       accountId: account.id,
-      error: error instanceof Error ? error.message : String(error),
     });
-    
-    // Don't throw here as this is not critical for the account creation flow
-    // The user can set their default account later
+  } else {
+    try {
+      await ctx?.context.internalAdapter.updateUser(account.userId, {
+        defaultAccountId: account.id,
+      });
+    } catch (error) {
+      console.error("Failed to update user default account:", {
+        userId: account.userId,
+        accountId: account.id,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+
+      // Don't throw here as this is not critical for the account creation flow
+      // The user can set their default account later
+    }
   }
 };
 
@@ -101,6 +110,19 @@ export const handleUnlinkAccount = createAuthMiddleware(async (ctx) => {
     const calendars = await calendarProvider.calendars();
     const primaryCalendar = calendars.find((calendar) => calendar.primary);
 
+    // Validate parameters before database update
+    if (!user.id || !newDefaultAccount.id) {
+      console.error("Invalid parameters for user update during account unlink:", {
+        userId: user.id,
+        newDefaultAccountId: newDefaultAccount.id,
+        primaryCalendarId: primaryCalendar?.id,
+      });
+
+      throw new APIError("INTERNAL_SERVER_ERROR", {
+        message: "Invalid parameters for updating user default settings during account unlink",
+      });
+    }
+
     try {
       await ctx.context.internalAdapter.updateUser(
         user.id,
@@ -116,8 +138,9 @@ export const handleUnlinkAccount = createAuthMiddleware(async (ctx) => {
         defaultAccountId: newDefaultAccount.id,
         defaultCalendarId: primaryCalendar?.id,
         error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
       });
-      
+
       throw new APIError("INTERNAL_SERVER_ERROR", {
         message: "Failed to update user default settings during account unlink",
       });

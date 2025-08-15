@@ -193,6 +193,20 @@ export const calendarsRouter = createTRPCRouter({
         });
       }
 
+      // Validate input parameters before database update
+      if (!ctx.user.id || !calendar.id || !input.accountId) {
+        console.error("Invalid parameters for user update:", {
+          userId: ctx.user.id,
+          calendarId: calendar.id,
+          accountId: input.accountId,
+        });
+        
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Invalid parameters for updating default calendar settings",
+        });
+      }
+
       try {
         await ctx.authContext.internalAdapter.updateUser(ctx.user.id, {
           defaultCalendarId: calendar.id,
@@ -204,6 +218,7 @@ export const calendarsRouter = createTRPCRouter({
           calendarId: calendar.id,
           accountId: input.accountId,
           error: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined,
         });
 
         throw new TRPCError({
