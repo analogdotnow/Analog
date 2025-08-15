@@ -20,6 +20,7 @@ interface ConfirmationDialogState {
   event: CalendarEvent | null;
   onConfirm: (sendUpdate: boolean) => void;
   onCancel: () => void;
+  close: () => void;
 }
 
 interface AttendeeConfirmationDialogProps {
@@ -38,6 +39,7 @@ export function AttendeeConfirmationDialog({
     }
 
     dialog.onCancel();
+    dialog.close();
   }, [dialog]);
 
   return (
@@ -68,6 +70,7 @@ export function AttendeeConfirmationDialog({
               onClick={() => {
                 confirmedRef.current = true;
                 dialog.onConfirm(false);
+                dialog.close();
               }}
             >
               {dialog.type === "update" ? "Save" : "Delete"}
@@ -76,6 +79,7 @@ export function AttendeeConfirmationDialog({
               onClick={() => {
                 confirmedRef.current = true;
                 dialog.onConfirm(true);
+                dialog.close();
               }}
             >
               {dialog.type === "update"

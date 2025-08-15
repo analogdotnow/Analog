@@ -18,6 +18,7 @@ interface RecurringEditScopeDialogProps {
   onInstance: () => void;
   onSeries: () => void;
   onCancel: () => void;
+  close: () => void;
 }
 
 export function RecurringEditScopeDialog({
@@ -25,6 +26,7 @@ export function RecurringEditScopeDialog({
   onInstance,
   onSeries,
   onCancel,
+  close,
 }: RecurringEditScopeDialogProps) {
   const confirmedRef = React.useRef(false);
 
@@ -35,7 +37,8 @@ export function RecurringEditScopeDialog({
     }
 
     onCancel();
-  }, [onCancel]);
+    close();
+  }, [onCancel, close]);
 
   return (
     <AlertDialog
@@ -61,6 +64,7 @@ export function RecurringEditScopeDialog({
               onClick={() => {
                 confirmedRef.current = true;
                 onInstance();
+                close();
               }}
             >
               This event only
@@ -69,6 +73,7 @@ export function RecurringEditScopeDialog({
               onClick={() => {
                 confirmedRef.current = true;
                 onSeries();
+                close();
               }}
             >
               All events in the series
@@ -79,5 +84,3 @@ export function RecurringEditScopeDialog({
     </AlertDialog>
   );
 }
-
-

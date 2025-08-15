@@ -10,7 +10,7 @@ import {
 } from "@heroicons/react/16/solid";
 import { useQuery } from "@tanstack/react-query";
 import { useAtomValue } from "jotai";
-import { useOnClickOutside } from 'usehooks-ts'
+import { useOnClickOutside } from "usehooks-ts";
 
 import {
   CalendarSettings,
@@ -108,7 +108,7 @@ export function EventForm({
 
   const ref = React.useRef<HTMLFormElement>(null);
   const focusRef = React.useRef(false);
-  
+
   const form = useAppForm({
     defaultValues,
     validators: {
@@ -169,10 +169,10 @@ export function EventForm({
           return;
         }
 
-        const requiresConfirmation = 
+        const requiresConfirmation =
           formApi.state.fieldMeta.attendees.isDirty ||
-          !isUserOnlyAttendee(formApi.state.values.attendees)
-          || event?.recurringEventId !== undefined
+          !isUserOnlyAttendee(formApi.state.values.attendees) ||
+          event?.recurringEventId !== undefined;
 
         if (requiresConfirmation) {
           setManualSubmit(true);
@@ -185,11 +185,15 @@ export function EventForm({
   });
 
   const handleClickOutside = React.useCallback(async () => {
-    const requiresConfirmation = 
-      !isUserOnlyAttendee(event?.attendees ?? [])
-      || event?.recurringEventId !== undefined
+    const requiresConfirmation =
+      !isUserOnlyAttendee(event?.attendees ?? []) ||
+      event?.recurringEventId !== undefined;
 
-    if (!requiresConfirmation || focusRef.current === false) {
+    if (
+      !requiresConfirmation ||
+      focusRef.current === false ||
+      form.state.isDefaultValue
+    ) {
       return;
     }
 
@@ -207,7 +211,13 @@ export function EventForm({
       type: "update",
       event: toCalendarEvent({ values: form.state.values, event, calendar }),
     });
-  }, [dispatchAsyncAction, event, form.state.values, query.data?.accounts]);
+  }, [
+    dispatchAsyncAction,
+    event,
+    form.state.isDefaultValue,
+    form.state.values,
+    query.data?.accounts,
+  ]);
 
   useOnClickOutside(ref as React.RefObject<HTMLElement>, handleClickOutside);
 

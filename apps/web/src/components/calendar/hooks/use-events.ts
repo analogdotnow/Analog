@@ -1,8 +1,10 @@
 import * as React from "react";
+import { useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAtomValue } from "jotai";
 import * as R from "remeda";
 import { toast } from "sonner";
+import { Temporal } from "temporal-polyfill";
 
 import { endOfMonth, isBefore, startOfMonth } from "@repo/temporal";
 
@@ -10,7 +12,6 @@ import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { useCalendarState } from "@/hooks/use-calendar-state";
 import { useTRPC } from "@/lib/trpc/client";
 import { mapEventsToItems } from "./event-collection";
-import { Temporal } from "temporal-polyfill";
 
 const TIME_RANGE_DAYS_PAST = 30;
 const TIME_RANGE_DAYS_FUTURE = 30;
@@ -77,7 +78,17 @@ function useEventQuery({
   const trpc = useTRPC();
 
   return useQuery(
-    trpc.events.list.queryOptions({ timeMin, timeMax, defaultTimeZone }),
+    trpc.events.list.queryOptions(
+      { timeMin, timeMax, defaultTimeZone },
+      {
+        select: (data) => {
+          return {
+            events: mapEventsToItems(data.events, defaultTimeZone),
+            recurringMasterEvents: data.recurringMasterEvents,
+          };
+        },
+      },
+    ),
   );
 }
 
@@ -87,14 +98,6 @@ export function useEvents() {
   const { timeMin, timeMax, defaultTimeZone, queryKey } = useEventQueryParams();
 
   const query = useEventQuery({ timeMin, timeMax, defaultTimeZone });
-
-  const events = React.useMemo(() => {
-    if (!query.data?.events) {
-      return [];
-    }
-
-    return mapEventsToItems(query.data.events, defaultTimeZone);
-  }, [query.data, defaultTimeZone]);
 
   const createMutation = useMutation(
     trpc.events.create.mutationOptions({
@@ -258,7 +261,7 @@ export function useEvents() {
   );
 
   return {
-    events,
+    events: query.data?.events ?? [],
     createMutation,
     updateMutation,
     deleteMutation,
