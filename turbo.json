@@ -28,7 +28,9 @@
         "SENTRY_PROJECT",
         "SENTRY_ORG",
         "MARBLE_WORKSPACE_KEY",
-        "MARBLE_API_URL"
+        "MARBLE_API_URL",
+        "UNKEY_ROOT_KEY",
+        "NEXT_RUNTIME"
       ],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
@@ -61,7 +63,9 @@
         "SENTRY_PROJECT",
         "SENTRY_ORG",
         "MARBLE_WORKSPACE_KEY",
-        "MARBLE_API_URL"
+        "MARBLE_API_URL",
+        "UNKEY_ROOT_KEY",
+        "NEXT_RUNTIME"
       ]
     },
     "lint": {
