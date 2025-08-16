@@ -10,21 +10,21 @@ import { isSameDay, toDate } from "@repo/temporal";
 
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { EventItem } from "@/components/calendar/event/event-item";
-import type { Action } from "@/components/calendar/hooks/use-optimistic-events";
-import type { CalendarEvent } from "@/components/calendar/interfaces";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import type { CalendarEvent } from "@/lib/interfaces";
 import { cn } from "@/lib/utils";
 import { EventCollectionItem } from "../hooks/event-collection";
+import { useSelectAction } from "../hooks/use-optimistic-mutations";
 
 interface OverflowIndicatorProps {
   count: number;
   items: EventCollectionItem[];
   date: Temporal.PlainDate;
-  dispatchAction: (action: Action) => void;
+
   gridColumn?: string;
   className?: string;
 }
@@ -33,7 +33,7 @@ export function OverflowIndicator({
   count,
   items,
   date,
-  dispatchAction,
+
   gridColumn,
   className,
 }: OverflowIndicatorProps) {
@@ -41,12 +41,13 @@ export function OverflowIndicator({
 
   const timeZone = useAtomValue(calendarSettingsAtom).defaultTimeZone;
 
+  const selectAction = useSelectAction();
   const handleEventClick = React.useCallback(
     (event: CalendarEvent) => {
-      dispatchAction({ type: "select", event });
+      selectAction(event);
       setOpen(false);
     },
-    [dispatchAction],
+    [selectAction],
   );
 
   if (count <= 0) {

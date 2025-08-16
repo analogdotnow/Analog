@@ -12,21 +12,23 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { CalendarEvent } from "@/lib/interfaces";
 
-interface RecurringEditScopeDialogProps {
+type RecurringEditScopeDialogState = {
   open: boolean;
+  event: CalendarEvent | null;
   onInstance: () => void;
   onSeries: () => void;
   onCancel: () => void;
   close: () => void;
+};
+
+interface RecurringEditScopeDialogProps {
+  dialog: RecurringEditScopeDialogState;
 }
 
 export function RecurringEditScopeDialog({
-  open,
-  onInstance,
-  onSeries,
-  onCancel,
-  close,
+  dialog,
 }: RecurringEditScopeDialogProps) {
   const confirmedRef = React.useRef(false);
 
@@ -36,13 +38,13 @@ export function RecurringEditScopeDialog({
       return;
     }
 
-    onCancel();
-    close();
-  }, [onCancel, close]);
+    dialog.onCancel();
+    dialog.close();
+  }, [dialog]);
 
   return (
     <AlertDialog
-      open={open}
+      open={dialog.open}
       onOpenChange={(isOpen) => {
         if (!isOpen) {
           handleClose();
@@ -63,8 +65,8 @@ export function RecurringEditScopeDialog({
               variant="outline"
               onClick={() => {
                 confirmedRef.current = true;
-                onInstance();
-                close();
+                dialog.onInstance();
+                dialog.close();
               }}
             >
               This event only
@@ -72,8 +74,8 @@ export function RecurringEditScopeDialog({
             <AlertDialogAction
               onClick={() => {
                 confirmedRef.current = true;
-                onSeries();
-                close();
+                dialog.onSeries();
+                dialog.close();
               }}
             >
               All events in the series

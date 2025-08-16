@@ -15,15 +15,14 @@ import { isDraggingAtom, isResizingAtom } from "@/atoms/drag-resize-state";
 import { EventContextMenu } from "@/components/calendar/event/event-context-menu";
 import { EventItem } from "@/components/calendar/event/event-item";
 import { ContextMenuTrigger } from "@/components/ui/context-menu";
+import { useUpdateAction } from "../flows/update-event/use-update-action";
 import type { EventCollectionItem } from "../hooks/event-collection";
-import type { Action } from "../hooks/use-optimistic-events";
+import { useSelectAction } from "../hooks/use-optimistic-mutations";
 
 interface DraggableEventProps {
   item: EventCollectionItem;
   view: "month" | "week" | "day";
   showTime?: boolean;
-  onClick?: (e: React.MouseEvent) => void;
-  dispatchAction: (action: Action) => void;
   height?: number;
   isMultiDay?: boolean;
   multiDayWidth?: number;
@@ -39,9 +38,7 @@ export function DraggableEvent({
   item,
   view,
   showTime,
-  onClick,
   height: initialHeight,
-  dispatchAction,
   isFirstDay = true,
   isLastDay = true,
   "aria-hidden": ariaHidden,
@@ -70,6 +67,8 @@ export function DraggableEvent({
   const cellHeight = useAtomValue(cellHeightAtom);
   const setIsDragging = useSetAtom(isDraggingAtom);
   const setIsResizing = useSetAtom(isResizingAtom);
+
+  const updateAction = useUpdateAction();
 
   React.useEffect(() => {
     height.set(initialHeight ?? "100%");
@@ -140,8 +139,7 @@ export function DraggableEvent({
       });
       const end = start.add(duration);
 
-      dispatchAction({
-        type: "update",
+      updateAction({
         event: { ...eventRef.current, start, end },
       });
 
@@ -162,8 +160,7 @@ export function DraggableEvent({
 
       const end = start.add(duration);
 
-      dispatchAction({
-        type: "update",
+      updateAction({
         event: { ...eventRef.current, start, end },
       });
 
@@ -174,8 +171,7 @@ export function DraggableEvent({
       const start = eventRef.current.start.add({ days: columnDelta });
       const end = start.add(duration);
 
-      dispatchAction({
-        type: "update",
+      updateAction({
         event: { ...eventRef.current, start, end },
       });
 
@@ -194,8 +190,7 @@ export function DraggableEvent({
 
     const end = start.add(duration);
 
-    dispatchAction({
-      type: "update",
+    updateAction({
       event: { ...eventRef.current, start, end },
     });
   };
@@ -267,12 +262,11 @@ export function DraggableEvent({
         roundingMode: "halfExpand",
       });
 
-      dispatchAction({
-        type: "update",
+      updateAction({
         event: { ...eventRef.current, start: rounded },
       });
     },
-    [dispatchAction, cellHeight],
+    [updateAction, cellHeight],
   );
 
   const updateEndTime = React.useCallback(
@@ -287,12 +281,11 @@ export function DraggableEvent({
         roundingMode: "halfExpand",
       });
 
-      dispatchAction({
-        type: "update",
+      updateAction({
         event: { ...eventRef.current, end: rounded },
       });
     },
-    [dispatchAction, cellHeight],
+    [updateAction, cellHeight],
   );
 
   const onResizeTopEnd = (_: PointerEvent, info: PanInfo) => {
@@ -331,6 +324,16 @@ export function DraggableEvent({
     startHeight.current = 0;
   };
 
+  const selectAction = useSelectAction();
+
+  const onClick = React.useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      selectAction(item.event);
+    },
+    [item.event, selectAction],
+  );
+
   if (item.event.allDay || view === "month") {
     return (
       <motion.div
@@ -338,7 +341,7 @@ export function DraggableEvent({
         className="size-full"
         style={{ transform, height, top, zIndex }}
       >
-        <EventContextMenu event={item.event} dispatchAction={dispatchAction}>
+        <EventContextMenu event={item.event}>
           <ContextMenuTrigger>
             <EventItem
               item={item}
@@ -374,7 +377,7 @@ export function DraggableEvent({
       className="size-full"
       style={{ transform, height: height, zIndex }}
     >
-      <EventContextMenu event={item.event} dispatchAction={dispatchAction}>
+      <EventContextMenu event={item.event}>
         <ContextMenuTrigger>
           <EventItem
             item={item}

@@ -14,7 +14,6 @@ import { viewPreferencesAtom } from "@/atoms/view-preferences";
 import { DragPreview } from "@/components/calendar/event/drag-preview";
 import { DraggableEvent } from "@/components/calendar/event/draggable-event";
 import { useMultiDayOverflow } from "@/components/calendar/hooks/use-multi-day-overflow";
-import type { Action } from "@/components/calendar/hooks/use-optimistic-events";
 import { OverflowIndicator } from "@/components/calendar/overflow/overflow-indicator";
 import { HOURS } from "@/components/calendar/timeline/constants";
 import {
@@ -39,19 +38,19 @@ import {
   type EventCollectionForWeek,
 } from "../hooks/use-event-collection";
 import { useGridLayout } from "../hooks/use-grid-layout";
+import { useCreateDraftAction } from "../hooks/use-optimistic-mutations";
 import { useScrollToCurrentTime } from "./use-scroll-to-current-time";
 
 interface WeekViewProps extends React.ComponentProps<"div"> {
   currentDate: Temporal.PlainDate;
   events: EventCollectionItem[];
-  dispatchAction: (action: Action) => void;
+
   scrollContainerRef: React.RefObject<HTMLDivElement | null>;
 }
 
 export function WeekView({
   currentDate,
   events,
-  dispatchAction,
   scrollContainerRef,
   ...props
 }: WeekViewProps) {
@@ -108,7 +107,6 @@ export function WeekView({
           gridTemplateColumns={gridTemplateColumns}
           currentDate={currentDate}
           containerRef={containerRef}
-          dispatchAction={dispatchAction}
         />
       </div>
 
@@ -124,7 +122,6 @@ export function WeekView({
           visibleDays={visibleDays}
           eventCollection={eventCollection}
           currentDate={currentDate}
-          dispatchAction={dispatchAction}
           containerRef={containerRef}
         />
       </div>
@@ -196,7 +193,6 @@ interface WeekViewAllDaySectionProps {
   gridTemplateColumns: string;
   currentDate: Temporal.PlainDate;
   containerRef: React.RefObject<HTMLDivElement | null>;
-  dispatchAction: (action: Action) => void;
 }
 
 function WeekViewAllDaySection({
@@ -205,7 +201,6 @@ function WeekViewAllDaySection({
   eventCollection,
   gridTemplateColumns,
   containerRef,
-  dispatchAction,
 }: WeekViewAllDaySectionProps) {
   const viewPreferences = useAtomValue(viewPreferencesAtom);
   const settings = useAtomValue(calendarSettingsAtom);
@@ -216,6 +211,8 @@ function WeekViewAllDaySection({
     timeZone: settings.defaultTimeZone,
     minVisibleLanes: 10,
   });
+
+  const createDraftAction = useCreateDraftAction();
 
   return (
     <div className="border-b border-border/70 [--calendar-height:100%]">
@@ -263,10 +260,7 @@ function WeekViewAllDaySection({
 
                 const end = start.add({ days: 1 });
 
-                dispatchAction({
-                  type: "draft",
-                  event: createDraftEvent({ start, end }),
-                });
+                createDraftAction(createDraftEvent({ start, end }));
               }}
             >
               {/* Reserve space for multi-day events */}
@@ -285,7 +279,6 @@ function WeekViewAllDaySection({
                     count={dayOverflowEvents.length}
                     items={dayOverflowEvents}
                     date={day}
-                    dispatchAction={dispatchAction}
                     className="rounded-md border border-border bg-background px-2 py-1 text-xs font-medium text-foreground shadow-md transition-colors hover:bg-muted/80"
                   />
                 </div>
@@ -311,7 +304,6 @@ function WeekViewAllDaySection({
                   item={evt}
                   weekStart={allDays[0]!}
                   weekEnd={allDays[allDays.length - 1]!}
-                  dispatchAction={dispatchAction}
                   containerRef={containerRef}
                 />
               );
@@ -328,7 +320,6 @@ interface WeekViewPositionedEventProps {
   item: EventCollectionItem;
   weekStart: Temporal.PlainDate;
   weekEnd: Temporal.PlainDate;
-  dispatchAction: (action: Action) => void;
   containerRef: React.RefObject<HTMLDivElement | null>;
 }
 
@@ -337,7 +328,7 @@ function WeekViewPositionedEvent({
   item,
   weekStart,
   weekEnd,
-  dispatchAction,
+
   containerRef,
 }: WeekViewPositionedEventProps) {
   const { colStart, span } = getGridPosition(item, weekStart, weekEnd);
@@ -351,14 +342,6 @@ function WeekViewPositionedEvent({
   }, [item.start, item.end, weekStart, weekEnd]);
 
   const isDragging = useAtomValue(isDraggingAtom);
-
-  const onClick = React.useCallback(
-    (e: React.MouseEvent) => {
-      e.stopPropagation();
-      dispatchAction({ type: "select", event: item.event });
-    },
-    [dispatchAction, item],
-  );
 
   return (
     <div
@@ -378,8 +361,6 @@ function WeekViewPositionedEvent({
         containerRef={containerRef}
         isFirstDay={isFirstDay}
         isLastDay={isLastDay}
-        onClick={onClick}
-        dispatchAction={dispatchAction}
         zIndex={isDragging ? 99999 : undefined}
         rows={1}
       />
@@ -389,24 +370,14 @@ function WeekViewPositionedEvent({
 
 interface PositionedEventProps {
   positionedEvent: PositionedEvent;
-  dispatchAction: (action: Action) => void;
   containerRef: React.RefObject<HTMLDivElement | null>;
 }
 
 function PositionedEvent({
   positionedEvent,
-  dispatchAction,
   containerRef,
 }: PositionedEventProps) {
   const isDragging = useAtomValue(isDraggingAtom);
-
-  const onClick = React.useCallback(
-    (e: React.MouseEvent) => {
-      e.stopPropagation();
-      dispatchAction({ type: "select", event: positionedEvent.item.event });
-    },
-    [dispatchAction, positionedEvent.item.event],
-  );
 
   return (
     <div
@@ -424,8 +395,6 @@ function PositionedEvent({
       <DraggableEvent
         item={positionedEvent.item}
         view="week"
-        onClick={onClick}
-        dispatchAction={dispatchAction}
         showTime
         height={positionedEvent.height}
         containerRef={containerRef}
@@ -439,7 +408,6 @@ interface WeekViewDayColumnsProps {
   visibleDays: Temporal.PlainDate[];
   eventCollection: EventCollectionForWeek;
   currentDate: Temporal.PlainDate;
-  dispatchAction: (action: Action) => void;
   containerRef: React.RefObject<HTMLDivElement | null>;
 }
 
@@ -447,7 +415,6 @@ function WeekViewDayColumns({
   allDays,
   visibleDays,
   eventCollection,
-  dispatchAction,
   containerRef,
 }: WeekViewDayColumnsProps) {
   const viewPreferences = useAtomValue(viewPreferencesAtom);
@@ -485,16 +452,12 @@ function WeekViewDayColumns({
               <PositionedEvent
                 key={positionedEvent.item.event.id}
                 positionedEvent={positionedEvent}
-                dispatchAction={dispatchAction}
                 containerRef={containerRef}
               />
             ))}
 
             <TimeIndicator date={date} />
-            <MemoizedWeekViewDayTimeSlots
-              date={date}
-              dispatchAction={dispatchAction}
-            />
+            <MemoizedWeekViewDayTimeSlots date={date} />
           </div>
         );
       })}
@@ -504,27 +467,21 @@ function WeekViewDayColumns({
 
 interface WeekViewDayTimeSlotsProps {
   date: Temporal.PlainDate;
-  dispatchAction: (action: Action) => void;
 }
 
-function WeekViewDayTimeSlots({
-  date,
-  dispatchAction,
-}: WeekViewDayTimeSlotsProps) {
+function WeekViewDayTimeSlots({ date }: WeekViewDayTimeSlotsProps) {
   const { defaultTimeZone } = useAtomValue(calendarSettingsAtom);
 
   const columnRef = React.useRef<HTMLDivElement>(null);
 
   const { onDragStart, onDrag, onDragEnd, top, height, opacity } =
     useDragToCreate({
-      dispatchAction,
       date,
       timeZone: defaultTimeZone,
       columnRef,
     });
 
   const { onDoubleClick } = useDoubleClickToCreate({
-    dispatchAction,
     date,
     columnRef,
   });

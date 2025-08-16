@@ -1,3 +1,4 @@
+import { IChange, diff } from "json-diff-ts";
 import { Temporal } from "temporal-polyfill";
 
 import { CalendarSettings } from "@/atoms/calendar-settings";
@@ -203,4 +204,31 @@ export function toCalendarEvent({
     recurringEventId: values.recurringEventId,
     response: toResponse(values.attendees),
   };
+}
+
+export function fieldDiff(a: FormValues, b: FormValues) {
+  const changes = diff(a, b);
+  const filtered: IChange[] = [];
+
+  for (const change of changes) {
+    if (change.type === "UPDATE") {
+      continue;
+    }
+
+    if (
+      change.type === "ADD" &&
+      change.value === "" &&
+      change.oldValue === undefined
+    ) {
+      continue;
+    }
+
+    if (change.type === "REMOVE" && change.oldValue === "") {
+      continue;
+    }
+
+    filtered.push(change);
+  }
+
+  return filtered;
 }

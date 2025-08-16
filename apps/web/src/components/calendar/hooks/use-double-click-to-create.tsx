@@ -5,10 +5,9 @@ import { Temporal } from "temporal-polyfill";
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { createDraftEvent } from "@/lib/utils/calendar";
 import { TIME_INTERVALS } from "../constants";
-import type { Action } from "./use-optimistic-events";
+import { useCreateDraftAction } from "./use-optimistic-mutations";
 
 interface UseDoubleClickToCreateOptions {
-  dispatchAction: (action: Action) => void;
   date: Temporal.PlainDate;
   columnRef?: React.RefObject<HTMLDivElement | null>;
 }
@@ -24,12 +23,14 @@ function timeFromMinutes(minutes: number) {
 }
 
 export function useDoubleClickToCreate({
-  dispatchAction,
   date,
   columnRef,
 }: UseDoubleClickToCreateOptions) {
   const { defaultTimeZone, defaultStartTime, defaultEventDuration } =
     useAtomValue(calendarSettingsAtom);
+
+  const createDraftAction = useCreateDraftAction();
+
   const handleDoubleClick = React.useCallback(
     (e: React.MouseEvent) => {
       if (!columnRef?.current) {
@@ -39,10 +40,7 @@ export function useDoubleClickToCreate({
         });
         const end = start.add({ minutes: defaultEventDuration });
 
-        dispatchAction({
-          type: "draft",
-          event: createDraftEvent({ start, end, allDay: false }),
-        });
+        createDraftAction(createDraftEvent({ start, end, allDay: false }));
         return;
       }
 
@@ -64,18 +62,15 @@ export function useDoubleClickToCreate({
       });
       const end = start.add({ minutes: defaultEventDuration });
 
-      dispatchAction({
-        type: "draft",
-        event: createDraftEvent({ start, end, allDay: false }),
-      });
+      createDraftAction(createDraftEvent({ start, end, allDay: false }));
     },
     [
       columnRef,
+      createDraftAction,
       date,
       defaultEventDuration,
       defaultStartTime,
       defaultTimeZone,
-      dispatchAction,
     ],
   );
 

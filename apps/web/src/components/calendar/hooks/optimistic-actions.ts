@@ -17,6 +17,17 @@ export type OptimisticAction =
 
 export const optimisticActionsAtom = atom<Record<string, OptimisticAction>>({});
 
+export const optimisticActionsByEventIdAtom = atom((get) => {
+  const actions = get(optimisticActionsAtom);
+  return Object.values(actions).reduce(
+    (acc, action) => {
+      acc[action.eventId] = action;
+      return acc;
+    },
+    {} as Record<string, OptimisticAction>,
+  );
+});
+
 export const generateOptimisticId = () =>
   `opt_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 
