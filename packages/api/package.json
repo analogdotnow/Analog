@@ -34,7 +34,7 @@
     "@repo/google-calendar": "workspace:*",
     "@repo/google-tasks": "workspace:*",
     "@repo/temporal": "workspace:*",
-    "@upstash/ratelimit": "^2.0.5",
+    "@unkey/ratelimit": "^2.1.2",
     "@upstash/redis": "^1.35.1"
   },
   "devDependencies": {

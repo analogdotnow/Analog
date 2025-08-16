@@ -1,34 +1,11 @@
 import { TRPCError } from "@trpc/server";
-import { Ratelimit } from "@upstash/ratelimit";
-import { Redis } from "@upstash/redis";
 import { count, eq } from "drizzle-orm";
 import { z } from "zod/v3";
 
 import { db } from "@repo/db";
 import { waitlist } from "@repo/db/schema";
-import { env } from "@repo/env/server";
 
 import { createTRPCRouter, publicProcedure } from "../trpc";
-import { getIp } from "../utils/ip";
-
-let ratelimit: Ratelimit | null = null;
-
-function getRateLimiter() {
-  if (!ratelimit) {
-    const redis = new Redis({
-      url: env.UPSTASH_REDIS_REST_URL,
-      token: env.UPSTASH_REDIS_REST_TOKEN,
-    });
-
-    ratelimit = new Ratelimit({
-      redis,
-      limiter: Ratelimit.slidingWindow(2, "1m"),
-      analytics: true,
-      prefix: "ratelimit:early-access-waitlist",
-    });
-  }
-  return ratelimit;
-}
 
 export const earlyAccessRouter = createTRPCRouter({
   getWaitlistCount: publicProcedure.query(async () => {
@@ -46,26 +23,20 @@ export const earlyAccessRouter = createTRPCRouter({
     };
   }),
   joinWaitlist: publicProcedure
+    .meta({
+      procedureName: "earlyAccess.joinWaitlist",
+      ratelimit: {
+        namespace: "early-access-waitlist",
+        limit: 2,
+        duration: "1m",
+      },
+    })
     .input(
       z.object({
         email: z.string().email(),
       }),
     )
-    .mutation(async ({ input, ctx }) => {
-      // Apply rate limiting if available
-      const limiter = getRateLimiter();
-      if (limiter) {
-        const ip = getIp(ctx.headers);
-        const { success } = await limiter.limit(ip);
-
-        if (!success) {
-          throw new TRPCError({
-            code: "TOO_MANY_REQUESTS",
-            message: "Too many requests. Please try again later.",
-          });
-        }
-      }
-
+    .mutation(async ({ input }) => {
       const userAlreadyInWaitlist = await db
         .select()
         .from(waitlist)

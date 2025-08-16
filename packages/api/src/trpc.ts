@@ -2,11 +2,12 @@ import "server-only";
 
 import * as Sentry from "@sentry/node";
 import { TRPCError, initTRPC } from "@trpc/server";
-import { Ratelimit } from "@upstash/ratelimit";
+import { Ratelimit } from "@unkey/ratelimit";
 import { ZodError } from "zod/v3";
 
 import { auth } from "@repo/auth/server";
 import { db } from "@repo/db";
+import { env } from "@repo/env/server";
 
 import {
   getCalendarProvider,
@@ -16,7 +17,6 @@ import {
 } from "./providers";
 import { getAccounts } from "./utils/accounts";
 import { getIp } from "./utils/ip";
-import { getRedis } from "./utils/redis";
 import { superjson } from "./utils/superjson";
 
 type Unit = "ms" | "s" | "m" | "h" | "d";
@@ -77,15 +77,14 @@ export const rateLimitMiddleware = t.middleware(async ({ ctx, meta, next }) => {
   }
 
   const limiter = new Ratelimit({
-    redis: getRedis(),
-    limiter: Ratelimit.slidingWindow(
-      meta.ratelimit.limit,
-      meta.ratelimit.duration,
-    ),
+    namespace: meta.ratelimit.namespace,
+    limit: meta.ratelimit.limit,
+    duration: meta.ratelimit.duration,
+    rootKey: env.UNKEY_ROOT_KEY,
   });
 
-  const key = `${meta.ratelimit.namespace}:${meta.procedureName}:${ctx.rateLimit.id}`;
-  const result = await limiter.limit(key);
+  const identifier = `${meta.procedureName}:${ctx.rateLimit.id}`;
+  const result = await limiter.limit(identifier);
 
   if (!result.success) {
     throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
