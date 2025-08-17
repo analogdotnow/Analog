@@ -1,8 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import {
+  ArrowRightStartOnRectangleIcon,
+  ChevronUpDownIcon,
+  Cog6ToothIcon,
+  SwatchIcon,
+} from "@heroicons/react/16/solid";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronsUpDown, LogOut, Settings } from "lucide-react";
 import { useTheme } from "next-themes";
 
 import { authClient } from "@repo/auth/client";
@@ -72,7 +77,7 @@ export function NavUser() {
                   {query.data?.email}
                 </span>
               </div>
-              <ChevronsUpDown className="ml-auto size-4" />
+              <ChevronUpDownIcon className="ml-auto size-4" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
@@ -110,14 +115,15 @@ export function NavUser() {
             <DropdownMenuGroup>
               <SettingsDialog>
                 <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                  <Settings />
+                  <Cog6ToothIcon />
                   Settings
                 </DropdownMenuItem>
               </SettingsDialog>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuSub>
-              <DropdownMenuSubTrigger className="ps-8">
+              <DropdownMenuSubTrigger className="gap-2">
+                <SwatchIcon className="size-4" />
                 Theme
               </DropdownMenuSubTrigger>
               <DropdownMenuPortal>
@@ -152,7 +158,7 @@ export function NavUser() {
                 })
               }
             >
-              <LogOut />
+              <ArrowRightStartOnRectangleIcon />
               Log out
             </DropdownMenuItem>
           </DropdownMenuContent>
