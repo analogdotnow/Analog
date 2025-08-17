@@ -5,6 +5,7 @@ import { useAtomValue } from "jotai";
 import { Temporal } from "temporal-polyfill";
 
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
+import { selectedEventsAtom } from "@/atoms/selected-events";
 import {
   getBorderRadiusClasses,
   getContentPaddingClasses,
@@ -14,7 +15,6 @@ import type { CalendarEvent } from "@/lib/interfaces";
 import { cn } from "@/lib/utils";
 import { formatTime } from "@/lib/utils/format";
 import { EventCollectionItem } from "../hooks/event-collection";
-import { selectedEventsAtom } from "@/atoms/selected-events";
 
 interface EventWrapperProps {
   event: CalendarEvent;
@@ -115,7 +115,6 @@ export function EventItem({
     return `${formatTime({ value: displayStart, use12Hour, locale, timeZone: defaultTimeZone })}`;
   }, [displayStart, item.event.allDay, use12Hour, locale, defaultTimeZone]);
 
-
   const displayTitle =
     item.event.title && item.event.title.length
       ? item.event.title
@@ -135,7 +134,8 @@ export function EventItem({
         className={cn(
           "@container/event flex gap-x-1.5 py-1 ps-1 pe-2",
           "mt-[var(--calendar-color-gap)] h-[var(--calendar-color-height)] items-center text-[10px] sm:text-xs",
-          isSelected && "bg-event-selected hover:bg-event-selected-hover text-event-selected",
+          isSelected &&
+            "bg-event-selected text-event-selected hover:bg-event-selected-hover",
           className,
         )}
         data-selected={isSelected || undefined}
@@ -152,10 +152,10 @@ export function EventItem({
           {children}
           {!isFirstDay ? <div className="b h-lh" /> : null}
           {
-            <span className="pointer-events-none truncate ">
+            <span className="pointer-events-none truncate">
               {displayTitle}{" "}
               {!item.event.allDay && isFirstDay && (
-                <span className="truncate font-normal  tabular-nums opacity-70 sm:text-[11px]">
+                <span className="truncate font-normal tabular-nums opacity-70 sm:text-[11px]">
                   {eventTime}
                 </span>
               )}
@@ -177,7 +177,8 @@ export function EventItem({
           "@container/event relative flex gap-x-1.5 py-1 ps-1 pe-2 ring-1 ring-background/80",
           // duration.total({ unit: "minute" }) < 45 && "pe-1",
           view === "week" ? "text-[10px] sm:text-xs" : "text-xs",
-          isSelected && "bg-event-selected hover:bg-event-selected-hover text-event-selected",
+          isSelected &&
+            "bg-event-selected text-event-selected hover:bg-event-selected-hover",
           className,
         )}
         data-selected={isSelected || undefined}
@@ -193,13 +194,13 @@ export function EventItem({
           )}
         >
           <div className="pointer-events-none truncate font-medium">
-                {item.event.title ?? "(untitled)"}{" "}
-              </div>
-              {showTime && duration > 30 ? (
-                <div className="pointer-events-none truncate font-normal tabular-nums opacity-70 sm:text-[11px]">
-                  {eventTime}
-                </div>
-              ) : null}
+            {item.event.title ?? "(untitled)"}{" "}
+          </div>
+          {showTime && duration > 30 ? (
+            <div className="pointer-events-none truncate font-normal tabular-nums opacity-70 sm:text-[11px]">
+              {eventTime}
+            </div>
+          ) : null}
         </div>
       </EventWrapper>
     );
