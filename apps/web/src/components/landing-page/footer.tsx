@@ -73,24 +73,24 @@ export function Footer() {
     <footer className="bg-white pt-20 dark:bg-transparent">
       <div className="mx-auto max-w-5xl px-6">
         <div className="grid gap-12 md:grid-cols-5">
-          <div className="md:col-span-3 space-y-6">
+          <div className="space-y-6 md:col-span-3">
             <Link href="/" aria-label="go home" className="block size-fit">
               <Logo className="h-6" />
             </Link>
             <div className="flex flex-row items-center gap-8 px-0">
-                  {socialItems.map((item) => (
-                    <a
-                      className="size-4 rounded-full duration-150 hover:opacity-80"
-                      href={item.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      key={item.label}
-                    >
-                      <item.icon className="fill-primary" />
-                      <span className="sr-only">{item.label}</span>
-                    </a>
-                  ))}
-                </div>
+              {socialItems.map((item) => (
+                <a
+                  className="size-4 rounded-full duration-150 hover:opacity-80"
+                  href={item.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  key={item.label}
+                >
+                  <item.icon className="fill-primary" />
+                  <span className="sr-only">{item.label}</span>
+                </a>
+              ))}
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-6 sm:grid-cols-2 md:col-span-2">

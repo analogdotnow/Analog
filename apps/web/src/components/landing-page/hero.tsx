@@ -9,8 +9,8 @@ import {
   delayedTransitionVariants,
   transitionVariants,
 } from "@/lib/transitions";
-import { GitHub } from "../icons";
 import { URLS } from "@/lib/urls";
+import { GitHub } from "../icons";
 
 export function Hero() {
   return (
@@ -53,8 +53,8 @@ export function Hero() {
                 Reimagining the Calendar, <br /> to make the most of your time
               </h1>
               <p>
-                Analog is an open source calendar that redefines what it means to
-                use a calendar.
+                Analog is an open source calendar that redefines what it means
+                to use a calendar.
                 {/* Calendars have been the same for decades. */}
               </p>
               {/* <p className="max-w-xl text-base text-muted-foreground md:text-lg">
