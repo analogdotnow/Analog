@@ -21,7 +21,10 @@ export function SettingsDialog({ children }: SettingsDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="h-144 max-h-screen w-full rounded-2xl bg-background p-0 sm:max-w-4xl">
+      <DialogContent
+        className="h-144 max-h-screen w-full rounded-2xl bg-background p-0 sm:max-w-4xl"
+        autoFocus={false}
+      >
         <DialogTitle className="sr-only">Settings</DialogTitle>
         <div className="relative flex">
           <Tabs
