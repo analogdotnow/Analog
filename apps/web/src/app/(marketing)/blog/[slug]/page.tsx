@@ -12,13 +12,12 @@ import {
 
 export const revalidate = 300;
 
-// export async function generateStaticParams() {
-//   const { posts } = await getPosts();
-
-//   return posts.map((post) => ({
-//     slug: post.slug,
-//   }));
-// }
+export async function generateStaticParams() {
+  const { posts } = await getPosts();
+  return posts.map((post) => ({
+    slug: post.slug,
+  }));
+}
 
 interface PageProps {
   params: Promise<{ slug: string }>;

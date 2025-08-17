@@ -16,9 +16,10 @@ async function fetchFromMarble<T>(endpoint: string): Promise<T> {
       `${env.MARBLE_API_URL}/${env.MARBLE_WORKSPACE_KEY}/${endpoint}`,
     );
     if (!response.ok) {
-      throw new Error(
+      console.warn(
         `Failed to fetch ${endpoint}: ${response.status} ${response.statusText}`,
       );
+      return [] as T;
     }
     return (await response.json()) as T;
   } catch (error) {

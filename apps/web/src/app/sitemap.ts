@@ -1,18 +1,18 @@
 import type { MetadataRoute } from "next";
 
-// import { getPosts } from "@/lib/blog-query";
+import { getPosts } from "@/lib/blog-query";
 import { URLS } from "@/lib/urls";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  // const data = await getPosts();
+  const data = await getPosts();
 
-  // const postPages: MetadataRoute.Sitemap =
-  //   data?.posts?.map((post) => ({
-  //     url: `${URLS.SITE}/blog/${post.slug}`,
-  //     lastModified: new Date(post.publishedAt),
-  //     changeFrequency: "monthly",
-  //     priority: 0.8,
-  //   })) ?? [];
+  const postPages: MetadataRoute.Sitemap =
+    data?.posts?.map((post) => ({
+      url: `${URLS.SITE}/blog/${post.slug}`,
+      lastModified: new Date(post.publishedAt),
+      changeFrequency: "monthly",
+      priority: 0.8,
+    })) ?? [];
 
   return [
     {
@@ -45,6 +45,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "yearly",
       priority: 0.5,
     },
-    // ...postPages,
+    ...postPages,
   ];
 }
