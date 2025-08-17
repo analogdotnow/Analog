@@ -10,12 +10,12 @@ import {
 } from "@heroicons/react/16/solid";
 import { useQuery } from "@tanstack/react-query";
 import { useAtomValue } from "jotai";
+import { useOnClickOutside } from "usehooks-ts";
 
 import {
   CalendarSettings,
   calendarSettingsAtom,
 } from "@/atoms/calendar-settings";
-import type { Action } from "@/components/calendar/hooks/use-optimistic-events";
 import {
   createDefaultEvent,
   parseCalendarEvent,
@@ -27,10 +27,14 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Calendar, CalendarEvent, DraftEvent } from "@/lib/interfaces";
+import { RouterOutputs } from "@/lib/trpc";
 import { useTRPC } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
 import { createEventId, isDraftEvent } from "@/lib/utils/calendar";
 import { isUserOnlyAttendee } from "@/lib/utils/events";
+import { useCreateAction } from "../calendar/flows/create-event/use-create-action";
+import { useUpdateAction } from "../calendar/flows/update-event/use-update-action";
+import { useSelectedEvents } from "../calendar/hooks/use-selected-events";
 import { AttendeeList, AttendeeListItem } from "./attendees/attendee-list";
 import { AttendeeListInput } from "./attendees/attendee-list-input";
 import { CalendarField } from "./calendar-field";
@@ -58,6 +62,7 @@ function getDefaultValues({
     return {
       ...defaultValues,
       id: createEventId(),
+      type: "draft",
     };
   }
 
@@ -77,23 +82,35 @@ function getDefaultValues({
 }
 
 interface EventFormProps {
-  selectedEvent?: CalendarEvent | DraftEvent;
-  dispatchAsyncAction: (action: Action) => Promise<void>;
   defaultCalendar?: Calendar;
 }
 
-export function EventForm({
-  selectedEvent,
-  dispatchAsyncAction,
-  defaultCalendar,
-}: EventFormProps) {
-  const settings = useAtomValue(calendarSettingsAtom);
+interface EventFormMeta {
+  sendUpdate?: boolean;
+}
 
+interface FindCalendarOptions {
+  calendarId: string;
+  accountId: string;
+}
+
+function findCalendar(
+  accounts: RouterOutputs["calendars"]["list"]["accounts"],
+  { calendarId, accountId }: FindCalendarOptions,
+): Calendar | undefined {
+  return accounts
+    .flatMap((a) => a.calendars)
+    .find((c) => c.id === calendarId && c.accountId === accountId);
+}
+
+export function EventForm({ defaultCalendar }: EventFormProps) {
+  const settings = useAtomValue(calendarSettingsAtom);
+  const selectedEvents = useSelectedEvents();
   const trpc = useTRPC();
   const query = useQuery(trpc.calendars.list.queryOptions());
 
-  const [event, setEvent] = React.useState(selectedEvent);
-  const [manualSubmit, setManualSubmit] = React.useState(false);
+  const [event, setEvent] = React.useState(selectedEvents[0]);
+  const [requiresConfirmation, setRequiresConfirmation] = React.useState(false);
 
   const disabled = event?.readOnly;
 
@@ -105,14 +122,28 @@ export function EventForm({
     });
   }, [event, defaultCalendar, settings]);
 
+  const ref = React.useRef<HTMLFormElement>(null);
+  const focusRef = React.useRef(false);
+  const updateAction = useUpdateAction();
+  const createAction = useCreateAction();
+
   const form = useAppForm({
     defaultValues,
     validators: {
       onBlur: formSchema,
       onSubmit: ({ value }) => {
-        const calendar = query.data?.accounts
-          .flatMap((a) => a.calendars)
-          .find((c) => c.id === value.calendar.calendarId);
+        if (!query.data) {
+          return {
+            fields: {
+              calendar: "Calendar not found",
+            },
+          };
+        }
+
+        const calendar = findCalendar(query.data.accounts, {
+          calendarId: value.calendar.calendarId,
+          accountId: value.calendar.accountId,
+        });
 
         if (!calendar) {
           return {
@@ -135,37 +166,56 @@ export function EventForm({
         return undefined;
       },
     },
-    onSubmit: async ({ value, formApi }) => {
-      const calendar = query.data?.accounts
-        .flatMap((a) => a.calendars)
-        .find((c) => c.id === value.calendar.calendarId);
+    onSubmit: async ({ value, formApi, meta }) => {
+      // Already validated in the validators
+      const calendar = findCalendar(query.data!.accounts, {
+        calendarId: value.calendar.calendarId,
+        accountId: value.calendar.accountId,
+      })!;
 
-      if (!formApi.state.isDirty) {
+      // If unchanged, do nothing
+      if (!formApi.state.isDirty || formApi.state.isDefaultValue) {
         return;
       }
 
-      await dispatchAsyncAction({
-        type: "update",
-        event: toCalendarEvent({ values: value, event, calendar }),
-        force: {
-          sendUpdate: true,
-        },
-      });
+      const formMeta = meta as EventFormMeta | undefined;
 
-      setManualSubmit(false);
+      if (value.type === "draft") {
+        await createAction({
+          event: toCalendarEvent({ values: value, event, calendar }),
+          notify: formMeta?.sendUpdate,
+        });
+      } else {
+        await updateAction({
+          event: toCalendarEvent({ values: value, event, calendar }),
+          notify: formMeta?.sendUpdate,
+        });
+      }
+
+      focusRef.current = false;
+
+      setRequiresConfirmation(false);
     },
     listeners: {
       onBlur: async ({ formApi }) => {
-        if (!formApi.state.isValid || formApi.state.isDefaultValue) {
-          setManualSubmit(false);
+        focusRef.current = true;
+
+        // If unchanged or invalid, do nothing
+        if (
+          !formApi.state.isValid ||
+          formApi.state.isDefaultValue ||
+          !formApi.state.isDirty
+        ) {
           return;
         }
 
-        if (
+        const requiresConfirmation =
           formApi.state.fieldMeta.attendees.isDirty ||
-          !isUserOnlyAttendee(formApi.state.values.attendees)
-        ) {
-          setManualSubmit(true);
+          !isUserOnlyAttendee(formApi.state.values.attendees) ||
+          event?.recurringEventId !== undefined;
+
+        if (requiresConfirmation) {
+          setRequiresConfirmation(true);
           return;
         }
 
@@ -174,46 +224,52 @@ export function EventForm({
     },
   });
 
-  const saveEvent = React.useCallback(async () => {
-    const calendar = query.data?.accounts
-      .flatMap((a) => a.calendars)
-      .find((c) => c.id === form.state.values.calendar.calendarId);
-
-    if (!calendar) {
+  const handleClickOutside = React.useCallback(async () => {
+    if (focusRef.current === false) {
       return;
     }
 
-    const isNewEvent = !event || isDraftEvent(event);
+    focusRef.current = false;
 
-    if (isNewEvent && form.state.values.title.trim() === "") {
-      return;
-    }
+    form.handleSubmit();
+  }, [form]);
 
-    await dispatchAsyncAction({
-      type: "update",
-      event: toCalendarEvent({ values: form.state.values, event, calendar }),
-    });
-  }, [dispatchAsyncAction, event, form.state.values, query.data?.accounts]);
+  useOnClickOutside(ref as React.RefObject<HTMLElement>, handleClickOutside);
 
   React.useEffect(() => {
+    const selectedEvent = selectedEvents[0];
+
+    if (!selectedEvent) {
+      return;
+    }
+
     // If the form is modified and the event changes, keep the modified values
-    if (form.state.isDirty && selectedEvent?.id === event?.id) {
+    if (!form.state.isDefaultValue && selectedEvent?.id === event?.id) {
       return;
     }
 
     if (!form.state.isDefaultValue) {
-      saveEvent();
+      form.handleSubmit();
     }
 
-    setManualSubmit(false);
+    if (!selectedEvent && !event) {
+      return;
+    }
+
     setEvent(selectedEvent);
+    setRequiresConfirmation(false);
+    focusRef.current = true;
 
     form.reset();
-  }, [selectedEvent, event, form, saveEvent]);
+  }, [selectedEvents, event, form]);
 
   return (
     <form
+      ref={ref}
       className={cn("flex flex-col gap-y-1")}
+      onFocusCapture={() => {
+        focusRef.current = true;
+      }}
       onSubmit={async (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -413,7 +469,7 @@ export function EventForm({
               );
             }}
           </form.Field>
-          {manualSubmit ? (
+          {requiresConfirmation ? (
             <SendUpdateButton
               className="col-span-4 col-start-1 pt-2"
               onSave={() => form.handleSubmit({ meta: { sendUpdate: true } })}

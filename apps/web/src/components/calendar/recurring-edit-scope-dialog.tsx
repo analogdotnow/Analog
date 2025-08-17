@@ -12,27 +12,27 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import type { CalendarEvent } from "@/lib/interfaces";
+import { CalendarEvent } from "@/lib/interfaces";
 
-interface ConfirmationDialogState {
+type RecurringEditScopeDialogState = {
   open: boolean;
-  type: "update" | "delete";
   event: CalendarEvent | null;
-  onConfirm: (sendUpdate: boolean) => void;
+  onInstance: () => void;
+  onSeries: () => void;
   onCancel: () => void;
   close: () => void;
+};
+
+interface RecurringEditScopeDialogProps {
+  dialog: RecurringEditScopeDialogState;
 }
 
-interface AttendeeConfirmationDialogProps {
-  dialog: ConfirmationDialogState;
-}
-
-export function AttendeeConfirmationDialog({
+export function RecurringEditScopeDialog({
   dialog,
-}: AttendeeConfirmationDialogProps) {
+}: RecurringEditScopeDialogProps) {
   const confirmedRef = React.useRef(false);
 
-  const onClose = React.useCallback(() => {
+  const handleClose = React.useCallback(() => {
     if (confirmedRef.current) {
       confirmedRef.current = false;
       return;
@@ -45,46 +45,40 @@ export function AttendeeConfirmationDialog({
   return (
     <AlertDialog
       open={dialog.open}
-      onOpenChange={(open) => {
-        if (!open) {
-          onClose();
+      onOpenChange={(isOpen) => {
+        if (!isOpen) {
+          handleClose();
         }
       }}
     >
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>
-            {dialog.type === "update" ? "Update Event" : "Delete Event"}
-          </AlertDialogTitle>
+          <AlertDialogTitle>Edit recurring event</AlertDialogTitle>
           <AlertDialogDescription>
-            {dialog.type === "update"
-              ? "This event has other attendees. How would you like to proceed?"
-              : "This event has other attendees. Do you want to notify them about the deletion?"}
+            Do you want to edit only this event or the entire series?
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter className="sm:justify-between">
-          <AlertDialogCancel>Discard</AlertDialogCancel>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
           <div className="flex gap-2">
             <AlertDialogAction
               variant="outline"
               onClick={() => {
                 confirmedRef.current = true;
-                dialog.onConfirm(false);
+                dialog.onInstance();
                 dialog.close();
               }}
             >
-              {dialog.type === "update" ? "Save" : "Delete"}
+              This event only
             </AlertDialogAction>
             <AlertDialogAction
               onClick={() => {
                 confirmedRef.current = true;
-                dialog.onConfirm(true);
+                dialog.onSeries();
                 dialog.close();
               }}
             >
-              {dialog.type === "update"
-                ? "Save and notify attendees"
-                : "Delete and notify attendees"}
+              All events in the series
             </AlertDialogAction>
           </div>
         </AlertDialogFooter>

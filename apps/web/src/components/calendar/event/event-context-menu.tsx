@@ -7,7 +7,6 @@ import { CheckIcon } from "lucide-react";
 
 import type { AttendeeStatus } from "@repo/api/interfaces";
 
-import { CalendarEvent } from "@/components/calendar/interfaces";
 import { canMoveBetweenCalendars } from "@/components/calendar/utils/move";
 import {
   ContextMenu,
@@ -23,9 +22,11 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import type { CalendarEvent } from "@/lib/interfaces";
 import { useTRPC } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
-import { Action } from "../hooks/use-optimistic-events";
+import { useDeleteAction } from "../flows/delete-event/use-delete-action";
+import { useUpdateAction } from "../flows/update-event/use-update-action";
 
 function CalendarRadioItem({
   className,
@@ -63,29 +64,28 @@ function CalendarRadioItem({
 
 interface EventContextMenuCalendarListProps {
   event: CalendarEvent;
-  dispatchAction: (action: Action) => void;
 }
 
 function EventContextMenuCalendarList({
   event,
-  dispatchAction,
 }: EventContextMenuCalendarListProps) {
   const trpc = useTRPC();
   const calendarQuery = useQuery(trpc.calendars.list.queryOptions());
 
+  const updateAction = useUpdateAction();
+
   const moveEvent = React.useCallback(
     (accountId: string, calendarId: string) => {
-      dispatchAction({
-        type: "move",
-        eventId: event.id,
-        source: {
-          accountId: event.accountId,
-          calendarId: event.calendarId,
+      updateAction({
+        event: {
+          ...event,
+          accountId,
+          calendarId,
         },
-        destination: { accountId, calendarId },
+        notify: true,
       });
     },
-    [dispatchAction, event],
+    [updateAction, event],
   );
 
   return (
@@ -120,15 +120,12 @@ function EventContextMenuCalendarList({
 interface EventContextMenuProps {
   event: CalendarEvent;
   children: React.ReactNode;
-  dispatchAction: (action: Action) => void;
 }
 
-export function EventContextMenu({
-  event,
-  children,
-  dispatchAction,
-}: EventContextMenuProps) {
+export function EventContextMenu({ event, children }: EventContextMenuProps) {
   const responseStatus = event.response?.status;
+
+  const updateAction = useUpdateAction();
 
   const handleRespond = React.useCallback(
     (status: AttendeeStatus) => {
@@ -136,31 +133,30 @@ export function EventContextMenu({
         return;
       }
 
-      dispatchAction({
-        type: "update",
+      updateAction({
         event: {
           ...event,
           response: { status },
         },
-        force: { sendUpdate: true },
+        // TODO: should this be the default?
+        notify: true,
       });
     },
-    [dispatchAction, event, responseStatus],
+    [updateAction, event, responseStatus],
   );
 
+  const deleteAction = useDeleteAction();
+
   const handleDelete = React.useCallback(() => {
-    dispatchAction({ type: "delete", eventId: event.id });
-  }, [dispatchAction, event.id]);
+    deleteAction({ event });
+  }, [deleteAction, event]);
 
   return (
     <ContextMenu>
       {children}
       <ContextMenuContent className="w-64">
         <ContextMenuRadioGroup value={`${event.accountId}-${event.calendarId}`}>
-          <EventContextMenuCalendarList
-            event={event}
-            dispatchAction={dispatchAction}
-          />
+          <EventContextMenuCalendarList event={event} />
         </ContextMenuRadioGroup>
 
         <ContextMenuSeparator />

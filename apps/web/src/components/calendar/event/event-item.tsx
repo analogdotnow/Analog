@@ -9,8 +9,8 @@ import {
   getBorderRadiusClasses,
   getContentPaddingClasses,
 } from "@/components/calendar/event/ui";
-import type { CalendarEvent } from "@/components/calendar/interfaces";
 import { calendarColorVariable } from "@/lib/css";
+import type { CalendarEvent } from "@/lib/interfaces";
 import { cn } from "@/lib/utils";
 import { formatTime } from "@/lib/utils/format";
 import { EventCollectionItem } from "../hooks/event-collection";

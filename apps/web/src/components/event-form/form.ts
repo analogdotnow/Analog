@@ -17,6 +17,7 @@ export const { useAppForm, withForm } = createFormHook({
 
 export const formSchema = z.object({
   id: z.string(),
+  type: z.enum(["draft", "event"]),
   title: z.string(),
   start: zZonedDateTimeInstance,
   end: zZonedDateTimeInstance,
@@ -47,6 +48,7 @@ export type FormValues = z.infer<typeof formSchema>;
 
 export const defaultValues: FormValues = {
   id: "",
+  type: "draft",
   title: "",
   start: Temporal.Now.zonedDateTimeISO(),
   end: Temporal.Now.zonedDateTimeISO().add({ hours: 2 }),

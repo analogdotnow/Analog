@@ -2,7 +2,7 @@ import { Temporal } from "temporal-polyfill";
 
 import { toZonedDateTime } from "@repo/temporal";
 
-import type { CalendarEvent } from "@/components/calendar/interfaces";
+import type { CalendarEvent } from "@/lib/interfaces";
 
 export type EventCollectionItem = {
   event: CalendarEvent;

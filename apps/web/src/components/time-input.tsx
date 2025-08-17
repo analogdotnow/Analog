@@ -314,3 +314,5 @@ const MemoizedTimeInputList = React.memo(
     );
   },
 );
+
+export const MemoizedTimeInput = React.memo(TimeInput);

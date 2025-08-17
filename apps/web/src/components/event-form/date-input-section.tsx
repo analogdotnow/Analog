@@ -80,6 +80,24 @@ export const DateInputSection = withForm({
       [endField],
     );
 
+    const onTimeStartOpenChange = React.useCallback(
+      (open: boolean) => {
+        setOpenTimePicker(
+          open ? "start" : openTimePicker === "start" ? null : openTimePicker,
+        );
+      },
+      [openTimePicker],
+    );
+
+    const onTimeEndOpenChange = React.useCallback(
+      (open: boolean) => {
+        setOpenTimePicker(
+          open ? "end" : openTimePicker === "end" ? null : openTimePicker,
+        );
+      },
+      [openTimePicker],
+    );
+
     const isAllDay = isAllDayField.state.value;
 
     return (
@@ -98,15 +116,7 @@ export const DateInputSection = withForm({
             className="col-span-2 col-start-1 h-8 border-none bg-transparent ps-8 shadow-none dark:bg-transparent"
             value={startField.state.value}
             open={openTimePicker === "start"}
-            onOpenChange={(open) =>
-              setOpenTimePicker(
-                open
-                  ? "start"
-                  : openTimePicker === "start"
-                    ? null
-                    : openTimePicker,
-              )
-            }
+            onOpenChange={onTimeStartOpenChange}
             onChange={onStartChange}
             disabled={disabled}
           />
@@ -118,11 +128,7 @@ export const DateInputSection = withForm({
             className="col-span-2 col-start-3 h-8 border-none bg-transparent ps-8 shadow-none dark:bg-transparent"
             value={endField.state.value}
             open={openTimePicker === "end"}
-            onOpenChange={(open) =>
-              setOpenTimePicker(
-                open ? "end" : openTimePicker === "end" ? null : openTimePicker,
-              )
-            }
+            onOpenChange={onTimeEndOpenChange}
             onChange={onEndChange}
             disabled={disabled}
           />

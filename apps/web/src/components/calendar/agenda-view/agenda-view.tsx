@@ -12,9 +12,8 @@ import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { AgendaDaysToShow } from "@/components/calendar/constants";
 import { EventItem } from "@/components/calendar/event/event-item";
 import type { EventCollectionItem } from "@/components/calendar/hooks/event-collection";
-import type { Action } from "@/components/calendar/hooks/use-optimistic-events";
-import type { CalendarEvent } from "@/components/calendar/interfaces";
 import { eventOverlapsDay } from "@/components/calendar/utils/event";
+import { useSelectAction } from "../hooks/use-optimistic-mutations";
 
 function EmptyAgenda() {
   return (
@@ -34,14 +33,9 @@ function EmptyAgenda() {
 interface AgendaViewProps {
   currentDate: Temporal.PlainDate;
   events: EventCollectionItem[];
-  dispatchAction: (action: Action) => void;
 }
 
-export function AgendaView({
-  currentDate,
-  events,
-  dispatchAction,
-}: AgendaViewProps) {
+export function AgendaView({ currentDate, events }: AgendaViewProps) {
   // Show events for the next days based on constant
   const days = React.useMemo(() => {
     const days = Array.from({ length: AgendaDaysToShow }, (_, i) =>
@@ -59,14 +53,6 @@ export function AgendaView({
       };
     });
   }, [currentDate, events]);
-
-  const handleEventClick = React.useCallback(
-    (event: CalendarEvent, e: React.MouseEvent) => {
-      e.stopPropagation();
-      dispatchAction({ type: "select", event });
-    },
-    [dispatchAction],
-  );
 
   const settings = useAtomValue(calendarSettingsAtom);
 
@@ -99,12 +85,7 @@ export function AgendaView({
               </span>
               <div className="mt-6 space-y-2">
                 {day.items.map((item) => (
-                  <EventItem
-                    key={item.event.id}
-                    item={item}
-                    view="agenda"
-                    onClick={(e) => handleEventClick(item.event, e)}
-                  />
+                  <AgendaViewEvent key={item.event.id} item={item} />
                 ))}
               </div>
             </div>
@@ -112,5 +93,30 @@ export function AgendaView({
         })
       )}
     </div>
+  );
+}
+
+interface AgendaViewEventProps {
+  item: EventCollectionItem;
+}
+
+function AgendaViewEvent({ item }: AgendaViewEventProps) {
+  const selectAction = useSelectAction();
+
+  const onClick = React.useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      selectAction(item.event);
+    },
+    [selectAction, item.event],
+  );
+
+  return (
+    <EventItem
+      key={item.event.id}
+      item={item}
+      view="agenda"
+      onClick={onClick}
+    />
   );
 }

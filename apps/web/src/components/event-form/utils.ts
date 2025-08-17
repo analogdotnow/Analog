@@ -1,3 +1,4 @@
+import { IChange, diff } from "json-diff-ts";
 import { Temporal } from "temporal-polyfill";
 
 import { CalendarSettings } from "@/atoms/calendar-settings";
@@ -27,6 +28,7 @@ export function createDefaultEvent({
 
   return {
     id: createEventId(),
+    type: "draft",
     title: "",
     start,
     end: start.add(duration),
@@ -89,6 +91,7 @@ export function parseDraftEvent({
 
   return {
     id: event?.id ?? createEventId(),
+    type: "draft",
     title: event.title ?? "",
     start: toZonedDateTime({
       date: event.start,
@@ -144,6 +147,7 @@ export function parseCalendarEvent({
 
   return {
     id: event.id,
+    type: "event",
     title: event.title ?? "",
     start,
     end,
@@ -203,4 +207,31 @@ export function toCalendarEvent({
     recurringEventId: values.recurringEventId,
     response: toResponse(values.attendees),
   };
+}
+
+export function fieldDiff(a: FormValues, b: FormValues) {
+  const changes = diff(a, b);
+  const filtered: IChange[] = [];
+
+  for (const change of changes) {
+    if (change.type === "UPDATE") {
+      continue;
+    }
+
+    if (
+      change.type === "ADD" &&
+      change.value === "" &&
+      change.oldValue === undefined
+    ) {
+      continue;
+    }
+
+    if (change.type === "REMOVE" && change.oldValue === "") {
+      continue;
+    }
+
+    filtered.push(change);
+  }
+
+  return filtered;
 }

@@ -6,12 +6,9 @@ import { motion } from "motion/react";
 import { Temporal } from "temporal-polyfill";
 
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
-import { isDraggingAtom } from "@/atoms/drag-resize-state";
 import { DragPreview } from "@/components/calendar/event/drag-preview";
 import { DraggableEvent } from "@/components/calendar/event/draggable-event";
 import { EventItem } from "@/components/calendar/event/event-item";
-import type { Action } from "@/components/calendar/hooks/use-optimistic-events";
-import type { CalendarEvent } from "@/components/calendar/interfaces";
 import { HOURS } from "@/components/calendar/timeline/constants";
 import {
   TimeIndicator,
@@ -19,17 +16,18 @@ import {
 } from "@/components/calendar/timeline/time-indicator";
 import { Timeline } from "@/components/calendar/timeline/timeline";
 import { cn } from "@/lib/utils";
+import { DragAwareWrapper } from "../event/drag-aware-wrapper";
 import { EventCollectionItem } from "../hooks/event-collection";
 import { useEdgeAutoScroll } from "../hooks/use-auto-scroll";
 import { useDoubleClickToCreate } from "../hooks/use-double-click-to-create";
 import { useDragToCreate } from "../hooks/use-drag-to-create";
 import { useEventCollection } from "../hooks/use-event-collection";
+import { useSelectAction } from "../hooks/use-optimistic-mutations";
 import { useScrollToCurrentTime } from "../week-view/use-scroll-to-current-time";
 
 interface DayViewProps {
   currentDate: Temporal.PlainDate;
   events: EventCollectionItem[];
-  dispatchAction: (action: Action) => void;
   scrollContainerRef: React.RefObject<HTMLDivElement | null>;
 }
 
@@ -42,49 +40,40 @@ interface PositionedEventProps {
     width: number;
     zIndex: number;
   };
-  onEventClick: (event: CalendarEvent, e: React.MouseEvent) => void;
-  dispatchAction: (action: Action) => void;
   containerRef: React.RefObject<HTMLDivElement | null>;
 }
 
 function PositionedEvent({
   positionedEvent,
-  onEventClick,
-  dispatchAction,
   containerRef,
 }: PositionedEventProps) {
-  const isDragging = useAtomValue(isDraggingAtom);
-
   return (
-    <div
+    <DragAwareWrapper
       key={positionedEvent.item.event.id}
+      eventId={positionedEvent.item.event.id}
       className="absolute z-10"
       style={{
         top: `${positionedEvent.top}px`,
         height: `${positionedEvent.height}px`,
         left: `${positionedEvent.left * 100}%`,
         width: `${positionedEvent.width * 100}%`,
-        zIndex: isDragging ? 9999 : positionedEvent.zIndex,
       }}
       onClick={(e) => e.stopPropagation()}
     >
       <DraggableEvent
         item={positionedEvent.item}
         view="day"
-        onClick={(e) => onEventClick(positionedEvent.item.event, e)}
-        dispatchAction={dispatchAction}
         showTime
         height={positionedEvent.height}
         containerRef={containerRef}
       />
-    </div>
+    </DragAwareWrapper>
   );
 }
 
 export function DayView({
   currentDate,
   events,
-  dispatchAction,
   scrollContainerRef,
 }: DayViewProps) {
   const containerRef = React.useRef<HTMLDivElement | null>(null);
@@ -101,14 +90,6 @@ export function DayView({
 
   const eventCollection = useEventCollection(events, currentDate, "day");
 
-  const handleEventClick = React.useCallback(
-    (event: CalendarEvent, e: React.MouseEvent) => {
-      e.stopPropagation();
-      dispatchAction({ type: "select", event });
-    },
-    [dispatchAction],
-  );
-
   return (
     <div data-slot="day-view" className="contents">
       <AllDayRow ref={headerRef}>
@@ -117,7 +98,6 @@ export function DayView({
             key={`spanning-${item.event.id}`}
             item={item}
             currentDate={currentDate}
-            dispatchAction={dispatchAction}
           />
         ))}
       </AllDayRow>
@@ -135,18 +115,13 @@ export function DayView({
             <PositionedEvent
               key={positionedEvent.item.event.id}
               positionedEvent={positionedEvent}
-              onEventClick={handleEventClick}
-              dispatchAction={dispatchAction}
               containerRef={containerRef}
             />
           ))}
 
           <TimeIndicator date={currentDate} />
 
-          <MemoizedDayViewTimeSlots
-            currentDate={currentDate}
-            dispatchAction={dispatchAction}
-          />
+          <MemoizedDayViewTimeSlots currentDate={currentDate} />
         </div>
       </div>
     </div>
@@ -182,20 +157,20 @@ function AllDayRow({ children, className, ref, ...props }: AllDayRowProps) {
 interface DayViewPositionedEventProps {
   item: EventCollectionItem;
   currentDate: Temporal.PlainDate;
-  dispatchAction: (action: Action) => void;
 }
 
 function DayViewPositionedEvent({
   item,
   currentDate,
-  dispatchAction,
 }: DayViewPositionedEventProps) {
-  const handleEventClick = React.useCallback(
-    (event: CalendarEvent, e: React.MouseEvent) => {
+  const selectAction = useSelectAction();
+
+  const onClick = React.useCallback(
+    (e: React.MouseEvent) => {
       e.stopPropagation();
-      dispatchAction({ type: "select", event });
+      selectAction(item.event);
     },
-    [dispatchAction],
+    [selectAction, item.event],
   );
 
   const { isFirstDay, isLastDay } = React.useMemo(() => {
@@ -208,7 +183,7 @@ function DayViewPositionedEvent({
 
   return (
     <EventItem
-      onClick={(e) => handleEventClick(item.event, e)}
+      onClick={onClick}
       item={item}
       view="month"
       isFirstDay={isFirstDay}
@@ -219,26 +194,20 @@ function DayViewPositionedEvent({
 
 interface DayViewTimeSlotsProps {
   currentDate: Temporal.PlainDate;
-  dispatchAction: (action: Action) => void;
 }
 
-function DayViewTimeSlots({
-  currentDate,
-  dispatchAction,
-}: DayViewTimeSlotsProps) {
+function DayViewTimeSlots({ currentDate }: DayViewTimeSlotsProps) {
   const settings = useAtomValue(calendarSettingsAtom);
   const columnRef = React.useRef<HTMLDivElement>(null);
 
   const { onDragStart, onDrag, onDragEnd, top, height, opacity } =
     useDragToCreate({
-      dispatchAction,
       date: currentDate,
       timeZone: settings.defaultTimeZone,
       columnRef,
     });
 
   const { onDoubleClick } = useDoubleClickToCreate({
-    dispatchAction,
     date: currentDate,
     columnRef,
   });
