@@ -36,7 +36,17 @@ export const getPosts = cache(async () => {
     return fetchFromMarble<MarblePostList>("posts");
   } catch (error) {
     console.error("Failed to fetch posts", error);
-    return [];
+    return {
+      posts: [],
+      pagination: {
+        limit: 0,
+        currentPage: 0,
+        nextPage: null,
+        previousPage: null,
+        totalItems: 0,
+        totalPages: 0,
+      },
+    } satisfies MarblePostList;
   }
 });
 
@@ -45,7 +55,17 @@ export const getTags = cache(async () => {
     return fetchFromMarble<MarbleTagList>("tags");
   } catch (error) {
     console.warn("Failed to fetch tags", error);
-    return [];
+    return {
+      tags: [],
+      pagination: {
+        limit: 0,
+        currentPage: 0,
+        nextPage: null,
+        previousPage: null,
+        totalItems: 0,
+        totalPages: 0,
+      },
+    } satisfies MarbleTagList;
   }
 });
 
@@ -54,7 +74,29 @@ export const getSinglePost = cache(async (slug: string) => {
     return fetchFromMarble<MarblePost>(`posts/${slug}`);
   } catch (error) {
     console.warn("Failed to fetch single post", error);
-    return null;
+    return {
+      post: {
+        id: "",
+        slug: "",
+        title: "",
+        content: "",
+        description: "",
+        coverImage: "",
+        publishedAt: new Date(),
+        updatedAt: new Date(),
+        authors: [],
+        category: {
+          id: "",
+          slug: "",
+          name: "",
+        },
+        tags: [],
+        attribution: {
+          author: "",
+          url: "",
+        },
+      },
+    } satisfies MarblePost;
   }
 });
 
@@ -63,7 +105,17 @@ export const getCategories = cache(async () => {
     return fetchFromMarble<MarbleCategoryList>("categories");
   } catch (error) {
     console.warn("Failed to fetch categories", error);
-    return [];
+    return {
+      categories: [],
+      pagination: {
+        limit: 0,
+        currentPage: 0,
+        nextPage: null,
+        previousPage: null,
+        totalItems: 0,
+        totalPages: 0,
+      },
+    } satisfies MarbleCategoryList;
   }
 });
 
@@ -72,6 +124,16 @@ export const getAuthors = cache(async () => {
     return fetchFromMarble<MarbleAuthorList>("authors");
   } catch (error) {
     console.warn("Failed to fetch authors", error);
-    return [];
+    return {
+      authors: [],
+      pagination: {
+        limit: 0,
+        currentPage: 0,
+        nextPage: null,
+        previousPage: null,
+        totalItems: 0,
+        totalPages: 0,
+      },
+    } satisfies MarbleAuthorList;
   }
 });
