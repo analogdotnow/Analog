@@ -23,63 +23,77 @@ const socialItems = [
 ];
 
 const links = [
-  {
-    group: "Product",
-    items: [
-      {
-        title: "Features",
-        href: "#",
-      },
-      {
-        title: "Pricing",
-        href: "#",
-      },
-    ],
-  },
+  // {
+  //   group: "Product",
+  //   items: [
+  //     {
+  //       title: "Features",
+  //       href: "#",
+  //     },
+  //     {
+  //       title: "Pricing",
+  //       href: "#",
+  //     },
+  //   ],
+  // },
   {
     group: "Resources",
     items: [
       {
         title: "Privacy",
-        href: "#",
+        href: "/privacy",
       },
       {
         title: "Terms",
-        href: "#",
+        href: "/terms",
       },
     ],
   },
   {
     group: "Company",
     items: [
-      {
-        title: "About",
-        href: "#",
-      },
+      // {
+      //   title: "About",
+      //   href: "#",
+      // },
       {
         title: "Blog",
-        href: "#",
+        href: "/blog",
       },
-      {
-        title: "Contact",
-        href: "#",
-      },
+      // {
+      //   title: "Contact",
+      //   href: "#",
+      // },
     ],
   },
 ];
 
 export function Footer() {
   return (
-    <footer className="border-b bg-white pt-20 dark:bg-transparent">
+    <footer className="bg-white pt-20 dark:bg-transparent">
       <div className="mx-auto max-w-5xl px-6">
         <div className="grid gap-12 md:grid-cols-5">
-          <div className="md:col-span-3">
+          <div className="md:col-span-3 space-y-6">
             <Link href="/" aria-label="go home" className="block size-fit">
-              <Logo />
+              <Logo className="h-6" />
             </Link>
+            <div className="flex flex-row items-center gap-8 px-0">
+                  {socialItems.map((item) => (
+                    <a
+                      className="size-4 rounded-full duration-150 hover:opacity-80"
+                      href={item.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      key={item.label}
+                    >
+                      <item.icon className="fill-primary" />
+                      <span className="sr-only">{item.label}</span>
+                    </a>
+                  ))}
+                </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:col-span-2">
+          <div className="grid grid-cols-2 gap-6 sm:grid-cols-2 md:col-span-2">
             {links.map((link, index) => (
               <div key={index} className="space-y-4 text-sm">
                 <span className="block font-medium">{link.group}</span>

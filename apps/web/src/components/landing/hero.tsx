@@ -10,8 +10,7 @@ import {
   transitionVariants,
 } from "@/lib/transitions";
 import { GitHub } from "../icons";
-import { Features } from "./features";
-import { Button } from "../ui/button";
+import { URLS } from "@/lib/urls";
 
 export function Hero() {
   return (
@@ -21,7 +20,9 @@ export function Hero() {
           <div className="flex flex-col gap-y-4">
             <AnimatedGroup variants={transitionVariants}>
               <Link
-                href="#link"
+                href={URLS.GITHUB}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="group mx-auto flex w-fit items-center gap-2 rounded-full border bg-muted/30 p-1 pl-2.5 shadow-sm shadow-neutral-300/20 transition-colors duration-300 hover:bg-background dark:border-border/10 dark:shadow-md dark:shadow-neutral-950/20 dark:hover:border-border/20"
               >
                 <span className="inline-flex items-center gap-2 text-sm text-foreground">
@@ -29,7 +30,7 @@ export function Hero() {
                   GitHub
                   <span className="inline-flex items-center gap-2">
                     <StarIcon className="size-3 fill-primary stroke-primary transition-colors duration-500 group-hover:fill-yellow-500 group-hover:stroke-yellow-500" />
-                    1.1k
+                    1.2k
                   </span>
                 </span>
                 <span className="block h-6 w-0.5 border-l bg-white dark:border-background dark:bg-neutral-700/20"></span>
@@ -52,7 +53,7 @@ export function Hero() {
                 Reimagining the Calendar, <br /> to make the most of your time
               </h1>
               <p>
-                Analog is an AI native calendar that redefines what it means to
+                Analog is an open source calendar that redefines what it means to
                 use a calendar.
                 {/* Calendars have been the same for decades. */}
               </p>
@@ -90,8 +91,6 @@ export function Hero() {
           />
         </div>
       </AnimatedGroup>
-
-      <Features />
     </div>
   );
 }

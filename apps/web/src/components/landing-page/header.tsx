@@ -29,9 +29,9 @@ const socialItems = [
 
 const menuItems = [
   { name: "Features", href: "#link" },
-  // { name: "Solution", href: "#link" },
-  // { name: "Pricing", href: "#link" },
-  // { name: "About", href: "#link" },
+  { name: "Solution", href: "#link" },
+  { name: "Pricing", href: "#link" },
+  { name: "About", href: "#link" },
 ];
 
 export function Header() {
@@ -80,7 +80,7 @@ export function Header() {
             </div>
 
             <div className="absolute inset-0 m-auto hidden size-fit lg:block">
-              <ul className="flex gap-8 text-sm">
+              {/* <ul className="flex gap-8 text-sm">
                 {menuItems.map((item, index) => (
                   <li key={index}>
                     <Link
@@ -91,7 +91,7 @@ export function Header() {
                     </Link>
                   </li>
                 ))}
-              </ul>
+              </ul> */}
             </div>
 
             <div className="mb-6 hidden w-full flex-wrap items-center justify-end space-y-8 rounded-3xl border bg-background p-6 shadow-2xl shadow-zinc-300/20 in-data-[state=active]:block md:flex-nowrap lg:m-0 lg:flex lg:w-fit lg:gap-6 lg:space-y-0 lg:border-transparent lg:bg-transparent lg:p-0 lg:shadow-none lg:in-data-[state=active]:flex dark:shadow-none dark:lg:bg-transparent">
@@ -113,7 +113,8 @@ export function Header() {
                 <div
                   className={cn(
                     "flex flex-row items-center gap-8 px-6",
-                    isScrolled && "lg:hidden",
+                    // TODO: Uncomment this when we add nav items
+                    // isScrolled && "lg:hidden",
                   )}
                 >
                   {socialItems.map((item) => (
