@@ -3,10 +3,7 @@ import { redirect } from "next/navigation";
 
 import { auth } from "@repo/auth/server";
 
-import { Hero } from "@/components/sections/home/hero";
-
-// Required for tRPC prefetching
-export const dynamic = "force-dynamic";
+import { Hero } from "@/components/landing-page/hero";
 
 export default async function LandingPage() {
   const session = await auth.api.getSession({ headers: await headers() });
