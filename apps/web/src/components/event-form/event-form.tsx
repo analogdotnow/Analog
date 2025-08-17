@@ -31,7 +31,10 @@ import { RouterOutputs } from "@/lib/trpc";
 import { useTRPC } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
 import { createEventId, isDraftEvent } from "@/lib/utils/calendar";
-import { isUserOnlyAttendee } from "@/lib/utils/events";
+import {
+  requiresAttendeeConfirmation,
+  requiresRecurrenceConfirmation,
+} from "@/lib/utils/events";
 import { useCreateAction } from "../calendar/flows/create-event/use-create-action";
 import { useUpdateAction } from "../calendar/flows/update-event/use-update-action";
 import { useSelectedEvents } from "../calendar/hooks/use-selected-events";
@@ -110,7 +113,6 @@ export function EventForm({ defaultCalendar }: EventFormProps) {
   const query = useQuery(trpc.calendars.list.queryOptions());
 
   const [event, setEvent] = React.useState(selectedEvents[0]);
-  const [requiresConfirmation, setRequiresConfirmation] = React.useState(false);
 
   const disabled = event?.readOnly;
 
@@ -193,8 +195,6 @@ export function EventForm({ defaultCalendar }: EventFormProps) {
       }
 
       focusRef.current = false;
-
-      setRequiresConfirmation(false);
     },
     listeners: {
       onBlur: async ({ formApi }) => {
@@ -209,13 +209,10 @@ export function EventForm({ defaultCalendar }: EventFormProps) {
           return;
         }
 
-        const requiresConfirmation =
-          formApi.state.fieldMeta.attendees.isDirty ||
-          !isUserOnlyAttendee(formApi.state.values.attendees) ||
-          event?.recurringEventId !== undefined;
-
-        if (requiresConfirmation) {
-          setRequiresConfirmation(true);
+        if (
+          requiresAttendeeConfirmation(formApi.state.values.attendees) ||
+          requiresRecurrenceConfirmation(event?.recurringEventId)
+        ) {
           return;
         }
 
@@ -225,7 +222,7 @@ export function EventForm({ defaultCalendar }: EventFormProps) {
   });
 
   const handleClickOutside = React.useCallback(async () => {
-    if (focusRef.current === false) {
+    if (!focusRef.current) {
       return;
     }
 
@@ -257,7 +254,6 @@ export function EventForm({ defaultCalendar }: EventFormProps) {
     }
 
     setEvent(selectedEvent);
-    setRequiresConfirmation(false);
     focusRef.current = true;
 
     form.reset();
@@ -273,8 +269,6 @@ export function EventForm({ defaultCalendar }: EventFormProps) {
       onSubmit={async (e) => {
         e.preventDefault();
         e.stopPropagation();
-
-        await form.handleSubmit();
       }}
     >
       <div className="p-1">
@@ -469,16 +463,36 @@ export function EventForm({ defaultCalendar }: EventFormProps) {
               );
             }}
           </form.Field>
-          {requiresConfirmation ? (
-            <SendUpdateButton
-              className="col-span-4 col-start-1 pt-2"
-              onSave={() => form.handleSubmit({ meta: { sendUpdate: true } })}
-              onSaveWithoutNotifying={() =>
-                form.handleSubmit({ meta: { sendUpdate: false } })
+          <form.Subscribe
+            selector={(state) => {
+              return {
+                isDefaultValue: state.isDefaultValue,
+                values: state.values.attendees,
+              };
+            }}
+            // eslint-disable-next-line react/no-children-prop
+            children={(state) => {
+              if (
+                state.isDefaultValue ||
+                !requiresAttendeeConfirmation(state.values)
+              ) {
+                return null;
               }
-              onDiscard={() => form.reset()}
-            />
-          ) : null}
+
+              return (
+                <SendUpdateButton
+                  className="col-span-4 col-start-1 pt-2"
+                  onSave={() =>
+                    form.handleSubmit({ meta: { sendUpdate: true } })
+                  }
+                  onSaveWithoutNotifying={() =>
+                    form.handleSubmit({ meta: { sendUpdate: false } })
+                  }
+                  onDiscard={() => form.reset()}
+                />
+              );
+            }}
+          />
         </FormRow>
         <Separator />
         <FormRow>
