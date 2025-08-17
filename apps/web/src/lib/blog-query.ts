@@ -19,7 +19,10 @@ async function fetchFromMarble<T>(endpoint: string): Promise<T> {
       console.warn(
         `Failed to fetch ${endpoint}: ${response.status} ${response.statusText}`,
       );
-      return [] as T;
+
+      throw new Error(
+        `Failed to fetch ${endpoint}: ${response.status} ${response.statusText}`,
+      );
     }
     return (await response.json()) as T;
   } catch (error) {
@@ -29,21 +32,46 @@ async function fetchFromMarble<T>(endpoint: string): Promise<T> {
 }
 
 export const getPosts = cache(async () => {
-  return fetchFromMarble<MarblePostList>("posts");
+  try {
+    return fetchFromMarble<MarblePostList>("posts");
+  } catch (error) {
+    console.error("Failed to fetch posts", error);
+    return [];
+  }
 });
 
 export const getTags = cache(async () => {
-  return fetchFromMarble<MarbleTagList>("tags");
+  try {
+    return fetchFromMarble<MarbleTagList>("tags");
+  } catch (error) {
+    console.warn("Failed to fetch tags", error);
+    return [];
+  }
 });
 
 export const getSinglePost = cache(async (slug: string) => {
-  return fetchFromMarble<MarblePost>(`posts/${slug}`);
+  try {
+    return fetchFromMarble<MarblePost>(`posts/${slug}`);
+  } catch (error) {
+    console.warn("Failed to fetch single post", error);
+    return null;
+  }
 });
 
 export const getCategories = cache(async () => {
-  return fetchFromMarble<MarbleCategoryList>("categories");
+  try {
+    return fetchFromMarble<MarbleCategoryList>("categories");
+  } catch (error) {
+    console.warn("Failed to fetch categories", error);
+    return [];
+  }
 });
 
 export const getAuthors = cache(async () => {
-  return fetchFromMarble<MarbleAuthorList>("authors");
+  try {
+    return fetchFromMarble<MarbleAuthorList>("authors");
+  } catch (error) {
+    console.warn("Failed to fetch authors", error);
+    return [];
+  }
 });
