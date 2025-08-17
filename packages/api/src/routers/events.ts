@@ -274,13 +274,6 @@ export const eventsRouter = createTRPCRouter({
         return { event: updated };
       }
 
-      console.log("different google accounts", {
-        sourceProvider,
-        destinationProvider,
-        sourceCalendar,
-        destinationCalendar,
-      });
-
       // Different Google accounts → clone then delete
       const created = await destinationProvider.client.createEvent(
         destinationCalendar,
@@ -392,13 +385,6 @@ export const eventsRouter = createTRPCRouter({
         sourceCalendar,
         input.eventId,
       );
-
-      console.log("different google accounts", {
-        sourceProvider,
-        destinationProvider,
-        sourceCalendar,
-        destinationCalendar,
-      });
 
       // TODO: what happens to attendees?
       const created = await destinationProvider.client.createEvent(

@@ -6,7 +6,6 @@ import { motion } from "motion/react";
 import { Temporal } from "temporal-polyfill";
 
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
-import { isDraggingAtom } from "@/atoms/drag-resize-state";
 import { DragPreview } from "@/components/calendar/event/drag-preview";
 import { DraggableEvent } from "@/components/calendar/event/draggable-event";
 import { EventItem } from "@/components/calendar/event/event-item";
@@ -17,6 +16,7 @@ import {
 } from "@/components/calendar/timeline/time-indicator";
 import { Timeline } from "@/components/calendar/timeline/timeline";
 import { cn } from "@/lib/utils";
+import { DragAwareWrapper } from "../event/drag-aware-wrapper";
 import { EventCollectionItem } from "../hooks/event-collection";
 import { useEdgeAutoScroll } from "../hooks/use-auto-scroll";
 import { useDoubleClickToCreate } from "../hooks/use-double-click-to-create";
@@ -47,18 +47,16 @@ function PositionedEvent({
   positionedEvent,
   containerRef,
 }: PositionedEventProps) {
-  const isDragging = useAtomValue(isDraggingAtom);
-
   return (
-    <div
+    <DragAwareWrapper
       key={positionedEvent.item.event.id}
+      eventId={positionedEvent.item.event.id}
       className="absolute z-10"
       style={{
         top: `${positionedEvent.top}px`,
         height: `${positionedEvent.height}px`,
         left: `${positionedEvent.left * 100}%`,
         width: `${positionedEvent.width * 100}%`,
-        zIndex: isDragging ? 9999 : positionedEvent.zIndex,
       }}
       onClick={(e) => e.stopPropagation()}
     >
@@ -69,7 +67,7 @@ function PositionedEvent({
         height={positionedEvent.height}
         containerRef={containerRef}
       />
-    </div>
+    </DragAwareWrapper>
   );
 }
 

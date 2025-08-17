@@ -32,6 +32,7 @@ import { useTRPC } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
 import { createEventId, isDraftEvent } from "@/lib/utils/calendar";
 import { isUserOnlyAttendee } from "@/lib/utils/events";
+import { useCreateAction } from "../calendar/flows/create-event/use-create-action";
 import { useUpdateAction } from "../calendar/flows/update-event/use-update-action";
 import { useSelectedEvents } from "../calendar/hooks/use-selected-events";
 import { AttendeeList, AttendeeListItem } from "./attendees/attendee-list";
@@ -61,6 +62,7 @@ function getDefaultValues({
     return {
       ...defaultValues,
       id: createEventId(),
+      type: "draft",
     };
   }
 
@@ -97,8 +99,8 @@ function findCalendar(
   { calendarId, accountId }: FindCalendarOptions,
 ): Calendar | undefined {
   return accounts
-    .find((a) => a.id === accountId)
-    ?.calendars.find((c) => c.id === calendarId);
+    .flatMap((a) => a.calendars)
+    .find((c) => c.id === calendarId && c.accountId === accountId);
 }
 
 export function EventForm({ defaultCalendar }: EventFormProps) {
@@ -123,6 +125,7 @@ export function EventForm({ defaultCalendar }: EventFormProps) {
   const ref = React.useRef<HTMLFormElement>(null);
   const focusRef = React.useRef(false);
   const updateAction = useUpdateAction();
+  const createAction = useCreateAction();
 
   const form = useAppForm({
     defaultValues,
@@ -177,10 +180,17 @@ export function EventForm({ defaultCalendar }: EventFormProps) {
 
       const formMeta = meta as EventFormMeta | undefined;
 
-      await updateAction({
-        event: toCalendarEvent({ values: value, event, calendar }),
-        notify: formMeta?.sendUpdate,
-      });
+      if (value.type === "draft") {
+        await createAction({
+          event: toCalendarEvent({ values: value, event, calendar }),
+          notify: formMeta?.sendUpdate,
+        });
+      } else {
+        await updateAction({
+          event: toCalendarEvent({ values: value, event, calendar }),
+          notify: formMeta?.sendUpdate,
+        });
+      }
 
       focusRef.current = false;
 
@@ -196,12 +206,6 @@ export function EventForm({ defaultCalendar }: EventFormProps) {
           formApi.state.isDefaultValue ||
           !formApi.state.isDirty
         ) {
-          console.log(
-            "on blur",
-            formApi.state.isValid,
-            formApi.state.isDefaultValue,
-            formApi.state.isDirty,
-          );
           return;
         }
 
@@ -211,17 +215,10 @@ export function EventForm({ defaultCalendar }: EventFormProps) {
           event?.recurringEventId !== undefined;
 
         if (requiresConfirmation) {
-          console.log(
-            "requires confirmation",
-            formApi.state.fieldMeta.attendees.isDirty,
-            !isUserOnlyAttendee(formApi.state.values.attendees),
-            event?.recurringEventId !== undefined,
-          );
           setRequiresConfirmation(true);
           return;
         }
 
-        console.log("submit");
         await formApi.handleSubmit();
       },
     },

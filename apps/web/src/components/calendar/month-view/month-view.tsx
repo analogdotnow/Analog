@@ -25,7 +25,6 @@ import {
   CalendarSettings,
   calendarSettingsAtom,
 } from "@/atoms/calendar-settings";
-import { isDraggingAtom } from "@/atoms/drag-resize-state";
 import { viewPreferencesAtom } from "@/atoms/view-preferences";
 import { DefaultStartHour } from "@/components/calendar/constants";
 import { DraggableEvent } from "@/components/calendar/event/draggable-event";
@@ -40,6 +39,7 @@ import { getEventsStartingOnPlainDate } from "@/components/calendar/utils/event"
 import { getGridPosition } from "@/components/calendar/utils/multi-day-layout";
 import { cn, groupArrayIntoChunks } from "@/lib/utils";
 import { createDraftEvent } from "@/lib/utils/calendar";
+import { DragAwareWrapper } from "../event/drag-aware-wrapper";
 import { EventCollectionItem } from "../hooks/event-collection";
 import { useDoubleClickToCreate } from "../hooks/use-double-click-to-create";
 import {
@@ -448,17 +448,14 @@ function PositionedEvent({
     isAfter(eventStart, weekStart) || isSameDay(eventStart, weekStart);
   const isLastDay = isBefore(eventEnd, weekEnd) || isSameDay(eventEnd, weekEnd);
 
-  const isDragging = useAtomValue(isDraggingAtom);
-
   return (
-    <div
+    <DragAwareWrapper
       key={item.event.id}
+      eventId={item.event.id}
       className="pointer-events-auto my-[1px] min-w-0"
       style={{
         gridColumn: `${colStart + 1} / span ${span}`,
         gridRow: y + 1,
-        position: isDragging ? "relative" : "static",
-        zIndex: isDragging ? 99999 : "auto",
       }}
     >
       <DraggableEvent
@@ -467,10 +464,9 @@ function PositionedEvent({
         containerRef={containerRef}
         isFirstDay={isFirstDay}
         isLastDay={isLastDay}
-        zIndex={isDragging ? 99999 : undefined}
         rows={rows}
       />
-    </div>
+    </DragAwareWrapper>
   );
 }
 

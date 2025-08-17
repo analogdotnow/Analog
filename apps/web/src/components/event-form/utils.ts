@@ -28,6 +28,7 @@ export function createDefaultEvent({
 
   return {
     id: createEventId(),
+    type: "draft",
     title: "",
     start,
     end: start.add(duration),
@@ -90,6 +91,7 @@ export function parseDraftEvent({
 
   return {
     id: event?.id ?? createEventId(),
+    type: "draft",
     title: event.title ?? "",
     start: toZonedDateTime({
       date: event.start,
@@ -145,6 +147,7 @@ export function parseCalendarEvent({
 
   return {
     id: event.id,
+    type: "event",
     title: event.title ?? "",
     start,
     end,

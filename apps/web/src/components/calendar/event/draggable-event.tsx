@@ -11,7 +11,11 @@ import {
 import { Temporal } from "temporal-polyfill";
 
 import { cellHeightAtom } from "@/atoms/cell-height";
-import { isDraggingAtom, isResizingAtom } from "@/atoms/drag-resize-state";
+import {
+  addDraggedEventIdAtom,
+  isResizingAtom,
+  removeDraggedEventIdAtom,
+} from "@/atoms/drag-resize-state";
 import { EventContextMenu } from "@/components/calendar/event/event-context-menu";
 import { EventItem } from "@/components/calendar/event/event-item";
 import { ContextMenuTrigger } from "@/components/ui/context-menu";
@@ -65,8 +69,9 @@ export function DraggableEvent({
   const transform = useMotionTemplate`translate(${left}px,${top}px)`;
 
   const cellHeight = useAtomValue(cellHeightAtom);
-  const setIsDragging = useSetAtom(isDraggingAtom);
   const setIsResizing = useSetAtom(isResizingAtom);
+  const addDraggedEventId = useSetAtom(addDraggedEventIdAtom);
+  const removeDraggedEventId = useSetAtom(removeDraggedEventIdAtom);
 
   const updateAction = useUpdateAction();
 
@@ -77,7 +82,7 @@ export function DraggableEvent({
   const onDragStart = (e: PointerEvent, info: PanInfo) => {
     // Prevent possible text/image dragging flash on some browsers
     e.preventDefault();
-    setIsDragging(true);
+    addDraggedEventId(item.event.id);
 
     if (!containerRef.current) return;
 
@@ -100,7 +105,7 @@ export function DraggableEvent({
   };
 
   const onDragEnd = (_e: PointerEvent, info: PanInfo) => {
-    setIsDragging(false);
+    removeDraggedEventId(item.event.id);
     top.set(0);
     left.set(0);
 

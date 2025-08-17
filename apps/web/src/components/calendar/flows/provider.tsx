@@ -1,3 +1,5 @@
+import { CreateEventAttendeeDialog } from "./create-event/create-event-attendee-dialog";
+import { CreateQueueProvider } from "./create-event/create-queue-provider";
 import { DeleteEventAttendeeDialog } from "./delete-event/delete-event-attendee-dialog";
 import { DeleteQueueProvider } from "./delete-event/delete-queue-provider";
 import { DeleteRecurringEventDialog } from "./delete-event/delete-recurring-event-dialog";
@@ -11,14 +13,17 @@ interface FlowsProviderProps {
 
 export function FlowsProvider({ children }: FlowsProviderProps) {
   return (
-    <UpdateQueueProvider>
-      <UpdateEventAttendeeDialog />
-      <UpdateRecurringEventDialog />
-      <DeleteQueueProvider>
-        <DeleteEventAttendeeDialog />
-        <DeleteRecurringEventDialog />
-        {children}
-      </DeleteQueueProvider>
-    </UpdateQueueProvider>
+    <CreateQueueProvider>
+      <CreateEventAttendeeDialog />
+      <UpdateQueueProvider>
+        <UpdateEventAttendeeDialog />
+        <UpdateRecurringEventDialog />
+        <DeleteQueueProvider>
+          <DeleteEventAttendeeDialog />
+          <DeleteRecurringEventDialog />
+          {children}
+        </DeleteQueueProvider>
+      </UpdateQueueProvider>
+    </CreateQueueProvider>
   );
 }

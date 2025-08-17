@@ -9,7 +9,6 @@ import { Temporal } from "temporal-polyfill";
 import { isToday, isWeekend, toDate } from "@repo/temporal";
 
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
-import { isDraggingAtom } from "@/atoms/drag-resize-state";
 import { viewPreferencesAtom } from "@/atoms/view-preferences";
 import { DragPreview } from "@/components/calendar/event/drag-preview";
 import { DraggableEvent } from "@/components/calendar/event/draggable-event";
@@ -29,6 +28,7 @@ import {
 import { getGridPosition } from "@/components/calendar/utils/multi-day-layout";
 import { cn } from "@/lib/utils";
 import { createDraftEvent } from "@/lib/utils/calendar";
+import { DragAwareWrapper } from "../event/drag-aware-wrapper";
 import { EventCollectionItem } from "../hooks/event-collection";
 import { useEdgeAutoScroll } from "../hooks/use-auto-scroll";
 import { useDoubleClickToCreate } from "../hooks/use-double-click-to-create";
@@ -341,18 +341,15 @@ function WeekViewPositionedEvent({
     return { isFirstDay, isLastDay };
   }, [item.start, item.end, weekStart, weekEnd]);
 
-  const isDragging = useAtomValue(isDraggingAtom);
-
   return (
-    <div
+    <DragAwareWrapper
       key={item.event.id}
+      eventId={item.event.id}
       className="pointer-events-auto my-[1px] min-w-0"
       style={{
         // Add 1 to colStart to account for the time column
         gridColumn: `${colStart + 2} / span ${span}`,
         gridRow: y + 1,
-        position: isDragging ? "relative" : "static",
-        zIndex: isDragging ? 99999 : "auto",
       }}
     >
       <DraggableEvent
@@ -361,10 +358,9 @@ function WeekViewPositionedEvent({
         containerRef={containerRef}
         isFirstDay={isFirstDay}
         isLastDay={isLastDay}
-        zIndex={isDragging ? 99999 : undefined}
         rows={1}
       />
-    </div>
+    </DragAwareWrapper>
   );
 }
 
@@ -377,20 +373,17 @@ function PositionedEvent({
   positionedEvent,
   containerRef,
 }: PositionedEventProps) {
-  const isDragging = useAtomValue(isDraggingAtom);
-
   return (
-    <div
+    <DragAwareWrapper
       key={positionedEvent.item.event.id}
+      eventId={positionedEvent.item.event.id}
       className="absolute z-10"
       style={{
         top: `${positionedEvent.top}px`,
         height: `${positionedEvent.height}px`,
         left: `${positionedEvent.left * 100}%`,
         width: `${positionedEvent.width * 100}%`,
-        zIndex: isDragging ? 9999 : positionedEvent.zIndex,
       }}
-      onClick={(e) => e.stopPropagation()}
     >
       <DraggableEvent
         item={positionedEvent.item}
@@ -399,7 +392,7 @@ function PositionedEvent({
         height={positionedEvent.height}
         containerRef={containerRef}
       />
-    </div>
+    </DragAwareWrapper>
   );
 }
 

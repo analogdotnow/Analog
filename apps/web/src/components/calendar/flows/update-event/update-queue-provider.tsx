@@ -44,7 +44,7 @@ export function UpdateQueueProvider({ children }: UpdateQueueProviderProps) {
         updateMutation.mutate(
           buildUpdateSeries(item.event, prevEvent, { sendUpdate }),
           {
-            onSuccess: () => {
+            onSettled: () => {
               removeOptimisticAction(item.optimisticId);
             },
           },
@@ -56,7 +56,7 @@ export function UpdateQueueProvider({ children }: UpdateQueueProviderProps) {
       updateMutation.mutate(
         buildUpdateEvent(item.event, prevEvent, { sendUpdate }),
         {
-          onSuccess: () => {
+          onSettled: () => {
             removeOptimisticAction(item.optimisticId);
           },
         },
