@@ -1,7 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, StarIcon } from "lucide-react";
-import { Variants } from "motion/react";
 
 import PreviewDark from "@/assets/dark-preview.png";
 import PreviewLight from "@/assets/preview.png";
@@ -10,16 +9,11 @@ import {
   delayedTransitionVariants,
   transitionVariants,
 } from "@/lib/transitions";
-import { HydrateClient, prefetch, trpc } from "@/lib/trpc/server";
 import { GitHub } from "../icons";
-import { WaitlistForm } from "./waitlist-form";
-
-// import { CalendarWindow } from "./calendar-window";
-// import { cn } from "@/lib/utils";
+import { Features } from "./features";
+import { Button } from "../ui/button";
 
 export function Hero() {
-  prefetch(trpc.earlyAccess.getWaitlistCount.queryOptions());
-
   return (
     <div className="flex w-full max-w-6xl flex-col gap-12 md:gap-16">
       <AnimatedGroup variants={transitionVariants}>
@@ -35,7 +29,7 @@ export function Hero() {
                   GitHub
                   <span className="inline-flex items-center gap-2">
                     <StarIcon className="size-3 fill-primary stroke-primary transition-colors duration-500 group-hover:fill-yellow-500 group-hover:stroke-yellow-500" />
-                    1.0k
+                    1.1k
                   </span>
                 </span>
                 <span className="block h-6 w-0.5 border-l bg-white dark:border-background dark:bg-neutral-700/20"></span>
@@ -96,6 +90,8 @@ export function Hero() {
           />
         </div>
       </AnimatedGroup>
+
+      <Features />
     </div>
   );
 }

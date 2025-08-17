@@ -29,9 +29,9 @@ const socialItems = [
 
 const menuItems = [
   { name: "Features", href: "#link" },
-  { name: "Solution", href: "#link" },
-  { name: "Pricing", href: "#link" },
-  { name: "About", href: "#link" },
+  // { name: "Solution", href: "#link" },
+  // { name: "Pricing", href: "#link" },
+  // { name: "About", href: "#link" },
 ];
 
 export function Header() {
@@ -56,7 +56,7 @@ export function Header() {
           className={cn(
             "mx-auto mt-2 max-w-6xl px-6 transition-all duration-300 lg:px-12",
             isScrolled &&
-              "max-w-4xl rounded-2xl border bg-background/50 backdrop-blur-lg lg:px-5",
+              "max-w-4xl rounded-2xl border bg-background/50 backdrop-blur-lg lg:px-5 dark:bg-white/5",
           )}
         >
           <div className="relative flex flex-wrap items-center justify-between gap-6 py-3 lg:gap-0 lg:py-4">
@@ -64,7 +64,7 @@ export function Header() {
               <Link
                 href="/"
                 aria-label="home"
-                className="flex items-center space-x-2 opacity-80 hover:opacity-100 duration-150"
+                className="flex items-center space-x-2 opacity-80 duration-150 hover:opacity-100"
               >
                 <Logo className="h-6" />
               </Link>
@@ -85,9 +85,9 @@ export function Header() {
                   <li key={index}>
                     <Link
                       href={item.href}
-                      className="block text-muted-foreground duration-150 hover:text-accent-foreground"
+                      className="block text-foreground text-medium duration-150 hover:text-accent-foreground"
                     >
-                      <span>{item.name}</span>
+                      {item.name}
                     </Link>
                   </li>
                 ))}
@@ -101,7 +101,7 @@ export function Header() {
                     <li key={index}>
                       <Link
                         href={item.href}
-                        className="block text-muted-foreground duration-150 hover:text-accent-foreground"
+                        className="block text-foreground duration-150 hover:text-accent-foreground"
                       >
                         <span>{item.name}</span>
                       </Link>
@@ -118,7 +118,7 @@ export function Header() {
                 >
                   {socialItems.map((item) => (
                     <a
-                      className="size-4 rounded-full hover:opacity-80 duration-150"
+                      className="size-4 rounded-full duration-150 hover:opacity-80"
                       href={item.href}
                       target="_blank"
                       rel="noopener noreferrer"
@@ -129,9 +129,9 @@ export function Header() {
                     </a>
                   ))}
                 </div>
-                <Button asChild size="sm" className={cn("font-medium")}>
-                  <Link href="#">
-                    <span>Sign In</span>
+                <Button asChild size="sm" className="font-medium">
+                  <Link href="/login" prefetch>
+                    Sign In
                   </Link>
                 </Button>
               </div>

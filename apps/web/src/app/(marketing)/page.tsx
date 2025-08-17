@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 
 import { auth } from "@repo/auth/server";
 
-import { Hero } from "@/components/sections/home/hero";
+import { Hero } from "@/components/landing/hero";
 
 // Required for tRPC prefetching
 export const dynamic = "force-dynamic";
