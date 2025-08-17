@@ -40,16 +40,16 @@ export function AttendeeListInput({
     [onComplete],
   );
 
-  const onCancel = React.useCallback(() => {
-    setSearchValue("");
-  }, []);
+  // const onCancel = React.useCallback(() => {
+  //   setSearchValue("");
+  // }, []);
 
-  const touched = searchValue.length > 0;
+  // const touched = searchValue.length > 0;
 
-  const onSend = React.useCallback(() => {
-    onInputChange(searchValue);
-    onSendInvite?.();
-  }, [onInputChange, onSendInvite, searchValue]);
+  // const onSend = React.useCallback(() => {
+  //   onInputChange(searchValue);
+  //   onSendInvite?.();
+  // }, [onInputChange, onSendInvite, searchValue]);
 
   return (
     <Combobox
@@ -79,7 +79,7 @@ export function AttendeeListInput({
         }}
         disabled={disabled}
       />
-      {unConfirmed || touched ? (
+      {/* {unConfirmed || touched ? (
         <div className="grid grid-cols-2 gap-2">
           <Button
             className="font-semibold"
@@ -99,7 +99,7 @@ export function AttendeeListInput({
             Send invite
           </Button>
         </div>
-      ) : null}
+      ) : null} */}
     </Combobox>
   );
 }
