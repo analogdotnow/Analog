@@ -38,7 +38,7 @@ export function makeQueryClient() {
                 if (window.location.href.includes("/login")) {
                   return;
                 }
-                
+
                 window.location.href = "/login?error=required_scopes_missing";
               },
             },
