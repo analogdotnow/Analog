@@ -73,30 +73,30 @@ export function CalendarView({ className, events }: CalendarViewProps) {
 
   const cellHeight = useAtomValue(cellHeightAtom);
 
-  // const { defaultTimeZone } = useAtomValue(calendarSettingsAtom);
-  // const filteredEvents = useMemo(() => {
-  //   // First filter past events
-  //   const pastFiltered = filterPastEvents(
-  //     events,
-  //     viewPreferences.showPastEvents,
-  //     defaultTimeZone,
-  //   );
+  const { defaultTimeZone } = useAtomValue(calendarSettingsAtom);
+  const filteredEvents = useMemo(() => {
+    // First filter past events
+    const pastFiltered = filterPastEvents(
+      events,
+      viewPreferences.showPastEvents,
+      defaultTimeZone,
+    );
 
-  //   return pastFiltered.filter((eventItem) => {
-  //     const preference = getCalendarPreference(
-  //       calendarPreferences,
-  //       eventItem.event.accountId,
-  //       eventItem.event.calendarId,
-  //     );
+    return pastFiltered.filter((eventItem) => {
+      const preference = getCalendarPreference(
+        calendarPreferences,
+        eventItem.event.accountId,
+        eventItem.event.calendarId,
+      );
 
-  //     return !(preference?.hidden === true);
-  //   });
-  // }, [
-  //   events,
-  //   viewPreferences.showPastEvents,
-  //   calendarPreferences,
-  //   defaultTimeZone,
-  // ]);
+      return !(preference?.hidden === true);
+    });
+  }, [
+    events,
+    viewPreferences.showPastEvents,
+    calendarPreferences,
+    defaultTimeZone,
+  ]);
 
   return (
     <div
@@ -119,7 +119,7 @@ export function CalendarView({ className, events }: CalendarViewProps) {
         ref={scrollContainerRef}
       >
         <CalendarContent
-          events={events}
+          events={filteredEvents}
           scrollContainerRef={scrollContainerRef}
         />
       </div>

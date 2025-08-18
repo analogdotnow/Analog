@@ -217,7 +217,6 @@ export function DraggableEvent({
 
     setIsResizing(true);
     startHeight.current = heightRef.current ?? 0;
-
     const rect = containerRef.current.getBoundingClientRect();
     resizeStartRelativeY.current = info.point.y - rect.top;
     resizeInitializedRef.current = true;
@@ -232,7 +231,6 @@ export function DraggableEvent({
 
     setIsResizing(true);
     startHeight.current = heightRef.current ?? 0;
-
     const rect = containerRef.current.getBoundingClientRect();
     resizeStartRelativeY.current = info.point.y - rect.top;
     resizeInitializedRef.current = true;

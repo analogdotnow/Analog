@@ -115,8 +115,8 @@ export function EventForm() {
   const selectedEvents = useSelectedEvents();
   // const selectedEvents = useAtomValue(selectedEventsAtom);
   const trpc = useTRPC();
-  const query = useQuery(trpc.calendars.list.queryOptions());
-  const defaultCalendar = query.data?.defaultCalendar;
+  const { data: calendars } = useQuery(trpc.calendars.list.queryOptions());
+  const defaultCalendar = calendars?.defaultCalendar;
 
   const [event, setEvent] = useAtom(formEventAtom);
 
@@ -140,7 +140,7 @@ export function EventForm() {
     validators: {
       onBlur: formSchema,
       onSubmit: ({ value }) => {
-        if (!query.data) {
+        if (!calendars) {
           return {
             fields: {
               calendar: "Calendar not found",
@@ -148,7 +148,7 @@ export function EventForm() {
           };
         }
 
-        const calendar = findCalendar(query.data.accounts, {
+        const calendar = findCalendar(calendars.accounts, {
           calendarId: value.calendar.calendarId,
           accountId: value.calendar.accountId,
         });
@@ -176,7 +176,7 @@ export function EventForm() {
     },
     onSubmit: async ({ value, formApi, meta }) => {
       // Already validated in the validators
-      const calendar = findCalendar(query.data!.accounts, {
+      const calendar = findCalendar(calendars!.accounts, {
         calendarId: value.calendar.calendarId,
         accountId: value.calendar.accountId,
       })!;
@@ -592,7 +592,7 @@ export function EventForm() {
                 className="px-4 text-base"
                 id={field.name}
                 value={field.state.value}
-                items={query.data?.accounts ?? []}
+                items={calendars?.accounts ?? []}
                 onChange={(value) => {
                   field.handleChange(value);
                   field.handleBlur();
