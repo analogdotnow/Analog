@@ -190,6 +190,7 @@ export function toCalendarEvent({
 }: ToCalendarEvent): CalendarEvent {
   return {
     ...event,
+    type: "event",
     id: event?.id ?? values.id,
     title: values.title,
     location: values.location,
@@ -200,7 +201,6 @@ export function toCalendarEvent({
     providerId: values.providerId,
     start: values.isAllDay ? values.start.toPlainDate() : values.start,
     end: values.isAllDay ? values.end.toPlainDate() : values.end,
-    color: calendar?.color,
     readOnly: false,
     attendees: values.attendees.length > 0 ? values.attendees : undefined,
     recurrence: values.recurrence,
