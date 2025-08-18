@@ -1,7 +1,10 @@
 import {
+  QueryCache,
   QueryClient,
   defaultShouldDehydrateQuery,
 } from "@tanstack/react-query";
+
+import { authClient } from "@repo/auth/client";
 
 import { superjson as SuperJSON } from "./superjson";
 
@@ -26,6 +29,27 @@ export function makeQueryClient() {
         deserializeData: SuperJSON.deserialize,
       },
     },
+    queryCache: new QueryCache({
+      onError: (error) => {
+        if (error.message.includes("ACCESS_TOKEN_SCOPE_INSUFFICIENT")) {
+          authClient.signOut({
+            fetchOptions: {
+              onSuccess: () => {
+                if (window.location.href.includes("/login")) {
+                  return;
+                }
+                
+                window.location.href = "/login?error=required_scopes_missing";
+              },
+            },
+          });
+
+          return;
+        }
+
+        console.error(error.message || "Something went wrong");
+      },
+    }),
   });
 }
 
