@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
 
 import { auth } from "@repo/auth/server";
 
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { SignInForm } from "./sign-in-form";
 
 export const metadata: Metadata = {
@@ -35,7 +35,8 @@ export default async function Page({
               <AlertTriangle />
               {/* <AlertTitle>Heads up!</AlertTitle> */}
               <AlertDescription>
-                To ensure your Google calendars are accessible, please sign in again and grant the requested permissions.
+                To ensure your Google calendars are accessible, please sign in
+                again and grant the requested permissions.
               </AlertDescription>
             </Alert>
           </div>
