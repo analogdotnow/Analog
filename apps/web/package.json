@@ -50,7 +50,7 @@
     "@repo/auth": "workspace:*",
     "@repo/env": "workspace:*",
     "@repo/temporal": "workspace:*",
-    "@sentry/nextjs": "^9.35.0",
+    "@sentry/nextjs": "^10.5.0",
     "@simpleanalytics/next": "https://pkg.pr.new/simpleanalytics/next/@simpleanalytics/next@d059322",
     "@tailwindcss/typography": "^0.5.16",
     "@tanstack/query-async-storage-persister": "^5.83.0",
