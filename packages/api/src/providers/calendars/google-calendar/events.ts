@@ -72,7 +72,7 @@ function normalizeGoogleTimeZone(timeZone: string) {
   // If minutes are provided and not 00, fall back to a UTC offset which Temporal supports.
   const hh = hoursStr.padStart(2, "0");
   const mm = minutesStr && minutesStr !== "00" ? minutesStr : "00";
-  
+
   return `${sign}${hh}:${mm}`;
 }
 
