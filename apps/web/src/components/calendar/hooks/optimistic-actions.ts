@@ -1,9 +1,9 @@
 import { atom } from "jotai";
 
-import { CalendarEvent, DraftEvent } from "@/lib/interfaces";
+import type { CalendarEvent } from "@/lib/interfaces";
 
 export type OptimisticAction =
-  | { id?: string; type: "draft"; eventId: string; event: DraftEvent }
+  | { id?: string; type: "draft"; eventId: string; event: CalendarEvent }
   | { id?: string; type: "create"; eventId: string; event: CalendarEvent }
   | { id?: string; type: "update"; eventId: string; event: CalendarEvent }
   // | { type: "select"; eventId: string; event: CalendarEvent }
@@ -49,7 +49,7 @@ export const getEventOptimisticActions = (eventId: string) =>
   atom((get) => {
     const actions = get(optimisticActionsAtom);
     return Object.entries(actions)
-      .filter(([_, action]) => action.eventId === eventId)
+      .filter(([, action]) => action.eventId === eventId)
       .map(([id, action]) => ({ id, ...action }));
   });
 
@@ -71,3 +71,17 @@ export const removeOptimisticActionAtom = atom(null, (get, set, id: string) => {
   const { [id]: _, ...rest } = currentActions;
   set(optimisticActionsAtom, rest);
 });
+
+export const removeDraftOptimisticActionsByEventIdAtom = atom(
+  null,
+  (get, set, eventId: string) => {
+    const currentActions = get(optimisticActionsAtom);
+    const filtered = Object.fromEntries(
+      Object.entries(currentActions).filter(([, action]) => {
+        if (action.eventId !== eventId) return true;
+        return action.type !== "draft";
+      }),
+    );
+    set(optimisticActionsAtom, filtered);
+  },
+);
