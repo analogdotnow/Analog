@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 export default async function Page({
   searchParams,
 }: {
-  searchParams?: Record<string, string | string[] | undefined>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const session = await auth.api.getSession({ headers: await headers() });
 
@@ -23,7 +23,7 @@ export default async function Page({
     redirect("/calendar");
   }
 
-  const errorParam = searchParams?.error;
+  const errorParam = (await searchParams)?.error;
   const showReauthAlert = errorParam === "required_scopes_missing";
 
   return (
