@@ -47,6 +47,35 @@ function parseDate({ date }: GoogleCalendarDate) {
   return Temporal.PlainDate.from(date);
 }
 
+function normalizeGoogleTimeZone(timeZone: string) {
+  // Normalize Google-style GMT offsets to IANA or UTC-compatible time zones
+  if (!timeZone) {
+    return timeZone;
+  }
+
+  if (timeZone === "GMT") {
+    return "UTC";
+  }
+
+  const match = /^GMT([+-])(\d{1,2})(?::?([0-5]\d))?$/.exec(timeZone);
+
+  if (!match) {
+    return timeZone;
+  }
+
+  const [, sign, hoursStr, minutesStr] = match;
+
+  if (!sign || !hoursStr) {
+    return timeZone;
+  }
+
+  // If minutes are provided and not 00, fall back to a UTC offset which Temporal supports.
+  const hh = hoursStr.padStart(2, "0");
+  const mm = minutesStr && minutesStr !== "00" ? minutesStr : "00";
+  
+  return `${sign}${hh}:${mm}`;
+}
+
 function parseDateTime({ dateTime, timeZone }: GoogleCalendarDateTime) {
   const instant = Temporal.Instant.from(dateTime);
 
@@ -54,7 +83,8 @@ function parseDateTime({ dateTime, timeZone }: GoogleCalendarDateTime) {
     return instant;
   }
 
-  return instant.toZonedDateTimeISO(timeZone);
+  const normalized = normalizeGoogleTimeZone(timeZone);
+  return instant.toZonedDateTimeISO(normalized);
 }
 
 function parseResponseStatus(event: GoogleCalendarEvent) {
@@ -80,7 +110,10 @@ function parseRecurrence(
     return undefined;
   }
 
-  return fromRecurrenceProperties(event.recurrence, timeZone);
+  return fromRecurrenceProperties(
+    event.recurrence,
+    normalizeGoogleTimeZone(timeZone),
+  );
 }
 
 interface ParsedGoogleCalendarEventOptions {

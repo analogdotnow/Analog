@@ -50,31 +50,7 @@ function GlobeIcon({ offset, className }: GlobeIconProps) {
 }
 
 const formattedTimezones = timezones
-  .map((timezone) => {
-    const formatter = new Intl.DateTimeFormat("en", {
-      timeZone: timezone,
-      timeZoneName: "longOffset",
-    });
-    const parts = formatter.formatToParts(new Date());
-    const offset =
-      parts.find((part) => part.type === "timeZoneName")?.value || "";
-    const modifiedOffset =
-      offset === "GMT" || offset === "GMT-00:00" ? "GMT+00:00" : offset;
-    const modifiedLabel = timezone
-      .replace(/_/g, " ")
-      .replaceAll("/", " - ")
-      .replace("UTC", "Coordinated Universal Time");
-
-    return {
-      value: timezone,
-      sign: modifiedOffset.includes("+") ? "+" : "-",
-      offset: modifiedOffset.replace("GMT", "").slice(1),
-      label: modifiedLabel,
-      numericOffset: Number.parseInt(
-        offset.replace("GMT", "").replace("+", "") || "0",
-      ),
-    };
-  })
+  .map((timeZone) => getDisplayValue(timeZone))
   .sort((a, b) => a.numericOffset - b.numericOffset);
 
 interface TimezoneSelectProps {
@@ -84,6 +60,31 @@ interface TimezoneSelectProps {
   onChange: (value: string) => void;
   disabled?: boolean;
   isDirty?: boolean;
+}
+function getDisplayValue(timeZone: string) {
+  const formatter = new Intl.DateTimeFormat("en", {
+    timeZone,
+    timeZoneName: "longOffset",
+  });
+  const parts = formatter.formatToParts(new Date());
+  const offset =
+    parts.find((part) => part.type === "timeZoneName")?.value || "";
+  const modifiedOffset =
+    offset === "GMT" || offset === "GMT-00:00" ? "GMT+00:00" : offset;
+  const modifiedLabel = timeZone
+    .replace(/_/g, " ")
+    .replaceAll("/", " - ")
+    .replace("UTC", "Coordinated Universal Time");
+
+  return {
+    value: timeZone,
+    sign: modifiedOffset.includes("+") ? "+" : "-",
+    offset: modifiedOffset.replace("GMT", "").slice(1),
+    label: modifiedLabel,
+    numericOffset: Number.parseInt(
+      offset.replace("GMT", "").replace("+", "") || "0",
+    ),
+  };
 }
 
 export function TimezoneSelect({
@@ -101,7 +102,7 @@ export function TimezoneSelect({
 
       return {
         sortedTimezones: formattedTimezones,
-        displayValue: timezone,
+        displayValue: timezone ?? getDisplayValue(value),
       };
     }
     const sortedTimezones = [
@@ -113,7 +114,7 @@ export function TimezoneSelect({
 
     return {
       sortedTimezones,
-      displayValue: timezone,
+      displayValue: timezone ?? getDisplayValue(value),
     };
   }, [value]);
 
