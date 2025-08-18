@@ -4,7 +4,10 @@ import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSetAtom } from "jotai";
 
-import { selectedEventsAtom } from "@/atoms/selected-events";
+import {
+  selectedEventIdsAtom,
+  selectedEventsAtom,
+} from "@/atoms/selected-events";
 import type { CalendarEvent, DraftEvent } from "@/lib/interfaces";
 import { useTRPC } from "@/lib/trpc/client";
 import {
@@ -14,6 +17,7 @@ import {
 
 export function useCreateDraftAction() {
   const setSelectedEvents = useSetAtom(selectedEventsAtom);
+  const setSelectedEventIds = useSetAtom(selectedEventIdsAtom);
   const addOptimisticAction = useSetAtom(addOptimisticActionAtom);
   const trpc = useTRPC();
   const query = useQuery(trpc.calendars.list.queryOptions());
@@ -41,18 +45,21 @@ export function useCreateDraftAction() {
         },
       });
       setSelectedEvents([event]);
+      setSelectedEventIds([event.id]);
     },
     [
       unselectAllAction,
       query.data?.defaultCalendar,
       addOptimisticAction,
       setSelectedEvents,
+      setSelectedEventIds,
     ],
   );
 }
 
 export function useSelectAction() {
   const setSelectedEvents = useSetAtom(selectedEventsAtom);
+  const setSelectedEventIds = useSetAtom(selectedEventIdsAtom);
   const removeDraftOptimisticActionsByEventId = useSetAtom(
     removeDraftOptimisticActionsByEventIdAtom,
   );
@@ -67,13 +74,19 @@ export function useSelectAction() {
         }
         return [event];
       });
+      setSelectedEventIds((prev) => [...prev, event.id]);
     },
-    [setSelectedEvents, removeDraftOptimisticActionsByEventId],
+    [
+      setSelectedEvents,
+      removeDraftOptimisticActionsByEventId,
+      setSelectedEventIds,
+    ],
   );
 }
 
 export function useUnselectAction() {
   const setSelectedEvents = useSetAtom(selectedEventsAtom);
+  const setSelectedEventIds = useSetAtom(selectedEventIdsAtom);
   const removeDraftOptimisticActionsByEventId = useSetAtom(
     removeDraftOptimisticActionsByEventIdAtom,
   );
@@ -86,13 +99,19 @@ export function useUnselectAction() {
       if (event.type === "draft") {
         removeDraftOptimisticActionsByEventId(event.id);
       }
+      setSelectedEventIds((prev) => prev.filter((id) => id !== event.id));
     },
-    [setSelectedEvents, removeDraftOptimisticActionsByEventId],
+    [
+      setSelectedEvents,
+      removeDraftOptimisticActionsByEventId,
+      setSelectedEventIds,
+    ],
   );
 }
 
 export function useUnselectAllAction() {
   const setSelectedEvents = useSetAtom(selectedEventsAtom);
+  const setSelectedEventIds = useSetAtom(selectedEventIdsAtom);
   const removeDraftOptimisticActionsByEventId = useSetAtom(
     removeDraftOptimisticActionsByEventIdAtom,
   );
@@ -106,5 +125,10 @@ export function useUnselectAllAction() {
       }
       return [];
     });
-  }, [setSelectedEvents, removeDraftOptimisticActionsByEventId]);
+    setSelectedEventIds([]);
+  }, [
+    setSelectedEvents,
+    removeDraftOptimisticActionsByEventId,
+    setSelectedEventIds,
+  ]);
 }

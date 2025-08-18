@@ -125,6 +125,12 @@ export function TimezoneSelect({
   // merely hidden via CSS.
   const [search, setSearch] = React.useState("");
 
+  React.useEffect(() => {
+    // Reset search and close popover when value changes externally
+    setSearch("");
+    setOpen(false);
+  }, [value]);
+
   const filteredTimezones = React.useMemo(() => {
     if (!search) return sortedTimezones;
 

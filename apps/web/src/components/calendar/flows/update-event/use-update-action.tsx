@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useSetAtom } from "jotai";
 
-import { addOptimisticActionAtom } from "../../hooks/optimistic-actions";
+import { addOptimisticActionAtom, generateOptimisticId } from "../../hooks/optimistic-actions";
 import type { UpdateQueueItem, UpdateQueueRequest } from "./update-queue";
 import { UpdateQueueContext } from "./update-queue-provider";
 
@@ -12,10 +12,15 @@ export function useUpdateAction() {
 
   const update = React.useCallback(
     async (req: UpdateQueueRequest) => {
-      const optimisticId = addOptimisticAction({
-        type: "update",
-        eventId: req.event.id,
-        event: req.event,
+      const optimisticId = generateOptimisticId();
+
+      React.startTransition(() => {
+        addOptimisticAction({
+          id: optimisticId,
+          type: "update",
+          eventId: req.event.id,
+          event: req.event,
+        });
       });
 
       const item: UpdateQueueItem = {
