@@ -202,14 +202,12 @@ export function TimeInput({
     setInput(formatted);
     setSearchValue("");
     setIsOpen(false);
-    console.log("hi", value, formatted);
     // Intentionally omit setIsOpen from deps to avoid effect firing on parent callback identity changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value, use12Hour, locale, setSearchValue]);
 
   const onComplete = React.useCallback(
     (newValue: string) => {
-      console.log("hi", newValue);
       const date = parseDate(newValue);
 
       if (!date) {
@@ -235,7 +233,6 @@ export function TimeInput({
   );
 
   const onInputChange = React.useCallback((newValue: string) => {
-    console.log("input change", newValue);
     setInput(newValue);
   }, []);
 
@@ -245,7 +242,6 @@ export function TimeInput({
       setOpen={setIsOpen}
       value={input}
       setValue={(value) => {
-        console.log("set value", value);
         setSearchValue(value);
         onInputChange(value);
       }}
@@ -255,11 +251,9 @@ export function TimeInput({
         id={id}
         className={cn("font-medium", className)}
         onChange={(e) => {
-          console.log("blur");
           onComplete(e.target.value);
         }}
         onKeyDown={(e) => {
-          console.log("key down");
           if (e.key !== "Enter") {
             return;
           }
