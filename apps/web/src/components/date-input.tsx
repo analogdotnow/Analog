@@ -70,6 +70,7 @@ export function DateInput({
     setDate(date);
     setMonth(date);
     setInput(formatDate({ date, locale }));
+    setOpen(false);
   }, [value, locale]);
 
   const onComplete = React.useCallback(

@@ -9,13 +9,14 @@ import {
   VideoCameraIcon,
 } from "@heroicons/react/16/solid";
 import { useQuery } from "@tanstack/react-query";
-import { useAtomValue } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import { useOnClickOutside } from "usehooks-ts";
 
 import {
   CalendarSettings,
   calendarSettingsAtom,
 } from "@/atoms/calendar-settings";
+import { formEventAtom } from "@/atoms/selected-events";
 import {
   createDefaultEvent,
   parseCalendarEvent,
@@ -106,13 +107,15 @@ function findCalendar(
     .find((c) => c.id === calendarId && c.accountId === accountId);
 }
 
-export function EventForm({ defaultCalendar }: EventFormProps) {
+export function EventForm() {
   const settings = useAtomValue(calendarSettingsAtom);
   const selectedEvents = useSelectedEvents();
-  const trpc = useTRPC();
-  const query = useQuery(trpc.calendars.list.queryOptions());
 
-  const [event, setEvent] = React.useState(selectedEvents[0]);
+  const trpc = useTRPC();
+  const { data: calendars } = useQuery(trpc.calendars.list.queryOptions());
+  const defaultCalendar = calendars?.defaultCalendar;
+
+  const [event, setEvent] = useAtom(formEventAtom);
 
   const disabled = event?.readOnly;
 
@@ -134,7 +137,7 @@ export function EventForm({ defaultCalendar }: EventFormProps) {
     validators: {
       onBlur: formSchema,
       onSubmit: ({ value }) => {
-        if (!query.data) {
+        if (!calendars) {
           return {
             fields: {
               calendar: "Calendar not found",
@@ -142,7 +145,7 @@ export function EventForm({ defaultCalendar }: EventFormProps) {
           };
         }
 
-        const calendar = findCalendar(query.data.accounts, {
+        const calendar = findCalendar(calendars.accounts, {
           calendarId: value.calendar.calendarId,
           accountId: value.calendar.accountId,
         });
@@ -170,13 +173,13 @@ export function EventForm({ defaultCalendar }: EventFormProps) {
     },
     onSubmit: async ({ value, formApi, meta }) => {
       // Already validated in the validators
-      const calendar = findCalendar(query.data!.accounts, {
+      const calendar = findCalendar(calendars!.accounts, {
         calendarId: value.calendar.calendarId,
         accountId: value.calendar.accountId,
       })!;
 
       // If unchanged, do nothing
-      if (!formApi.state.isDirty || formApi.state.isDefaultValue) {
+      if (!formApi.state.isDirty && formApi.state.isDefaultValue) {
         return;
       }
 
@@ -187,14 +190,18 @@ export function EventForm({ defaultCalendar }: EventFormProps) {
           event: toCalendarEvent({ values: value, event, calendar }),
           notify: formMeta?.sendUpdate,
         });
-      } else {
-        await updateAction({
-          event: toCalendarEvent({ values: value, event, calendar }),
-          notify: formMeta?.sendUpdate,
-        });
+
+        focusRef.current = false;
+        formApi.reset();
       }
 
+      await updateAction({
+        event: toCalendarEvent({ values: value, event, calendar }),
+        notify: formMeta?.sendUpdate,
+      });
+
       focusRef.current = false;
+      formApi.reset();
     },
     listeners: {
       onBlur: async ({ formApi }) => {
@@ -203,8 +210,7 @@ export function EventForm({ defaultCalendar }: EventFormProps) {
         // If unchanged or invalid, do nothing
         if (
           !formApi.state.isValid ||
-          formApi.state.isDefaultValue ||
-          !formApi.state.isDirty
+          (formApi.state.isDefaultValue && !formApi.state.isDirty)
         ) {
           return;
         }
@@ -241,11 +247,15 @@ export function EventForm({ defaultCalendar }: EventFormProps) {
     }
 
     // If the form is modified and the event changes, keep the modified values
-    if (!form.state.isDefaultValue && selectedEvent?.id === event?.id) {
+    if (
+      !form.state.isDefaultValue &&
+      form.state.isDirty &&
+      selectedEvent?.id === event?.id
+    ) {
       return;
     }
 
-    if (!form.state.isDefaultValue) {
+    if (!form.state.isDefaultValue && form.state.isDirty) {
       form.handleSubmit();
     }
 
@@ -257,7 +267,7 @@ export function EventForm({ defaultCalendar }: EventFormProps) {
     focusRef.current = true;
 
     form.reset();
-  }, [selectedEvents, event, form]);
+  }, [selectedEvents, event, form, defaultCalendar, settings, setEvent]);
 
   return (
     <form
@@ -527,7 +537,7 @@ export function EventForm({ defaultCalendar }: EventFormProps) {
                 className="px-4 text-base"
                 id={field.name}
                 value={field.state.value}
-                items={query.data?.accounts ?? []}
+                items={calendars?.accounts ?? []}
                 onChange={(value) => {
                   field.handleChange(value);
                   field.handleBlur();

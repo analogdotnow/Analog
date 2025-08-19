@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { startTransition, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { format } from "@formkit/tempo";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { parseDate } from "chrono-node";
@@ -193,13 +193,18 @@ export function TimeInput({
   );
   const { suggestions, searchValue, setSearchValue } = useTimeSuggestions();
 
-  React.useEffect(() => {
-    setInput(formatTime({ value, use12Hour, locale }));
-  }, [value, use12Hour, locale]);
-
   const [uncontrolledOpen, setUncontrolledOpen] = React.useState(false);
   const isOpen = open !== undefined ? open : uncontrolledOpen;
   const setIsOpen = onOpenChange ?? setUncontrolledOpen;
+
+  React.useEffect(() => {
+    const formatted = formatTime({ value, use12Hour, locale });
+    setInput(formatted);
+    setSearchValue("");
+    setIsOpen(false);
+    // Intentionally omit setIsOpen from deps to avoid effect firing on parent callback identity changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value, use12Hour, locale, setSearchValue]);
 
   const onComplete = React.useCallback(
     (newValue: string) => {
@@ -207,6 +212,8 @@ export function TimeInput({
 
       if (!date) {
         setInput(formatTime({ value, use12Hour, locale }));
+        setSearchValue("");
+        setIsOpen(false);
         return;
       }
 
@@ -219,9 +226,10 @@ export function TimeInput({
 
       onChange(parsedZonedDateTime);
       setInput(formatTime({ value: parsedZonedDateTime, use12Hour, locale }));
+      setSearchValue("");
       setIsOpen(false);
     },
-    [use12Hour, locale, value, onChange, setIsOpen],
+    [use12Hour, locale, value, onChange, setIsOpen, setSearchValue],
   );
 
   const onInputChange = React.useCallback((newValue: string) => {
@@ -234,17 +242,17 @@ export function TimeInput({
       setOpen={setIsOpen}
       value={input}
       setValue={(value) => {
-        startTransition(() => {
-          setSearchValue(value);
-          onInputChange(value);
-        });
+        setSearchValue(value);
+        onInputChange(value);
       }}
     >
       <ComboboxLabel className="sr-only">Time</ComboboxLabel>
       <ComboboxInput
         id={id}
         className={cn("font-medium", className)}
-        onBlur={(e) => onComplete(e.target.value)}
+        onChange={(e) => {
+          onComplete(e.target.value);
+        }}
         onKeyDown={(e) => {
           if (e.key !== "Enter") {
             return;
@@ -258,6 +266,7 @@ export function TimeInput({
         value={value}
         searchValue={searchValue}
         suggestions={suggestions}
+        onSelect={onComplete}
       />
     </Combobox>
   );
@@ -267,9 +276,10 @@ interface TimeInputListProps {
   value: Temporal.ZonedDateTime;
   suggestions: TimeInputValue[];
   searchValue: string;
+  onSelect: (value: string) => void;
 }
 
-function TimeInputList({ suggestions }: TimeInputListProps) {
+function TimeInputList({ suggestions, onSelect }: TimeInputListProps) {
   const parentRef = React.useRef<HTMLDivElement | null>(null);
 
   const rowVirtualizer = useVirtualizer({
@@ -297,6 +307,7 @@ function TimeInputList({ suggestions }: TimeInputListProps) {
               value={item?.label}
               className="absolute left-0 w-full ps-7 text-sm font-medium tabular-nums"
               style={{ transform: `translateY(${virtualRow.start}px)` }}
+              onClick={() => item && onSelect(item.label)}
             />
           );
         })}
@@ -305,14 +316,4 @@ function TimeInputList({ suggestions }: TimeInputListProps) {
   );
 }
 
-const MemoizedTimeInputList = React.memo(
-  TimeInputList,
-  (prevProps, nextProps) => {
-    return (
-      prevProps.value === nextProps.value &&
-      prevProps.searchValue === nextProps.searchValue
-    );
-  },
-);
-
-export const MemoizedTimeInput = React.memo(TimeInput);
+const MemoizedTimeInputList = React.memo(TimeInputList);

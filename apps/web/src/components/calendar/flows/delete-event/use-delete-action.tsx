@@ -1,7 +1,10 @@
 import * as React from "react";
 import { useSetAtom } from "jotai";
 
-import { addOptimisticActionAtom } from "../../hooks/optimistic-actions";
+import {
+  addOptimisticActionAtom,
+  generateOptimisticId,
+} from "../../hooks/optimistic-actions";
 import type { DeleteQueueItem, DeleteQueueRequest } from "./delete-queue";
 import { DeleteQueueContext } from "./delete-queue-provider";
 
@@ -12,9 +15,14 @@ export function useDeleteAction() {
 
   const update = React.useCallback(
     async (req: DeleteQueueRequest) => {
-      const optimisticId = addOptimisticAction({
-        type: "delete",
-        eventId: req.event.id,
+      const optimisticId = generateOptimisticId();
+
+      React.startTransition(() => {
+        addOptimisticAction({
+          id: optimisticId,
+          type: "delete",
+          eventId: req.event.id,
+        });
       });
 
       const item: DeleteQueueItem = {
@@ -25,6 +33,9 @@ export function useDeleteAction() {
       };
 
       actorRef.send({ type: "START", item });
+
+      // Return optimistic id to allow callers to await completion externally
+      return optimisticId;
     },
     [actorRef, addOptimisticAction],
   );

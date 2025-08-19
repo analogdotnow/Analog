@@ -1,22 +1,36 @@
 import * as React from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useAtomValue } from "jotai";
 
 import { isBefore } from "@repo/temporal";
 
-import { calendarSettingsAtom } from "@/atoms/calendar-settings";
-import { convertEventToItem } from "./event-collection";
+import { useTRPC } from "@/lib/trpc/client";
+import { convertEventToItem, mapEventsToItems } from "./event-collection";
 import { optimisticActionsByEventIdAtom } from "./optimistic-actions";
-import { insertIntoSorted, useEvents } from "./use-events";
+import { insertIntoSorted, useEventQueryParams } from "./use-events";
 
 export function useOptimisticEvents() {
   const optimisticActions = useAtomValue(optimisticActionsByEventIdAtom);
 
-  const query = useEvents();
+  const trpc = useTRPC();
+  const { timeMin, timeMax, defaultTimeZone } = useEventQueryParams();
 
-  const { defaultTimeZone } = useAtomValue(calendarSettingsAtom);
+  const { data } = useQuery(
+    trpc.events.list.queryOptions(
+      { timeMin, timeMax, defaultTimeZone },
+      {
+        select: (data) => {
+          return {
+            events: mapEventsToItems(data.events, defaultTimeZone),
+            recurringMasterEvents: data.recurringMasterEvents,
+          };
+        },
+      },
+    ),
+  );
 
   const optimisticEvents = React.useMemo(() => {
-    const events = query.data?.events ?? [];
+    const events = data?.events ?? [];
 
     let clearedEvents = events.filter(
       (event) => optimisticActions[event.event.id] === undefined,
@@ -60,7 +74,7 @@ export function useOptimisticEvents() {
     }
 
     return clearedEvents;
-  }, [query.data?.events, optimisticActions, defaultTimeZone]);
+  }, [data?.events, optimisticActions, defaultTimeZone]);
 
   return optimisticEvents;
 }
