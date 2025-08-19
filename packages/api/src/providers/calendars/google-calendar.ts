@@ -1,6 +1,6 @@
 import { Temporal } from "temporal-polyfill";
 
-import { GoogleCalendar } from "@repo/google-calendar";
+import { ConflictError, GoogleCalendar } from "@repo/google-calendar";
 
 import { CALENDAR_DEFAULTS } from "../../constants/calendar";
 import type {
@@ -161,16 +161,25 @@ export class GoogleCalendarProvider implements CalendarProvider {
     event: CreateEventInput,
   ): Promise<CalendarEvent> {
     return this.withErrorHandler("createEvent", async () => {
-      const createdEvent = await this.client.calendars.events.create(
-        calendar.id,
-        toGoogleCalendarEvent(event),
-      );
+      try {
+        const createdEvent = await this.client.calendars.events.create(
+          calendar.id,
+          toGoogleCalendarEvent(event),
+        );
 
-      return parseGoogleCalendarEvent({
-        calendar,
-        accountId: this.accountId,
-        event: createdEvent,
-      });
+        return parseGoogleCalendarEvent({
+          calendar,
+          accountId: this.accountId,
+          event: createdEvent,
+        });
+      } catch (error) {
+        // If the event already exists, update it instead of throwing an error
+        if (error instanceof ConflictError) {
+          return await this.updateEvent(calendar, event.id, event);
+        }
+
+        throw error;
+      }
     });
   }
 
