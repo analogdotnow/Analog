@@ -16,7 +16,9 @@ interface UseNextEventProps {
   events: EventCollectionItem[];
 }
 
-export function useUpcomingEvent({ events }: UseNextEventProps): NextEventResult {
+export function useUpcomingEvent({
+  events,
+}: UseNextEventProps): NextEventResult {
   const currentTime = useZonedDateTime();
 
   return useMemo(() => {

@@ -1,3 +1,5 @@
+import * as React from "react";
+
 import { Button } from "@/components/ui/button";
 import { KeyboardShortcut } from "@/components/ui/keyboard-shortcut";
 import { cn } from "@/lib/utils";

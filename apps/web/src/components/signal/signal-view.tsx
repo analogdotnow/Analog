@@ -85,16 +85,17 @@ export function SignalView({ className, items }: SignalViewProps) {
       </WindowContent>
       <WindowFooter>
         <div className="flex w-full gap-2">
-          {activeEvent &&
-            activeEvent.event.conference?.video?.joinUrl?.value && (
-              <ActionButton onClick={handleJoinEvent}>
-                <>
-                  <ExternalLink className="size-4" />
-                  Join
-                  <ActionShortcut>J</ActionShortcut>
-                </>
-              </ActionButton>
-            )}
+          {activeEvent
+            ? activeEvent.event.conference?.video?.joinUrl?.value && (
+                <ActionButton onClick={handleJoinEvent}>
+                  <>
+                    <ExternalLink className="size-4" />
+                    Join
+                    <ActionShortcut>J</ActionShortcut>
+                  </>
+                </ActionButton>
+              )
+            : null}
         </div>
       </WindowFooter>
     </Window>

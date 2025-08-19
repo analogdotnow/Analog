@@ -17,7 +17,8 @@ import { EventHotkeys } from "@/lib/hotkeys/event-hotkeys";
 import { FlowsProvider } from "./calendar/flows/provider";
 import { useOptimisticEvents } from "./calendar/hooks/use-optimistic-events";
 import { AppCommandMenu } from "./command-menu/app-command-menu";
-import { SignalView } from "./signal/signal-view";
+
+// import { SignalView } from "./signal/signal-view";
 
 export function CalendarLayout() {
   const [, setSettings] = useAtom(calendarSettingsAtom);
@@ -49,10 +50,10 @@ function IsolatedCalendarLayout() {
         </div>
       </SidebarInset>
       <AppCommandMenu />
-      <SignalView
-        className="absolute bottom-8 left-1/2 -translate-x-1/2"
-        items={events}
-      />
+      {/*<SignalView*/}
+      {/*  className="absolute bottom-8 left-1/2 -translate-x-1/2"*/}
+      {/*  items={events}*/}
+      {/*/>*/}
       <RightSidebar variant="inset" side="right">
         <EventForm />
       </RightSidebar>
