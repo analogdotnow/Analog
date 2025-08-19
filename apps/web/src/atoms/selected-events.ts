@@ -8,4 +8,6 @@ export const selectedEventsAtom = atom<SelectedEvents>([]);
 
 export const selectedEventIdsAtom = atom<string[]>([]);
 
-export const formEventAtom = atom<CalendarEvent | DraftEvent | undefined>(undefined);
+export const formEventAtom = atom<CalendarEvent | DraftEvent | undefined>(
+  undefined,
+);

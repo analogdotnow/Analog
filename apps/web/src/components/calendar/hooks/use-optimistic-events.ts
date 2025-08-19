@@ -1,13 +1,13 @@
 import * as React from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useAtomValue } from "jotai";
 
 import { isBefore } from "@repo/temporal";
 
+import { useTRPC } from "@/lib/trpc/client";
 import { convertEventToItem, mapEventsToItems } from "./event-collection";
 import { optimisticActionsByEventIdAtom } from "./optimistic-actions";
 import { insertIntoSorted, useEventQueryParams } from "./use-events";
-import { useQuery } from "@tanstack/react-query";
-import { useTRPC } from "@/lib/trpc/client";
 
 export function useOptimisticEvents() {
   const optimisticActions = useAtomValue(optimisticActionsByEventIdAtom);

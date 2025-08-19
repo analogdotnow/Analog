@@ -1,7 +1,10 @@
 import * as React from "react";
 import { useSetAtom } from "jotai";
 
-import { addOptimisticActionAtom, generateOptimisticId } from "../../hooks/optimistic-actions";
+import {
+  addOptimisticActionAtom,
+  generateOptimisticId,
+} from "../../hooks/optimistic-actions";
 import type { UpdateQueueItem, UpdateQueueRequest } from "./update-queue";
 import { UpdateQueueContext } from "./update-queue-provider";
 
@@ -31,6 +34,9 @@ export function useUpdateAction() {
       };
 
       actorRef.send({ type: "START", item });
+
+      // Return optimistic id to allow callers to await completion externally
+      return optimisticId;
     },
     [actorRef, addOptimisticAction],
   );

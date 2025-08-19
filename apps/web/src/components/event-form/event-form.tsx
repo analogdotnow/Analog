@@ -10,17 +10,15 @@ import {
 } from "@heroicons/react/16/solid";
 import { useQuery } from "@tanstack/react-query";
 import { useAtom, useAtomValue } from "jotai";
-import { diff } from "json-diff-ts";
 import { useOnClickOutside } from "usehooks-ts";
 
 import {
   CalendarSettings,
   calendarSettingsAtom,
 } from "@/atoms/calendar-settings";
-import { formEventAtom, selectedEventsAtom } from "@/atoms/selected-events";
+import { formEventAtom } from "@/atoms/selected-events";
 import {
   createDefaultEvent,
-  fieldDiff,
   parseCalendarEvent,
   parseDraftEvent,
   toCalendarEvent,
@@ -109,11 +107,10 @@ function findCalendar(
     .find((c) => c.id === calendarId && c.accountId === accountId);
 }
 
-
 export function EventForm() {
   const settings = useAtomValue(calendarSettingsAtom);
   const selectedEvents = useSelectedEvents();
-  // const selectedEvents = useAtomValue(selectedEventsAtom);
+
   const trpc = useTRPC();
   const { data: calendars } = useQuery(trpc.calendars.list.queryOptions());
   const defaultCalendar = calendars?.defaultCalendar;
@@ -189,18 +186,19 @@ export function EventForm() {
       const formMeta = meta as EventFormMeta | undefined;
 
       if (value.type === "draft") {
-        console.log("createAction", JSON.stringify(value, null, 2));
         await createAction({
           event: toCalendarEvent({ values: value, event, calendar }),
           notify: formMeta?.sendUpdate,
         });
-      } else {
-        console.log("updateAction", JSON.stringify(value, null, 2));
-        await updateAction({
-          event: toCalendarEvent({ values: value, event, calendar }),
-          notify: formMeta?.sendUpdate,
-        });
+
+        focusRef.current = false;
+        formApi.reset();
       }
+
+      await updateAction({
+        event: toCalendarEvent({ values: value, event, calendar }),
+        notify: formMeta?.sendUpdate,
+      });
 
       focusRef.current = false;
       formApi.reset();
@@ -209,24 +207,11 @@ export function EventForm() {
       onBlur: async ({ formApi }) => {
         focusRef.current = true;
 
-        // console.log("formApi.state.isValid", formApi.state.isValid);
-        // console.log(
-        //   "formApi.state.isDefaultValue",
-        //   formApi.state.isDefaultValue,
-        // );
-        // console.log("formApi.state.isDirty", formApi.state.isDirty);
-        // console.log(
-        //   "formApi.state.values",
-        //   formApi.state.values.start.toString(),
-        // );
-        // console.log("formApi.state.values", formApi.state.values.end.toString());
         // If unchanged or invalid, do nothing
-
         if (
           !formApi.state.isValid ||
           (formApi.state.isDefaultValue && !formApi.state.isDirty)
         ) {
-          console.log("unsubmitted");
           return;
         }
 
@@ -234,14 +219,6 @@ export function EventForm() {
           requiresAttendeeConfirmation(formApi.state.values.attendees) ||
           requiresRecurrenceConfirmation(event?.recurringEventId)
         ) {
-          // console.log(
-          //   "requiresAttendeeConfirmation",
-          //   formApi.state.values.attendees,
-          // );
-          // console.log(
-          //   "requiresRecurrenceConfirmation",
-          //   event?.recurringEventId,
-          // );
           return;
         }
 
@@ -266,61 +243,29 @@ export function EventForm() {
     const selectedEvent = selectedEvents[0];
 
     if (!selectedEvent) {
-      console.log("no selectedEvent");
       return;
     }
 
-    // console.log(
-    //   "diff",
-    //   JSON.stringify(
-    //     diff(
-    //       form.state.values,
-    //       getDefaultValues({ event: selectedEvent, defaultCalendar, settings }),
-    //     ),
-    //     null,
-    //     2,
-    //   ),
-    // );
-    // console.log(
-    //   "fieldDiff",
-    //   JSON.stringify(
-    //     fieldDiff(
-    //       form.state.values,
-    //       getDefaultValues({ event: selectedEvent, defaultCalendar, settings }),
-    //     ),
-    //     null,
-    //     2,
-    //   ),
-    // );
-    // console.log(
-    //   "selectedEvent",
-    //   form.state.isDefaultValue,
-    //   selectedEvent?.id,
-    //   event?.id,
-    // );
     // If the form is modified and the event changes, keep the modified values
-    console.log("form.state.isDefaultValue", form.state.isDefaultValue, "dirty", form.state.isSubmitted);
-    if (!form.state.isDefaultValue && form.state.isDirty && selectedEvent?.id === event?.id) {
-      console.log("no change");
+    if (
+      !form.state.isDefaultValue &&
+      form.state.isDirty &&
+      selectedEvent?.id === event?.id
+    ) {
       return;
     }
 
-    console.log("form.state.isDefaultValue", form.state.isDefaultValue, "dirty", form.state.isSubmitted);
     if (!form.state.isDefaultValue && form.state.isDirty) {
-      console.log("handleSubmit");
       form.handleSubmit();
     }
 
-
     if (!selectedEvent && !event) {
-      console.log("no event");
       return;
     }
 
     setEvent(selectedEvent);
     focusRef.current = true;
 
-    console.log("reset");
     form.reset();
   }, [selectedEvents, event, form, defaultCalendar, settings, setEvent]);
 
