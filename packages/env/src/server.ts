@@ -17,6 +17,7 @@ export const env = createEnv({
     VERCEL_URL: z.string().optional(),
     UPSTASH_REDIS_REST_URL: z.string().url(),
     UPSTASH_REDIS_REST_TOKEN: z.string().min(1),
+    UNKEY_ROOT_KEY: z.string().min(1),
     MARBLE_WORKSPACE_KEY: z.string().min(1).optional(),
     MARBLE_API_URL: z.string().url().optional(),
   },
