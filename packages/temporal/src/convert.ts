@@ -23,15 +23,7 @@ export function toDate(
 ): Date {
   if (value instanceof Temporal.PlainDate) {
     return tzDate(
-      new Date(
-        value.year,
-        value.month - 1,
-        value.day,
-        0,
-        0,
-        0,
-        0,
-      ),
+      new Date(value.year, value.month - 1, value.day, 0, 0, 0, 0),
       options!.timeZone,
     );
   }
