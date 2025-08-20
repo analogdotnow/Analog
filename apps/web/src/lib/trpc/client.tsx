@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
+import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
 import {
   PersistQueryClientProvider,
   removeOldestQuery,
@@ -32,7 +32,7 @@ function getUrl() {
   return `${base}/api/trpc`;
 }
 
-const persister = createSyncStoragePersister({
+const persister = createAsyncStoragePersister({
   storage: typeof window !== "undefined" ? window.localStorage : null,
   throttleTime: 1000,
   retry: removeOldestQuery,

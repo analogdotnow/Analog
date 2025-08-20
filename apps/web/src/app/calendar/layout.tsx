@@ -6,12 +6,16 @@ import { AppHotkeyProvider } from "@/providers/app-hotkey-provider";
 import "react-day-picker/style.css";
 import "@/styles/date-picker.css";
 
+import { CalendarColorsProvider } from "@/components/calendar/context/calendar-colors-provider";
+
 export default function CalendarLayout({
   children,
 }: Readonly<{ children: ReactNode }>) {
   return (
-    <SidebarProvider defaultWidthRight="21.5rem">
-      <AppHotkeyProvider>{children}</AppHotkeyProvider>
-    </SidebarProvider>
+    <CalendarColorsProvider>
+      <SidebarProvider defaultWidthRight="21.5rem">
+        <AppHotkeyProvider>{children}</AppHotkeyProvider>
+      </SidebarProvider>
+    </CalendarColorsProvider>
   );
 }

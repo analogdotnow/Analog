@@ -7,7 +7,7 @@ import { CheckIcon } from "lucide-react";
 
 import type { AttendeeStatus } from "@repo/api/interfaces";
 
-import { CalendarEvent } from "@/components/calendar/interfaces";
+import { canMoveBetweenCalendars } from "@/components/calendar/utils/move";
 import {
   ContextMenu,
   ContextMenuCheckboxItem,
@@ -17,10 +17,16 @@ import {
   ContextMenuSeparator,
 } from "@/components/ui/context-menu";
 import { KeyboardShortcut } from "@/components/ui/keyboard-shortcut";
-import { Tooltip, TooltipContent } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import type { CalendarEvent } from "@/lib/interfaces";
 import { useTRPC } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
-import { Action } from "../hooks/use-optimistic-events";
+import { useDeleteAction } from "../flows/delete-event/use-delete-action";
+import { useUpdateAction } from "../flows/update-event/use-update-action";
 
 function CalendarRadioItem({
   className,
@@ -32,7 +38,7 @@ function CalendarRadioItem({
     <ContextMenuPrimitive.RadioItem
       data-slot="context-menu-radio-item"
       className={cn(
-        "peer relative size-3 shrink-0 rounded-[4px] outline-hidden",
+        "peer relative size-3 shrink-0 rounded-[4px] outline-hidden transition-opacity duration-150 hover:opacity-80",
         "ring-offset-2 ring-offset-popover focus-visible:border-ring focus-visible:ring-[1px] focus-visible:ring-ring/50",
         "aria-invalid:border-destructive aria-invalid:ring-destructive/20 data-[state=checked]:border-primary",
         "bg-(--calendar-color) disabled:bg-muted",
@@ -57,14 +63,30 @@ function CalendarRadioItem({
 }
 
 interface EventContextMenuCalendarListProps {
-  disabled?: boolean;
+  event: CalendarEvent;
 }
 
 function EventContextMenuCalendarList({
-  disabled,
+  event,
 }: EventContextMenuCalendarListProps) {
   const trpc = useTRPC();
   const calendarQuery = useQuery(trpc.calendars.list.queryOptions());
+
+  const updateAction = useUpdateAction();
+
+  const moveEvent = React.useCallback(
+    (accountId: string, calendarId: string) => {
+      updateAction({
+        event: {
+          ...event,
+          accountId,
+          calendarId,
+        },
+        notify: true,
+      });
+    },
+    [updateAction, event],
+  );
 
   return (
     <div className="mb-1 flex scrollbar-hidden gap-3 overflow-x-auto px-2 py-2">
@@ -72,15 +94,18 @@ function EventContextMenuCalendarList({
         <React.Fragment key={index}>
           {account.calendars.map((calendar, index) => (
             <Tooltip key={index}>
-              <CalendarRadioItem
-                value={`${calendar.accountId}-${calendar.id}`}
-                style={
-                  {
-                    "--calendar-color": calendar.color,
-                  } as React.CSSProperties
-                }
-                disabled={disabled}
-              ></CalendarRadioItem>
+              <TooltipTrigger asChild>
+                <CalendarRadioItem
+                  value={`${calendar.accountId}-${calendar.id}`}
+                  style={
+                    {
+                      "--calendar-color": calendar.color,
+                    } as React.CSSProperties
+                  }
+                  disabled={!canMoveBetweenCalendars(event, calendar)}
+                  onSelect={() => moveEvent(calendar.accountId, calendar.id)}
+                />
+              </TooltipTrigger>
               <TooltipContent className="w-full max-w-48" sideOffset={8}>
                 <span className="break-all">{calendar.name}</span>
               </TooltipContent>
@@ -95,15 +120,12 @@ function EventContextMenuCalendarList({
 interface EventContextMenuProps {
   event: CalendarEvent;
   children: React.ReactNode;
-  dispatchAction: (action: Action) => void;
 }
 
-export function EventContextMenu({
-  event,
-  children,
-  dispatchAction,
-}: EventContextMenuProps) {
+export function EventContextMenu({ event, children }: EventContextMenuProps) {
   const responseStatus = event.response?.status;
+
+  const updateAction = useUpdateAction();
 
   const handleRespond = React.useCallback(
     (status: AttendeeStatus) => {
@@ -111,27 +133,30 @@ export function EventContextMenu({
         return;
       }
 
-      dispatchAction({
-        type: "update",
+      updateAction({
         event: {
           ...event,
           response: { status },
         },
+        // TODO: should this be the default?
+        notify: true,
       });
     },
-    [dispatchAction, event, responseStatus],
+    [updateAction, event, responseStatus],
   );
 
+  const deleteAction = useDeleteAction();
+
   const handleDelete = React.useCallback(() => {
-    dispatchAction({ type: "delete", eventId: event.id });
-  }, [dispatchAction, event.id]);
+    deleteAction({ event });
+  }, [deleteAction, event]);
 
   return (
     <ContextMenu>
       {children}
       <ContextMenuContent className="w-64">
         <ContextMenuRadioGroup value={`${event.accountId}-${event.calendarId}`}>
-          <EventContextMenuCalendarList disabled />
+          <EventContextMenuCalendarList event={event} />
         </ContextMenuRadioGroup>
 
         <ContextMenuSeparator />
@@ -224,12 +249,13 @@ export function EventContextMenu({
         </ContextMenuItem>
 
         <ContextMenuItem
-          className="ps-8 font-medium text-red-400 hover:text-red-400 dark:hover:text-red-400"
+          className="ps-8 font-medium"
           disabled={event.readOnly}
+          variant="destructive"
           onClick={handleDelete}
         >
           Delete
-          <KeyboardShortcut className="ml-auto bg-transparent text-red-400">
+          <KeyboardShortcut className="ml-auto bg-transparent">
             ⌫
           </KeyboardShortcut>
         </ContextMenuItem>

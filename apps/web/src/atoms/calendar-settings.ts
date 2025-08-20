@@ -1,4 +1,5 @@
 import { atomWithStorage } from "jotai/utils";
+import { Temporal } from "temporal-polyfill";
 
 export interface CalendarSettings {
   locale: string;
@@ -10,8 +11,7 @@ export interface CalendarSettings {
   easterEggsEnabled: boolean;
 }
 
-export const defaultTimeZone =
-  Intl.DateTimeFormat().resolvedOptions().timeZone ?? "UTC";
+export const defaultTimeZone = Temporal.Now.timeZoneId();
 
 export const calendarSettingsAtom = atomWithStorage<CalendarSettings>(
   "analog-calendar-settings",

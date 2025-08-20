@@ -5,11 +5,13 @@ import { useAtomValue } from "jotai";
 import { Temporal } from "temporal-polyfill";
 
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
+import { selectedEventsAtom } from "@/atoms/selected-events";
 import {
   getBorderRadiusClasses,
   getContentPaddingClasses,
 } from "@/components/calendar/event/ui";
-import type { CalendarEvent } from "@/components/calendar/interfaces";
+import { calendarColorVariable } from "@/lib/css";
+import type { CalendarEvent } from "@/lib/interfaces";
 import { cn } from "@/lib/utils";
 import { formatTime } from "@/lib/utils/format";
 import { EventCollectionItem } from "../hooks/event-collection";
@@ -22,7 +24,6 @@ interface EventWrapperProps {
   onClick?: (e: React.MouseEvent) => void;
   className?: string;
   children: React.ReactNode;
-  isEventInPast: boolean;
   onMouseDown?: (e: React.MouseEvent) => void;
   onTouchStart?: (e: React.TouchEvent) => void;
 }
@@ -35,14 +36,14 @@ function EventWrapper({
   onClick,
   className,
   children,
-  isEventInPast,
   onMouseDown,
   onTouchStart,
-}: EventWrapperProps) {
+  "data-selected": dataSelected,
+}: EventWrapperProps & { "data-selected"?: boolean }) {
   return (
     <div
       className={cn(
-        "hover:text-event-hover flex h-full overflow-hidden border border-event bg-event px-1 text-left font-medium text-event backdrop-blur-md transition outline-none select-none hover:border-event-hover hover:bg-event-hover focus-visible:ring-[3px] focus-visible:ring-ring/50 data-past-event:line-through",
+        "group hover:text-event-hover flex h-full overflow-hidden border border-event bg-event px-1 text-left font-medium text-event backdrop-blur-md transition outline-none select-none hover:border-event-hover hover:bg-event-hover focus-visible:ring-[3px] focus-visible:ring-ring/50 data-past-event:line-through",
         getBorderRadiusClasses(isFirstDay, isLastDay),
         getContentPaddingClasses(isFirstDay, isLastDay),
         className,
@@ -52,6 +53,7 @@ function EventWrapper({
           "--calendar-color": event.color ?? "var(--color-muted-foreground)",
         } as React.CSSProperties
       }
+      data-selected={dataSelected || undefined}
       // data-past-event={isEventInPast || undefined}
       data-first-day={isFirstDay || undefined}
       data-last-day={isLastDay || undefined}
@@ -95,8 +97,12 @@ export function EventItem({
   const displayStart = currentTime ?? item.start;
   const displayEnd = currentTime ?? item.end;
 
+  const selectedEvents = useAtomValue(selectedEventsAtom);
+
+  const isSelected = selectedEvents.some((e) => e.id === item.event.id);
+
   const duration = React.useMemo(() => {
-    return displayStart.until(displayEnd);
+    return displayStart.until(displayEnd).total({ unit: "minute" });
   }, [displayStart, displayEnd]);
 
   const { defaultTimeZone, locale, use12Hour } =
@@ -109,33 +115,36 @@ export function EventItem({
     return `${formatTime({ value: displayStart, use12Hour, locale, timeZone: defaultTimeZone })}`;
   }, [displayStart, item.event.allDay, use12Hour, locale, defaultTimeZone]);
 
-  // Always use the currentTime (if provided) to determine if the event is in the past
-  const isEventInPast = false;
-
   const displayTitle =
     item.event.title && item.event.title.length
       ? item.event.title
       : "(untitled)";
 
+  const color =
+    item.event.color ??
+    `var(${calendarColorVariable(item.event.accountId, item.event.calendarId)}, var(--color-muted-foreground))`;
+
   if (view === "month") {
     return (
       <EventWrapper
-        event={item.event}
+        event={{ ...item.event, color }}
         isFirstDay={isFirstDay}
         isLastDay={isLastDay}
         onClick={onClick}
         className={cn(
           "@container/event flex gap-x-1.5 py-1 ps-1 pe-2",
           "mt-[var(--calendar-color-gap)] h-[var(--calendar-color-height)] items-center text-[10px] sm:text-xs",
+          isSelected &&
+            "bg-event-selected text-event-selected hover:bg-event-selected-hover",
           className,
         )}
-        isEventInPast={isEventInPast}
+        data-selected={isSelected || undefined}
         onMouseDown={onMouseDown}
         onTouchStart={onTouchStart}
       >
         <div
           className={cn(
-            "w-1 shrink-0 self-stretch rounded-lg bg-[color-mix(in_oklab,var(--background),var(--calendar-color)_90%)] opacity-40",
+            "w-1 shrink-0 self-stretch rounded-lg bg-[color-mix(in_oklab,var(--background),var(--calendar-color)_90%)] opacity-40 group-data-[selected=true]:opacity-0",
             !isFirstDay && "hidden",
           )}
         />
@@ -143,10 +152,10 @@ export function EventItem({
           {children}
           {!isFirstDay ? <div className="b h-lh" /> : null}
           {
-            <span className="pointer-events-none truncate text-[color-mix(in_oklab,var(--foreground),var(--calendar-color)_80%)]">
+            <span className="pointer-events-none truncate">
               {displayTitle}{" "}
               {!item.event.allDay && isFirstDay && (
-                <span className="truncate font-normal text-[color-mix(in_oklab,var(--foreground),var(--calendar-color)_80%)] tabular-nums opacity-70 sm:text-[11px]">
+                <span className="truncate font-normal tabular-nums opacity-70 sm:text-[11px]">
                   {eventTime}
                 </span>
               )}
@@ -160,51 +169,38 @@ export function EventItem({
   if (view === "week" || view === "day") {
     return (
       <EventWrapper
-        event={item.event}
+        event={{ ...item.event, color }}
         isFirstDay={isFirstDay}
         isLastDay={isLastDay}
         onClick={onClick}
         className={cn(
           "@container/event relative flex gap-x-1.5 py-1 ps-1 pe-2 ring-1 ring-background/80",
-          duration.total({ unit: "minute" }) < 45 && "pe-1",
+          // duration.total({ unit: "minute" }) < 45 && "pe-1",
           view === "week" ? "text-[10px] sm:text-xs" : "text-xs",
+          isSelected &&
+            "bg-event-selected text-event-selected hover:bg-event-selected-hover",
           className,
         )}
-        isEventInPast={isEventInPast}
+        data-selected={isSelected || undefined}
         onMouseDown={onMouseDown}
         onTouchStart={onTouchStart}
       >
         {children}
-        <div className="w-1 shrink-0 rounded-lg bg-[color-mix(in_oklab,var(--background),var(--calendar-color)_90%)] opacity-40" />
+        <div className="w-1 shrink-0 rounded-lg bg-[color-mix(in_oklab,var(--background),var(--calendar-color)_90%)] opacity-40 group-data-[selected=true]:opacity-0" />
         <div
           className={cn(
             // durationMinutes < 45 ? "items-center" : "flex-col",
             "pointer-events-none relative flex w-full min-w-0 flex-col items-stretch gap-y-1",
           )}
         >
-          {duration.total({ unit: "minute" }) < 45 ? (
-            <div
-              className={cn(
-                "pointer-events-none absolute top-1/2 right-[1px] left-0 flex -translate-y-1/2 items-center justify-between text-[color-mix(in_oklab,var(--foreground),var(--calendar-color)_80%)]",
-                duration.total({ unit: "minute" }) < 30 && "text-[10px]",
-              )}
-            >
-              <span className="line-clamp-1 overflow-hidden rounded-sm">
-                {displayTitle}
-              </span>
+          <div className="pointer-events-none truncate font-medium">
+            {item.event.title ?? "(untitled)"}{" "}
+          </div>
+          {showTime && duration > 30 ? (
+            <div className="pointer-events-none truncate font-normal tabular-nums opacity-70 sm:text-[11px]">
+              {eventTime}
             </div>
-          ) : (
-            <>
-              <div className="pointer-events-none truncate font-medium text-[color-mix(in_oklab,var(--foreground),var(--calendar-color)_80%)]">
-                {item.event.title ?? "(untitled)"}{" "}
-              </div>
-              {showTime ? (
-                <div className="pointer-events-none truncate font-normal text-[color-mix(in_oklab,var(--foreground),var(--calendar-color)_80%)] tabular-nums opacity-70 sm:text-[11px]">
-                  {eventTime}
-                </div>
-              ) : null}
-            </>
-          )}
+          ) : null}
         </div>
       </EventWrapper>
     );
@@ -217,11 +213,10 @@ export function EventItem({
         "@container/event flex w-full flex-col gap-1 rounded p-2 text-left transition outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 data-past-event:line-through data-past-event:opacity-90",
         "border-[color-mix(in_oklab,var(--background),var(--calendar-color)_30%)] bg-[color-mix(in_oklab,var(--background),var(--calendar-color)_20%)]",
         className,
-      )} text-[color-mix(in_oklab,var(--foreground),var(--calendar-color)_80%)]`}
+      )} `}
       style={
         {
-          "--calendar-color":
-            item.event.color ?? "var(--color-muted-foreground)",
+          "--calendar-color": color,
         } as React.CSSProperties
       }
       // data-past-event={isPast(toDate(event.end, { timeZone })) || undefined}

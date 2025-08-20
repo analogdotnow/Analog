@@ -7,10 +7,9 @@ import { isDraggingAtom } from "@/atoms/drag-resize-state";
 import { jotaiStore } from "@/atoms/store";
 import { createDraftEvent } from "@/lib/utils/calendar";
 import { MINUTES_IN_HOUR, TOTAL_MINUTES_IN_DAY } from "../constants";
-import { Action } from "./use-optimistic-events";
+import { useCreateDraftAction } from "./use-optimistic-mutations";
 
 interface UseDragToCreateOptions {
-  dispatchAction: (action: Action) => void;
   date: Temporal.PlainDate;
   timeZone: string;
   columnRef: React.RefObject<HTMLDivElement | null>;
@@ -27,7 +26,6 @@ function timeFromMinutes(minutes: number) {
 }
 
 export function useDragToCreate({
-  dispatchAction,
   date,
   timeZone,
   columnRef,
@@ -70,6 +68,8 @@ export function useDragToCreate({
     column.addEventListener("dragstart", handleDragStart);
     return () => column.removeEventListener("dragstart", handleDragStart);
   }, [columnRef]);
+
+  const createDraftAction = useCreateDraftAction();
 
   // Cancel dragging when Escape is pressed
   useHotkeys(
@@ -218,10 +218,7 @@ export function useDragToCreate({
     height.set(0);
     opacity.set(0);
 
-    dispatchAction({
-      type: "draft",
-      event: draft,
-    });
+    createDraftAction(draft);
   };
 
   return { onDragStart, onDrag, onDragEnd, top, height, opacity };

@@ -1,3 +1,4 @@
+import { IChange, diff } from "json-diff-ts";
 import { Temporal } from "temporal-polyfill";
 
 import { CalendarSettings } from "@/atoms/calendar-settings";
@@ -27,9 +28,11 @@ export function createDefaultEvent({
 
   return {
     id: createEventId(),
+    type: "draft",
     title: "",
     start,
     end: start.add(duration),
+    location: "",
     description: "",
     isAllDay: false,
     attendees: [],
@@ -88,6 +91,7 @@ export function parseDraftEvent({
 
   return {
     id: event?.id ?? createEventId(),
+    type: "draft",
     title: event.title ?? "",
     start: toZonedDateTime({
       date: event.start,
@@ -97,6 +101,7 @@ export function parseDraftEvent({
       date: event.end,
       defaultTimeZone: defaultCalendar.timeZone ?? settings.defaultTimeZone,
     }),
+    location: event.location ?? "",
     description: event.description ?? "",
     isAllDay: event.allDay ?? false,
     recurrence: event.recurrence,
@@ -142,9 +147,11 @@ export function parseCalendarEvent({
 
   return {
     id: event.id,
+    type: "event",
     title: event.title ?? "",
     start,
     end,
+    location: event.location ?? "",
     description: event.description ?? "",
     isAllDay: event.allDay ?? false,
     recurrence: event.recurrence,
@@ -183,8 +190,10 @@ export function toCalendarEvent({
 }: ToCalendarEvent): CalendarEvent {
   return {
     ...event,
+    type: "event",
     id: event?.id ?? values.id,
     title: values.title,
+    location: values.location,
     description: values.description,
     allDay: values.isAllDay,
     calendarId: values.calendar.calendarId,
@@ -192,11 +201,37 @@ export function toCalendarEvent({
     providerId: values.providerId,
     start: values.isAllDay ? values.start.toPlainDate() : values.start,
     end: values.isAllDay ? values.end.toPlainDate() : values.end,
-    color: calendar?.color,
     readOnly: false,
     attendees: values.attendees.length > 0 ? values.attendees : undefined,
     recurrence: values.recurrence,
     recurringEventId: values.recurringEventId,
     response: toResponse(values.attendees),
   };
+}
+
+export function fieldDiff(a: FormValues, b: FormValues) {
+  const changes = diff(a, b);
+  const filtered: IChange[] = [];
+
+  for (const change of changes) {
+    if (change.type === "UPDATE") {
+      continue;
+    }
+
+    if (
+      change.type === "ADD" &&
+      change.value === "" &&
+      change.oldValue === undefined
+    ) {
+      continue;
+    }
+
+    if (change.type === "REMOVE" && change.oldValue === "") {
+      continue;
+    }
+
+    filtered.push(change);
+  }
+
+  return filtered;
 }

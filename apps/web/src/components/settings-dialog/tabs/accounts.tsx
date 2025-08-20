@@ -117,7 +117,7 @@ function DefaultCalendarPicker() {
               </SelectLabel>
               {account.calendars.map((calendar) => (
                 <SelectItem
-                  key={`${account.id}-${calendar.id}`}
+                  key={`${calendar.accountId}-${calendar.id}`}
                   value={calendar.id}
                   className="py-1.5 text-sm"
                   disabled={calendar.readOnly}
@@ -230,21 +230,29 @@ function AccountListItem({ account }: AccountListItemProps) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
-  const mutation = useMutation(
-    trpc.accounts.unlink.mutationOptions({
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: trpc.accounts.pathKey() });
-        queryClient.invalidateQueries({ queryKey: trpc.calendars.pathKey() });
-        queryClient.invalidateQueries({ queryKey: trpc.events.pathKey() });
-      },
-      onError: (error) => {
-        toast.error(`Failed to disconnect account: ${error.message}`);
-      },
-    }),
-  );
+  const mutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await authClient.unlinkAccount({
+        providerId: account.providerId,
+        accountId: account.providerAccountId,
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: trpc.accounts.pathKey() });
+      queryClient.invalidateQueries({ queryKey: trpc.calendars.pathKey() });
+      queryClient.invalidateQueries({ queryKey: trpc.events.pathKey() });
+    },
+    onError: (error) => {
+      toast.error(`Failed to disconnect account: ${error.message}`);
+    },
+  });
 
   const handleDisconnect = () => {
-    mutation.mutate({ id: account.accountId, providerId: account.providerId });
+    mutation.mutate();
   };
 
   return (

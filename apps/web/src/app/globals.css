@@ -7,6 +7,7 @@
 
 :root,
 .light {
+  --background-landing: var(--color-neutral-50);
   --background: var(--color-white);
   --foreground: var(--color-neutral-950);
   --card: var(--color-white);
@@ -52,9 +53,9 @@
 }
 
 .dark {
-  --landing-background: color-mix(
+  --background-landing: color-mix(
     in oklch,
-    var(--color-neutral-950) 50%,
+    var(--color-neutral-950) 90%,
     var(--color-neutral-900)
   );
   --background: var(--color-neutral-900);
@@ -109,6 +110,7 @@
 }
 
 @theme inline {
+  --color-background-landing: var(--background-landing);
   --font-satoshi: var(--font-satoshi);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
@@ -155,6 +157,11 @@
     var(--background),
     var(--calendar-color) 20%
   );
+  --background-color-event-selected: color-mix(
+    in oklab,
+    var(--background),
+    var(--calendar-color) 80%
+  );
   --border-color-event: color-mix(
     in oklab,
     var(--background),
@@ -165,10 +172,20 @@
     var(--foreground),
     var(--calendar-color) 80%
   );
+  --text-color-event-selected: color-mix(
+    in oklab,
+    var(--color-white),
+    var(--calendar-color) 0%
+  );
   --background-color-event-hover: color-mix(
     in oklab,
     var(--background),
     var(--calendar-color) 30%
+  );
+  --background-color-event-selected-hover: color-mix(
+    in oklab,
+    var(--background),
+    var(--calendar-color) 90%
   );
   --border-color-event-hover: color-mix(
     in oklab,

@@ -11,6 +11,7 @@
         "GOOGLE_CLIENT_ID",
         "GOOGLE_CLIENT_SECRET",
         "GOOGLE_MAPS_API_KEY",
+        "NEXT_PUBLIC_GOOGLE_MAPS_API_KEY",
         "VERCEL_URL",
         "NEXT_PUBLIC_VERCEL_URL",
         "NEXT_PUBLIC_VERCEL_ENV",
@@ -27,7 +28,9 @@
         "SENTRY_PROJECT",
         "SENTRY_ORG",
         "MARBLE_WORKSPACE_KEY",
-        "MARBLE_API_URL"
+        "MARBLE_API_URL",
+        "UNKEY_ROOT_KEY",
+        "NEXT_RUNTIME"
       ],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
@@ -43,6 +46,7 @@
         "GOOGLE_CLIENT_ID",
         "GOOGLE_CLIENT_SECRET",
         "GOOGLE_MAPS_API_KEY",
+        "NEXT_PUBLIC_GOOGLE_MAPS_API_KEY",
         "VERCEL_URL",
         "NEXT_PUBLIC_VERCEL_URL",
         "NEXT_PUBLIC_VERCEL_ENV",
@@ -59,7 +63,9 @@
         "SENTRY_PROJECT",
         "SENTRY_ORG",
         "MARBLE_WORKSPACE_KEY",
-        "MARBLE_API_URL"
+        "MARBLE_API_URL",
+        "UNKEY_ROOT_KEY",
+        "NEXT_RUNTIME"
       ]
     },
     "lint": {

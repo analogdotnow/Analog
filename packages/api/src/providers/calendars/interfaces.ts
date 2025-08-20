@@ -29,7 +29,15 @@ export interface CalendarProvider {
     timeMin: Temporal.ZonedDateTime,
     timeMax: Temporal.ZonedDateTime,
     timeZone?: string,
-  ): Promise<CalendarEvent[]>;
+  ): Promise<{
+    events: CalendarEvent[];
+    recurringMasterEvents: CalendarEvent[];
+  }>;
+  event(
+    calendar: Calendar,
+    eventId: string,
+    timeZone?: string,
+  ): Promise<CalendarEvent>;
   createEvent(
     calendar: Calendar,
     event: CreateEventInput,
@@ -39,12 +47,22 @@ export interface CalendarProvider {
     eventId: string,
     event: UpdateEventInput,
   ): Promise<CalendarEvent>;
-  deleteEvent(calendarId: string, eventId: string): Promise<void>;
+  deleteEvent(
+    calendarId: string,
+    eventId: string,
+    sendUpdate?: boolean,
+  ): Promise<void>;
   responseToEvent(
     calendarId: string,
     eventId: string,
     response: ResponseToEventInput,
   ): Promise<void>;
+  moveEvent(
+    sourceCalendar: Calendar,
+    destinationCalendar: Calendar,
+    eventId: string,
+    sendUpdate?: boolean,
+  ): Promise<CalendarEvent>;
   freeBusy(
     schedules: string[],
     timeMin: Temporal.ZonedDateTime,

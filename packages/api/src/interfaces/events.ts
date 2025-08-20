@@ -23,6 +23,7 @@ export interface CalendarEvent {
   metadata?: Record<string, unknown>;
   conference?: Conference;
   recurrence?: Recurrence;
+  providerAccountId?: string;
   recurringEventId?: string;
 }
 

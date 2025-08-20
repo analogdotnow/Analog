@@ -11,19 +11,22 @@ import {
 import { Temporal } from "temporal-polyfill";
 
 import { cellHeightAtom } from "@/atoms/cell-height";
-import { isDraggingAtom, isResizingAtom } from "@/atoms/drag-resize-state";
+import {
+  addDraggedEventIdAtom,
+  isResizingAtom,
+  removeDraggedEventIdAtom,
+} from "@/atoms/drag-resize-state";
 import { EventContextMenu } from "@/components/calendar/event/event-context-menu";
 import { EventItem } from "@/components/calendar/event/event-item";
 import { ContextMenuTrigger } from "@/components/ui/context-menu";
+import { useUpdateAction } from "../flows/update-event/use-update-action";
 import type { EventCollectionItem } from "../hooks/event-collection";
-import type { Action } from "../hooks/use-optimistic-events";
+import { useSelectAction } from "../hooks/use-optimistic-mutations";
 
 interface DraggableEventProps {
   item: EventCollectionItem;
   view: "month" | "week" | "day";
   showTime?: boolean;
-  onClick?: (e: React.MouseEvent) => void;
-  dispatchAction: (action: Action) => void;
   height?: number;
   isMultiDay?: boolean;
   multiDayWidth?: number;
@@ -39,9 +42,7 @@ export function DraggableEvent({
   item,
   view,
   showTime,
-  onClick,
   height: initialHeight,
-  dispatchAction,
   isFirstDay = true,
   isLastDay = true,
   "aria-hidden": ariaHidden,
@@ -68,17 +69,16 @@ export function DraggableEvent({
   const transform = useMotionTemplate`translate(${left}px,${top}px)`;
 
   const cellHeight = useAtomValue(cellHeightAtom);
-  const setIsDragging = useSetAtom(isDraggingAtom);
   const setIsResizing = useSetAtom(isResizingAtom);
+  const addDraggedEventId = useSetAtom(addDraggedEventIdAtom);
+  const removeDraggedEventId = useSetAtom(removeDraggedEventIdAtom);
 
-  React.useEffect(() => {
-    height.set(initialHeight ?? "100%");
-  }, [initialHeight, height]);
+  const updateAction = useUpdateAction();
 
   const onDragStart = (e: PointerEvent, info: PanInfo) => {
     // Prevent possible text/image dragging flash on some browsers
     e.preventDefault();
-    setIsDragging(true);
+    addDraggedEventId(item.event.id);
 
     if (!containerRef.current) return;
 
@@ -101,9 +101,9 @@ export function DraggableEvent({
   };
 
   const onDragEnd = (_e: PointerEvent, info: PanInfo) => {
-    setIsDragging(false);
-    top.set(0);
-    left.set(0);
+    removeDraggedEventId(item.event.id);
+    // Do not reset transform immediately to avoid flashback to original
+    // position. We'll reset when the event data updates optimistically.
 
     // @ts-expect-error -- should both be of the same type
     const duration = eventRef.current.start.until(eventRef.current.end);
@@ -140,8 +140,7 @@ export function DraggableEvent({
       });
       const end = start.add(duration);
 
-      dispatchAction({
-        type: "update",
+      updateAction({
         event: { ...eventRef.current, start, end },
       });
 
@@ -162,8 +161,7 @@ export function DraggableEvent({
 
       const end = start.add(duration);
 
-      dispatchAction({
-        type: "update",
+      updateAction({
         event: { ...eventRef.current, start, end },
       });
 
@@ -174,8 +172,7 @@ export function DraggableEvent({
       const start = eventRef.current.start.add({ days: columnDelta });
       const end = start.add(duration);
 
-      dispatchAction({
-        type: "update",
+      updateAction({
         event: { ...eventRef.current, start, end },
       });
 
@@ -194,13 +191,22 @@ export function DraggableEvent({
 
     const end = start.add(duration);
 
-    dispatchAction({
-      type: "update",
+    updateAction({
       event: { ...eventRef.current, start, end },
     });
   };
 
+  // When the event time updates (optimistic or confirmed), reset the local
+  // transform so the item renders at its new computed position without a
+  // visual flash back to the original slot.
+  React.useEffect(() => {
+    top.set(0);
+    left.set(0);
+    height.set(initialHeight ?? "100%");
+  }, [top, left, initialHeight, height, item.event.start, item.event.end]);
+
   const startHeight = React.useRef(0);
+  const resizeInitializedRef = React.useRef(false);
 
   const onResizeTopStart = (e: PointerEvent, info: PanInfo) => {
     e.preventDefault();
@@ -214,6 +220,7 @@ export function DraggableEvent({
 
     const rect = containerRef.current.getBoundingClientRect();
     resizeStartRelativeY.current = info.point.y - rect.top;
+    resizeInitializedRef.current = true;
   };
 
   const onResizeBottomStart = (e: PointerEvent, info: PanInfo) => {
@@ -228,6 +235,7 @@ export function DraggableEvent({
 
     const rect = containerRef.current.getBoundingClientRect();
     resizeStartRelativeY.current = info.point.y - rect.top;
+    resizeInitializedRef.current = true;
   };
 
   const onResizeTop = (_e: PointerEvent, info: PanInfo) => {
@@ -236,6 +244,13 @@ export function DraggableEvent({
     }
 
     const rect = containerRef.current.getBoundingClientRect();
+    // Guard against onPan firing before onPanStart by lazily initializing
+    if (!resizeInitializedRef.current) {
+      setIsResizing(true);
+      startHeight.current = heightRef.current ?? 0;
+      resizeStartRelativeY.current = info.point.y - rect.top;
+      resizeInitializedRef.current = true;
+    }
     const relativeY = info.point.y - rect.top;
     const delta = relativeY - resizeStartRelativeY.current;
 
@@ -249,6 +264,13 @@ export function DraggableEvent({
     }
 
     const rect = containerRef.current.getBoundingClientRect();
+    // Guard against onPan firing before onPanStart by lazily initializing
+    if (!resizeInitializedRef.current) {
+      setIsResizing(true);
+      startHeight.current = heightRef.current ?? 0;
+      resizeStartRelativeY.current = info.point.y - rect.top;
+      resizeInitializedRef.current = true;
+    }
     const relativeY = info.point.y - rect.top;
     const delta = relativeY - resizeStartRelativeY.current;
 
@@ -267,12 +289,11 @@ export function DraggableEvent({
         roundingMode: "halfExpand",
       });
 
-      dispatchAction({
-        type: "update",
+      updateAction({
         event: { ...eventRef.current, start: rounded },
       });
     },
-    [dispatchAction, cellHeight],
+    [updateAction, cellHeight],
   );
 
   const updateEndTime = React.useCallback(
@@ -287,18 +308,16 @@ export function DraggableEvent({
         roundingMode: "halfExpand",
       });
 
-      dispatchAction({
-        type: "update",
+      updateAction({
         event: { ...eventRef.current, end: rounded },
       });
     },
-    [dispatchAction, cellHeight],
+    [updateAction, cellHeight],
   );
 
   const onResizeTopEnd = (_: PointerEvent, info: PanInfo) => {
     setIsResizing(false);
-    top.set(0);
-
+    // Keep the visual offset until optimistic update lands to avoid flashback
     if (!containerRef.current) {
       return;
     }
@@ -311,12 +330,12 @@ export function DraggableEvent({
 
     resizeStartRelativeY.current = 0;
     startHeight.current = 0;
+    resizeInitializedRef.current = false;
   };
 
   const onResizeBottomEnd = (_: PointerEvent, info: PanInfo) => {
     setIsResizing(false);
-    top.set(0);
-
+    // Keep the visual state until optimistic update applies
     if (!containerRef.current) {
       return;
     }
@@ -329,7 +348,18 @@ export function DraggableEvent({
 
     resizeStartRelativeY.current = 0;
     startHeight.current = 0;
+    resizeInitializedRef.current = false;
   };
+
+  const selectAction = useSelectAction();
+
+  const onClick = React.useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      selectAction(item.event);
+    },
+    [item.event, selectAction],
+  );
 
   if (item.event.allDay || view === "month") {
     return (
@@ -338,7 +368,7 @@ export function DraggableEvent({
         className="size-full"
         style={{ transform, height, top, zIndex }}
       >
-        <EventContextMenu event={item.event} dispatchAction={dispatchAction}>
+        <EventContextMenu event={item.event}>
           <ContextMenuTrigger>
             <EventItem
               item={item}
@@ -372,9 +402,9 @@ export function DraggableEvent({
     <motion.div
       ref={dragRef}
       className="size-full"
-      style={{ transform, height: height, zIndex }}
+      style={{ transform, height, zIndex }}
     >
-      <EventContextMenu event={item.event} dispatchAction={dispatchAction}>
+      <EventContextMenu event={item.event}>
         <ContextMenuTrigger>
           <EventItem
             item={item}

@@ -1,6 +1,7 @@
 import { relations } from "drizzle-orm";
 import {
   boolean,
+  index,
   integer,
   pgTable,
   text,
@@ -58,26 +59,33 @@ export const sessionRelations = relations(session, ({ one }) => ({
   }),
 }));
 
-export const account = pgTable("account", {
-  id: text().primaryKey(),
-  accountId: text().notNull(),
-  providerId: text({ enum: ["google", "microsoft", "zoom"] }).notNull(),
-  name: text().notNull().default(""),
-  email: text().notNull().default(""),
-  image: text(),
-  userId: text()
-    .notNull()
-    .references(() => user.id, { onDelete: "cascade" }),
-  accessToken: text(),
-  refreshToken: text(),
-  idToken: text(),
-  accessTokenExpiresAt: timestamp(),
-  refreshTokenExpiresAt: timestamp(),
-  scope: text(),
-  password: text(),
-  createdAt: timestamp().notNull(),
-  updatedAt: timestamp().notNull(),
-});
+export const account = pgTable(
+  "account",
+  {
+    id: text().primaryKey(),
+    accountId: text().notNull(),
+    providerId: text({ enum: ["google", "microsoft", "zoom"] }).notNull(),
+    name: text().notNull().default(""),
+    email: text().notNull().default(""),
+    image: text(),
+    userId: text()
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    accessToken: text(),
+    refreshToken: text(),
+    idToken: text(),
+    accessTokenExpiresAt: timestamp(),
+    refreshTokenExpiresAt: timestamp(),
+    scope: text(),
+    password: text(),
+    createdAt: timestamp().notNull(),
+    updatedAt: timestamp().notNull(),
+  },
+  (table) => [
+    index("account_user_id_idx").on(table.userId),
+    index("account_account_id_idx").on(table.accountId),
+  ],
+);
 
 export const accountsRelations = relations(account, ({ one, many }) => ({
   user: one(user, {

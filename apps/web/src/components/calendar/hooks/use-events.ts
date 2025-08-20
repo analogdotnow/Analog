@@ -1,20 +1,19 @@
 import * as React from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useAtomValue } from "jotai";
 import * as R from "remeda";
-import { toast } from "sonner";
 
-import { endOfMonth, isBefore, startOfMonth } from "@repo/temporal";
+import { endOfMonth, startOfMonth } from "@repo/temporal";
 
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
-import { useCalendarState } from "@/hooks/use-calendar-state";
+import { currentDateAtom } from "@/atoms/view-preferences";
 import { useTRPC } from "@/lib/trpc/client";
 import { mapEventsToItems } from "./event-collection";
 
 const TIME_RANGE_DAYS_PAST = 30;
 const TIME_RANGE_DAYS_FUTURE = 30;
 
-function insertIntoSorted<T>(
+export function insertIntoSorted<T>(
   array: T[],
   item: T,
   predicate: (value: T, index: number, data: readonly T[]) => boolean,
@@ -23,11 +22,9 @@ function insertIntoSorted<T>(
   return [...array.slice(0, index), item, ...array.slice(index)];
 }
 
-export function useEvents() {
+export function useEventQueryParams() {
   const trpc = useTRPC();
-  const queryClient = useQueryClient();
-  const { currentDate } = useCalendarState();
-
+  const currentDate = useAtomValue(currentDateAtom);
   const { defaultTimeZone } = useAtomValue(calendarSettingsAtom);
 
   const { timeMin, timeMax } = React.useMemo(() => {
@@ -53,145 +50,31 @@ export function useEvents() {
     };
   }, [defaultTimeZone, currentDate]);
 
-  const eventsQueryKey = React.useMemo(
+  const queryKey = React.useMemo(
     () =>
       trpc.events.list.queryOptions({ timeMin, timeMax, defaultTimeZone })
         .queryKey,
     [trpc.events.list, timeMin, timeMax, defaultTimeZone],
   );
 
-  const query = useQuery(
-    trpc.events.list.queryOptions({
-      timeMin,
-      timeMax,
-      defaultTimeZone,
-    }),
-  );
+  return { timeMin, timeMax, defaultTimeZone, queryKey };
+}
 
-  const events = React.useMemo(() => {
-    if (!query.data?.events) return [];
+export function useEvents() {
+  const trpc = useTRPC();
+  const { timeMin, timeMax, defaultTimeZone } = useEventQueryParams();
 
-    // Map to EventCollectionItem early with default time zone
-    return mapEventsToItems(query.data.events, defaultTimeZone);
-  }, [query.data, defaultTimeZone]);
-
-  const createMutation = useMutation(
-    trpc.events.create.mutationOptions({
-      onMutate: async (newEvent) => {
-        await queryClient.cancelQueries({ queryKey: eventsQueryKey });
-
-        const previousEvents = queryClient.getQueryData(eventsQueryKey);
-
-        queryClient.setQueryData(eventsQueryKey, (prev) => {
-          if (!prev) {
-            return undefined;
-          }
-
-          const events = insertIntoSorted(prev.events || [], newEvent, (a) =>
-            isBefore(a.start, newEvent.start, { timeZone: defaultTimeZone }),
-          );
-
+  return useQuery(
+    trpc.events.list.queryOptions(
+      { timeMin, timeMax, defaultTimeZone },
+      {
+        select: (data) => {
           return {
-            ...prev,
-            events,
+            events: mapEventsToItems(data.events, defaultTimeZone),
+            recurringMasterEvents: data.recurringMasterEvents,
           };
-        });
-
-        return { previousEvents };
+        },
       },
-      onError: (err, _, context) => {
-        toast.error(err.message);
-
-        if (context?.previousEvents) {
-          queryClient.setQueryData(eventsQueryKey, context.previousEvents);
-        }
-      },
-      onSettled: () => {
-        queryClient.invalidateQueries({ queryKey: eventsQueryKey });
-      },
-    }),
+    ),
   );
-
-  const updateMutation = useMutation(
-    trpc.events.update.mutationOptions({
-      onMutate: async (updatedEvent) => {
-        await queryClient.cancelQueries({ queryKey: eventsQueryKey });
-
-        const previousEvents = queryClient.getQueryData(eventsQueryKey);
-
-        queryClient.setQueryData(eventsQueryKey, (prev) => {
-          if (!prev) {
-            return prev;
-          }
-
-          const withoutEvent = prev.events.filter(
-            (e) => e.id !== updatedEvent.id,
-          );
-
-          const events = insertIntoSorted(withoutEvent, updatedEvent, (a) =>
-            isBefore(a.start, updatedEvent.start, {
-              timeZone: defaultTimeZone,
-            }),
-          );
-
-          return {
-            ...prev,
-            events,
-          };
-        });
-
-        return { previousEvents };
-      },
-      onError: (error, _, context) => {
-        toast.error(error.message);
-
-        if (context?.previousEvents) {
-          queryClient.setQueryData(eventsQueryKey, context.previousEvents);
-        }
-      },
-      onSettled: () => {
-        queryClient.invalidateQueries({ queryKey: eventsQueryKey });
-      },
-    }),
-  );
-
-  const deleteMutation = useMutation(
-    trpc.events.delete.mutationOptions({
-      onMutate: async ({ eventId }) => {
-        await queryClient.cancelQueries({ queryKey: eventsQueryKey });
-
-        const previousEvents = queryClient.getQueryData(eventsQueryKey);
-
-        queryClient.setQueryData(eventsQueryKey, (prev) => {
-          if (!prev) {
-            return prev;
-          }
-
-          return {
-            ...prev,
-            events: prev.events.filter((event) => event.id !== eventId),
-          };
-        });
-
-        return { previousEvents };
-      },
-      onError: (error, _, context) => {
-        toast.error(error.message);
-
-        if (context?.previousEvents) {
-          queryClient.setQueryData(eventsQueryKey, context.previousEvents);
-        }
-      },
-      onSettled: () => {
-        queryClient.invalidateQueries({ queryKey: eventsQueryKey });
-      },
-    }),
-  );
-
-  return {
-    events,
-    createMutation,
-    updateMutation,
-    deleteMutation,
-  };
 }

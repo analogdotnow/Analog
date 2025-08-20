@@ -1,9 +1,7 @@
 import { TRPCError } from "@trpc/server";
-import { eq } from "drizzle-orm";
 import { z } from "zod/v3";
 
-import { user } from "@repo/db/schema";
-
+import { assignColor } from "../providers/calendars/colors";
 import {
   calendarProcedure,
   createTRPCRouter,
@@ -20,9 +18,7 @@ export const calendarsRouter = createTRPCRouter({
         providerAccountId: account.accountId,
         providerId: account.providerId,
         name: account.email,
-        calendars: calendars.map((calendar) => ({
-          ...calendar,
-        })),
+        calendars,
       };
     });
 
@@ -41,8 +37,27 @@ export const calendarsRouter = createTRPCRouter({
       ) ??
       calendars.find(
         (calendar) =>
-          calendar.accountId === defaultAccount.accountId && calendar.primary,
+          calendar.providerAccountId === defaultAccount.accountId &&
+          calendar.primary,
       );
+
+    // Sort calendars within each account: primary first, then alphabetical by name
+    const sortedAccounts = accounts.map((account) => ({
+      ...account,
+      calendars: account.calendars
+        .sort((a, b) => {
+          // Primary calendars come first
+          if (a.primary && !b.primary) return -1;
+          if (!a.primary && b.primary) return 1;
+
+          // Otherwise maintain alphabetical order by name
+          return a.name.localeCompare(b.name);
+        })
+        .map((calendar, index) => ({
+          ...calendar,
+          color: assignColor(index),
+        })),
+    }));
 
     if (!defaultCalendar) {
       throw new TRPCError({
@@ -54,9 +69,94 @@ export const calendarsRouter = createTRPCRouter({
     return {
       defaultCalendar,
       defaultAccount,
-      accounts,
+      accounts: sortedAccounts,
     };
   }),
+  update: calendarProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        accountId: z.string(),
+        name: z.string(),
+        timeZone: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const provider = ctx.providers.find(
+        ({ account }) => account.accountId === input.accountId,
+      );
+
+      if (!provider?.client) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: `Calendar client not found for accountId: ${input.accountId}`,
+        });
+      }
+
+      const calendars = await provider.client.calendars();
+      const calendar = calendars.find((c) => c.id === input.id);
+
+      if (!calendar) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: `Calendar not found for id: ${input.id}`,
+        });
+      }
+
+      if (calendar.readOnly) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Cannot update a read-only calendar",
+        });
+      }
+
+      const updated = await provider.client.updateCalendar(input.id, {
+        name: input.name,
+        timeZone: input.timeZone,
+      });
+
+      return { calendar: updated };
+    }),
+  delete: calendarProcedure
+    .input(
+      z.object({
+        accountId: z.string(),
+        calendarId: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const provider = ctx.providers.find(
+        ({ account }) => account.accountId === input.accountId,
+      );
+
+      if (!provider?.client) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: `Calendar client not found for accountId: ${input.accountId}`,
+        });
+      }
+
+      const calendars = await provider.client.calendars();
+      const calendar = calendars.find((c) => c.id === input.calendarId);
+
+      if (!calendar) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: `Calendar not found for id: ${input.calendarId}`,
+        });
+      }
+
+      if (calendar.readOnly) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Cannot delete a read-only calendar",
+        });
+      }
+
+      await provider.client.deleteCalendar(input.calendarId);
+
+      return { success: true };
+    }),
   getDefault: protectedProcedure.query(async ({ ctx }) => {
     return {
       defaultCalendarId: ctx.user.defaultCalendarId ?? null,
@@ -70,28 +170,32 @@ export const calendarsRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const account = await ctx.providers.find(
+      const account = ctx.providers.find(
         (provider) => provider.account.id === input.accountId,
       );
 
-      const calendars = await account?.client.calendars();
-      const calendar = calendars?.find(
+      if (!account) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Account not found",
+        });
+      }
+
+      const calendars = await account.client.calendars();
+      const calendar = calendars.find(
         (calendar) => calendar.id === input.calendarId,
       );
 
-      if (!account || !calendar) {
+      if (!calendar) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "Calendar not found",
         });
       }
 
-      await ctx.db
-        .update(user)
-        .set({
-          defaultCalendarId: calendar.id,
-          defaultAccountId: input.accountId,
-        })
-        .where(eq(user.id, ctx.user.id));
+      await ctx.authContext.internalAdapter.updateUser(ctx.user.id, {
+        defaultCalendarId: calendar.id,
+        defaultAccountId: input.accountId,
+      });
     }),
 });

@@ -1,6 +1,6 @@
 import { Temporal } from "temporal-polyfill";
 
-import { GoogleCalendar } from "@repo/google-calendar";
+import { ConflictError, GoogleCalendar } from "@repo/google-calendar";
 
 import { CALENDAR_DEFAULTS } from "../../constants/calendar";
 import type {
@@ -10,7 +10,6 @@ import type {
 } from "../../interfaces";
 import type { CreateEventInput, UpdateEventInput } from "../../schemas/events";
 import { ProviderError } from "../lib/provider-error";
-import { assignColor } from "./colors";
 import { parseGoogleCalendarCalendarListEntry } from "./google-calendar/calendars";
 import {
   parseGoogleCalendarEvent,
@@ -43,16 +42,13 @@ export class GoogleCalendarProvider implements CalendarProvider {
 
       if (!items) return [];
 
-      return items.map((calendar, index) => {
+      return items.map((calendar) => {
         const parsedCalendar = parseGoogleCalendarCalendarListEntry({
           accountId: this.accountId,
           entry: calendar,
         });
 
-        return {
-          ...parsedCalendar,
-          color: assignColor(index),
-        };
+        return parsedCalendar;
       });
     });
   }
@@ -98,7 +94,11 @@ export class GoogleCalendarProvider implements CalendarProvider {
     calendar: Calendar,
     timeMin: Temporal.ZonedDateTime,
     timeMax: Temporal.ZonedDateTime,
-  ): Promise<CalendarEvent[]> {
+    timeZone?: string,
+  ): Promise<{
+    events: CalendarEvent[];
+    recurringMasterEvents: CalendarEvent[];
+  }> {
     return this.withErrorHandler("events", async () => {
       const { items } = await this.client.calendars.events.list(calendar.id, {
         timeMin: timeMin.withTimeZone("UTC").toInstant().toString(),
@@ -108,15 +108,51 @@ export class GoogleCalendarProvider implements CalendarProvider {
         maxResults: CALENDAR_DEFAULTS.MAX_EVENTS_PER_CALENDAR,
       });
 
-      return (
+      const events: CalendarEvent[] =
         items?.map((event) =>
           parseGoogleCalendarEvent({
             calendar,
             accountId: this.accountId,
             event,
+            defaultTimeZone: timeZone ?? "UTC",
           }),
-        ) ?? []
+        ) ?? [];
+
+      const instances = events.filter((e) => e.recurringEventId);
+      const masters = new Set<string>([]);
+
+      for (const instance of instances) {
+        masters.add(instance.recurringEventId!);
+      }
+
+      if (masters.size === 0) {
+        return { events, recurringMasterEvents: [] };
+      }
+
+      const recurringMasterEvents = await Promise.all(
+        Array.from(masters).map((id) => this.event(calendar, id, timeZone)),
       );
+
+      return { events, recurringMasterEvents };
+    });
+  }
+
+  async event(
+    calendar: Calendar,
+    eventId: string,
+    timeZone?: string,
+  ): Promise<CalendarEvent> {
+    return this.withErrorHandler("event", async () => {
+      const event = await this.client.calendars.events.retrieve(eventId, {
+        calendarId: calendar.id,
+      });
+
+      return parseGoogleCalendarEvent({
+        calendar,
+        accountId: this.accountId,
+        event,
+        defaultTimeZone: timeZone ?? "UTC",
+      });
     });
   }
 
@@ -125,16 +161,25 @@ export class GoogleCalendarProvider implements CalendarProvider {
     event: CreateEventInput,
   ): Promise<CalendarEvent> {
     return this.withErrorHandler("createEvent", async () => {
-      const createdEvent = await this.client.calendars.events.create(
-        calendar.id,
-        toGoogleCalendarEvent(event),
-      );
+      try {
+        const createdEvent = await this.client.calendars.events.create(
+          calendar.id,
+          toGoogleCalendarEvent(event),
+        );
 
-      return parseGoogleCalendarEvent({
-        calendar,
-        accountId: this.accountId,
-        event: createdEvent,
-      });
+        return parseGoogleCalendarEvent({
+          calendar,
+          accountId: this.accountId,
+          event: createdEvent,
+        });
+      } catch (error) {
+        // If the event already exists, update it instead of throwing an error
+        if (error instanceof ConflictError) {
+          return await this.updateEvent(calendar, event.id, event);
+        }
+
+        throw error;
+      }
     });
   }
 
@@ -199,9 +244,37 @@ export class GoogleCalendarProvider implements CalendarProvider {
     });
   }
 
-  async deleteEvent(calendarId: string, eventId: string): Promise<void> {
+  async deleteEvent(
+    calendarId: string,
+    eventId: string,
+    sendUpdate: boolean,
+  ): Promise<void> {
     return this.withErrorHandler("deleteEvent", async () => {
-      await this.client.calendars.events.delete(eventId, { calendarId });
+      await this.client.calendars.events.delete(eventId, {
+        calendarId,
+        sendUpdates: sendUpdate ? "all" : "none",
+      });
+    });
+  }
+
+  async moveEvent(
+    sourceCalendar: Calendar,
+    destinationCalendar: Calendar,
+    eventId: string,
+    sendUpdate: boolean = true,
+  ): Promise<CalendarEvent> {
+    return this.withErrorHandler("moveEvent", async () => {
+      const moved = await this.client.calendars.events.move(eventId, {
+        calendarId: sourceCalendar.id,
+        destination: destinationCalendar.id,
+        sendUpdates: sendUpdate ? "all" : "none",
+      });
+
+      return parseGoogleCalendarEvent({
+        calendar: destinationCalendar,
+        accountId: this.accountId,
+        event: moved,
+      });
     });
   }
 

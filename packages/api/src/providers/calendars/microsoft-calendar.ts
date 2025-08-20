@@ -18,7 +18,6 @@ import type {
 } from "../../schemas/calendars";
 import type { CreateEventInput, UpdateEventInput } from "../../schemas/events";
 import { ProviderError } from "../lib/provider-error";
-import { assignColor } from "./colors";
 import type { CalendarProvider, ResponseToEventInput } from "./interfaces";
 import {
   calendarPath,
@@ -60,9 +59,8 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
         )
         .get();
 
-      return (response.value as MicrosoftCalendar[]).map((calendar, idx) => ({
+      return (response.value as MicrosoftCalendar[]).map((calendar) => ({
         ...parseMicrosoftCalendar({ calendar, accountId: this.accountId }),
-        color: assignColor(idx),
       }));
     });
   }
@@ -107,7 +105,10 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
     timeMin: Temporal.ZonedDateTime,
     timeMax: Temporal.ZonedDateTime,
     timeZone: string,
-  ): Promise<CalendarEvent[]> {
+  ): Promise<{
+    events: CalendarEvent[];
+    recurringMasterEvents: CalendarEvent[];
+  }> {
     return this.withErrorHandler("events", async () => {
       const startTime = timeMin.withTimeZone("UTC").toInstant().toString();
       const endTime = timeMax.withTimeZone("UTC").toInstant().toString();
@@ -122,9 +123,36 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
         .top(CALENDAR_DEFAULTS.MAX_EVENTS_PER_CALENDAR)
         .get();
 
-      return (response.value as MicrosoftEvent[]).map((event: MicrosoftEvent) =>
-        parseMicrosoftEvent({ event, accountId: this.accountId, calendar }),
+      const events = (response.value as MicrosoftEvent[]).map(
+        (event: MicrosoftEvent) =>
+          parseMicrosoftEvent({ event, accountId: this.accountId, calendar }),
       );
+
+      return { events, recurringMasterEvents: [] };
+    });
+  }
+
+  async event(
+    calendar: Calendar,
+    eventId: string,
+    timeZone?: string,
+  ): Promise<CalendarEvent> {
+    return this.withErrorHandler("event", async () => {
+      const request = this.graphClient.api(
+        `${calendarPath(calendar.id)}/events/${eventId}`,
+      );
+
+      if (timeZone) {
+        request.header("Prefer", `outlook.timezone="${timeZone}"`);
+      }
+
+      const event: MicrosoftEvent = await request.get();
+
+      return parseMicrosoftEvent({
+        event,
+        accountId: this.accountId,
+        calendar,
+      });
     });
   }
 
@@ -190,11 +218,35 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
    * @param calendarId - The calendar identifier
    * @param eventId - The event identifier
    */
-  async deleteEvent(calendarId: string, eventId: string): Promise<void> {
+  async deleteEvent(
+    calendarId: string,
+    eventId: string,
+    sendUpdate: boolean = true,
+  ): Promise<void> {
     await this.withErrorHandler("deleteEvent", async () => {
       await this.graphClient
         .api(`${calendarPath(calendarId)}/events/${eventId}`)
         .delete();
+    });
+  }
+
+  async moveEvent(
+    sourceCalendar: Calendar,
+    destinationCalendar: Calendar,
+    eventId: string,
+    _sendUpdate: boolean = true,
+  ): Promise<CalendarEvent> {
+    return this.withErrorHandler("moveEvent", async () => {
+      // Placeholder: Microsoft Graph does not have a direct move endpoint.
+      // This could be implemented by creating a new event in destination and deleting the original,
+      // preserving fields as needed.
+      const event = await this.event(sourceCalendar, eventId);
+      return {
+        ...event,
+        calendarId: destinationCalendar.id,
+        // Mark as readOnly to signal as placeholder behavior if needed by callers
+        readOnly: event.readOnly,
+      };
     });
   }
 

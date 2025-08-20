@@ -3,33 +3,42 @@
 import * as React from "react";
 import {
   ArrowPathIcon,
+  MapPinIcon,
   PencilSquareIcon,
   UsersIcon,
   VideoCameraIcon,
 } from "@heroicons/react/16/solid";
 import { useQuery } from "@tanstack/react-query";
-import { useAtomValue } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
+import { useOnClickOutside } from "usehooks-ts";
 
 import {
   CalendarSettings,
   calendarSettingsAtom,
 } from "@/atoms/calendar-settings";
-import type { Action } from "@/components/calendar/hooks/use-optimistic-events";
+import { formEventAtom } from "@/atoms/selected-events";
 import {
   createDefaultEvent,
   parseCalendarEvent,
   parseDraftEvent,
   toCalendarEvent,
 } from "@/components/event-form/utils";
-import * as Icons from "@/components/icons";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Calendar, CalendarEvent, DraftEvent } from "@/lib/interfaces";
+import { RouterOutputs } from "@/lib/trpc";
 import { useTRPC } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
 import { createEventId, isDraftEvent } from "@/lib/utils/calendar";
+import {
+  requiresAttendeeConfirmation,
+  requiresRecurrenceConfirmation,
+} from "@/lib/utils/events";
+import { useCreateAction } from "../calendar/flows/create-event/use-create-action";
+import { useUpdateAction } from "../calendar/flows/update-event/use-update-action";
+import { useSelectedEvents } from "../calendar/hooks/use-selected-events";
 import { AttendeeList, AttendeeListItem } from "./attendees/attendee-list";
 import { AttendeeListInput } from "./attendees/attendee-list-input";
 import { CalendarField } from "./calendar-field";
@@ -38,7 +47,9 @@ import { DateInputSection } from "./date-input-section";
 import { DescriptionField } from "./description-field";
 import { FormValues, defaultValues, formSchema, useAppForm } from "./form";
 import { FormRow, FormRowIcon } from "./form-row";
+import { LocationField } from "./location-field";
 import { RecurrenceField } from "./recurrences/recurrence-field";
+import { SendUpdateButton } from "./send-update-button";
 
 interface GetDefaultValuesOptions {
   event?: CalendarEvent | DraftEvent;
@@ -55,6 +66,7 @@ function getDefaultValues({
     return {
       ...defaultValues,
       id: createEventId(),
+      type: "draft",
     };
   }
 
@@ -74,37 +86,69 @@ function getDefaultValues({
 }
 
 interface EventFormProps {
-  selectedEvent?: CalendarEvent | DraftEvent;
-  dispatchAsyncAction: (action: Action) => Promise<void>;
   defaultCalendar?: Calendar;
 }
 
-export function EventForm({
-  selectedEvent,
-  dispatchAsyncAction,
-  defaultCalendar,
-}: EventFormProps) {
+interface EventFormMeta {
+  sendUpdate?: boolean;
+}
+
+interface FindCalendarOptions {
+  calendarId: string;
+  accountId: string;
+}
+
+function findCalendar(
+  accounts: RouterOutputs["calendars"]["list"]["accounts"],
+  { calendarId, accountId }: FindCalendarOptions,
+): Calendar | undefined {
+  return accounts
+    .flatMap((a) => a.calendars)
+    .find((c) => c.id === calendarId && c.accountId === accountId);
+}
+
+export function EventForm() {
   const settings = useAtomValue(calendarSettingsAtom);
+  const selectedEvents = useSelectedEvents();
 
   const trpc = useTRPC();
-  const query = useQuery(trpc.calendars.list.queryOptions());
+  const { data: calendars } = useQuery(trpc.calendars.list.queryOptions());
+  const defaultCalendar = calendars?.defaultCalendar;
 
-  const [event, setEvent] = React.useState(selectedEvent);
+  const [event, setEvent] = useAtom(formEventAtom);
 
   const disabled = event?.readOnly;
 
-  const form = useAppForm({
-    defaultValues: getDefaultValues({
+  const defaultValues = React.useMemo(() => {
+    return getDefaultValues({
       event,
       defaultCalendar,
       settings,
-    }),
+    });
+  }, [event, defaultCalendar, settings]);
+
+  const ref = React.useRef<HTMLFormElement>(null);
+  const focusRef = React.useRef(false);
+  const updateAction = useUpdateAction();
+  const createAction = useCreateAction();
+
+  const form = useAppForm({
+    defaultValues,
     validators: {
       onBlur: formSchema,
       onSubmit: ({ value }) => {
-        const calendar = query.data?.accounts
-          .flatMap((a) => a.calendars)
-          .find((c) => c.id === value.calendar.calendarId);
+        if (!calendars) {
+          return {
+            fields: {
+              calendar: "Calendar not found",
+            },
+          };
+        }
+
+        const calendar = findCalendar(calendars.accounts, {
+          calendarId: value.calendar.calendarId,
+          accountId: value.calendar.accountId,
+        });
 
         if (!calendar) {
           return {
@@ -114,7 +158,8 @@ export function EventForm({
           };
         }
 
-        const isNewEvent = !selectedEvent || isDraftEvent(selectedEvent);
+        const isNewEvent = !event || isDraftEvent(event);
+
         if (isNewEvent && value.title.trim() === "") {
           return {
             fields: {
@@ -126,19 +171,54 @@ export function EventForm({
         return undefined;
       },
     },
-    onSubmit: async ({ value }) => {
-      const calendar = query.data?.accounts
-        .flatMap((a) => a.calendars)
-        .find((c) => c.id === value.calendar.calendarId);
+    onSubmit: async ({ value, formApi, meta }) => {
+      // Already validated in the validators
+      const calendar = findCalendar(calendars!.accounts, {
+        calendarId: value.calendar.calendarId,
+        accountId: value.calendar.accountId,
+      })!;
 
-      await dispatchAsyncAction({
-        type: "update",
+      // If unchanged, do nothing
+      if (!formApi.state.isDirty && formApi.state.isDefaultValue) {
+        return;
+      }
+
+      const formMeta = meta as EventFormMeta | undefined;
+
+      if (value.type === "draft") {
+        await createAction({
+          event: toCalendarEvent({ values: value, event, calendar }),
+          notify: formMeta?.sendUpdate,
+        });
+
+        focusRef.current = false;
+        formApi.reset();
+      }
+
+      await updateAction({
         event: toCalendarEvent({ values: value, event, calendar }),
+        notify: formMeta?.sendUpdate,
       });
+
+      focusRef.current = false;
+      formApi.reset();
     },
     listeners: {
       onBlur: async ({ formApi }) => {
-        if (!formApi.state.isValid || !formApi.state.isDirty) {
+        focusRef.current = true;
+
+        // If unchanged or invalid, do nothing
+        if (
+          !formApi.state.isValid ||
+          (formApi.state.isDefaultValue && !formApi.state.isDirty)
+        ) {
+          return;
+        }
+
+        if (
+          requiresAttendeeConfirmation(formApi.state.values.attendees) ||
+          requiresRecurrenceConfirmation(event?.recurringEventId)
+        ) {
           return;
         }
 
@@ -147,25 +227,58 @@ export function EventForm({
     },
   });
 
+  const handleClickOutside = React.useCallback(async () => {
+    if (!focusRef.current) {
+      return;
+    }
+
+    focusRef.current = false;
+
+    form.handleSubmit();
+  }, [form]);
+
+  useOnClickOutside(ref as React.RefObject<HTMLElement>, handleClickOutside);
+
   React.useEffect(() => {
+    const selectedEvent = selectedEvents[0];
+
+    if (!selectedEvent) {
+      return;
+    }
+
     // If the form is modified and the event changes, keep the modified values
-    if (form.state.isDirty && selectedEvent?.id === event?.id) {
+    if (
+      !form.state.isDefaultValue &&
+      form.state.isDirty &&
+      selectedEvent?.id === event?.id
+    ) {
+      return;
+    }
+
+    if (!form.state.isDefaultValue && form.state.isDirty) {
+      form.handleSubmit();
+    }
+
+    if (!selectedEvent && !event) {
       return;
     }
 
     setEvent(selectedEvent);
+    focusRef.current = true;
 
     form.reset();
-  }, [selectedEvent, event, form]);
+  }, [selectedEvents, event, form, defaultCalendar, settings, setEvent]);
 
   return (
     <form
+      ref={ref}
       className={cn("flex flex-col gap-y-1")}
+      onFocusCapture={() => {
+        focusRef.current = true;
+      }}
       onSubmit={async (e) => {
         e.preventDefault();
         e.stopPropagation();
-
-        await form.handleSubmit();
       }}
     >
       <div className="p-1">
@@ -263,6 +376,28 @@ export function EventForm({
           </>
         ) : null}
         <FormRow>
+          <FormRowIcon icon={MapPinIcon} />
+          <form.Field name="location">
+            {(field) => (
+              <div className="col-span-4 col-start-1">
+                <label htmlFor={field.name} className="sr-only">
+                  Location
+                </label>
+                <LocationField
+                  id={field.name}
+                  name={field.name}
+                  value={field.state.value}
+                  onBlur={field.handleBlur}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    field.handleChange(e.target.value)
+                  }
+                />
+              </div>
+            )}
+          </form.Field>
+        </FormRow>
+        <Separator />
+        <FormRow>
           <FormRowIcon icon={UsersIcon} />
           <form.Field name="attendees" mode="array">
             {(field) => {
@@ -338,6 +473,36 @@ export function EventForm({
               );
             }}
           </form.Field>
+          <form.Subscribe
+            selector={(state) => {
+              return {
+                isDefaultValue: state.isDefaultValue,
+                values: state.values.attendees,
+              };
+            }}
+            // eslint-disable-next-line react/no-children-prop
+            children={(state) => {
+              if (
+                state.isDefaultValue ||
+                !requiresAttendeeConfirmation(state.values)
+              ) {
+                return null;
+              }
+
+              return (
+                <SendUpdateButton
+                  className="col-span-4 col-start-1 pt-2"
+                  onSave={() =>
+                    form.handleSubmit({ meta: { sendUpdate: true } })
+                  }
+                  onSaveWithoutNotifying={() =>
+                    form.handleSubmit({ meta: { sendUpdate: false } })
+                  }
+                  onDiscard={() => form.reset()}
+                />
+              );
+            }}
+          />
         </FormRow>
         <Separator />
         <FormRow>
@@ -372,7 +537,7 @@ export function EventForm({
                 className="px-4 text-base"
                 id={field.name}
                 value={field.state.value}
-                items={query.data?.accounts ?? []}
+                items={calendars?.accounts ?? []}
                 onChange={(value) => {
                   field.handleChange(value);
                   field.handleBlur();

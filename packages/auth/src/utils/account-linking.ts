@@ -2,11 +2,12 @@ import {
   GenericEndpointContext,
   Account as HookAccountRecord,
 } from "better-auth";
-import { APIError } from "better-auth/api";
+import { APIError, createAuthMiddleware } from "better-auth/api";
 import { eq } from "drizzle-orm";
 
+import { getCalendarProvider } from "@repo/api/providers";
 import { db } from "@repo/db";
-import { account as accountTable, user } from "@repo/db/schema";
+import { account as accountTable } from "@repo/db/schema";
 
 export const createProviderHandler = async (
   account: HookAccountRecord,
@@ -41,26 +42,61 @@ export const createProviderHandler = async (
     });
   }
 
-  await db.transaction(async (tx) => {
-    await tx
-      .update(accountTable)
-      .set({
-        name: profile.user.name,
-        email: profile.user.email ?? undefined,
-        image: profile.user.image,
-      })
-      .where(eq(accountTable.id, account.id));
+  await db
+    .update(accountTable)
+    .set({
+      name: profile.user.name,
+      email: profile.user.email ?? "",
+      image: profile.user.image,
+    })
+    .where(eq(accountTable.id, account.id));
 
-    if (user.defaultAccountId) {
+  if (ctx?.context.session?.user?.defaultAccountId) {
+    return;
+  }
+
+  await ctx?.context.internalAdapter.updateUser(account.userId, {
+    defaultAccountId: account.id,
+  });
+};
+
+export const handleUnlinkAccount = createAuthMiddleware(async (ctx) => {
+  if (ctx.path === "/unlink-account") {
+    const user = ctx.context.session?.user;
+
+    if (!user) {
+      throw new APIError("UNAUTHORIZED", {
+        message: "Unauthorized",
+      });
+    }
+
+    const defaultAccount = await db.query.account.findFirst({
+      where: (table, { eq }) => eq(table.id, user!.defaultAccountId),
+    });
+
+    if (defaultAccount?.accountId !== ctx.body?.accountId) {
       return;
     }
 
-    // TODO: set default calendar
-    await tx
-      .update(user)
-      .set({
-        defaultAccountId: account.id,
-      })
-      .where(eq(user.id, account.userId));
-  });
-};
+    const newDefaultAccount = await db.query.account.findFirst({
+      where: (table, { eq }) => eq(table.userId, user!.id),
+    });
+
+    if (!newDefaultAccount) {
+      return;
+    }
+
+    const calendarProvider = getCalendarProvider(newDefaultAccount);
+    const calendars = await calendarProvider.calendars();
+    const primaryCalendar = calendars.find((calendar) => calendar.primary);
+
+    await ctx.context.internalAdapter.updateUser(
+      user.id,
+      {
+        defaultAccountId: newDefaultAccount.id,
+        defaultCalendarId: primaryCalendar?.id,
+      },
+      ctx,
+    );
+  }
+});

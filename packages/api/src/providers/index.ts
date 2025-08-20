@@ -1,3 +1,5 @@
+import { TRPCError } from "@trpc/server";
+
 import { account } from "@repo/db/schema";
 
 import { GoogleCalendarProvider } from "./calendars/google-calendar";
@@ -39,14 +41,27 @@ function accountToProvider<
   activeAccount: typeof account.$inferSelect,
   providerMap: TProviderMap,
 ): TProvider {
-  if (!activeAccount.accessToken || !activeAccount.refreshToken) {
-    throw new Error("Invalid account");
+  if (!activeAccount.accessToken) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: `Invalid account: Missing access token for provider '${activeAccount.providerId}' (accountId: ${activeAccount.accountId})`,
+    });
+  }
+
+  if (!activeAccount.refreshToken) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: `Invalid account: Missing refresh token for provider '${activeAccount.providerId}' (accountId: ${activeAccount.accountId})`,
+    });
   }
 
   const Provider = providerMap[activeAccount.providerId as keyof TProviderMap];
 
   if (!Provider) {
-    throw new Error("Provider not supported");
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: `Provider not supported: '${activeAccount.providerId}' (accountId: ${activeAccount.accountId})`,
+    });
   }
 
   return new Provider({
@@ -77,14 +92,27 @@ export function accountToConferencingProvider(
   activeAccount: typeof account.$inferSelect,
   providerId: "google" | "zoom",
 ): ConferencingProvider {
-  if (!activeAccount.accessToken || !activeAccount.refreshToken) {
-    throw new Error("Invalid account");
+  if (!activeAccount.accessToken) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: `Invalid account: Missing access token for provider '${activeAccount.providerId}' (accountId: ${activeAccount.accountId})`,
+    });
+  }
+
+  if (!activeAccount.refreshToken) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: `Invalid account: Missing refresh token for provider '${activeAccount.providerId}' (accountId: ${activeAccount.accountId})`,
+    });
   }
 
   const Provider = supportedConferencingProviders[providerId];
 
   if (!Provider) {
-    throw new Error("Conferencing provider not supported");
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: `Conferencing provider not supported: '${providerId}' for account '${activeAccount.providerId}' (accountId: ${activeAccount.accountId})`,
+    });
   }
 
   return new Provider({

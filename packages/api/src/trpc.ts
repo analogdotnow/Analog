@@ -1,5 +1,6 @@
 import "server-only";
 
+import * as Sentry from "@sentry/node";
 import { TRPCError, initTRPC } from "@trpc/server";
 import { Ratelimit } from "@upstash/ratelimit";
 import type { McpMeta } from "trpc-to-mcp";
@@ -20,17 +21,8 @@ import { getIp } from "./utils/ip";
 import { getRedis } from "./utils/redis";
 import { superjson } from "./utils/superjson";
 
-type Duration =
-  | `${number} ms`
-  | `${number} s`
-  | `${number} m`
-  | `${number} h`
-  | `${number} d`
-  | `${number}ms`
-  | `${number}s`
-  | `${number}m`
-  | `${number}h`
-  | `${number}d`;
+type Unit = "ms" | "s" | "m" | "h" | "d";
+type Duration = `${number} ${Unit}` | `${number}${Unit}`;
 
 export type Meta = OpenApiMeta &
   McpMeta & {
@@ -48,6 +40,7 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
   });
 
   return {
+    authContext: await auth.$context,
     db,
     session: session?.session,
     user: session?.user,
@@ -79,6 +72,8 @@ export const createCallerFactory = t.createCallerFactory;
 
 export const createTRPCRouter = t.router;
 
+const sentryMiddleware = t.middleware(Sentry.trpcMiddleware());
+
 export const rateLimitMiddleware = t.middleware(async ({ ctx, meta, next }) => {
   if (!meta?.ratelimit) {
     return next();
@@ -102,9 +97,12 @@ export const rateLimitMiddleware = t.middleware(async ({ ctx, meta, next }) => {
   return next();
 });
 
-export const publicProcedure = t.procedure.use(rateLimitMiddleware);
+export const publicProcedure = t.procedure
+  .use(sentryMiddleware)
+  .use(rateLimitMiddleware);
 
 export const protectedProcedure = t.procedure
+  .use(sentryMiddleware)
   .use(rateLimitMiddleware)
   .use(({ ctx, next }) => {
     if (!ctx.user) {

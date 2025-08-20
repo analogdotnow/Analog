@@ -42,7 +42,7 @@ export function SignInForm({ redirectUrl = "/calendar" }: SignInFormProps) {
   };
 
   return (
-    <Card className="max-w-sm border-none shadow-none">
+    <Card className="max-w-sm border-none bg-transparent shadow-none">
       <CardHeader>
         <CardTitle className="text-center text-xl font-medium md:text-2xl">
           Analog

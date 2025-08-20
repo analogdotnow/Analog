@@ -1,6 +1,10 @@
 import * as React from "react";
 
-import { isDraggingAtom, isResizingAtom } from "@/atoms/drag-resize-state";
+import {
+  draggingAtom,
+  isDraggingAtom,
+  isResizingAtom,
+} from "@/atoms/drag-resize-state";
 import { jotaiStore } from "@/atoms/store";
 
 interface UseEdgeAutoScrollOptions {
@@ -37,7 +41,9 @@ export function useEdgeAutoScroll(
   const isActive = React.useCallback(() => {
     return (
       enabled &&
-      (jotaiStore.get(isDraggingAtom) || jotaiStore.get(isResizingAtom))
+      (jotaiStore.get(isDraggingAtom) ||
+        jotaiStore.get(draggingAtom) ||
+        jotaiStore.get(isResizingAtom))
     );
   }, [enabled]);
 

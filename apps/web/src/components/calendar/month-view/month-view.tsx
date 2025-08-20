@@ -25,13 +25,10 @@ import {
   CalendarSettings,
   calendarSettingsAtom,
 } from "@/atoms/calendar-settings";
-import { isDraggingAtom } from "@/atoms/drag-resize-state";
 import { viewPreferencesAtom } from "@/atoms/view-preferences";
 import { DefaultStartHour } from "@/components/calendar/constants";
 import { DraggableEvent } from "@/components/calendar/event/draggable-event";
 import { useMultiDayOverflow } from "@/components/calendar/hooks/use-multi-day-overflow";
-import type { Action } from "@/components/calendar/hooks/use-optimistic-events";
-import type { CalendarEvent } from "@/components/calendar/interfaces";
 import { DroppableCell } from "@/components/calendar/month-view/droppable-cell";
 import { OverflowIndicator } from "@/components/calendar/overflow/overflow-indicator";
 import {
@@ -42,6 +39,7 @@ import { getEventsStartingOnPlainDate } from "@/components/calendar/utils/event"
 import { getGridPosition } from "@/components/calendar/utils/multi-day-layout";
 import { cn, groupArrayIntoChunks } from "@/lib/utils";
 import { createDraftEvent } from "@/lib/utils/calendar";
+import { DragAwareWrapper } from "../event/drag-aware-wrapper";
 import { EventCollectionItem } from "../hooks/event-collection";
 import { useDoubleClickToCreate } from "../hooks/use-double-click-to-create";
 import {
@@ -49,26 +47,17 @@ import {
   type EventCollectionForMonth,
 } from "../hooks/use-event-collection";
 import { useGridLayout } from "../hooks/use-grid-layout";
+import { useCreateDraftAction } from "../hooks/use-optimistic-mutations";
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 interface MonthViewProps {
   currentDate: Temporal.PlainDate;
   events: EventCollectionItem[];
-  dispatchAction: (action: Action) => void;
 }
 
-export function MonthView({
-  currentDate,
-  events,
-  dispatchAction,
-}: MonthViewProps) {
+export function MonthView({ currentDate, events }: MonthViewProps) {
   const settings = useAtomValue(calendarSettingsAtom);
-
-  // Memoize dispatchAction to prevent cascading re-renders
-  const memoizedDispatchAction = React.useCallback(dispatchAction, [
-    dispatchAction,
-  ]);
 
   const { days, weeks } = React.useMemo(() => {
     const monthStart = startOfMonth(currentDate);
@@ -111,7 +100,6 @@ export function MonthView({
               rows={rows}
               gridTemplateColumns={gridTemplateColumns}
               eventCollection={eventCollection}
-              dispatchAction={memoizedDispatchAction}
               settings={settings}
               containerRef={containerRef}
               currentDate={currentDate}
@@ -168,7 +156,7 @@ interface MonthViewWeekItemProps {
   rows: number;
   gridTemplateColumns: string;
   eventCollection: EventCollectionForMonth;
-  dispatchAction: (action: Action) => void;
+
   settings: CalendarSettings;
   containerRef: React.RefObject<HTMLDivElement | null>;
   currentDate: Temporal.PlainDate;
@@ -180,7 +168,6 @@ function MonthViewWeek({
   rows,
   gridTemplateColumns,
   eventCollection,
-  dispatchAction,
   settings,
   containerRef,
   currentDate,
@@ -262,7 +249,6 @@ function MonthViewWeek({
           day={day}
           dayIndex={dayIndex}
           overflow={overflow}
-          dispatchAction={dispatchAction}
           currentDate={currentDate}
         />
       ))}
@@ -284,7 +270,6 @@ function MonthViewWeek({
                 item={item}
                 weekStart={weekStart}
                 weekEnd={weekEnd}
-                dispatchAction={dispatchAction}
                 containerRef={containerRef}
               />
             );
@@ -310,7 +295,6 @@ const MemorizedMonthViewWeek = React.memo(
       prevProps.rows === nextProps.rows &&
       prevProps.gridTemplateColumns === nextProps.gridTemplateColumns &&
       prevProps.eventCollection === nextProps.eventCollection &&
-      prevProps.dispatchAction === nextProps.dispatchAction &&
       prevProps.settings === nextProps.settings &&
       prevProps.containerRef === nextProps.containerRef &&
       prevProps.currentDate.equals(nextProps.currentDate)
@@ -326,7 +310,6 @@ const MemoizedMonthViewDay = React.memo(
       prevProps.day.equals(nextProps.day) &&
       prevProps.dayIndex === nextProps.dayIndex &&
       prevProps.overflow === nextProps.overflow &&
-      prevProps.dispatchAction === nextProps.dispatchAction &&
       prevProps.currentDate.equals(nextProps.currentDate)
     );
   },
@@ -336,7 +319,6 @@ interface MonthViewDayProps {
   day: Temporal.PlainDate;
   dayIndex: number;
   overflow: ReturnType<typeof useMultiDayOverflow>;
-  dispatchAction: (action: Action) => void;
   currentDate: Temporal.PlainDate;
 }
 
@@ -344,11 +326,11 @@ function MonthViewDay({
   day,
   dayIndex,
   overflow,
-  dispatchAction,
   currentDate,
 }: MonthViewDayProps) {
   const viewPreferences = useAtomValue(viewPreferencesAtom);
   const settings = useAtomValue(calendarSettingsAtom);
+  const createDraftAction = useCreateDraftAction();
 
   const handleDayClick = React.useCallback(() => {
     const start = day.toZonedDateTime({
@@ -357,13 +339,12 @@ function MonthViewDay({
     });
     const end = start.add({ hours: 1 });
 
-    dispatchAction({ type: "draft", event: createDraftEvent({ start, end }) });
-  }, [day, dispatchAction, settings.defaultTimeZone]);
+    createDraftAction(createDraftEvent({ start, end }));
+  }, [day, createDraftAction, settings.defaultTimeZone]);
 
   const cellRef = React.useRef<HTMLDivElement>(null);
 
   const { onDoubleClick } = useDoubleClickToCreate({
-    dispatchAction,
     date: currentDate,
     columnRef: cellRef,
   });
@@ -428,7 +409,6 @@ function MonthViewDay({
               count={dayOverflowEvents.length}
               items={dayOverflowEvents}
               date={day}
-              dispatchAction={dispatchAction}
               className=""
             />
           </div>
@@ -443,7 +423,6 @@ interface PositionedEventProps {
   item: EventCollectionItem;
   weekStart: Temporal.PlainDate;
   weekEnd: Temporal.PlainDate;
-  dispatchAction: (action: Action) => void;
   containerRef: React.RefObject<HTMLDivElement | null>;
   rows: number;
 }
@@ -452,7 +431,6 @@ function PositionedEvent({
   item,
   weekStart,
   weekEnd,
-  dispatchAction,
   containerRef,
   rows,
 }: PositionedEventProps) {
@@ -470,25 +448,14 @@ function PositionedEvent({
     isAfter(eventStart, weekStart) || isSameDay(eventStart, weekStart);
   const isLastDay = isBefore(eventEnd, weekEnd) || isSameDay(eventEnd, weekEnd);
 
-  const isDragging = useAtomValue(isDraggingAtom);
-
-  const handleEventClick = React.useCallback(
-    (e: React.MouseEvent, event: CalendarEvent) => {
-      e.stopPropagation();
-      dispatchAction({ type: "select", event });
-    },
-    [dispatchAction],
-  );
-
   return (
-    <div
+    <DragAwareWrapper
       key={item.event.id}
+      eventId={item.event.id}
       className="pointer-events-auto my-[1px] min-w-0"
       style={{
         gridColumn: `${colStart + 1} / span ${span}`,
         gridRow: y + 1,
-        position: isDragging ? "relative" : "static",
-        zIndex: isDragging ? 99999 : "auto",
       }}
     >
       <DraggableEvent
@@ -497,12 +464,9 @@ function PositionedEvent({
         containerRef={containerRef}
         isFirstDay={isFirstDay}
         isLastDay={isLastDay}
-        onClick={(e) => handleEventClick(e, item.event)}
-        dispatchAction={dispatchAction}
-        zIndex={isDragging ? 99999 : undefined}
         rows={rows}
       />
-    </div>
+    </DragAwareWrapper>
   );
 }
 
@@ -515,7 +479,6 @@ const MemoizedPositionedEvent = React.memo(
       prevProps.item === nextProps.item &&
       prevProps.weekStart.equals(nextProps.weekStart) &&
       prevProps.weekEnd.equals(nextProps.weekEnd) &&
-      prevProps.dispatchAction === nextProps.dispatchAction &&
       prevProps.containerRef === nextProps.containerRef &&
       prevProps.rows === nextProps.rows
     );

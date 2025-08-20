@@ -24,12 +24,27 @@ const hexToRgbObjectSchema = z
 // const { r, g, b } = hexToRgbObjectSchema.parse("#1a2b3c");
 
 const COLORS = [
-  "#FB2C36",
-  "#FF6900",
-  "#F0B100",
-  "#00C950",
-  "#2B7FFF",
-  "#AD46FF",
+  "#FB2C36", // Red
+  "#FF6900", // Orange
+  "#F0B100", // Yellow
+  "#00C950", // Green
+  "#2B7FFF", // Blue
+  "#AD46FF", // Purple
+  "#DE3BBE", // Pink
+  "#a3a3a3", // Gray
+  "#525252", // Dark gray
+
+  "#f43f5e", // Rose - warm red
+  "#d946ef", // Fuchsia - vibrant pink
+  "#a855f7", // Purple
+  "#6366f1", // Indigo - deep blue-purple
+  "#3b82f6", // Blue - primary blue
+  "#14b8a6", // Teal - blue-green
+  "#10b981", // Emerald - true green
+  "#84cc16", // Lime - yellow-green
+  "#f59e0b", // Amber - orange-yellow
+  "#f97316", // Orange - pure orange
+  "#64748b", // Slate - neutral gray
 ];
 
 export function assignColor(index: number) {

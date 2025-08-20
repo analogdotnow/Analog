@@ -5,11 +5,14 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { apiKey, mcp, openAPI } from "better-auth/plugins";
 
 import { db } from "@repo/db";
-import type { account } from "@repo/db/schema";
+import type { account as accountTable } from "@repo/db/schema";
 import { env } from "@repo/env/server";
 
 import { secondaryStorage } from "./secondary-storage";
-import { createProviderHandler } from "./utils/account-linking";
+import {
+  createProviderHandler,
+  handleUnlinkAccount,
+} from "./utils/account-linking";
 
 export const MICROSOFT_OAUTH_SCOPES = [
   "https://graph.microsoft.com/User.Read",
@@ -42,7 +45,7 @@ export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "pg",
   }),
-  secondaryStorage: secondaryStorage(),
+  // secondaryStorage: secondaryStorage(),
   account: {
     accountLinking: {
       enabled: true,
@@ -64,10 +67,11 @@ export const auth = betterAuth({
       },
     },
   },
+  hooks: {
+    after: handleUnlinkAccount,
+  },
   databaseHooks: {
     account: {
-      // we are using the after hook because better-auth does not
-      // pass additional fields before account creation
       create: {
         after: createProviderHandler,
       },
@@ -118,5 +122,5 @@ export const auth = betterAuth({
 export type Session = typeof auth.$Infer.Session;
 export type McpSession = Awaited<ReturnType<typeof auth.api.getMcpSession>>;
 export type User = Session["user"];
-export type Account = typeof account.$inferSelect;
+export type Account = typeof accountTable.$inferSelect;
 export type ApiKey = Awaited<ReturnType<typeof auth.api.getApiKey>>;

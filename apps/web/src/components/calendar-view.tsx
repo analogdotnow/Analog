@@ -3,8 +3,11 @@
 import { useMemo, useRef } from "react";
 import { useAtom, useAtomValue } from "jotai";
 
+import {
+  calendarPreferencesAtom,
+  getCalendarPreference,
+} from "@/atoms/calendar-preferences";
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
-import { calendarsVisibilityAtom } from "@/atoms/calendars-visibility";
 import { cellHeightAtom } from "@/atoms/cell-height";
 import { viewPreferencesAtom } from "@/atoms/view-preferences";
 import { AgendaView } from "@/components/calendar/agenda-view/agenda-view";
@@ -12,7 +15,6 @@ import { EventGap, EventHeight } from "@/components/calendar/constants";
 import { DayView } from "@/components/calendar/day-view/day-view";
 import { CalendarHeader } from "@/components/calendar/header/calendar-header";
 import type { EventCollectionItem } from "@/components/calendar/hooks/event-collection";
-import type { Action } from "@/components/calendar/hooks/use-optimistic-events";
 import { MonthView } from "@/components/calendar/month-view/month-view";
 import { filterPastEvents } from "@/components/calendar/utils/event";
 import { WeekView } from "@/components/calendar/week-view/week-view";
@@ -22,24 +24,17 @@ import { cn } from "@/lib/utils";
 interface CalendarContentProps {
   events: EventCollectionItem[];
   scrollContainerRef: React.RefObject<HTMLDivElement | null>;
-  dispatchAction: (action: Action) => void;
 }
 
 function CalendarContent({
   events,
-  dispatchAction,
+
   scrollContainerRef,
 }: CalendarContentProps) {
   const { currentDate, view } = useCalendarState();
 
   if (view === "month") {
-    return (
-      <MonthView
-        currentDate={currentDate}
-        events={events}
-        dispatchAction={dispatchAction}
-      />
-    );
+    return <MonthView currentDate={currentDate} events={events} />;
   }
 
   if (view === "week") {
@@ -47,7 +42,6 @@ function CalendarContent({
       <WeekView
         currentDate={currentDate}
         events={events}
-        dispatchAction={dispatchAction}
         scrollContainerRef={scrollContainerRef}
       />
     );
@@ -58,34 +52,22 @@ function CalendarContent({
       <DayView
         currentDate={currentDate}
         events={events}
-        dispatchAction={dispatchAction}
         scrollContainerRef={scrollContainerRef}
       />
     );
   }
 
-  return (
-    <AgendaView
-      currentDate={currentDate}
-      events={events}
-      dispatchAction={dispatchAction}
-    />
-  );
+  return <AgendaView currentDate={currentDate} events={events} />;
 }
 
 interface CalendarViewProps {
   className?: string;
   events: EventCollectionItem[];
-  dispatchAction: (action: Action) => void;
 }
 
-export function CalendarView({
-  className,
-  events,
-  dispatchAction,
-}: CalendarViewProps) {
+export function CalendarView({ className, events }: CalendarViewProps) {
   const viewPreferences = useAtomValue(viewPreferencesAtom);
-  const [calendarVisibility] = useAtom(calendarsVisibilityAtom);
+  const [calendarPreferences] = useAtom(calendarPreferencesAtom);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const calendarHeaderRef = useRef<HTMLElement | null>(null);
 
@@ -100,17 +82,19 @@ export function CalendarView({
       defaultTimeZone,
     );
 
-    // Then filter by calendar visibility - need to check the event.event.calendarId
-    return pastFiltered.filter(
-      (eventItem) =>
-        !calendarVisibility.hiddenCalendars.includes(
-          eventItem.event.calendarId,
-        ),
-    );
+    return pastFiltered.filter((eventItem) => {
+      const preference = getCalendarPreference(
+        calendarPreferences,
+        eventItem.event.accountId,
+        eventItem.event.calendarId,
+      );
+
+      return !(preference?.hidden === true);
+    });
   }, [
     events,
     viewPreferences.showPastEvents,
-    calendarVisibility.hiddenCalendars,
+    calendarPreferences,
     defaultTimeZone,
   ]);
 
@@ -136,7 +120,6 @@ export function CalendarView({
       >
         <CalendarContent
           events={filteredEvents}
-          dispatchAction={dispatchAction}
           scrollContainerRef={scrollContainerRef}
         />
       </div>

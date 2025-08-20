@@ -1,5 +1,10 @@
 import * as React from "react";
-import { CheckIcon, GlobeEuropeAfricaIcon } from "@heroicons/react/16/solid";
+import {
+  CheckIcon,
+  GlobeAmericasIcon,
+  GlobeAsiaAustraliaIcon,
+  GlobeEuropeAfricaIcon,
+} from "@heroicons/react/16/solid";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { matchSorter } from "match-sorter";
 
@@ -21,32 +26,31 @@ import { cn } from "@/lib/utils";
 
 const timezones = Intl.supportedValuesOf("timeZone").concat(["UTC"]);
 
-const formattedTimezones = timezones
-  .map((timezone) => {
-    const formatter = new Intl.DateTimeFormat("en", {
-      timeZone: timezone,
-      timeZoneName: "longOffset",
-    });
-    const parts = formatter.formatToParts(new Date());
-    const offset =
-      parts.find((part) => part.type === "timeZoneName")?.value || "";
-    const modifiedOffset =
-      offset === "GMT" || offset === "GMT-00:00" ? "GMT+00:00" : offset;
-    const modifiedLabel = timezone
-      .replace(/_/g, " ")
-      .replaceAll("/", " - ")
-      .replace("UTC", "Coordinated Universal Time");
+interface GlobeIconProps {
+  offset: number;
+  className?: string;
+}
 
-    return {
-      value: timezone,
-      sign: modifiedOffset.includes("+") ? "+" : "-",
-      offset: modifiedOffset.replace("GMT", "").slice(1),
-      label: modifiedLabel,
-      numericOffset: Number.parseInt(
-        offset.replace("GMT", "").replace("+", "") || "0",
-      ),
-    };
-  })
+/**
+ * Globe icon component that shows the appropriate region based on timezone offset
+ * @param offset - The numeric UTC offset (e.g., -5, +1, +9)
+ * @param className - Optional CSS classes to apply to the icon
+ */
+function GlobeIcon({ offset, className }: GlobeIconProps) {
+  if (offset >= -11 && offset <= -3) {
+    // Americas: UTC-11 to UTC-3 (Hawaii to Brazil)
+    return <GlobeAmericasIcon className={className} />;
+  } else if (offset >= 4 && offset <= 12) {
+    // Asia/Australia: UTC+4 to UTC+12 (Middle East to Pacific)
+    return <GlobeAsiaAustraliaIcon className={className} />;
+  } else {
+    // Europe/Africa: UTC-1 to UTC+3 and edge cases
+    return <GlobeEuropeAfricaIcon className={className} />;
+  }
+}
+
+const formattedTimezones = timezones
+  .map((timeZone) => getDisplayValue(timeZone))
   .sort((a, b) => a.numericOffset - b.numericOffset);
 
 interface TimezoneSelectProps {
@@ -56,6 +60,31 @@ interface TimezoneSelectProps {
   onChange: (value: string) => void;
   disabled?: boolean;
   isDirty?: boolean;
+}
+function getDisplayValue(timeZone: string) {
+  const formatter = new Intl.DateTimeFormat("en", {
+    timeZone,
+    timeZoneName: "longOffset",
+  });
+  const parts = formatter.formatToParts(new Date());
+  const offset =
+    parts.find((part) => part.type === "timeZoneName")?.value || "";
+  const modifiedOffset =
+    offset === "GMT" || offset === "GMT-00:00" ? "GMT+00:00" : offset;
+  const modifiedLabel = timeZone
+    .replace(/_/g, " ")
+    .replaceAll("/", " - ")
+    .replace("UTC", "Coordinated Universal Time");
+
+  return {
+    value: timeZone,
+    sign: modifiedOffset.includes("+") ? "+" : "-",
+    offset: modifiedOffset.replace("GMT", "").slice(1),
+    label: modifiedLabel,
+    numericOffset: Number.parseInt(
+      offset.replace("GMT", "").replace("+", "") || "0",
+    ),
+  };
 }
 
 export function TimezoneSelect({
@@ -73,7 +102,7 @@ export function TimezoneSelect({
 
       return {
         sortedTimezones: formattedTimezones,
-        displayValue: timezone,
+        displayValue: timezone ?? getDisplayValue(value),
       };
     }
     const sortedTimezones = [
@@ -85,7 +114,7 @@ export function TimezoneSelect({
 
     return {
       sortedTimezones,
-      displayValue: timezone,
+      displayValue: timezone ?? getDisplayValue(value),
     };
   }, [value]);
 
@@ -134,10 +163,13 @@ export function TimezoneSelect({
             size="sm"
             role="combobox"
             aria-expanded={open}
-            className={cn("w-full justify-start gap-2.5 px-1.5", className)}
+            className={cn("w-full justify-start gap-2.5 px-2", className)}
             disabled={disabled}
           >
-            <GlobeEuropeAfricaIcon className="size-4 text-muted-foreground hover:text-foreground" />
+            <GlobeIcon
+              offset={displayValue?.numericOffset ?? 0}
+              className="size-4 text-muted-foreground hover:text-foreground"
+            />
             {displayValue ? (
               <span
                 className={cn(
