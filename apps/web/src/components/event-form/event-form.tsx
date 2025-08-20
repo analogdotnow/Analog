@@ -193,15 +193,15 @@ export function EventForm() {
 
         focusRef.current = false;
         formApi.reset();
+      } else {
+        await updateAction({
+          event: toCalendarEvent({ values: value, event, calendar }),
+          notify: formMeta?.sendUpdate,
+        });
+
+        focusRef.current = false;
+        formApi.reset();
       }
-
-      await updateAction({
-        event: toCalendarEvent({ values: value, event, calendar }),
-        notify: formMeta?.sendUpdate,
-      });
-
-      focusRef.current = false;
-      formApi.reset();
     },
     listeners: {
       onBlur: async ({ formApi }) => {
