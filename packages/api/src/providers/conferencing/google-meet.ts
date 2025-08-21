@@ -44,6 +44,7 @@ export class GoogleMeetProvider implements ConferencingProvider {
       );
 
       try {
+<<<<<<< HEAD
         const updatedEvent = await this.client.calendars.events.update(eventId, {
           calendarId,
           ...existingEvent,
@@ -55,10 +56,26 @@ export class GoogleMeetProvider implements ConferencingProvider {
               requestId: randomUUID(),
               conferenceSolutionKey: {
                 type: "hangoutsMeet",
+=======
+        const updatedEvent = await this.client.calendars.events.update(
+          eventId,
+          {
+            calendarId,
+            ...existingEvent,
+            // Preserve the sequence number to prevent conflicts
+            sequence: existingEvent.sequence,
+            conferenceDataVersion: 1, // This ensures the conference data is created, DO NOT REMOVE
+            conferenceData: {
+              createRequest: {
+                requestId: crypto.randomUUID(),
+                conferenceSolutionKey: {
+                  type: "hangoutsMeet",
+                },
+>>>>>>> babd5bd43baca4599e85af543c72f1b832791cd4
               },
             },
           },
-        });
+        );
 
         if (!updatedEvent.conferenceData) {
           throw new Error("Failed to create conference data");
@@ -79,6 +96,7 @@ export class GoogleMeetProvider implements ConferencingProvider {
             },
           );
 
+<<<<<<< HEAD
           const updatedEvent = await this.client.calendars.events.update(eventId, {
             calendarId,
             ...freshEvent,
@@ -90,10 +108,26 @@ export class GoogleMeetProvider implements ConferencingProvider {
                 requestId: randomUUID(),
                 conferenceSolutionKey: {
                   type: "hangoutsMeet",
+=======
+          const updatedEvent = await this.client.calendars.events.update(
+            eventId,
+            {
+              calendarId,
+              ...freshEvent,
+              // Use the fresh sequence number
+              sequence: freshEvent.sequence,
+              conferenceDataVersion: 1, // This ensures the conference data is created, DO NOT REMOVE
+              conferenceData: {
+                createRequest: {
+                  requestId: crypto.randomUUID(),
+                  conferenceSolutionKey: {
+                    type: "hangoutsMeet",
+                  },
+>>>>>>> babd5bd43baca4599e85af543c72f1b832791cd4
                 },
               },
             },
-          });
+          );
 
           if (!updatedEvent.conferenceData) {
             throw new Error("Failed to create conference data");
