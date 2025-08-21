@@ -19,6 +19,10 @@ import {
 import { parseGoogleCalendarFreeBusy } from "./google-calendar/freebusy";
 import type { CalendarProvider, ResponseToEventInput } from "./interfaces";
 
+function isInvalidSequenceError(err: unknown): boolean {
+  return err instanceof Error && /invalid sequence value/i.test(err.message);
+}
+
 interface GoogleCalendarProviderOptions {
   accessToken: string;
   accountId: string;
@@ -204,19 +208,22 @@ export class GoogleCalendarProvider implements CalendarProvider {
 
         // Handle response status update within the same call for Google Calendar
         if (event.response && event.response.status !== "unknown") {
-          if (!existingEvent.attendees) {
+          const baseAttendees =
+            (toGoogleCalendarEvent(event) as any).attendees ??
+            existingEvent.attendees;
+          if (!baseAttendees) {
             throw new Error("Event has no attendees");
           }
 
-          const selfIndex = existingEvent.attendees.findIndex(
-            (attendee) => attendee.self,
+          const selfIndex = baseAttendees.findIndex(
+            (attendee: any) => attendee.self,
           );
 
           if (selfIndex === -1) {
             throw new Error("User is not an attendee");
           }
 
-          const updatedAttendees = [...existingEvent.attendees];
+          const updatedAttendees = [...baseAttendees];
           updatedAttendees[selfIndex] = {
             ...updatedAttendees[selfIndex],
             responseStatus: toGoogleCalendarAttendeeResponseStatus(
@@ -243,10 +250,7 @@ export class GoogleCalendarProvider implements CalendarProvider {
         });
       } catch (error) {
         // Check if this is a sequence conflict error
-        if (
-          error instanceof Error &&
-          error.message.includes("Invalid sequence value")
-        ) {
+        if (isInvalidSequenceError(error)) {
           // Re-fetch the event to get the latest sequence number and retry once
           existingEvent = await this.client.calendars.events.retrieve(eventId, {
             calendarId: calendar.id,
@@ -262,19 +266,22 @@ export class GoogleCalendarProvider implements CalendarProvider {
 
           // Handle response status update within the same call for Google Calendar
           if (event.response && event.response.status !== "unknown") {
-            if (!existingEvent.attendees) {
+            const baseAttendees =
+              (toGoogleCalendarEvent(event) as any).attendees ??
+              existingEvent.attendees;
+            if (!baseAttendees) {
               throw new Error("Event has no attendees");
             }
 
-            const selfIndex = existingEvent.attendees.findIndex(
-              (attendee) => attendee.self,
+            const selfIndex = baseAttendees.findIndex(
+              (attendee: any) => attendee.self,
             );
 
             if (selfIndex === -1) {
               throw new Error("User is not an attendee");
             }
 
-            const updatedAttendees = [...existingEvent.attendees];
+            const updatedAttendees = [...baseAttendees];
             updatedAttendees[selfIndex] = {
               ...updatedAttendees[selfIndex],
               responseStatus: toGoogleCalendarAttendeeResponseStatus(
@@ -370,10 +377,7 @@ export class GoogleCalendarProvider implements CalendarProvider {
         });
       } catch (error) {
         // Check if this is a sequence conflict error and retry once
-        if (
-          error instanceof Error &&
-          error.message.includes("Invalid sequence value")
-        ) {
+        if (isInvalidSequenceError(error)) {
           // Re-fetch the event to get the latest sequence number
           event = await this.client.calendars.events.retrieve(eventId, {
             calendarId,
@@ -446,10 +450,7 @@ export class GoogleCalendarProvider implements CalendarProvider {
         });
       } catch (error) {
         // Check if this is a sequence conflict error and retry once
-        if (
-          error instanceof Error &&
-          error.message.includes("Invalid sequence value")
-        ) {
+        if (isInvalidSequenceError(error)) {
           // Re-fetch the event to get the latest sequence number
           event = await this.client.calendars.events.retrieve(eventId, {
             calendarId,

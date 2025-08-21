@@ -6,6 +6,10 @@ import { parseGoogleCalendarConferenceData } from "../calendars/google-calendar/
 import { ProviderError } from "../lib/provider-error";
 import type { ConferencingProvider } from "./interfaces";
 
+function isInvalidSequenceError(err: unknown): boolean {
+  return err instanceof Error && /invalid sequence value/i.test(err.message);
+}
+
 interface GoogleMeetProviderOptions {
   accessToken: string;
   accountId: string;
@@ -44,7 +48,6 @@ export class GoogleMeetProvider implements ConferencingProvider {
       );
 
       try {
-<<<<<<< HEAD
         const updatedEvent = await this.client.calendars.events.update(eventId, {
           calendarId,
           ...existingEvent,
@@ -56,26 +59,10 @@ export class GoogleMeetProvider implements ConferencingProvider {
               requestId: randomUUID(),
               conferenceSolutionKey: {
                 type: "hangoutsMeet",
-=======
-        const updatedEvent = await this.client.calendars.events.update(
-          eventId,
-          {
-            calendarId,
-            ...existingEvent,
-            // Preserve the sequence number to prevent conflicts
-            sequence: existingEvent.sequence,
-            conferenceDataVersion: 1, // This ensures the conference data is created, DO NOT REMOVE
-            conferenceData: {
-              createRequest: {
-                requestId: crypto.randomUUID(),
-                conferenceSolutionKey: {
-                  type: "hangoutsMeet",
-                },
->>>>>>> babd5bd43baca4599e85af543c72f1b832791cd4
               },
             },
           },
-        );
+        });
 
         if (!updatedEvent.conferenceData) {
           throw new Error("Failed to create conference data");
@@ -84,10 +71,7 @@ export class GoogleMeetProvider implements ConferencingProvider {
         return parseGoogleCalendarConferenceData(updatedEvent)!;
       } catch (error) {
         // Check if this is a sequence conflict error and retry once
-        if (
-          error instanceof Error &&
-          error.message.includes("Invalid sequence value")
-        ) {
+        if (isInvalidSequenceError(error)) {
           // Re-fetch the event to get the latest sequence number
           const freshEvent = await this.client.calendars.events.retrieve(
             eventId,
@@ -96,7 +80,6 @@ export class GoogleMeetProvider implements ConferencingProvider {
             },
           );
 
-<<<<<<< HEAD
           const updatedEvent = await this.client.calendars.events.update(eventId, {
             calendarId,
             ...freshEvent,
@@ -108,26 +91,10 @@ export class GoogleMeetProvider implements ConferencingProvider {
                 requestId: randomUUID(),
                 conferenceSolutionKey: {
                   type: "hangoutsMeet",
-=======
-          const updatedEvent = await this.client.calendars.events.update(
-            eventId,
-            {
-              calendarId,
-              ...freshEvent,
-              // Use the fresh sequence number
-              sequence: freshEvent.sequence,
-              conferenceDataVersion: 1, // This ensures the conference data is created, DO NOT REMOVE
-              conferenceData: {
-                createRequest: {
-                  requestId: crypto.randomUUID(),
-                  conferenceSolutionKey: {
-                    type: "hangoutsMeet",
-                  },
->>>>>>> babd5bd43baca4599e85af543c72f1b832791cd4
                 },
               },
             },
-          );
+          });
 
           if (!updatedEvent.conferenceData) {
             throw new Error("Failed to create conference data");
