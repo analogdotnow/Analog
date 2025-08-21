@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { TRPCError } from "@trpc/server";
 import * as R from "remeda";
 import { Temporal } from "temporal-polyfill";
@@ -279,7 +280,7 @@ export const eventsRouter = createTRPCRouter({
         destinationCalendar,
         {
           ...data,
-          id: crypto.randomUUID(),
+          id: randomUUID(),
           accountId: move.destination.accountId,
           calendarId: destinationCalendar.id,
         },
@@ -391,7 +392,7 @@ export const eventsRouter = createTRPCRouter({
         destinationCalendar,
         {
           ...sourceEvent,
-          id: crypto.randomUUID(),
+          id: randomUUID(),
           accountId: input.destination.accountId,
           calendarId: input.destination.calendarId,
           providerId: "google",

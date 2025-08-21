@@ -7,7 +7,6 @@ import { db } from "@repo/db";
 import type { account as accountTable } from "@repo/db/schema";
 import { env } from "@repo/env/server";
 
-import { secondaryStorage } from "./secondary-storage";
 import {
   createProviderHandler,
   handleUnlinkAccount,

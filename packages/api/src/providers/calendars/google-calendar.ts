@@ -19,6 +19,10 @@ import {
 import { parseGoogleCalendarFreeBusy } from "./google-calendar/freebusy";
 import type { CalendarProvider, ResponseToEventInput } from "./interfaces";
 
+function isInvalidSequenceError(err: unknown): boolean {
+  return err instanceof Error && /invalid sequence value/i.test(err.message);
+}
+
 interface GoogleCalendarProviderOptions {
   accessToken: string;
   accountId: string;
@@ -189,58 +193,124 @@ export class GoogleCalendarProvider implements CalendarProvider {
     event: UpdateEventInput,
   ): Promise<CalendarEvent> {
     return this.withErrorHandler("updateEvent", async () => {
-      const existingEvent = await this.client.calendars.events.retrieve(
-        eventId,
-        {
-          calendarId: calendar.id,
-        },
-      );
-
-      let eventToUpdate = {
-        ...existingEvent,
+      let existingEvent = await this.client.calendars.events.retrieve(eventId, {
         calendarId: calendar.id,
-        ...toGoogleCalendarEvent(event),
-      };
+      });
 
-      // Handle response status update within the same call for Google Calendar
-      if (event.response && event.response.status !== "unknown") {
-        if (!existingEvent.attendees) {
-          throw new Error("Event has no attendees");
+      try {
+        let eventToUpdate = {
+          ...existingEvent,
+          calendarId: calendar.id,
+          ...toGoogleCalendarEvent(event),
+          // Preserve the sequence number to prevent conflicts
+          sequence: existingEvent.sequence,
+        };
+
+        // Handle response status update within the same call for Google Calendar
+        if (event.response && event.response.status !== "unknown") {
+          const baseAttendees =
+            (toGoogleCalendarEvent(event) as any).attendees ??
+            existingEvent.attendees;
+          if (!baseAttendees) {
+            throw new Error("Event has no attendees");
+          }
+
+          const selfIndex = baseAttendees.findIndex(
+            (attendee: any) => attendee.self,
+          );
+
+          if (selfIndex === -1) {
+            throw new Error("User is not an attendee");
+          }
+
+          const updatedAttendees = [...baseAttendees];
+          updatedAttendees[selfIndex] = {
+            ...updatedAttendees[selfIndex],
+            responseStatus: toGoogleCalendarAttendeeResponseStatus(
+              event.response.status,
+            ),
+          };
+
+          eventToUpdate = {
+            ...eventToUpdate,
+            attendees: updatedAttendees,
+            sendUpdates: event.response.sendUpdate ? "all" : "none",
+          };
         }
 
-        const selfIndex = existingEvent.attendees.findIndex(
-          (attendee) => attendee.self,
+        const updatedEvent = await this.client.calendars.events.update(
+          eventId,
+          eventToUpdate,
         );
 
-        if (selfIndex === -1) {
-          throw new Error("User is not an attendee");
+        return parseGoogleCalendarEvent({
+          calendar,
+          accountId: this.accountId,
+          event: updatedEvent,
+        });
+      } catch (error) {
+        // Check if this is a sequence conflict error
+        if (isInvalidSequenceError(error)) {
+          // Re-fetch the event to get the latest sequence number and retry once
+          existingEvent = await this.client.calendars.events.retrieve(eventId, {
+            calendarId: calendar.id,
+          });
+
+          let eventToUpdate = {
+            ...existingEvent,
+            calendarId: calendar.id,
+            ...toGoogleCalendarEvent(event),
+            // Use the fresh sequence number
+            sequence: existingEvent.sequence,
+          };
+
+          // Handle response status update within the same call for Google Calendar
+          if (event.response && event.response.status !== "unknown") {
+            const baseAttendees =
+              (toGoogleCalendarEvent(event) as any).attendees ??
+              existingEvent.attendees;
+            if (!baseAttendees) {
+              throw new Error("Event has no attendees");
+            }
+
+            const selfIndex = baseAttendees.findIndex(
+              (attendee: any) => attendee.self,
+            );
+
+            if (selfIndex === -1) {
+              throw new Error("User is not an attendee");
+            }
+
+            const updatedAttendees = [...baseAttendees];
+            updatedAttendees[selfIndex] = {
+              ...updatedAttendees[selfIndex],
+              responseStatus: toGoogleCalendarAttendeeResponseStatus(
+                event.response.status,
+              ),
+            };
+
+            eventToUpdate = {
+              ...eventToUpdate,
+              attendees: updatedAttendees,
+              sendUpdates: event.response.sendUpdate ? "all" : "none",
+            };
+          }
+
+          const updatedEvent = await this.client.calendars.events.update(
+            eventId,
+            eventToUpdate,
+          );
+
+          return parseGoogleCalendarEvent({
+            calendar,
+            accountId: this.accountId,
+            event: updatedEvent,
+          });
         }
 
-        const updatedAttendees = [...existingEvent.attendees];
-        updatedAttendees[selfIndex] = {
-          ...updatedAttendees[selfIndex],
-          responseStatus: toGoogleCalendarAttendeeResponseStatus(
-            event.response.status,
-          ),
-        };
-
-        eventToUpdate = {
-          ...eventToUpdate,
-          attendees: updatedAttendees,
-          sendUpdates: event.response.sendUpdate ? "all" : "none",
-        };
+        // Re-throw other errors
+        throw error;
       }
-
-      const updatedEvent = await this.client.calendars.events.update(
-        eventId,
-        eventToUpdate,
-      );
-
-      return parseGoogleCalendarEvent({
-        calendar,
-        accountId: this.accountId,
-        event: updatedEvent,
-      });
     });
   }
 
@@ -280,7 +350,7 @@ export class GoogleCalendarProvider implements CalendarProvider {
 
   async acceptEvent(calendarId: string, eventId: string): Promise<void> {
     return this.withErrorHandler("acceptEvent", async () => {
-      const event = await this.client.calendars.events.retrieve(eventId, {
+      let event = await this.client.calendars.events.retrieve(eventId, {
         calendarId,
       });
 
@@ -296,12 +366,48 @@ export class GoogleCalendarProvider implements CalendarProvider {
         attendees.push({ self: true, responseStatus: "accepted" });
       }
 
-      await this.client.calendars.events.update(eventId, {
-        ...event,
-        calendarId,
-        attendees,
-        sendUpdates: "all",
-      });
+      try {
+        await this.client.calendars.events.update(eventId, {
+          ...event,
+          calendarId,
+          attendees,
+          // Preserve the sequence number to prevent conflicts
+          sequence: event.sequence,
+          sendUpdates: "all",
+        });
+      } catch (error) {
+        // Check if this is a sequence conflict error and retry once
+        if (isInvalidSequenceError(error)) {
+          // Re-fetch the event to get the latest sequence number
+          event = await this.client.calendars.events.retrieve(eventId, {
+            calendarId,
+          });
+
+          const freshAttendees = event.attendees ?? [];
+          const freshSelfIndex = freshAttendees.findIndex((a) => a.self);
+
+          if (freshSelfIndex >= 0) {
+            freshAttendees[freshSelfIndex] = {
+              ...freshAttendees[freshSelfIndex],
+              responseStatus: "accepted",
+            };
+          } else {
+            freshAttendees.push({ self: true, responseStatus: "accepted" });
+          }
+
+          await this.client.calendars.events.update(eventId, {
+            ...event,
+            calendarId,
+            attendees: freshAttendees,
+            // Use the fresh sequence number
+            sequence: event.sequence,
+            sendUpdates: "all",
+          });
+        } else {
+          // Re-throw other errors
+          throw error;
+        }
+      }
     });
   }
 
@@ -315,7 +421,7 @@ export class GoogleCalendarProvider implements CalendarProvider {
         return;
       }
 
-      const event = await this.client.calendars.events.retrieve(eventId, {
+      let event = await this.client.calendars.events.retrieve(eventId, {
         calendarId,
       });
 
@@ -334,11 +440,53 @@ export class GoogleCalendarProvider implements CalendarProvider {
         responseStatus: toGoogleCalendarAttendeeResponseStatus(response.status),
       };
 
-      await this.client.calendars.events.update(eventId, {
-        ...event,
-        calendarId,
-        sendUpdates: response.sendUpdate ? "all" : "none",
-      });
+      try {
+        await this.client.calendars.events.update(eventId, {
+          ...event,
+          calendarId,
+          // Preserve the sequence number to prevent conflicts
+          sequence: event.sequence,
+          sendUpdates: response.sendUpdate ? "all" : "none",
+        });
+      } catch (error) {
+        // Check if this is a sequence conflict error and retry once
+        if (isInvalidSequenceError(error)) {
+          // Re-fetch the event to get the latest sequence number
+          event = await this.client.calendars.events.retrieve(eventId, {
+            calendarId,
+          });
+
+          if (!event.attendees) {
+            throw new Error("Event has no attendees");
+          }
+
+          const freshSelfIndex = event.attendees.findIndex(
+            (attendee) => attendee.self,
+          );
+
+          if (freshSelfIndex === -1) {
+            throw new Error("User is not an attendee");
+          }
+
+          event.attendees[freshSelfIndex] = {
+            ...event.attendees[freshSelfIndex],
+            responseStatus: toGoogleCalendarAttendeeResponseStatus(
+              response.status,
+            ),
+          };
+
+          await this.client.calendars.events.update(eventId, {
+            ...event,
+            calendarId,
+            // Use the fresh sequence number
+            sequence: event.sequence,
+            sendUpdates: response.sendUpdate ? "all" : "none",
+          });
+        } else {
+          // Re-throw other errors
+          throw error;
+        }
+      }
     });
   }
 

@@ -28,5 +28,5 @@ export function isDraftEvent(
 }
 
 export function createEventId() {
-  return `${crypto.randomUUID()}`.replace(/-/g, "");
+  return `${globalThis.crypto.randomUUID()}`.replace(/-/g, "");
 }
