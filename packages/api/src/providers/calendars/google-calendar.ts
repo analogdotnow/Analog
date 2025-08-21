@@ -189,12 +189,9 @@ export class GoogleCalendarProvider implements CalendarProvider {
     event: UpdateEventInput,
   ): Promise<CalendarEvent> {
     return this.withErrorHandler("updateEvent", async () => {
-      let existingEvent = await this.client.calendars.events.retrieve(
-        eventId,
-        {
-          calendarId: calendar.id,
-        },
-      );
+      let existingEvent = await this.client.calendars.events.retrieve(eventId, {
+        calendarId: calendar.id,
+      });
 
       try {
         let eventToUpdate = {
@@ -251,12 +248,9 @@ export class GoogleCalendarProvider implements CalendarProvider {
           error.message.includes("Invalid sequence value")
         ) {
           // Re-fetch the event to get the latest sequence number and retry once
-          existingEvent = await this.client.calendars.events.retrieve(
-            eventId,
-            {
-              calendarId: calendar.id,
-            },
-          );
+          existingEvent = await this.client.calendars.events.retrieve(eventId, {
+            calendarId: calendar.id,
+          });
 
           let eventToUpdate = {
             ...existingEvent,
