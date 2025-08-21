@@ -128,6 +128,26 @@
         "typescript": "^5.8.3",
       },
     },
+    "packages/ai": {
+      "name": "@repo/ai",
+      "version": "0.1.0",
+      "dependencies": {
+        "@repo/env": "workspace:*",
+        "@upstash/redis": "^1.35.1",
+      },
+      "devDependencies": {
+        "@repo/eslint-config": "workspace:*",
+        "@repo/typescript-config": "workspace:*",
+        "@types/node": "^22.9.0",
+        "eslint": "^9.31.0",
+        "typescript": "^5.8.3",
+      },
+      "peerDependencies": {
+        "next": "^15.4.2",
+        "server-only": "^0.0.1",
+        "zod": "^4.0.5",
+      },
+    },
     "packages/api": {
       "name": "@repo/api",
       "version": "0.1.0",
@@ -1173,6 +1193,8 @@
     "@react-types/tooltip": ["@react-types/tooltip@3.4.19", "", { "dependencies": { "@react-types/overlays": "^3.9.0", "@react-types/shared": "^3.31.0" }, "peerDependencies": { "react": "^16.8.0 || ^17.0.0-rc.1 || ^18.0.0 || ^19.0.0-rc.1" } }, "sha512-OR/pwZReWbCIxuHJYB1L4fTwliA+mzVvUJMWwXIRy6Eh5d07spS3FZEKFvOgjMxA1nyv5PLf8eyr5RuuP1GGAA=="],
 
     "@remixicon/react": ["@remixicon/react@4.6.0", "", { "peerDependencies": { "react": ">=18.2.0" } }, "sha512-bY56maEgT5IYUSRotqy9h03IAKJC85vlKtWFg2FKzfs8JPrkdBAYSa9dxoUSKFwGzup8Ux6vjShs9Aec3jvr2w=="],
+
+    "@repo/ai": ["@repo/ai@workspace:packages/ai"],
 
     "@repo/api": ["@repo/api@workspace:packages/api"],
 
