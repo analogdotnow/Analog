@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import GoogleCalendar from "@repo/google-calendar";
 
 import type { Conference } from "../../interfaces";
@@ -51,7 +52,7 @@ export class GoogleMeetProvider implements ConferencingProvider {
           conferenceDataVersion: 1, // This ensures the conference data is created, DO NOT REMOVE
           conferenceData: {
             createRequest: {
-              requestId: crypto.randomUUID(),
+              requestId: randomUUID(),
               conferenceSolutionKey: {
                 type: "hangoutsMeet",
               },
@@ -86,7 +87,7 @@ export class GoogleMeetProvider implements ConferencingProvider {
             conferenceDataVersion: 1, // This ensures the conference data is created, DO NOT REMOVE
             conferenceData: {
               createRequest: {
-                requestId: crypto.randomUUID(),
+                requestId: randomUUID(),
                 conferenceSolutionKey: {
                   type: "hangoutsMeet",
                 },
