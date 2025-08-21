@@ -116,6 +116,37 @@ function parseRecurrence(
   );
 }
 
+function parseBlockedTime(event: GoogleCalendarEvent) {
+  const extendedProperties = event.extendedProperties;
+  if (!extendedProperties?.private && !extendedProperties?.shared) {
+    return undefined;
+  }
+
+  const blockedTimeData =
+    extendedProperties.private?.blockedTime ||
+    extendedProperties.shared?.blockedTime;
+
+  if (!blockedTimeData) {
+    return undefined;
+  }
+
+  try {
+    const parsed = JSON.parse(blockedTimeData);
+    const result: { before?: number; after?: number } = {};
+
+    if (typeof parsed.before === "number" && parsed.before > 0) {
+      result.before = parsed.before;
+    }
+    if (typeof parsed.after === "number" && parsed.after > 0) {
+      result.after = parsed.after;
+    }
+
+    return Object.keys(result).length > 0 ? result : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 interface ParsedGoogleCalendarEventOptions {
   calendar: Calendar;
   accountId: string;
@@ -135,6 +166,7 @@ export function parseGoogleCalendarEvent({
     event,
     event.start?.timeZone ?? defaultTimeZone,
   );
+  const blockedTime = parseBlockedTime(event);
 
   return {
     // ID should always be present if not defined Google Calendar will generate one
@@ -173,6 +205,11 @@ export function parseGoogleCalendarEvent({
       ...(event.recurringEventId && {
         recurringEventId: event.recurringEventId,
       }),
+      ...(event.extendedProperties && {
+        private: event.extendedProperties.private,
+        shared: event.extendedProperties.shared,
+      }),
+      ...(blockedTime && { blockedTime }),
     },
   };
 }
@@ -205,9 +242,29 @@ function toGoogleCalendarAttendees(
   return attendees.map(toGoogleCalendarAttendee);
 }
 
+function toGoogleCalendarBlockedTime(blockedTime: {
+  before?: number;
+  after?: number;
+}) {
+  return {
+    private: {
+      blockedTime: JSON.stringify(blockedTime),
+    },
+  };
+}
+
 export function toGoogleCalendarEvent(
   event: CreateEventInput | UpdateEventInput,
 ): GoogleCalendarEventCreateParams {
+  const blockedTimeExtendedProperties =
+    event.metadata &&
+    "blockedTime" in event.metadata &&
+    event.metadata.blockedTime
+      ? toGoogleCalendarBlockedTime(
+          event.metadata.blockedTime as { before?: number; after?: number },
+        )
+      : undefined;
+
   return {
     id: event.id,
     summary: event.title,
@@ -228,6 +285,9 @@ export function toGoogleCalendarEvent(
       recurrence: toRecurrenceProperties(event.recurrence),
     }),
     recurringEventId: event.recurringEventId,
+    ...(blockedTimeExtendedProperties && {
+      extendedProperties: blockedTimeExtendedProperties,
+    }),
   };
 }
 
