@@ -42,25 +42,68 @@ export class GoogleMeetProvider implements ConferencingProvider {
         },
       );
 
-      const updatedEvent = await this.client.calendars.events.update(eventId, {
-        calendarId,
-        ...existingEvent,
-        conferenceDataVersion: 1, // This ensures the conference data is created, DO NOT REMOVE
-        conferenceData: {
-          createRequest: {
-            requestId: crypto.randomUUID(),
-            conferenceSolutionKey: {
-              type: "hangoutsMeet",
+      try {
+        const updatedEvent = await this.client.calendars.events.update(eventId, {
+          calendarId,
+          ...existingEvent,
+          // Preserve the sequence number to prevent conflicts
+          sequence: existingEvent.sequence,
+          conferenceDataVersion: 1, // This ensures the conference data is created, DO NOT REMOVE
+          conferenceData: {
+            createRequest: {
+              requestId: crypto.randomUUID(),
+              conferenceSolutionKey: {
+                type: "hangoutsMeet",
+              },
             },
           },
-        },
-      });
+        });
 
-      if (!updatedEvent.conferenceData) {
-        throw new Error("Failed to create conference data");
+        if (!updatedEvent.conferenceData) {
+          throw new Error("Failed to create conference data");
+        }
+
+        return parseGoogleCalendarConferenceData(updatedEvent)!;
+      } catch (error) {
+        // Check if this is a sequence conflict error and retry once
+        if (
+          error instanceof Error &&
+          error.message.includes("Invalid sequence value")
+        ) {
+          // Re-fetch the event to get the latest sequence number
+          const freshEvent = await this.client.calendars.events.retrieve(
+            eventId,
+            {
+              calendarId,
+            },
+          );
+
+          const updatedEvent = await this.client.calendars.events.update(eventId, {
+            calendarId,
+            ...freshEvent,
+            // Use the fresh sequence number
+            sequence: freshEvent.sequence,
+            conferenceDataVersion: 1, // This ensures the conference data is created, DO NOT REMOVE
+            conferenceData: {
+              createRequest: {
+                requestId: crypto.randomUUID(),
+                conferenceSolutionKey: {
+                  type: "hangoutsMeet",
+                },
+              },
+            },
+          });
+
+          if (!updatedEvent.conferenceData) {
+            throw new Error("Failed to create conference data");
+          }
+
+          return parseGoogleCalendarConferenceData(updatedEvent)!;
+        }
+
+        // Re-throw other errors
+        throw error;
       }
-
-      return parseGoogleCalendarConferenceData(updatedEvent)!;
     });
   }
 
