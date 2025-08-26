@@ -31,7 +31,7 @@ export function useDragToCreate({
   timeZone,
   columnRef,
 }: UseDragToCreateOptions) {
-  const { setOpen: setOpenRight, open: openRight } =
+  const { open: rightSidebarOpen, setOpen: setRightSidebarOpen } =
     useSidebarWithSide("right");
   const initialMinutes = React.useRef(0);
   const top = useMotionValue<number | undefined>(undefined);
@@ -223,8 +223,8 @@ export function useDragToCreate({
 
     createDraftAction(draft);
 
-    if (!openRight) {
-      setOpenRight(true);
+    if (!rightSidebarOpen) {
+      setRightSidebarOpen(true);
     }
   };
 
