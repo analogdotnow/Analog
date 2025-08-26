@@ -1,5 +1,6 @@
 import { detectMeetingLink } from "@analog/meeting-links";
 import { Temporal } from "temporal-polyfill";
+import { z } from "zod/v3";
 
 import {
   Attendee,
@@ -10,6 +11,7 @@ import {
   Recurrence,
 } from "../../../interfaces";
 import { CreateEventInput, UpdateEventInput } from "../../../schemas/events";
+import { superjson } from "../../../utils/superjson";
 import { toRecurrenceProperties } from "../../../utils/recurrences/export";
 import { fromRecurrenceProperties } from "../../../utils/recurrences/parse";
 import {
@@ -21,6 +23,11 @@ import {
   GoogleCalendarEventConferenceData,
   GoogleCalendarEventCreateParams,
 } from "./interfaces";
+
+const blockedTimeSchema = z.object({
+  before: z.number().positive().optional(),
+  after: z.number().positive().optional(),
+});
 
 export function toGoogleCalendarDate(
   value: Temporal.PlainDate | Temporal.Instant | Temporal.ZonedDateTime,
@@ -131,17 +138,14 @@ function parseBlockedTime(event: GoogleCalendarEvent) {
   }
 
   try {
-    const parsed = JSON.parse(blockedTimeData);
-    const result: { before?: number; after?: number } = {};
+    const parsed = superjson.parse(blockedTimeData);
+    const validated = blockedTimeSchema.parse(parsed);
 
-    if (typeof parsed.before === "number" && parsed.before > 0) {
-      result.before = parsed.before;
-    }
-    if (typeof parsed.after === "number" && parsed.after > 0) {
-      result.after = parsed.after;
+    if (!validated.before && !validated.after) {
+      return undefined;
     }
 
-    return Object.keys(result).length > 0 ? result : undefined;
+    return validated;
   } catch {
     return undefined;
   }
