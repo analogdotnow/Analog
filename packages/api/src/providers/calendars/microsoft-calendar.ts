@@ -190,6 +190,10 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
       // First, perform the regular event update
       const updatedEvent: MicrosoftEvent = await this.graphClient
         .api(`${calendarPath(calendar.id)}/events/${eventId}`)
+        // TODO: Handle conflicts gracefully
+        // .headers({
+        //   ...(event.etag ? { "If-Match": event.etag } : {}),
+        // })
         .patch(toMicrosoftEvent(event));
 
       // Then, handle response status update if present (Microsoft-specific approach)
