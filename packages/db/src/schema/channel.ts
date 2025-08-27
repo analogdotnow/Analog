@@ -27,5 +27,5 @@ export const channel = pgTable("channel", {
   updatedAt: timestamp({ withTimezone: true })
     .defaultNow()
     .notNull()
-    .$onUpdate(() => new Date()),
+    .$onUpdateFn(() => new Date()),
 });

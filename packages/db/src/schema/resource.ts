@@ -12,5 +12,5 @@ export const resource = pgTable("resource", {
   updatedAt: timestamp({ withTimezone: true })
     .defaultNow()
     .notNull()
-    .$onUpdate(() => new Date()),
+    .$onUpdateFn(() => new Date()),
 });

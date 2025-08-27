@@ -143,6 +143,15 @@ export function handler() {
       return new Response("Channel not found", { status: 404 });
     }
 
+    // Basic authenticity checks: verify channel token (if present) and resource id match
+    if (headers.token && headers.token !== channel.token) {
+      return new Response("Invalid channel token", { status: 401 });
+    }
+
+    if (headers.resourceId !== channel.resourceId) {
+      return new Response("Mismatched resource", { status: 400 });
+    }
+
     const account = await findAccount({ accountId: channel.accountId });
 
     if (!account.accessToken) {
@@ -156,10 +165,26 @@ export function handler() {
         account,
       });
     } else if (channel.type === "google.event") {
-      await handleEventsMessage({
-        calendarId: channel.resourceId,
-        account,
-      });
+      // Extract calendarId from the Google Resource URI
+      const extractCalendarId = (uri: string | undefined): string | null => {
+        if (!uri) return null;
+        try {
+          const url = new URL(uri);
+          const parts = url.pathname.split("/");
+          const idx = parts.indexOf("calendars");
+          if (idx !== -1 && parts[idx + 1]) {
+            return decodeURIComponent(parts[idx + 1]!);
+          }
+        } catch {}
+        return null;
+      };
+
+      const calendarId = extractCalendarId(headers.resourceUri);
+      if (!calendarId) {
+        return new Response("Missing calendar id", { status: 400 });
+      }
+
+      await handleEventsMessage({ calendarId, account });
     } else {
       return new Response("Invalid channel type", { status: 400 });
     }

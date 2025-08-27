@@ -92,10 +92,7 @@ export const events = pgTable(
   (table) => [
     index("event_account_idx").on(table.accountId),
     index("event_recurrence_idx").on(table.recurrenceId),
-    uniqueIndex("event_account_calendar_idx").on(
-      table.accountId,
-      table.calendarId,
-    ),
+    index("event_account_calendar_idx").on(table.accountId, table.calendarId),
   ],
 );
 
