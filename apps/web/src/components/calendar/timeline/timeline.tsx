@@ -23,7 +23,7 @@ export function Timeline() {
           key={hour.toString()}
           className="relative min-h-[var(--week-cells-height)] border-b border-border/70 last:border-b-0"
         >
-          {index > 0 && (
+          {index > 0 ? (
             <span className="absolute -top-3 left-0 flex h-6 w-20 max-w-full items-center justify-end bg-background pe-2 text-[10px] font-medium text-muted-foreground/70 tabular-nums sm:pe-4 sm:text-xs">
               {use12Hour
                 ? format({
@@ -35,7 +35,7 @@ export function Timeline() {
                     format: "HH:mm",
                   })}
             </span>
-          )}
+          ) : null}
         </div>
       ))}
     </div>

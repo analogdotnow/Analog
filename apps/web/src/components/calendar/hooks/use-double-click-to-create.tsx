@@ -31,7 +31,7 @@ export function useDoubleClickToCreate({
 
   const createDraftAction = useCreateDraftAction();
 
-  const handleDoubleClick = React.useCallback(
+  return React.useCallback(
     (e: React.MouseEvent) => {
       if (!columnRef?.current) {
         const start = date.toZonedDateTime({
@@ -73,6 +73,4 @@ export function useDoubleClickToCreate({
       defaultTimeZone,
     ],
   );
-
-  return { onDoubleClick: handleDoubleClick };
 }

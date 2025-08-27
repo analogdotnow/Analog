@@ -38,13 +38,7 @@ function CalendarContent({
   }
 
   if (view === "week") {
-    return (
-      <WeekView
-        currentDate={currentDate}
-        events={events}
-        scrollContainerRef={scrollContainerRef}
-      />
-    );
+    return <WeekView events={events} scrollContainerRef={scrollContainerRef} />;
   }
 
   if (view === "day") {
