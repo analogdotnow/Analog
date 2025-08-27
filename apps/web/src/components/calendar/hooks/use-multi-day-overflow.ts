@@ -16,7 +16,7 @@ interface UseMultiDayOverflowOptions {
   minVisibleLanes?: number;
 }
 
-interface UseMultiDayOverflowResult {
+export interface UseMultiDayOverflowResult {
   containerRef: React.RefObject<HTMLDivElement | null>;
   availableHeight: number;
   capacityInfo: EventCapacityInfo;

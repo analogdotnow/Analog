@@ -12,7 +12,13 @@ import { useZonedDateTime } from "../context/datetime-provider";
 
 const END_OF_DAY_MINUTES = 1440; // 24 hours * 60 minutes
 
-export function useCurrentTimeIndicator(currentDate: Temporal.PlainDate) {
+interface UseCurrentTimeIndicatorProps {
+  date: Temporal.PlainDate;
+}
+
+export function useCurrentTimeIndicator({
+  date,
+}: UseCurrentTimeIndicatorProps) {
   const time = useZonedDateTime();
   const { defaultTimeZone, use12Hour } = useAtomValue(calendarSettingsAtom);
 
@@ -28,7 +34,7 @@ export function useCurrentTimeIndicator(currentDate: Temporal.PlainDate) {
 
       const totalMinutes = time.hour * 60 + time.minute;
       const currentTimePosition = (totalMinutes / END_OF_DAY_MINUTES) * 100;
-      const currentTimeVisible = isToday(currentDate, {
+      const currentTimeVisible = isToday(date, {
         timeZone: defaultTimeZone,
       });
 
@@ -49,7 +55,7 @@ export function useCurrentTimeIndicator(currentDate: Temporal.PlainDate) {
         currentTimeVisible,
         formattedTime,
       };
-    }, [currentDate, use12Hour, time, defaultTimeZone]);
+    }, [date, use12Hour, time, defaultTimeZone]);
 
   return { currentTimePosition, currentTimeVisible, formattedTime };
 }
