@@ -1,5 +1,6 @@
 import { detectMeetingLink } from "@analog/meeting-links";
 import { Temporal } from "temporal-polyfill";
+import { z } from "zod/v3";
 
 import {
   Attendee,
@@ -10,6 +11,7 @@ import {
   Recurrence,
 } from "../../../interfaces";
 import { CreateEventInput, UpdateEventInput } from "../../../schemas/events";
+import { superjson } from "../../../utils/superjson";
 import { toRecurrenceProperties } from "../../../utils/recurrences/export";
 import { fromRecurrenceProperties } from "../../../utils/recurrences/parse";
 import {
@@ -21,6 +23,11 @@ import {
   GoogleCalendarEventConferenceData,
   GoogleCalendarEventCreateParams,
 } from "./interfaces";
+
+const blockedTimeSchema = z.object({
+  before: z.number().positive().optional(),
+  after: z.number().positive().optional(),
+});
 
 export function toGoogleCalendarDate(
   value: Temporal.PlainDate | Temporal.Instant | Temporal.ZonedDateTime,
@@ -116,6 +123,34 @@ function parseRecurrence(
   );
 }
 
+function parseBlockedTime(event: GoogleCalendarEvent) {
+  const extendedProperties = event.extendedProperties;
+  if (!extendedProperties?.private && !extendedProperties?.shared) {
+    return undefined;
+  }
+
+  const blockedTimeData =
+    extendedProperties.private?.blockedTime ||
+    extendedProperties.shared?.blockedTime;
+
+  if (!blockedTimeData) {
+    return undefined;
+  }
+
+  try {
+    const parsed = superjson.parse(blockedTimeData);
+    const validated = blockedTimeSchema.parse(parsed);
+
+    if (!validated.before && !validated.after) {
+      return undefined;
+    }
+
+    return validated;
+  } catch {
+    return undefined;
+  }
+}
+
 interface ParsedGoogleCalendarEventOptions {
   calendar: Calendar;
   accountId: string;
@@ -135,6 +170,7 @@ export function parseGoogleCalendarEvent({
     event,
     event.start?.timeZone ?? defaultTimeZone,
   );
+  const blockedTime = parseBlockedTime(event);
 
   return {
     // ID should always be present if not defined Google Calendar will generate one
@@ -173,6 +209,11 @@ export function parseGoogleCalendarEvent({
       ...(event.recurringEventId && {
         recurringEventId: event.recurringEventId,
       }),
+      ...(event.extendedProperties && {
+        private: event.extendedProperties.private,
+        shared: event.extendedProperties.shared,
+      }),
+      ...(blockedTime && { blockedTime }),
     },
   };
 }
@@ -205,9 +246,29 @@ function toGoogleCalendarAttendees(
   return attendees.map(toGoogleCalendarAttendee);
 }
 
+function toGoogleCalendarBlockedTime(blockedTime: {
+  before?: number;
+  after?: number;
+}) {
+  return {
+    private: {
+      blockedTime: JSON.stringify(blockedTime),
+    },
+  };
+}
+
 export function toGoogleCalendarEvent(
   event: CreateEventInput | UpdateEventInput,
 ): GoogleCalendarEventCreateParams {
+  const blockedTimeExtendedProperties =
+    event.metadata &&
+    "blockedTime" in event.metadata &&
+    event.metadata.blockedTime
+      ? toGoogleCalendarBlockedTime(
+          event.metadata.blockedTime as { before?: number; after?: number },
+        )
+      : undefined;
+
   return {
     id: event.id,
     summary: event.title,
@@ -228,6 +289,9 @@ export function toGoogleCalendarEvent(
       recurrence: toRecurrenceProperties(event.recurrence),
     }),
     recurringEventId: event.recurringEventId,
+    ...(blockedTimeExtendedProperties && {
+      extendedProperties: blockedTimeExtendedProperties,
+    }),
   };
 }
 
