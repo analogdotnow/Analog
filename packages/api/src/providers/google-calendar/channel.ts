@@ -2,9 +2,9 @@ import { Account, auth } from "@repo/auth/server";
 import { db } from "@repo/db";
 import { GoogleCalendar } from "@repo/google-calendar";
 
-import { parseHeaders } from "./channels/headers";
 import { handleCalendarListMessage } from "./channels/calendars";
 import { handleEventsMessage } from "./channels/events";
+import { parseHeaders } from "./channels/headers";
 
 const DEFAULT_TTL = "3600";
 
@@ -29,7 +29,7 @@ export async function subscribeCalendarList({
   });
 
   return {
-    type: "google.calendar-list",
+    type: "google.calendar",
     subscriptionId,
     resourceId: response.resourceId!,
     expiresAt: new Date(response.expiration!),
@@ -59,7 +59,7 @@ export async function subscribeEvents({
   });
 
   return {
-    type: "google.calendar-events",
+    type: "google.event",
     subscriptionId,
     calendarId,
     resourceId: response.resourceId!,
@@ -105,7 +105,7 @@ export async function withAccessToken(account: Account) {
 
   return {
     ...account,
-    accessToken: accessToken ?? account.accessToken,
+    accessToken: accessToken ?? account.accessToken!,
   };
 }
 
@@ -125,7 +125,7 @@ async function findAccount({ accountId }: FindAccountOptions) {
   return await withAccessToken(account);
 }
 
-export async function handler() {
+export function handler() {
   const POST = async (request: Request) => {
     const headers = await parseHeaders({ headers: request.headers });
 
@@ -152,9 +152,14 @@ export async function handler() {
     }
 
     if (channel.type === "google.calendar") {
-      await handleCalendarListMessage({ channel, headers, account: account as Account & { accessToken: string } });
+      await handleCalendarListMessage({
+        account,
+      });
     } else if (channel.type === "google.event") {
-      await handleEventsMessage({ channel, headers, account: account as Account & { accessToken: string } });
+      await handleEventsMessage({
+        calendarId: channel.resourceId,
+        account,
+      });
     } else {
       return new Response("Invalid channel type", { status: 400 });
     }

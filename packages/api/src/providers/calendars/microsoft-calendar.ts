@@ -125,7 +125,12 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
 
       const events = (response.value as MicrosoftEvent[]).map(
         (event: MicrosoftEvent) =>
-          parseMicrosoftEvent({ event, accountId: this.accountId, calendar }),
+          parseMicrosoftEvent({
+            event,
+            accountId: this.accountId,
+            calendarId: calendar.id,
+            readOnly: calendar.readOnly,
+          }),
       );
 
       return { events, recurringMasterEvents: [] };
@@ -151,7 +156,8 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
       return parseMicrosoftEvent({
         event,
         accountId: this.accountId,
-        calendar,
+        calendarId: calendar.id,
+        readOnly: calendar.readOnly,
       });
     });
   }
@@ -168,7 +174,8 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
       return parseMicrosoftEvent({
         event: createdEvent,
         accountId: this.accountId,
-        calendar,
+        calendarId: calendar.id,
+        readOnly: calendar.readOnly,
       });
     });
   }
@@ -211,7 +218,8 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
       return parseMicrosoftEvent({
         event: updatedEvent,
         accountId: this.accountId,
-        calendar,
+        calendarId: calendar.id,
+        readOnly: calendar.readOnly,
       });
     });
   }

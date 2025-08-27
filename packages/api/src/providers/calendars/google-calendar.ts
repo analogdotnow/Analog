@@ -111,7 +111,8 @@ export class GoogleCalendarProvider implements CalendarProvider {
       const events: CalendarEvent[] =
         items?.map((event) =>
           parseGoogleCalendarEvent({
-            calendar,
+            calendarId: calendar.id,
+            readOnly: calendar.readOnly,
             accountId: this.accountId,
             event,
             defaultTimeZone: timeZone ?? "UTC",
@@ -148,7 +149,8 @@ export class GoogleCalendarProvider implements CalendarProvider {
       });
 
       return parseGoogleCalendarEvent({
-        calendar,
+        calendarId: calendar.id,
+        readOnly: calendar.readOnly,
         accountId: this.accountId,
         event,
         defaultTimeZone: timeZone ?? "UTC",
@@ -168,7 +170,8 @@ export class GoogleCalendarProvider implements CalendarProvider {
         );
 
         return parseGoogleCalendarEvent({
-          calendar,
+          calendarId: calendar.id,
+          readOnly: calendar.readOnly,
           accountId: this.accountId,
           event: createdEvent,
         });
@@ -239,7 +242,8 @@ export class GoogleCalendarProvider implements CalendarProvider {
       );
 
       return parseGoogleCalendarEvent({
-        calendar,
+        calendarId: calendar.id,
+        readOnly: calendar.readOnly,
         accountId: this.accountId,
         event: updatedEvent,
       });
@@ -273,7 +277,8 @@ export class GoogleCalendarProvider implements CalendarProvider {
       });
 
       return parseGoogleCalendarEvent({
-        calendar: destinationCalendar,
+        calendarId: destinationCalendar.id,
+        readOnly: false,
         accountId: this.accountId,
         event: moved,
       });

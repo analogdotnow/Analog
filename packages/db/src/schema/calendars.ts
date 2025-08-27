@@ -1,4 +1,4 @@
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import {
   boolean,
   index,
@@ -69,7 +69,9 @@ export const events = pgTable(
 
     syncToken: text("sync_token"),
     recurringEventId: text("recurring_event_id"),
-    recurrenceId: text("recurrence_id").references(() => recurrence.id, { onDelete: "set null" }),
+    recurrenceId: text("recurrence_id").references(() => recurrence.id, {
+      onDelete: "set null",
+    }),
 
     calendarId: text("calendar_id")
       .notNull()
@@ -102,7 +104,15 @@ export const recurrence = pgTable("recurrence", {
 
   // Core recurrence fields
   freq: text("freq", {
-    enum: ["SECONDLY", "MINUTELY", "HOURLY", "DAILY", "WEEKLY", "MONTHLY", "YEARLY"],
+    enum: [
+      "SECONDLY",
+      "MINUTELY",
+      "HOURLY",
+      "DAILY",
+      "WEEKLY",
+      "MONTHLY",
+      "YEARLY",
+    ],
   }).notNull(),
   interval: integer("interval").default(1),
   count: integer("count"),

@@ -1,3 +1,4 @@
+import { revalidateTag } from "next/cache";
 import { eq } from "drizzle-orm";
 import { Temporal } from "temporal-polyfill";
 
@@ -6,44 +7,29 @@ import { db } from "@repo/db";
 import { calendars, events } from "@repo/db/schema";
 import { GoogleCalendar } from "@repo/google-calendar";
 
+import { CalendarEvent } from "../../../interfaces";
 import { parseGoogleCalendarEvent } from "../../calendars/google-calendar/events";
-import { Channel, ChannelHeaders } from "./headers";
-import { CalendarEvent } from "../../interfaces";
-import { revalidateTag } from "next/cache";
-
-function temporalToDate(
-  value: Temporal.PlainDate | Temporal.Instant | Temporal.ZonedDateTime,
-): Date {
-  if (value instanceof Temporal.Instant) {
-    return new Date(value.epochMilliseconds);
-  }
-
-  if (value instanceof Temporal.ZonedDateTime) {
-    return new Date(value.toInstant().epochMilliseconds);
-  }
-
-  return new Date(value.toString());
-}
+import type { GoogleCalendarEvent } from "../../calendars/google-calendar/interfaces";
+import { syncEvents } from "../sync";
+import { toDate } from "@repo/temporal";
 
 async function updateEvent(event: CalendarEvent) {
   const values = {
     id: event.id,
     title: event.title,
-    description: event.description ?? null,
-    start: temporalToDate(event.start),
+    description: event.description,
+    start: toDate(event.start, { timeZone: "UTC" }),
     startTimeZone:
-    event.start instanceof Temporal.ZonedDateTime
+      event.start instanceof Temporal.ZonedDateTime
         ? event.start.timeZoneId
         : null,
-    end: temporalToDate(event.end),
+    end: toDate(event.end, { timeZone: "UTC" }),
     endTimeZone:
-     event.end instanceof Temporal.ZonedDateTime
-        ? event.end.timeZoneId
-        : null,
+      event.end instanceof Temporal.ZonedDateTime ? event.end.timeZoneId : null,
     allDay: event.allDay,
-    location: event.location ?? null,
-    status: event.status ?? null,
-    url: event.url ?? null,
+    location: event.location,
+    status: event.status,
+    url: event.url,
     calendarId: event.calendarId,
     providerId: "google" as const,
     accountId: event.accountId,
@@ -60,66 +46,60 @@ async function updateEvent(event: CalendarEvent) {
     });
 }
 
-async function deleteEvent(event: CalendarEvent) {
-  await db.delete(events).where(eq(events.id, event.id!));
-}
-
-
 interface HandleEventsMessageOptions {
-  channel: Channel;
-  headers: ChannelHeaders;
-  account: Account & { accessToken: string };
+  calendarId: string;
+  account: Account;
 }
 
 export async function handleEventsMessage({
-  channel,
-  headers,
+  calendarId,
   account,
 }: HandleEventsMessageOptions) {
   const calendar = await db.query.calendars.findFirst({
-    where: (table, { eq }) => eq(table.id, channel.resourceId),
+    where: (table, { eq }) => eq(table.id, calendarId),
   });
 
   if (!calendar) {
-    throw new Error(`Calendar ${channel.resourceId} not found`);
+    throw new Error(`Calendar ${calendarId} not found`);
   }
 
   revalidateTag(`calendar.events.${calendar.accountId}.${calendar.id}`);
 
-  // const client = new GoogleCalendar({ accessToken: account.accessToken });
+  const client = new GoogleCalendar({ accessToken: account.accessToken! });
 
-  // const response = await client.calendars.events.list(calendar.calendarId, {
-  //   singleEvents: true,
-  //   showDeleted: true,
-  //   maxResults: 2500,
-  //   syncToken: calendar.syncToken ?? undefined,
-  // });
+  const { nextSyncToken } = await syncEvents({
+    client,
+    calendarId,
+    syncToken: calendar.syncToken,
+    onInvalidSyncToken: async () => {
+      await db.transaction(async (tx) => {
+        await tx.delete(events).where(eq(events.calendarId, calendar.id));
 
-  // if (response.nextSyncToken) {
-  //   await db
-  //     .update(calendars)
-  //     .set({ syncToken: response.nextSyncToken, updatedAt: new Date() })
-  //     .where(eq(calendars.id, calendar.id));
-  // }
+        await tx
+          .update(calendars)
+          .set({ syncToken: null })
+          .where(eq(calendars.id, calendar.id));
+      });
+    },
+    onDelete: async (eventId: string) => {
+      await db.delete(events).where(eq(events.id, eventId));
+    },
+    onUpsert: async (event: GoogleCalendarEvent) => {
+      const parsedEvent = parseGoogleCalendarEvent({
+        calendarId: calendar.id,
+        readOnly: calendar.readOnly,
+        accountId: account.id,
+        event,
+      });
 
-  // const items = response.items ?? [];
+      await updateEvent(parsedEvent);
+    },
+  });
 
-  // if (items.length === 0) {
-  //   return;
-  // }
-
-  // for (const event of items) {
-  //   if (event.status === "cancelled") {
-  //     await db.delete(events).where(eq(events.id, event.id!));
-  //     continue;
-  //   }
-
-  //   const parsedEvent = parseGoogleCalendarEvent({
-  //     calendar,
-  //     accountId: account.id,
-  //     event,
-  //   });
-
-  //   await updateEvent(parsedEvent);
-  // }
+  if (nextSyncToken) {
+    await db
+      .update(calendars)
+      .set({ syncToken: nextSyncToken, updatedAt: new Date() })
+      .where(eq(calendars.id, calendar.id));
+  }
 }
