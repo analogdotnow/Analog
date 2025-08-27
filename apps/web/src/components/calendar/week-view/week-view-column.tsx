@@ -96,6 +96,7 @@ function WeekViewDayTimeSlots({ date }: WeekViewDayTimeSlotsProps) {
   return (
     <motion.div
       ref={columnRef}
+      className="touch-pan-xy select-none-important"
       onPanStart={onDragStart}
       onPan={onDrag}
       onPanEnd={onDragEnd}

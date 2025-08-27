@@ -237,6 +237,35 @@
   }
 }
 
+/* Touch action utilities for Safari drag/pan gesture compatibility */
+@utility touch-pan-x {
+  touch-action: pan-x;
+}
+
+@utility touch-pan-y {
+  touch-action: pan-y;
+}
+
+@utility touch-pan-xy {
+  touch-action: pan-x pan-y;
+}
+
+@utility touch-none {
+  touch-action: none;
+}
+
+@utility touch-manipulation {
+  touch-action: manipulation;
+}
+
+/* User selection utilities for better drag experience */
+@utility select-none-important {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+}
+
 @keyframes shimmer {
   0% {
     transform: translateX(-100%);
