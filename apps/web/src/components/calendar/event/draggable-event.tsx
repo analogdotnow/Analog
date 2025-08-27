@@ -384,7 +384,7 @@ export function DraggableEvent({
               {!item.event.readOnly ? (
                 <>
                   <motion.div
-                    className="absolute inset-x-0 inset-y-2 touch-pan-xy select-none-important"
+                    className="absolute inset-x-0 inset-y-2 touch-manipulation select-none"
                     onPanStart={onDragStart}
                     onPan={onDrag}
                     onPanEnd={onDragEnd}
@@ -420,19 +420,19 @@ export function DraggableEvent({
             {!item.event.readOnly ? (
               <>
                 <motion.div
-                  className="absolute inset-0 touch-pan-xy select-none-important"
+                  className="absolute inset-0 touch-manipulation select-none"
                   onPanStart={onDragStart}
                   onPan={onDrag}
                   onPanEnd={onDragEnd}
                 />
                 <motion.div
-                  className="absolute inset-x-0 top-0 h-[min(15%,_0.25rem)] cursor-row-resize touch-pan-y select-none-important"
+                  className="absolute inset-x-0 top-0 h-[min(15%,_0.25rem)] cursor-row-resize touch-pan-y select-none"
                   onPanStart={onResizeTopStart}
                   onPan={onResizeTop}
                   onPanEnd={onResizeTopEnd}
                 />
                 <motion.div
-                  className="absolute inset-x-0 bottom-0 h-[min(15%,_0.25rem)] cursor-row-resize touch-pan-y select-none-important"
+                  className="absolute inset-x-0 bottom-0 h-[min(15%,_0.25rem)] cursor-row-resize touch-pan-y select-none"
                   onPanStart={onResizeBottomStart}
                   onPan={onResizeBottom}
                   onPanEnd={onResizeBottomEnd}

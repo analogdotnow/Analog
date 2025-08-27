@@ -210,7 +210,7 @@ function DayViewTimeSlots() {
   return (
     <motion.div
       ref={columnRef}
-      className="touch-pan-xy select-none-important"
+      className="touch-manipulation select-none"
       onPanStart={onDragStart}
       onPan={onDrag}
       onPanEnd={onDragEnd}
