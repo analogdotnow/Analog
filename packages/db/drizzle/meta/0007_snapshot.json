@@ -1,6 +1,6 @@
 {
-  "id": "0ab81044-86cc-4c05-91b5-56df4bde7b34",
-  "prevId": "df04c974-2904-48c2-8894-36479a82d7f0",
+  "id": "eefd9901-ccc2-4682-b714-a44d11473696",
+  "prevId": "c48e4a70-4444-4ab7-9292-bf6d8c5c10a6",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -107,7 +107,38 @@
           "notNull": true
         }
       },
-      "indexes": {},
+      "indexes": {
+        "account_user_id_idx": {
+          "name": "account_user_id_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "account_account_id_idx": {
+          "name": "account_account_id_idx",
+          "columns": [
+            {
+              "expression": "account_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "account_user_id_user_id_fk": {
           "name": "account_user_id_user_id_fk",
@@ -395,6 +426,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "etag": {
+          "name": "etag",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "calendar_id": {
           "name": "calendar_id",
           "type": "text",
@@ -539,6 +576,12 @@
         },
         "url": {
           "name": "url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "etag": {
+          "name": "etag",
           "type": "text",
           "primaryKey": false,
           "notNull": false

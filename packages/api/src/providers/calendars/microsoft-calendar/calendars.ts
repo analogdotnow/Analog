@@ -12,13 +12,13 @@ export function parseMicrosoftCalendar({
   calendar,
 }: ParseMicrosoftCalendarOptions): Calendar {
   return {
-    id: calendar.id as string,
+    id: calendar.id!,
     providerId: "microsoft",
-    name: calendar.name as string,
-    primary: calendar.isDefaultCalendar as boolean,
+    name: calendar.name!,
+    primary: calendar.isDefaultCalendar!,
     accountId,
     providerAccountId: accountId,
-    color: calendar.hexColor as string,
+    color: calendar.hexColor!,
     readOnly: !calendar.canEdit,
   };
 }

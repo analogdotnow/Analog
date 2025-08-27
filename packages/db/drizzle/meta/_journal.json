@@ -40,8 +40,22 @@
     {
       "idx": 5,
       "version": "7",
-      "when": 1753485600479,
-      "tag": "0005_hesitant_spitfire",
+      "when": 1754925369167,
+      "tag": "0005_organic_skin",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1755541952840,
+      "tag": "0006_strong_mauler",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1756321131438,
+      "tag": "0007_harsh_franklin_richards",
       "breakpoints": true
     }
   ]

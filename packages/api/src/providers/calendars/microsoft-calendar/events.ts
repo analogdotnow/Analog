@@ -128,8 +128,8 @@ export function parseMicrosoftEvent({
     status: event.showAs ?? undefined,
     attendees: event.attendees?.map(parseMicrosoftAttendee) ?? [],
     url: event.webLink ?? undefined,
-    etag: event.changeKey ?? undefined,
-    color: undefined,
+    // @ts-expect-error -- type from Graph API package is incorrect
+    etag: event["@odata.etag"],
     providerId: "microsoft",
     accountId,
     calendarId: calendar.id,

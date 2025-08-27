@@ -11,6 +11,7 @@ export interface CalendarEvent {
   status?: string;
   attendees?: Attendee[];
   url?: string;
+  etag?: string;
   color?: string;
   readOnly: boolean;
   providerId: "google" | "microsoft";

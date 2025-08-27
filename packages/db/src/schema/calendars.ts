@@ -19,6 +19,7 @@ export const calendars = pgTable(
     timeZone: text("time_zone"),
     primary: boolean("primary").default(false).notNull(),
     color: text("color"),
+    etag: text("etag"),
 
     calendarId: text("calendar_id").notNull(),
 
