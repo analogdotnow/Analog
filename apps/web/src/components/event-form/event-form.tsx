@@ -85,10 +85,6 @@ function getDefaultValues({
   return parseCalendarEvent({ event, settings });
 }
 
-interface EventFormProps {
-  defaultCalendar?: Calendar;
-}
-
 interface EventFormMeta {
   sendUpdate?: boolean;
 }
@@ -531,7 +527,7 @@ export function EventForm() {
           {(field) => (
             <>
               <label htmlFor={field.name} className="sr-only">
-                Title
+                Calendar
               </label>
               <CalendarField
                 className="px-4 text-base"
