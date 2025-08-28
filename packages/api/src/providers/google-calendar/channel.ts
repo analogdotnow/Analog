@@ -1,88 +1,9 @@
 import { Account, auth } from "@repo/auth/server";
 import { db } from "@repo/db";
-import { GoogleCalendar } from "@repo/google-calendar";
 
 import { handleCalendarListMessage } from "./channels/calendars";
 import { handleEventsMessage } from "./channels/events";
 import { parseHeaders } from "./channels/headers";
-
-const DEFAULT_TTL = "3600";
-
-interface SubscribeCalendarListOptions {
-  client: GoogleCalendar;
-  subscriptionId: string;
-  webhookUrl: string;
-}
-
-export async function subscribeCalendarList({
-  client,
-  subscriptionId,
-  webhookUrl,
-}: SubscribeCalendarListOptions) {
-  const response = await client.users.me.calendarList.watch({
-    id: subscriptionId,
-    type: "web_hook",
-    address: webhookUrl,
-    params: {
-      ttl: DEFAULT_TTL,
-    },
-  });
-
-  return {
-    type: "google.calendar",
-    subscriptionId,
-    resourceId: response.resourceId!,
-    expiresAt: new Date(response.expiration!),
-  };
-}
-
-interface SubscribeEventsOptions {
-  client: GoogleCalendar;
-  calendarId: string;
-  subscriptionId: string;
-  webhookUrl: string;
-}
-
-export async function subscribeEvents({
-  client,
-  calendarId,
-  subscriptionId,
-  webhookUrl,
-}: SubscribeEventsOptions) {
-  const response = await client.calendars.events.watch(calendarId, {
-    id: subscriptionId,
-    type: "web_hook",
-    address: webhookUrl,
-    params: {
-      ttl: DEFAULT_TTL,
-    },
-  });
-
-  return {
-    type: "google.event",
-    subscriptionId,
-    calendarId,
-    resourceId: response.resourceId!,
-    expiresAt: new Date(response.expiration!),
-  };
-}
-
-interface UnsubscribeOptions {
-  client: GoogleCalendar;
-  subscriptionId: string;
-  resourceId: string;
-}
-
-export async function unsubscribe({
-  client,
-  subscriptionId,
-  resourceId,
-}: UnsubscribeOptions) {
-  await client.stopWatching.stopWatching({
-    id: subscriptionId,
-    resourceId,
-  });
-}
 
 interface FindChannelOptions {
   channelId: string;
@@ -143,7 +64,6 @@ export function handler() {
       return new Response("Channel not found", { status: 404 });
     }
 
-    // Basic authenticity checks: verify channel token (if present) and resource id match
     if (headers.token && headers.token !== channel.token) {
       return new Response("Invalid channel token", { status: 401 });
     }
@@ -165,21 +85,8 @@ export function handler() {
         account,
       });
     } else if (channel.type === "google.event") {
-      // Extract calendarId from the Google Resource URI
-      const extractCalendarId = (uri: string | undefined): string | null => {
-        if (!uri) return null;
-        try {
-          const url = new URL(uri);
-          const parts = url.pathname.split("/");
-          const idx = parts.indexOf("calendars");
-          if (idx !== -1 && parts[idx + 1]) {
-            return decodeURIComponent(parts[idx + 1]!);
-          }
-        } catch {}
-        return null;
-      };
-
       const calendarId = extractCalendarId(headers.resourceUri);
+
       if (!calendarId) {
         return new Response("Missing calendar id", { status: 400 });
       }
@@ -195,4 +102,14 @@ export function handler() {
   return {
     POST,
   };
+}
+
+function extractCalendarId(uri: string): string | null {
+  const match = /\/calendars\/([^/?#]+)/.exec(uri);
+
+  if (!match) {
+    return null;
+  }
+
+  return decodeURIComponent(match[1]!);
 }
