@@ -282,7 +282,7 @@ export function EventForm() {
           {(field) => (
             <>
               <label htmlFor={field.name} className="sr-only">
-                Calendar
+                Title
               </label>
               <Input
                 id={field.name}
