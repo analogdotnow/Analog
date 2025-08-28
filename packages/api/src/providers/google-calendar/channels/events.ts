@@ -1,4 +1,3 @@
-import { revalidateTag } from "next/cache";
 import { eq } from "drizzle-orm";
 import { Temporal } from "temporal-polyfill";
 
@@ -6,14 +5,14 @@ import { Account } from "@repo/auth/server";
 import { db } from "@repo/db";
 import { calendars, events } from "@repo/db/schema";
 import { GoogleCalendar } from "@repo/google-calendar";
+import { toDate } from "@repo/temporal";
 
 import { CalendarEvent } from "../../../interfaces";
 import { parseGoogleCalendarEvent } from "../../calendars/google-calendar/events";
 import type { GoogleCalendarEvent } from "../../calendars/google-calendar/interfaces";
 import { syncEvents } from "../sync";
-import { toDate } from "@repo/temporal";
 
-async function updateEvent(event: CalendarEvent) {
+async function upsertEvent(event: CalendarEvent) {
   const values = {
     id: event.id,
     title: event.title,
@@ -63,8 +62,6 @@ export async function handleEventsMessage({
     throw new Error(`Calendar ${calendarId} not found`);
   }
 
-  revalidateTag(`calendar.events.${calendar.accountId}.${calendar.id}`);
-
   const client = new GoogleCalendar({ accessToken: account.accessToken! });
 
   const { nextSyncToken } = await syncEvents({
@@ -92,7 +89,7 @@ export async function handleEventsMessage({
         event,
       });
 
-      await updateEvent(parsedEvent);
+      await upsertEvent(parsedEvent);
     },
   });
 

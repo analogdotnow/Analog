@@ -32,9 +32,7 @@ export async function syncCalendarList({
     do {
       try {
         const calendarList = await client.users.me.calendarList.list({
-          ...(syncToken && !forceFullSync
-            ? { syncToken }
-            : {}),
+          ...(syncToken && !forceFullSync ? { syncToken } : {}),
           pageToken,
           maxResults: 250,
           showHidden: false,

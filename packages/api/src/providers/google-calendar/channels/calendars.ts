@@ -1,4 +1,3 @@
-import { revalidateTag } from "next/cache";
 import { and, eq } from "drizzle-orm";
 
 import { Account } from "@repo/auth/server";
@@ -10,6 +9,19 @@ import type { Calendar } from "../../../interfaces";
 import { parseGoogleCalendarCalendarListEntry } from "../../calendars/google-calendar/calendars";
 import { GoogleCalendarCalendarListEntry } from "../../calendars/google-calendar/interfaces";
 import { syncCalendarList } from "../sync";
+
+async function upsertCalendar(calendar: Calendar) {
+  await db
+    .insert(calendars)
+    .values({
+      ...calendar,
+      calendarId: calendar.id,
+    })
+    .onConflictDoUpdate({
+      target: [calendars.id],
+      set: calendar,
+    });
+}
 
 interface HandleCalendarListMessageOptions {
   account: Account;
@@ -59,19 +71,4 @@ export async function handleCalendarListMessage({
       .set({ calendarListSyncToken: nextSyncToken })
       .where(eq(accounts.id, account.id));
   }
-
-  revalidateTag(`calendars.${account.id}`);
-}
-
-async function upsertCalendar(calendar: Calendar) {
-  await db
-    .insert(calendars)
-    .values({
-      ...calendar,
-      calendarId: calendar.id,
-    })
-    .onConflictDoUpdate({
-      target: [calendars.id],
-      set: calendar,
-    });
 }

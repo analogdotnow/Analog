@@ -233,7 +233,7 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
   async deleteEvent(
     calendarId: string,
     eventId: string,
-    sendUpdate: boolean = true,
+    _sendUpdate: boolean = true,
   ): Promise<void> {
     await this.withErrorHandler("deleteEvent", async () => {
       await this.graphClient
@@ -253,6 +253,7 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
       // This could be implemented by creating a new event in destination and deleting the original,
       // preserving fields as needed.
       const event = await this.event(sourceCalendar, eventId);
+
       return {
         ...event,
         calendarId: destinationCalendar.id,
@@ -263,7 +264,7 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
   }
 
   async responseToEvent(
-    calendarId: string,
+    _calendarId: string,
     eventId: string,
     response: ResponseToEventInput,
   ): Promise<void> {
