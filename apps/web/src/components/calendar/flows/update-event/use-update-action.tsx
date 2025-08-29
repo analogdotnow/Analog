@@ -4,12 +4,16 @@ import { useSetAtom } from "jotai";
 import {
   addOptimisticActionAtom,
   generateOptimisticId,
+  removeDraftOptimisticActionsByEventIdAtom,
 } from "../../hooks/optimistic-actions";
 import type { UpdateQueueItem, UpdateQueueRequest } from "./update-queue";
 import { UpdateQueueContext } from "./update-queue-provider";
 
 export function useUpdateAction() {
   const addOptimisticAction = useSetAtom(addOptimisticActionAtom);
+  const removeDraftOptimisticActionsByEventId = useSetAtom(
+    removeDraftOptimisticActionsByEventIdAtom,
+  );
 
   const actorRef = UpdateQueueContext.useActorRef();
 
@@ -17,14 +21,25 @@ export function useUpdateAction() {
     async (req: UpdateQueueRequest) => {
       const optimisticId = generateOptimisticId();
 
-      React.startTransition(() => {
-        addOptimisticAction({
-          id: optimisticId,
-          type: "update",
-          eventId: req.event.id,
-          event: req.event,
+      if (req.event.type === "draft") {
+        React.startTransition(() => {
+          removeDraftOptimisticActionsByEventId(req.event.id);
+          addOptimisticAction({
+            type: "draft",
+            eventId: req.event.id,
+            event: req.event,
+          });
         });
-      });
+      } else {
+        React.startTransition(() => {
+          addOptimisticAction({
+            id: optimisticId,
+            type: "update",
+            eventId: req.event.id,
+            event: req.event,
+          });
+        });
+      }
 
       const item: UpdateQueueItem = {
         optimisticId,
@@ -38,7 +53,7 @@ export function useUpdateAction() {
       // Return optimistic id to allow callers to await completion externally
       return optimisticId;
     },
-    [actorRef, addOptimisticAction],
+    [actorRef, addOptimisticAction, removeDraftOptimisticActionsByEventId],
   );
 
   return update;
