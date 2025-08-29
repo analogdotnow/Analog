@@ -1,5 +1,6 @@
 import type { Temporal } from "temporal-polyfill";
 
+// table
 export interface CalendarEvent {
   id: string;
   title?: string;
@@ -28,6 +29,7 @@ export interface CalendarEvent {
   recurringEventId?: string;
 }
 
+// conference + entry point : are jsonb in the database
 export interface ConferenceEntryPoint {
   joinUrl: {
     label?: string;
@@ -66,6 +68,7 @@ export interface Conference {
   extra?: Record<string, unknown>;
 }
 
+// table
 export interface Attendee {
   id?: string;
   email: string;
@@ -89,6 +92,7 @@ export type Frequency =
   | "MONTHLY"
   | "YEARLY";
 
+// table
 export interface Recurrence {
   freq: Frequency;
   interval?: number;

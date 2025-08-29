@@ -77,6 +77,7 @@ export const account = pgTable(
     refreshTokenExpiresAt: timestamp(),
     scope: text(),
     password: text(),
+    calendarListSyncToken: text("calendar_list_sync_token"),
     createdAt: timestamp().notNull(),
     updatedAt: timestamp().notNull(),
   },

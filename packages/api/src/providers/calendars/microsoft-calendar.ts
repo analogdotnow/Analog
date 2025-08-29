@@ -125,7 +125,12 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
 
       const events = (response.value as MicrosoftEvent[]).map(
         (event: MicrosoftEvent) =>
-          parseMicrosoftEvent({ event, accountId: this.accountId, calendar }),
+          parseMicrosoftEvent({
+            event,
+            accountId: this.accountId,
+            calendarId: calendar.id,
+            readOnly: calendar.readOnly,
+          }),
       );
 
       return { events, recurringMasterEvents: [] };
@@ -151,7 +156,8 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
       return parseMicrosoftEvent({
         event,
         accountId: this.accountId,
-        calendar,
+        calendarId: calendar.id,
+        readOnly: calendar.readOnly,
       });
     });
   }
@@ -168,7 +174,8 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
       return parseMicrosoftEvent({
         event: createdEvent,
         accountId: this.accountId,
-        calendar,
+        calendarId: calendar.id,
+        readOnly: calendar.readOnly,
       });
     });
   }
@@ -211,7 +218,8 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
       return parseMicrosoftEvent({
         event: updatedEvent,
         accountId: this.accountId,
-        calendar,
+        calendarId: calendar.id,
+        readOnly: calendar.readOnly,
       });
     });
   }
@@ -225,7 +233,7 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
   async deleteEvent(
     calendarId: string,
     eventId: string,
-    sendUpdate: boolean = true,
+    _sendUpdate: boolean = true,
   ): Promise<void> {
     await this.withErrorHandler("deleteEvent", async () => {
       await this.graphClient
@@ -245,6 +253,7 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
       // This could be implemented by creating a new event in destination and deleting the original,
       // preserving fields as needed.
       const event = await this.event(sourceCalendar, eventId);
+
       return {
         ...event,
         calendarId: destinationCalendar.id,
@@ -255,7 +264,7 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
   }
 
   async responseToEvent(
-    calendarId: string,
+    _calendarId: string,
     eventId: string,
     response: ResponseToEventInput,
   ): Promise<void> {

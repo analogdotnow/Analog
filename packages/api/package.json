@@ -6,6 +6,7 @@
     ".": "./src/root.ts",
     "./trpc": "./src/trpc.ts",
     "./providers": "./src/providers/index.ts",
+    "./providers/google-calendar/channel": "./src/providers/google-calendar/channel.ts",
     "./interfaces": "./src/interfaces/index.ts",
     "./schemas": "./src/schemas/index.ts"
   },

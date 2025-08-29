@@ -11,7 +11,6 @@ import { Temporal } from "temporal-polyfill";
 import type {
   Attendee,
   AttendeeStatus,
-  Calendar,
   CalendarEvent,
   Conference,
 } from "../../../interfaces";
@@ -69,7 +68,8 @@ function parseDate(date: string) {
 
 interface ParseMicrosoftEventOptions {
   accountId: string;
-  calendar: Calendar;
+  calendarId: string;
+  readOnly: boolean;
   event: MicrosoftEvent;
 }
 
@@ -102,7 +102,8 @@ function parseResponseStatus(
 
 export function parseMicrosoftEvent({
   accountId,
-  calendar,
+  calendarId,
+  readOnly,
   event,
 }: ParseMicrosoftEventOptions): CalendarEvent {
   const { start, end, isAllDay } = event;
@@ -132,8 +133,8 @@ export function parseMicrosoftEvent({
     etag: event["@odata.etag"],
     providerId: "microsoft",
     accountId,
-    calendarId: calendar.id,
-    readOnly: calendar.readOnly,
+    calendarId,
+    readOnly,
     conference: parseMicrosoftConference(event),
     ...(responseStatus && { response: { status: responseStatus } }),
     metadata: {
