@@ -22,18 +22,6 @@ export function eventOverlapsDay(
   const start = item.start.toPlainDate();
   const end = item.end.toPlainDate();
 
-  // For all-day events, the end date is exclusive, so we should not include it in the overlap check
-  if (item.event.allDay) {
-    const exclusiveEnd = end.subtract({ days: 1 });
-
-    return (
-      isSameDay(day, start) ||
-      isSameDay(day, exclusiveEnd) ||
-      (isAfter(day, start) && isBefore(day, exclusiveEnd))
-    );
-  }
-
-  // For timed events, include the end day
   return (
     isSameDay(day, start) ||
     isSameDay(day, end) ||
