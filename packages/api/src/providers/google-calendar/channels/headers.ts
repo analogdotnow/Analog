@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { channel } from "@repo/db/schema";
+import type { channel } from "@repo/db/schema";
 
 export type ChannelHeaders = z.infer<typeof headersSchema>;
 export type Channel = typeof channel.$inferSelect;

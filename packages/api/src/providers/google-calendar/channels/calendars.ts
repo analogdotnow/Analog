@@ -18,7 +18,7 @@ async function upsertCalendar(calendar: Calendar) {
       calendarId: calendar.id,
     })
     .onConflictDoUpdate({
-      target: [calendars.id],
+      target: [calendars.calendarId, calendars.accountId],
       set: calendar,
     });
 }

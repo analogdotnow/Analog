@@ -26,7 +26,7 @@ export async function subscribeCalendarList({
     type: "google.calendar" as const,
     subscriptionId,
     resourceId: response.resourceId!,
-    expiresAt: new Date(response.expiration!),
+    expiresAt: new Date(Number(response.expiration!)),
   };
 }
 
@@ -57,7 +57,7 @@ export async function subscribeEvents({
     subscriptionId,
     calendarId,
     resourceId: response.resourceId!,
-    expiresAt: new Date(response.expiration!),
+    expiresAt: new Date(Number(response.expiration!)),
   };
 }
 

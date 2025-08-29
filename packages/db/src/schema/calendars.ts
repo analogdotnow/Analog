@@ -1,14 +1,5 @@
 import { relations, sql } from "drizzle-orm";
-import {
-  boolean,
-  index,
-  integer,
-  jsonb,
-  pgTable,
-  text,
-  timestamp,
-  uniqueIndex,
-} from "drizzle-orm/pg-core";
+import { boolean, index, integer, jsonb, pgTable, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
 
 import { account } from "./auth";
 
@@ -40,7 +31,13 @@ export const calendars = pgTable(
       .notNull()
       .$onUpdateFn(() => new Date()),
   },
-  (table) => [index("calendar_account_idx").on(table.accountId)],
+  (table) => [
+    index("calendar_account_idx").on(table.accountId),
+    uniqueIndex("calendar_calendar_id_account_unique").on(
+      table.calendarId,
+      table.accountId,
+    ),
+  ],
 );
 
 export const events = pgTable(
@@ -93,6 +90,11 @@ export const events = pgTable(
     index("event_account_idx").on(table.accountId),
     index("event_recurrence_idx").on(table.recurrenceId),
     index("event_account_calendar_idx").on(table.accountId, table.calendarId),
+    uniqueIndex("event_id_calendar_account_unique").on(
+      table.id,
+      table.calendarId,
+      table.accountId,
+    ),
   ],
 );
 

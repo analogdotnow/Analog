@@ -68,7 +68,7 @@ export async function syncCalendarList({
 
   let nextSyncToken = await perform();
 
-  if (!nextSyncToken) {
+  if (nextSyncToken) {
     return { nextSyncToken };
   }
 

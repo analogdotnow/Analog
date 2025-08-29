@@ -5,7 +5,7 @@ import { newId } from "../lib/id";
 export const resource = pgTable("resource", {
   id: text()
     .primaryKey()
-    .$default(() => newId("resource")),
+    .$defaultFn(() => newId("resource")),
   providerId: text({ enum: ["google"] }).notNull(),
 
   createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),

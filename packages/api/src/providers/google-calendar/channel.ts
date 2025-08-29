@@ -64,7 +64,7 @@ export function handler() {
       return new Response("Channel not found", { status: 404 });
     }
 
-    if (headers.token && headers.token !== channel.token) {
+    if (!headers.token || headers.token !== channel.token) {
       return new Response("Invalid channel token", { status: 401 });
     }
 

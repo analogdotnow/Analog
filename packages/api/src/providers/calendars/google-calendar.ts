@@ -278,7 +278,7 @@ export class GoogleCalendarProvider implements CalendarProvider {
 
       return parseGoogleCalendarEvent({
         calendarId: destinationCalendar.id,
-        readOnly: false,
+        readOnly: destinationCalendar.readOnly,
         accountId: this.accountId,
         event: moved,
       });

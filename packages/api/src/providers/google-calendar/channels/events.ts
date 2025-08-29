@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { Temporal } from "temporal-polyfill";
 
 import { Account } from "@repo/auth/server";
@@ -29,16 +29,22 @@ async function upsertEvent(event: CalendarEvent) {
     location: event.location,
     status: event.status,
     url: event.url,
+    etag: event.etag,
+    readOnly: event.readOnly,
     calendarId: event.calendarId,
     providerId: "google" as const,
     accountId: event.accountId,
+    recurringEventId: event.recurringEventId,
+    conference: event.conference,
+    metadata: event.metadata,
+    response: event.response,
   } as const;
 
   await db
     .insert(events)
     .values(values)
     .onConflictDoUpdate({
-      target: [events.id],
+      target: [events.id, events.calendarId, events.accountId],
       set: {
         ...values,
       },
@@ -55,7 +61,8 @@ export async function handleEventsMessage({
   account,
 }: HandleEventsMessageOptions) {
   const calendar = await db.query.calendars.findFirst({
-    where: (table, { eq }) => eq(table.id, calendarId),
+    where: (table, { and, eq }) =>
+      and(eq(table.id, calendarId), eq(table.accountId, account.id)),
   });
 
   if (!calendar) {
@@ -79,7 +86,9 @@ export async function handleEventsMessage({
       });
     },
     onDelete: async (eventId: string) => {
-      await db.delete(events).where(eq(events.id, eventId));
+      await db
+        .delete(events)
+        .where(and(eq(events.id, eventId), eq(events.calendarId, calendar.id)));
     },
     onUpsert: async (event: GoogleCalendarEvent) => {
       const parsedEvent = parseGoogleCalendarEvent({
