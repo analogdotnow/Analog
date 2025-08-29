@@ -26,8 +26,8 @@ type Duration = `${number} ${Unit}` | `${number}${Unit}`;
 
 export type Meta = OpenApiMeta &
   McpMeta & {
-    procedureName: string;
-    ratelimit: {
+    procedureName?: string;
+    ratelimit?: {
       namespace: string;
       limit: number;
       duration: Duration;
