@@ -210,7 +210,7 @@ export function EventItem({
   return (
     <button
       className={cn(
-        "@container/event group flex w-full flex-col gap-1 rounded-md border border-event bg-event p-2 text-left text-event transition outline-none hover:border-event-hover hover:bg-event-hover hover:text-event-hover focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 data-past-event:line-through data-past-event:opacity-90",
+        "group hover:text-event-hover @container/event flex w-full flex-col gap-1 rounded-md border border-event bg-event p-2 text-left text-event transition outline-none hover:border-event-hover hover:bg-event-hover focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 data-past-event:line-through data-past-event:opacity-90",
         "border-[color-mix(in_oklab,var(--background),var(--calendar-color)_30%)] bg-[color-mix(in_oklab,var(--background),var(--calendar-color)_20%)]",
         className,
       )}
