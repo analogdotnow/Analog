@@ -9,7 +9,6 @@ import {
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accounts } from "./tabs/accounts";
-import { ApiKeys } from "./tabs/api-keys";
 import { General } from "./tabs/general";
 
 interface SettingsDialogProps {
@@ -59,9 +58,6 @@ export function SettingsDialog({ children }: SettingsDialogProps) {
                 </TabsContent>
                 <TabsContent value="general" className="mt-0 h-full">
                   <General />
-                </TabsContent>
-                <TabsContent value="api" className="mt-0 h-full">
-                  <ApiKeys />
                 </TabsContent>
               </div>
             </div>
