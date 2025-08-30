@@ -32,7 +32,7 @@ export const createTaskInputSchema = z
   });
 
 export const updateTaskInputSchema = createTaskInputSchema
-  .extend({
+  .safeExtend({
     id: z.string(),
   })
   .refine((data) => data.title || data.description, {
