@@ -21,7 +21,6 @@ import { EventCollectionItem } from "../hooks/event-collection";
 import { useSelectAction } from "../hooks/use-optimistic-mutations";
 
 interface OverflowIndicatorProps {
-  count: number;
   items: EventCollectionItem[];
   date: Temporal.PlainDate;
 
@@ -30,10 +29,8 @@ interface OverflowIndicatorProps {
 }
 
 export function OverflowIndicator({
-  count,
   items,
   date,
-
   gridColumn,
   className,
 }: OverflowIndicatorProps) {
@@ -42,7 +39,7 @@ export function OverflowIndicator({
   const timeZone = useAtomValue(calendarSettingsAtom).defaultTimeZone;
 
   const selectAction = useSelectAction();
-  const handleEventClick = React.useCallback(
+  const onEventClick = React.useCallback(
     (event: CalendarEvent) => {
       selectAction(event);
       setOpen(false);
@@ -50,11 +47,14 @@ export function OverflowIndicator({
     [selectAction],
   );
 
-  if (count <= 0) {
+  const legacyDate = React.useMemo(
+    () => toDate(date, { timeZone }),
+    [date, timeZone],
+  );
+
+  if (items.length <= 0) {
     return null;
   }
-
-  const legacyDate = toDate(date, { timeZone });
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -67,7 +67,7 @@ export function OverflowIndicator({
           )}
           style={gridColumn ? { gridColumn } : undefined}
         >
-          +{count} more
+          +{items.length} more
         </button>
       </PopoverTrigger>
 
@@ -95,31 +95,46 @@ export function OverflowIndicator({
             <div className="py-2 text-sm text-muted-foreground">No events</div>
           ) : (
             <div className="space-y-2">
-              {items.map((item) => {
-                const eventStart = item.start.toPlainDate();
-                const eventEnd = item.end.toPlainDate();
-                const isFirstDay = isSameDay(date, eventStart);
-                const isLastDay = isSameDay(date, eventEnd);
-
-                return (
-                  <div
-                    key={item.event.id}
-                    className="cursor-pointer"
-                    onClick={() => handleEventClick(item.event)}
-                  >
-                    <EventItem
-                      item={item}
-                      view="agenda"
-                      isFirstDay={isFirstDay}
-                      isLastDay={isLastDay}
-                    />
-                  </div>
-                );
-              })}
+              {items.map((item) => (
+                <OverflowEvent
+                  key={item.event.id}
+                  item={item}
+                  date={date}
+                  onEventClick={onEventClick}
+                />
+              ))}
             </div>
           )}
         </div>
       </PopoverContent>
     </Popover>
+  );
+}
+
+interface OverflowEventsProps {
+  item: EventCollectionItem;
+  date: Temporal.PlainDate;
+  onEventClick: (event: CalendarEvent) => void;
+}
+
+function OverflowEvent({ item, date, onEventClick }: OverflowEventsProps) {
+  const { defaultTimeZone } = useAtomValue(calendarSettingsAtom);
+
+  const isFirstDay = isSameDay(date, item.start, { timeZone: defaultTimeZone });
+  const isLastDay = isSameDay(date, item.end, { timeZone: defaultTimeZone });
+
+  return (
+    <div
+      key={item.event.id}
+      className="cursor-pointer"
+      onClick={() => onEventClick(item.event)}
+    >
+      <EventItem
+        item={item}
+        view="agenda"
+        isFirstDay={isFirstDay}
+        isLastDay={isLastDay}
+      />
+    </div>
   );
 }

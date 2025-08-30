@@ -114,9 +114,6 @@ export const auth = betterAuth({
       loginPage: "/login",
     }),
   ],
-  rateLimit: {
-    storage: "secondary-storage",
-  },
 });
 
 export type Session = typeof auth.$Infer.Session;

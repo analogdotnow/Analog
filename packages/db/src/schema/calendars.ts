@@ -19,6 +19,7 @@ export const calendars = pgTable(
     timeZone: text("time_zone"),
     primary: boolean("primary").default(false).notNull(),
     color: text("color"),
+    etag: text("etag"),
 
     calendarId: text("calendar_id").notNull(),
 
@@ -64,6 +65,7 @@ export const events = pgTable(
     location: text("location"),
     status: text("status"),
     url: text("url"),
+    etag: text("etag"),
 
     syncToken: text("sync_token"),
     recurringEventId: text("recurring_event_id"),

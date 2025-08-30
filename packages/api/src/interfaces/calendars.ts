@@ -5,6 +5,7 @@ export interface Calendar {
   providerId: "google" | "microsoft";
   name: string;
   description?: string;
+  etag?: string;
   timeZone?: string;
   primary: boolean;
   accountId: string;

@@ -18,6 +18,7 @@ export function parseGoogleCalendarCalendarListEntry({
     id: entry.id,
     name: entry.summaryOverride ?? entry.summary!,
     description: entry.description,
+    etag: entry.etag,
     // location: entry.location,
     timeZone: entry.timeZone,
     primary: entry.primary!,

@@ -8,6 +8,7 @@ import {
   selectedEventIdsAtom,
   selectedEventsAtom,
 } from "@/atoms/selected-events";
+import { useSidebarWithSide } from "@/components/ui/sidebar";
 import type { CalendarEvent, DraftEvent } from "@/lib/interfaces";
 import { useTRPC } from "@/lib/trpc/client";
 import {
@@ -63,6 +64,8 @@ export function useSelectAction() {
   const removeDraftOptimisticActionsByEventId = useSetAtom(
     removeDraftOptimisticActionsByEventIdAtom,
   );
+  const { open: rightSidebarOpen, setOpen: setRightSidebarOpen } =
+    useSidebarWithSide("right");
 
   return React.useCallback(
     (event: CalendarEvent) => {
@@ -75,11 +78,16 @@ export function useSelectAction() {
         return [event];
       });
       setSelectedEventIds((prev) => [...prev, event.id]);
+      if (!rightSidebarOpen) {
+        setRightSidebarOpen(true);
+      }
     },
     [
       setSelectedEvents,
       removeDraftOptimisticActionsByEventId,
       setSelectedEventIds,
+      rightSidebarOpen,
+      setRightSidebarOpen,
     ],
   );
 }

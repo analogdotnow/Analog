@@ -69,7 +69,10 @@ export function Hero() {
         </div>
       </AnimatedGroup>
 
-      <AnimatedGroup variants={delayedTransitionVariants}>
+      <AnimatedGroup
+        variants={delayedTransitionVariants}
+        className="overflow-hidden"
+      >
         <div className="mx-auto w-full min-w-[300vw] px-4 sm:max-w-7xl sm:min-w-0 sm:translate-x-0 sm:px-6">
           {/* <div className="w-full [--base-height:874px] [--display-height:calc(var(--base-height)_*_var(--preview-scale))] [--preview-scale:0.5] sm:[--preview-scale:0.8]">
             <div className="[--item-width:1400px]">

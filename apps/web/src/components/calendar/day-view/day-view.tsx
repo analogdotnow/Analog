@@ -6,6 +6,7 @@ import { motion } from "motion/react";
 import { Temporal } from "temporal-polyfill";
 
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
+import { currentDateAtom } from "@/atoms/view-preferences";
 import { DragPreview } from "@/components/calendar/event/drag-preview";
 import { DraggableEvent } from "@/components/calendar/event/draggable-event";
 import { EventItem } from "@/components/calendar/event/event-item";
@@ -71,11 +72,8 @@ function PositionedEvent({
   );
 }
 
-export function DayView({
-  currentDate,
-  events,
-  scrollContainerRef,
-}: DayViewProps) {
+export function DayView({ events, scrollContainerRef }: DayViewProps) {
+  const currentDate = useAtomValue(currentDateAtom);
   const containerRef = React.useRef<HTMLDivElement | null>(null);
   const headerRef = React.useRef<HTMLDivElement>(null);
 
@@ -106,7 +104,7 @@ export function DayView({
         ref={containerRef}
         className="relative isolate grid flex-1 grid-cols-[5rem_1fr] overflow-hidden border-border/70"
       >
-        <TimeIndicatorBackground date={currentDate} />
+        <TimeIndicatorBackground />
 
         <Timeline />
 
@@ -121,7 +119,7 @@ export function DayView({
 
           <TimeIndicator date={currentDate} />
 
-          <MemoizedDayViewTimeSlots currentDate={currentDate} />
+          <MemoizedDayViewTimeSlots />
         </div>
       </div>
     </div>
@@ -192,11 +190,8 @@ function DayViewPositionedEvent({
   );
 }
 
-interface DayViewTimeSlotsProps {
-  currentDate: Temporal.PlainDate;
-}
-
-function DayViewTimeSlots({ currentDate }: DayViewTimeSlotsProps) {
+function DayViewTimeSlots() {
+  const currentDate = useAtomValue(currentDateAtom);
   const settings = useAtomValue(calendarSettingsAtom);
   const columnRef = React.useRef<HTMLDivElement>(null);
 
@@ -207,7 +202,7 @@ function DayViewTimeSlots({ currentDate }: DayViewTimeSlotsProps) {
       columnRef,
     });
 
-  const { onDoubleClick } = useDoubleClickToCreate({
+  const onDoubleClick = useDoubleClickToCreate({
     date: currentDate,
     columnRef,
   });

@@ -5,6 +5,7 @@ import { Temporal } from "temporal-polyfill";
 
 import { isDraggingAtom } from "@/atoms/drag-resize-state";
 import { jotaiStore } from "@/atoms/store";
+import { useSidebarWithSide } from "@/components/ui/sidebar";
 import { createDraftEvent } from "@/lib/utils/calendar";
 import { MINUTES_IN_HOUR, TOTAL_MINUTES_IN_DAY } from "../constants";
 import { useCreateDraftAction } from "./use-optimistic-mutations";
@@ -30,6 +31,8 @@ export function useDragToCreate({
   timeZone,
   columnRef,
 }: UseDragToCreateOptions) {
+  const { open: rightSidebarOpen, setOpen: setRightSidebarOpen } =
+    useSidebarWithSide("right");
   const initialMinutes = React.useRef(0);
   const top = useMotionValue<number | undefined>(undefined);
   const height = useMotionValue(0);
@@ -219,6 +222,10 @@ export function useDragToCreate({
     opacity.set(0);
 
     createDraftAction(draft);
+
+    if (!rightSidebarOpen) {
+      setRightSidebarOpen(true);
+    }
   };
 
   return { onDragStart, onDrag, onDragEnd, top, height, opacity };

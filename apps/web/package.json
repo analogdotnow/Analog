@@ -106,6 +106,7 @@
     "trpc-to-openapi": "^3.0.0",
     "tw-animate-css": "^1.3.5",
     "use-stick-to-bottom": "^1.1.1",
+    "usehooks-ts": "^3.1.1",
     "xstate": "^5.20.2",
     "zod": "^4.0.5"
   },

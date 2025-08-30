@@ -54,7 +54,7 @@ export function Header() {
       >
         <div
           className={cn(
-            "mx-auto mt-2 max-w-6xl px-6 transition-all duration-300 lg:px-12",
+            "mx-auto mt-2 max-w-6xl border-none px-6 transition-all duration-300 lg:px-12",
             isScrolled &&
               "max-w-4xl rounded-2xl border bg-background/50 backdrop-blur-lg lg:px-5 dark:bg-white/5",
           )}
@@ -109,10 +109,10 @@ export function Header() {
                   ))}
                 </ul>
               </div>
-              <div className="flex w-full flex-col space-y-3 sm:flex-row sm:gap-3 sm:space-y-0 md:w-fit">
+              <div className="flex w-full flex-col space-y-6 sm:flex-row sm:gap-3 sm:space-y-0 md:w-fit">
                 <div
                   className={cn(
-                    "flex flex-row items-center gap-8 px-6",
+                    "flex flex-row items-center justify-around gap-8 px-8 sm:pl-0",
                     // TODO: Uncomment this when we add nav items
                     // isScrolled && "lg:hidden",
                   )}

@@ -1,5 +1,7 @@
+import { useAtomValue } from "jotai";
 import { Temporal } from "temporal-polyfill";
 
+import { currentDateAtom } from "@/atoms/view-preferences";
 import { useCurrentTimeIndicator } from "./use-current-time-indicator";
 
 interface TimeIndicatorProps {
@@ -7,8 +9,9 @@ interface TimeIndicatorProps {
 }
 
 export function TimeIndicator({ date }: TimeIndicatorProps) {
-  const { currentTimePosition, currentTimeVisible } =
-    useCurrentTimeIndicator(date);
+  const { currentTimePosition, currentTimeVisible } = useCurrentTimeIndicator({
+    date,
+  });
 
   if (!currentTimeVisible) {
     return null;
@@ -28,14 +31,11 @@ export function TimeIndicator({ date }: TimeIndicatorProps) {
   );
 }
 
-interface TimeIndicatorBackgroundProps {
-  date: Temporal.PlainDate;
-}
-
-export function TimeIndicatorBackground({
-  date,
-}: TimeIndicatorBackgroundProps) {
-  const { currentTimePosition, formattedTime } = useCurrentTimeIndicator(date);
+export function TimeIndicatorBackground() {
+  const currentDate = useAtomValue(currentDateAtom);
+  const { currentTimePosition, formattedTime } = useCurrentTimeIndicator({
+    date: currentDate,
+  });
 
   return (
     <div

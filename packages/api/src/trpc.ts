@@ -7,7 +7,7 @@ import type { McpMeta } from "trpc-to-mcp";
 import type { OpenApiMeta } from "trpc-to-openapi";
 import { ZodError } from "zod/v3";
 
-import { auth } from "@repo/auth/server";
+import { auth, type Session } from "@repo/auth/server";
 import { db } from "@repo/db";
 
 import {
@@ -35,9 +35,7 @@ export type Meta = OpenApiMeta &
   };
 
 export const createTRPCContext = async (opts: { headers: Headers }) => {
-  const session = await auth.api.getSession({
-    headers: opts.headers,
-  });
+  const session = await auth.api.getSession({ headers: opts.headers });
 
   return {
     authContext: await auth.$context,

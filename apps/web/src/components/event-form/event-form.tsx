@@ -85,10 +85,6 @@ function getDefaultValues({
   return parseCalendarEvent({ event, settings });
 }
 
-interface EventFormProps {
-  defaultCalendar?: Calendar;
-}
-
 interface EventFormMeta {
   sendUpdate?: boolean;
 }
@@ -193,15 +189,15 @@ export function EventForm() {
 
         focusRef.current = false;
         formApi.reset();
+      } else {
+        await updateAction({
+          event: toCalendarEvent({ values: value, event, calendar }),
+          notify: formMeta?.sendUpdate,
+        });
+
+        focusRef.current = false;
+        formApi.reset();
       }
-
-      await updateAction({
-        event: toCalendarEvent({ values: value, event, calendar }),
-        notify: formMeta?.sendUpdate,
-      });
-
-      focusRef.current = false;
-      formApi.reset();
     },
     listeners: {
       onBlur: async ({ formApi }) => {
@@ -531,7 +527,7 @@ export function EventForm() {
           {(field) => (
             <>
               <label htmlFor={field.name} className="sr-only">
-                Title
+                Calendar
               </label>
               <CalendarField
                 className="px-4 text-base"

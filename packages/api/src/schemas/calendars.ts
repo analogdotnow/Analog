@@ -9,6 +9,7 @@ export const createCalendarInputSchema = z.object({
 
 export const updateCalendarInputSchema = createCalendarInputSchema.extend({
   id: z.string(),
+  etag: z.string().optional(),
 });
 
 export type CreateCalendarInput = z.infer<typeof createCalendarInputSchema>;

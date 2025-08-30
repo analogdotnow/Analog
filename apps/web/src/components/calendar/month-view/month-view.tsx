@@ -344,7 +344,7 @@ function MonthViewDay({
 
   const cellRef = React.useRef<HTMLDivElement>(null);
 
-  const { onDoubleClick } = useDoubleClickToCreate({
+  const onDoubleClick = useDoubleClickToCreate({
     date: currentDate,
     columnRef: cellRef,
   });
@@ -403,16 +403,15 @@ function MonthViewDay({
         ></div>
 
         {/* Show overflow indicator for this day if there are overflow events that start on this day */}
-        {hasOverflowForDay && (
+        {hasOverflowForDay ? (
           <div className="pointer-events-auto z-10 flex flex-col items-center place-self-stretch pb-1">
             <OverflowIndicator
-              count={dayOverflowEvents.length}
               items={dayOverflowEvents}
               date={day}
               className=""
             />
           </div>
-        )}
+        ) : null}
       </DroppableCell>
     </div>
   );
