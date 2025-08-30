@@ -107,8 +107,6 @@ export const auth = betterAuth({
         maxRequests: 100, // 100 requests per minute
       },
     }),
-    // only for testing purposes
-    openAPI(),
     mcp({
       loginPage: "/login",
     }),
