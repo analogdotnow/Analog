@@ -27,7 +27,6 @@
         "@hookform/resolvers": "^5.1.1",
         "@icons-pack/react-simple-icons": "^13.7.0",
         "@internationalized/date": "^3.8.2",
-        "@modelcontextprotocol/sdk": "^1.17.1",
         "@number-flow/react": "^0.5.10",
         "@radix-ui/react-alert-dialog": "^1.1.14",
         "@radix-ui/react-avatar": "^1.1.10",
