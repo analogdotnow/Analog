@@ -13,9 +13,8 @@ export const apiKeysRouter = createTRPCRouter({
       headers: ctx.headers,
     });
 
-    return apiKeys || [];
+    return { apiKeys };
   }),
-
   create: protectedProcedure
     .input(createApiKeySchema)
     .mutation(async ({ ctx, input }) => {
@@ -30,9 +29,8 @@ export const apiKeysRouter = createTRPCRouter({
         },
       });
 
-      return apiKey;
+      return { apiKey };
     }),
-
   update: protectedProcedure
     .input(updateApiKeySchema)
     .mutation(async ({ ctx, input }) => {
@@ -44,19 +42,16 @@ export const apiKeysRouter = createTRPCRouter({
         },
       });
 
-      return apiKey;
+      return { apiKey };
     }),
-
   delete: protectedProcedure
     .input(deleteApiKeySchema)
     .mutation(async ({ ctx, input }) => {
-      const result = await auth.api.deleteApiKey({
+      await auth.api.deleteApiKey({
         body: {
           keyId: input.keyId,
         },
         headers: ctx.headers,
       });
-
-      return result;
     }),
 });
