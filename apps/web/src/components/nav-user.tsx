@@ -71,13 +71,6 @@ export function NavUser() {
                     .join("")}
                 </AvatarFallback>
               </Avatar>
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{query.data?.name}</span>
-                <span className="truncate text-xs text-muted-foreground">
-                  {query.data?.email}
-                </span>
-              </div>
-              <ChevronUpDownIcon className="ml-auto size-4" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent

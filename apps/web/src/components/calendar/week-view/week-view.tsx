@@ -74,10 +74,7 @@ export function WeekView({
       style={{ "--week-view-grid": gridTemplateColumns } as React.CSSProperties}
       {...props}
     >
-      <div
-        ref={headerRef}
-        className="sticky top-0 z-30 bg-background/80 backdrop-blur-md"
-      >
+      <div ref={headerRef} className="sticky top-0 z-30 bg-background">
         <WeekViewHeader allDays={week.days} />
         <WeekViewAllDaySection
           allDays={week.days}
@@ -91,17 +88,18 @@ export function WeekView({
         ref={containerRef}
         className="relative isolate grid flex-1 grid-cols-(--week-view-grid) overflow-hidden transition-[grid-template-columns] duration-200 ease-linear"
       >
-        <TimeIndicatorBackground />
         <Timeline />
         {week.days.map((date) => (
           <WeekViewDayColumn
             key={date.toString()}
             date={date}
+            isWeekend={isWeekend(date)}
             visibleDays={visibleDays}
             eventCollection={eventCollection}
             containerRef={containerRef}
           />
         ))}
+        <TimeIndicatorBackground />
       </div>
     </div>
   );

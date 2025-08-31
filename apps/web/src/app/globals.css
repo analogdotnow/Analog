@@ -44,12 +44,9 @@
   --avatar-gradient-top: var(--color-zinc-200);
   --avatar-gradient-bottom: var(--color-zinc-100);
   --analog-neutral: oklch(0.945 0 0);
-  --calendar-red: #fb2c36;
-  --calendar-orange: #ff6900;
-  --calendar-yellow: #f0b100;
-  --calendar-green: #00c950;
-  --calendar-blue: #2b7fff;
-  --calendar-purple: #ad46ff;
+
+  --input-focus: var(--color-neutral-200);
+  --column-weekend: var(--color-neutral-100);
 }
 
 .dark {
@@ -58,7 +55,11 @@
     var(--color-neutral-950) 90%,
     var(--color-neutral-900)
   );
-  --background: var(--color-neutral-900);
+  --background: color-mix(
+    in oklch,
+    var(--color-neutral-950) 40%,
+    var(--color-neutral-900)
+  );
   --foreground: var(--color-neutral-50);
   --card: var(--color-neutral-900);
   --card-foreground: var(--color-neutral-50);
@@ -73,11 +74,7 @@
   --accent: var(--color-neutral-700);
   --accent-foreground: var(--color-neutral-50);
   --destructive: var(--color-red-400);
-  --border: color-mix(
-    in oklch,
-    var(--color-neutral-800) 50%,
-    var(--color-neutral-700)
-  );
+  --border: var(--color-neutral-800);
   --input: color-mix(
     in oklch,
     var(--color-neutral-800) 50%,
@@ -89,17 +86,13 @@
   --chart-3: var(--color-amber-500);
   --chart-4: var(--color-purple-500);
   --chart-5: var(--color-rose-500);
-  --sidebar: color-mix(
-    in oklch,
-    var(--color-neutral-900) 50%,
-    var(--color-neutral-800)
-  );
+  --sidebar: var(--color-neutral-900);
   --sidebar-foreground: var(--color-neutral-50);
   --sidebar-primary: var(--color-blue-500);
   --sidebar-primary-foreground: var(--color-neutral-50);
   --sidebar-accent: var(--color-neutral-800);
   --sidebar-accent-foreground: var(--color-neutral-50);
-  --sidebar-border: rgba(255, 255, 255, 0.1);
+  --sidebar-border: var(--color-neutral-800);
   --sidebar-ring: var(--color-neutral-600);
   --avatar-gradient-top: color-mix(
     in oklch,
@@ -107,6 +100,13 @@
     var(--color-neutral-900) 50%
   );
   --avatar-gradient-bottom: var(--color-neutral-800);
+
+  --column-weekend: color-mix(
+    in oklch,
+    var(--color-neutral-950) 20%,
+    var(--color-neutral-900)
+  );
+  --input-focus: var(--color-neutral-800);
 }
 
 @theme inline {
@@ -152,6 +152,10 @@
   --color-sidebar-ring: var(--sidebar-ring);
   --color-avatar-gradient-top: var(--avatar-gradient-top);
   --color-avatar-gradient-bottom: var(--avatar-gradient-bottom);
+
+  --color-input-focus: var(--input-focus);
+  --color-column-weekend: var(--column-weekend);
+
   --background-color-event: color-mix(
     in oklab,
     var(--background),

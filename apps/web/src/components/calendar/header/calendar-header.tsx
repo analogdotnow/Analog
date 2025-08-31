@@ -17,13 +17,13 @@ export function CalendarHeader({
   return (
     <header
       className={cn(
-        "@container/header flex h-12 items-center justify-between gap-2 p-2 ps-4",
+        "@container/header flex h-12 items-center justify-between gap-2 p-2 ps-4 select-none",
         className,
       )}
       ref={ref}
       {...props}
     >
-      <div className="flex flex-1 items-center gap-1 sm:gap-4">
+      <div className="flex flex-1 items-center gap-0 sm:gap-3">
         <SidebarTrigger className="-ml-1 @max-md/header:hidden" />
         <CalendarViewTitle className="text-sm font-medium sm:text-lg md:text-xl" />
       </div>

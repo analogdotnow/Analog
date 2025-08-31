@@ -28,7 +28,7 @@ export function WeekViewHeader({ allDays }: WeekViewHeaderProps) {
   }, [allDays, settings.defaultTimeZone, settings.locale]);
 
   return (
-    <div className="grid grid-cols-(--week-view-grid) border-b border-border/70 transition-[grid-template-columns] duration-200 ease-linear">
+    <div className="grid grid-cols-(--week-view-grid) border-b border-border/70 transition-[grid-template-columns] duration-200 ease-linear select-none">
       <div className="flex flex-col items-end justify-end py-2 pe-2 pb-2.5 text-center text-sm text-[10px] font-medium text-muted-foreground/70 sm:pe-4 sm:text-xs">
         <span className="max-[479px]:sr-only">{timeZone}</span>
       </div>

@@ -16,7 +16,7 @@ export function RightSidebar({
   return (
     <Sidebar {...props}>
       <SidebarRail minSidebarWidth={minSidebarWidth} />
-      <SidebarContent className="pr-0.5">{children}</SidebarContent>
+      <SidebarContent className="px-1.5 pt-1">{children}</SidebarContent>
     </Sidebar>
   );
 }

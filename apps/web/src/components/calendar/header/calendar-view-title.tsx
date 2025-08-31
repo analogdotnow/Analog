@@ -5,6 +5,13 @@ import { AnimatePresence, Variant, motion } from "motion/react";
 
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { viewPreferencesAtom } from "@/atoms/view-preferences";
+import { DatePicker } from "@/components/date-picker";
+import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { useCalendarState } from "@/hooks/use-calendar-state";
 import { cn } from "@/lib/utils";
 import { getViewTitleData } from "../utils/date-time";
@@ -46,31 +53,43 @@ export function CalendarViewTitle({ className }: CalendarViewTitleProps) {
 
   return (
     <div className="relative h-8 w-full">
-      <AnimatePresence>
-        <motion.h2
-          key={titleData.full}
-          className={cn(
-            "absolute inset-0 flex items-center justify-start gap-2 transition-all",
-            className,
-          )}
-          variants={variants}
-          initial="initial"
-          animate="animate"
-          exit="exit"
-        >
-          <span className="line-clamp-1 @md/header:hidden" aria-hidden="true">
-            {titleData.short}
-          </span>
-          <span className="line-clamp-1 @max-md/header:hidden">
-            {titleData.full}
-          </span>
-          {view !== "month" && viewPreferences.showWeekNumbers ? (
-            <span className="line-clamp-1 text-sm text-muted-foreground">
-              W{currentDate.weekOfYear}
-            </span>
-          ) : null}
-        </motion.h2>
-      </AnimatePresence>
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button variant="ghost" className="w-fit">
+            <AnimatePresence>
+              <motion.h2
+                key={titleData.full}
+                className={cn(
+                  "inset-0 flex items-center justify-start gap-2 transition-all",
+                  className,
+                )}
+                variants={variants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+              >
+                <span
+                  className="line-clamp-1 @md/header:hidden"
+                  aria-hidden="true"
+                >
+                  {titleData.short}
+                </span>
+                <span className="line-clamp-1 @max-md/header:hidden">
+                  {titleData.full}
+                </span>
+                {view !== "month" && viewPreferences.showWeekNumbers ? (
+                  <span className="line-clamp-1 text-sm text-muted-foreground">
+                    W{currentDate.weekOfYear}
+                  </span>
+                ) : null}
+              </motion.h2>
+            </AnimatePresence>
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-fit px-2 py-0" align="start">
+          <DatePicker />
+        </PopoverContent>
+      </Popover>
     </div>
   );
 }

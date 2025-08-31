@@ -19,6 +19,7 @@ import { WeekViewEvent } from "./week-view-event";
 
 interface WeekViewDayColumnsProps {
   date: Temporal.PlainDate;
+  isWeekend: boolean;
   visibleDays: Temporal.PlainDate[];
   eventCollection: EventCollectionForWeek;
   containerRef: React.RefObject<HTMLDivElement | null>;
@@ -26,6 +27,7 @@ interface WeekViewDayColumnsProps {
 
 export function WeekViewDayColumn({
   date,
+  isWeekend,
   visibleDays,
   eventCollection,
   containerRef,
@@ -35,7 +37,7 @@ export function WeekViewDayColumn({
 
   const { isDayVisible, isLastVisibleDay, visibleDayIndex } =
     React.useMemo(() => {
-      const isDayVisible = viewPreferences.showWeekends || !isWeekend(date);
+      const isDayVisible = viewPreferences.showWeekends || !isWeekend;
       const visibleDayIndex = visibleDays.findIndex(
         (d) => Temporal.PlainDate.compare(d, date) === 0,
       );
@@ -43,7 +45,7 @@ export function WeekViewDayColumn({
         isDayVisible && visibleDayIndex === visibleDays.length - 1;
 
       return { isDayVisible, isLastVisibleDay, visibleDayIndex };
-    }, [date, visibleDays, viewPreferences.showWeekends]);
+    }, [viewPreferences.showWeekends, isWeekend, visibleDays, date]);
 
   const positionedEvents =
     eventCollection.positionedEvents[visibleDayIndex] ?? [];
@@ -54,6 +56,7 @@ export function WeekViewDayColumn({
       className={cn(
         "relative grid auto-cols-fr border-r border-border/70",
         isLastVisibleDay && "border-r-0",
+        isWeekend && "bg-column-weekend",
         isDayVisible ? "visible" : "hidden w-0 overflow-hidden",
       )}
       data-today={isToday(date, { timeZone: defaultTimeZone }) || undefined}

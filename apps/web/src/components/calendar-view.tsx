@@ -20,6 +20,7 @@ import { filterPastEvents } from "@/components/calendar/utils/event";
 import { WeekView } from "@/components/calendar/week-view/week-view";
 import { useCalendarState } from "@/hooks/use-calendar-state";
 import { cn } from "@/lib/utils";
+import { useOptimisticEvents } from "./calendar/hooks/use-optimistic-events";
 
 interface CalendarContentProps {
   events: EventCollectionItem[];
@@ -28,7 +29,6 @@ interface CalendarContentProps {
 
 function CalendarContent({
   events,
-
   scrollContainerRef,
 }: CalendarContentProps) {
   const { currentDate, view } = useCalendarState();
@@ -56,10 +56,10 @@ function CalendarContent({
 
 interface CalendarViewProps {
   className?: string;
-  events: EventCollectionItem[];
 }
 
-export function CalendarView({ className, events }: CalendarViewProps) {
+export function CalendarView({ className }: CalendarViewProps) {
+  const events = useOptimisticEvents();
   const viewPreferences = useAtomValue(viewPreferencesAtom);
   const [calendarPreferences] = useAtom(calendarPreferencesAtom);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -95,7 +95,7 @@ export function CalendarView({ className, events }: CalendarViewProps) {
   return (
     <div
       className={cn(
-        "relative flex flex-col overflow-auto has-data-[slot=month-view]:flex-1",
+        "relative flex flex-col overflow-auto select-none has-data-[slot=month-view]:flex-1",
         className,
       )}
       style={

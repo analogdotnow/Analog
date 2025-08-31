@@ -44,7 +44,7 @@ export function WeekViewAllDaySection({
     <div className="border-b border-border/70 [--calendar-height:100%]">
       <div className="relative grid grid-cols-(--week-view-grid) transition-[grid-template-columns] duration-200 ease-linear">
         <div className="relative flex min-h-7 flex-col justify-center border-r border-border/70">
-          <span className="w-16 max-w-full ps-2 text-right text-[10px] text-muted-foreground/70 sm:ps-4 sm:text-xs">
+          <span className="w-16 max-w-full ps-2 text-right text-[10px] text-muted-foreground/70 select-none sm:ps-4 sm:text-xs">
             All day
           </span>
         </div>
@@ -53,6 +53,7 @@ export function WeekViewAllDaySection({
           <WeekViewAllDayColumn
             key={day.toString()}
             day={day}
+            isWeekend={isWeekend(day)}
             visibleDays={visibleDays}
             overflow={overflow}
           />
@@ -81,12 +82,14 @@ export function WeekViewAllDaySection({
 
 interface WeekViewAllDayColumnProps {
   day: Temporal.PlainDate;
+  isWeekend: boolean;
   visibleDays: Temporal.PlainDate[];
   overflow: UseMultiDayOverflowResult;
 }
 
 function WeekViewAllDayColumn({
   day,
+  isWeekend,
   visibleDays,
   overflow,
 }: WeekViewAllDayColumnProps) {
@@ -96,7 +99,7 @@ function WeekViewAllDayColumn({
 
   const { isDayVisible, isLastVisibleDay, dayOverflowEvents } =
     React.useMemo(() => {
-      const isDayVisible = viewPreferences.showWeekends || !isWeekend(day);
+      const isDayVisible = viewPreferences.showWeekends || !isWeekend;
       const visibleDayIndex = visibleDays.findIndex(
         (d) => Temporal.PlainDate.compare(d, day) === 0,
       );
@@ -114,6 +117,7 @@ function WeekViewAllDayColumn({
     }, [
       day,
       visibleDays,
+      isWeekend,
       overflow.overflowEvents,
       viewPreferences.showWeekends,
     ]);
@@ -132,6 +136,7 @@ function WeekViewAllDayColumn({
       className={cn(
         "relative border-r border-border/70",
         isLastVisibleDay && "border-r-0",
+        isWeekend && "bg-column-weekend",
         isDayVisible ? "visible" : "hidden w-0",
       )}
       data-today={

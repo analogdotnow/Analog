@@ -75,7 +75,7 @@ export function CalendarListPickerItem({
         calendarId={calendar.id}
         accountId={calendar.accountId}
       />
-      {calendar.name}
+      <span className="flex-1 truncate">{calendar.name}</span>
     </CommandItem>
   );
 }
@@ -100,7 +100,7 @@ export function CalendarListPicker({
       <Popover open={open} onOpenChange={setOpen} {...props}>
         {children}
         <PopoverContent
-          className="w-fit max-w-96 min-w-(--radix-popper-anchor-width) p-0"
+          className="w-(--radix-popper-anchor-width) p-0"
           align="end"
           side="bottom"
           sideOffset={4}
