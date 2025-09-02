@@ -1,6 +1,10 @@
 import { Temporal } from "temporal-polyfill";
 
-import { AuthenticationError, ConflictError, GoogleCalendar } from "@repo/google-calendar";
+import {
+  AuthenticationError,
+  ConflictError,
+  GoogleCalendar,
+} from "@repo/google-calendar";
 
 import { CALENDAR_DEFAULTS } from "../../constants/calendar";
 import type {
@@ -32,7 +36,11 @@ export class GoogleCalendarProvider implements CalendarProvider {
   private refreshToken: string;
   private client: GoogleCalendar;
 
-  constructor({ accessToken, refreshToken, accountId }: GoogleCalendarProviderOptions) {
+  constructor({
+    accessToken,
+    refreshToken,
+    accountId,
+  }: GoogleCalendarProviderOptions) {
     this.accountId = accountId;
     this.refreshToken = refreshToken;
     this.client = new GoogleCalendar({
@@ -375,8 +383,10 @@ export class GoogleCalendarProvider implements CalendarProvider {
       return await Promise.resolve(fn());
     } catch (error: unknown) {
       if (error instanceof AuthenticationError && retryAttempt === 0) {
-        console.warn(`Authentication error in ${operation}, attempting token refresh for account ${this.accountId}`);
-        
+        console.warn(
+          `Authentication error in ${operation}, attempting token refresh for account ${this.accountId}`,
+        );
+
         try {
           const newAccessToken = await refreshGoogleAccessToken({
             refreshToken: this.refreshToken,
@@ -387,15 +397,29 @@ export class GoogleCalendarProvider implements CalendarProvider {
             accessToken: newAccessToken,
           });
 
-          console.info(`Successfully refreshed token for account ${this.accountId}, retrying ${operation}`);
-          return await this.withErrorHandler(operation, fn, context, retryAttempt + 1);
+          console.info(
+            `Successfully refreshed token for account ${this.accountId}, retrying ${operation}`,
+          );
+          return await this.withErrorHandler(
+            operation,
+            fn,
+            context,
+            retryAttempt + 1,
+          );
         } catch (refreshError) {
-          console.error(`Failed to refresh token for account ${this.accountId}:`, refreshError);
-          throw new ProviderError(refreshError as Error, `${operation}_token_refresh`, {
-            ...context,
-            originalError: error,
-            accountId: this.accountId,
-          });
+          console.error(
+            `Failed to refresh token for account ${this.accountId}:`,
+            refreshError,
+          );
+          throw new ProviderError(
+            refreshError as Error,
+            `${operation}_token_refresh`,
+            {
+              ...context,
+              originalError: error,
+              accountId: this.accountId,
+            },
+          );
         }
       }
 

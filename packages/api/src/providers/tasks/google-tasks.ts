@@ -21,7 +21,11 @@ export class GoogleTasksProvider implements TaskProvider {
   public readonly accountId: string;
   private client: GoogleTasks;
 
-  constructor({ accessToken, refreshToken, accountId }: GoogleTasksProviderOptions) {
+  constructor({
+    accessToken,
+    refreshToken,
+    accountId,
+  }: GoogleTasksProviderOptions) {
     this.accountId = accountId;
     // Note: refreshToken accepted for interface compatibility, refresh logic can be added when needed
     this.client = new GoogleTasks({

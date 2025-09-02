@@ -44,7 +44,11 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
   private refreshToken: string;
   private graphClient: Client;
 
-  constructor({ accessToken, refreshToken, accountId }: MicrosoftCalendarProviderOptions) {
+  constructor({
+    accessToken,
+    refreshToken,
+    accountId,
+  }: MicrosoftCalendarProviderOptions) {
     this.accountId = accountId;
     this.refreshToken = refreshToken;
     this.graphClient = Client.initWithMiddleware({
@@ -312,10 +316,12 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
       return await Promise.resolve(fn());
     } catch (error: unknown) {
       const isAuthError = this.isAuthenticationError(error);
-      
+
       if (isAuthError && retryAttempt === 0) {
-        console.warn(`Authentication error in ${operation}, attempting token refresh for account ${this.accountId}`);
-        
+        console.warn(
+          `Authentication error in ${operation}, attempting token refresh for account ${this.accountId}`,
+        );
+
         try {
           const newAccessToken = await refreshMicrosoftAccessToken({
             refreshToken: this.refreshToken,
@@ -328,15 +334,29 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
             },
           });
 
-          console.info(`Successfully refreshed token for account ${this.accountId}, retrying ${operation}`);
-          return await this.withErrorHandler(operation, fn, context, retryAttempt + 1);
+          console.info(
+            `Successfully refreshed token for account ${this.accountId}, retrying ${operation}`,
+          );
+          return await this.withErrorHandler(
+            operation,
+            fn,
+            context,
+            retryAttempt + 1,
+          );
         } catch (refreshError) {
-          console.error(`Failed to refresh token for account ${this.accountId}:`, refreshError);
-          throw new ProviderError(refreshError as Error, `${operation}_token_refresh`, {
-            ...context,
-            originalError: error,
-            accountId: this.accountId,
-          });
+          console.error(
+            `Failed to refresh token for account ${this.accountId}:`,
+            refreshError,
+          );
+          throw new ProviderError(
+            refreshError as Error,
+            `${operation}_token_refresh`,
+            {
+              ...context,
+              originalError: error,
+              accountId: this.accountId,
+            },
+          );
         }
       }
 
@@ -350,16 +370,16 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
   }
 
   private isAuthenticationError(error: unknown): boolean {
-    if (error && typeof error === 'object') {
+    if (error && typeof error === "object") {
       const err = error as any;
       // Microsoft Graph errors typically have a status or code property
       return (
-        (err.status === 401) ||
-        (err.code === 401) ||
-        (err.statusCode === 401) ||
-        (err.message && err.message.includes('401')) ||
-        (err.message && err.message.toLowerCase().includes('unauthorized')) ||
-        (err.message && err.message.toLowerCase().includes('authentication'))
+        err.status === 401 ||
+        err.code === 401 ||
+        err.statusCode === 401 ||
+        (err.message && err.message.includes("401")) ||
+        (err.message && err.message.toLowerCase().includes("unauthorized")) ||
+        (err.message && err.message.toLowerCase().includes("authentication"))
       );
     }
     return false;
