@@ -7,6 +7,7 @@ import type { ConferencingProvider } from "./interfaces";
 
 interface GoogleMeetProviderOptions {
   accessToken: string;
+  refreshToken: string;
   accountId: string;
 }
 
@@ -15,8 +16,9 @@ export class GoogleMeetProvider implements ConferencingProvider {
   public readonly accountId: string;
   private client: GoogleCalendar;
 
-  constructor({ accessToken, accountId }: GoogleMeetProviderOptions) {
+  constructor({ accessToken, refreshToken, accountId }: GoogleMeetProviderOptions) {
     this.accountId = accountId;
+    // Note: conferencing provider can use same refresh logic as calendar provider when needed
     this.client = new GoogleCalendar({
       accessToken,
     });

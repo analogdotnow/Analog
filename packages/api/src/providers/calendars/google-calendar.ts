@@ -1,6 +1,6 @@
 import { Temporal } from "temporal-polyfill";
 
-import { ConflictError, GoogleCalendar } from "@repo/google-calendar";
+import { AuthenticationError, ConflictError, GoogleCalendar } from "@repo/google-calendar";
 
 import { CALENDAR_DEFAULTS } from "../../constants/calendar";
 import type {
@@ -9,6 +9,7 @@ import type {
   CalendarFreeBusy,
 } from "../../interfaces";
 import type { CreateEventInput, UpdateEventInput } from "../../schemas/events";
+import { refreshGoogleAccessToken } from "../../utils/token-refresh";
 import { ProviderError } from "../lib/provider-error";
 import { parseGoogleCalendarCalendarListEntry } from "./google-calendar/calendars";
 import {
@@ -21,16 +22,19 @@ import type { CalendarProvider, ResponseToEventInput } from "./interfaces";
 
 interface GoogleCalendarProviderOptions {
   accessToken: string;
+  refreshToken: string;
   accountId: string;
 }
 
 export class GoogleCalendarProvider implements CalendarProvider {
   public readonly providerId = "google" as const;
   public readonly accountId: string;
+  private refreshToken: string;
   private client: GoogleCalendar;
 
-  constructor({ accessToken, accountId }: GoogleCalendarProviderOptions) {
+  constructor({ accessToken, refreshToken, accountId }: GoogleCalendarProviderOptions) {
     this.accountId = accountId;
+    this.refreshToken = refreshToken;
     this.client = new GoogleCalendar({
       accessToken,
     });
@@ -365,13 +369,42 @@ export class GoogleCalendarProvider implements CalendarProvider {
     operation: string,
     fn: () => Promise<T> | T,
     context?: Record<string, unknown>,
+    retryAttempt: number = 0,
   ): Promise<T> {
     try {
       return await Promise.resolve(fn());
     } catch (error: unknown) {
-      console.error(`Failed to ${operation}:`, error);
+      if (error instanceof AuthenticationError && retryAttempt === 0) {
+        console.warn(`Authentication error in ${operation}, attempting token refresh for account ${this.accountId}`);
+        
+        try {
+          const newAccessToken = await refreshGoogleAccessToken({
+            refreshToken: this.refreshToken,
+            accountId: this.accountId,
+          });
 
-      throw new ProviderError(error as Error, operation, context);
+          this.client = new GoogleCalendar({
+            accessToken: newAccessToken,
+          });
+
+          console.info(`Successfully refreshed token for account ${this.accountId}, retrying ${operation}`);
+          return await this.withErrorHandler(operation, fn, context, retryAttempt + 1);
+        } catch (refreshError) {
+          console.error(`Failed to refresh token for account ${this.accountId}:`, refreshError);
+          throw new ProviderError(refreshError as Error, `${operation}_token_refresh`, {
+            ...context,
+            originalError: error,
+            accountId: this.accountId,
+          });
+        }
+      }
+
+      console.error(`Failed to ${operation}:`, error);
+      throw new ProviderError(error as Error, operation, {
+        ...context,
+        accountId: this.accountId,
+        retryAttempt,
+      });
     }
   }
 }

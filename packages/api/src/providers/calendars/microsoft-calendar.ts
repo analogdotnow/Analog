@@ -17,6 +17,7 @@ import type {
   UpdateCalendarInput,
 } from "../../schemas/calendars";
 import type { CreateEventInput, UpdateEventInput } from "../../schemas/events";
+import { refreshMicrosoftAccessToken } from "../../utils/token-refresh";
 import { ProviderError } from "../lib/provider-error";
 import type { CalendarProvider, ResponseToEventInput } from "./interfaces";
 import {
@@ -33,16 +34,19 @@ import { parseScheduleItem } from "./microsoft-calendar/freebusy";
 
 interface MicrosoftCalendarProviderOptions {
   accessToken: string;
+  refreshToken: string;
   accountId: string;
 }
 
 export class MicrosoftCalendarProvider implements CalendarProvider {
   public readonly providerId = "microsoft" as const;
   public readonly accountId: string;
+  private refreshToken: string;
   private graphClient: Client;
 
-  constructor({ accessToken, accountId }: MicrosoftCalendarProviderOptions) {
+  constructor({ accessToken, refreshToken, accountId }: MicrosoftCalendarProviderOptions) {
     this.accountId = accountId;
+    this.refreshToken = refreshToken;
     this.graphClient = Client.initWithMiddleware({
       authProvider: {
         getAccessToken: async () => accessToken,
@@ -302,13 +306,62 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
     operation: string,
     fn: () => Promise<T> | T,
     context?: Record<string, unknown>,
+    retryAttempt: number = 0,
   ): Promise<T> {
     try {
       return await Promise.resolve(fn());
     } catch (error: unknown) {
-      console.error(`Failed to ${operation}:`, error);
+      const isAuthError = this.isAuthenticationError(error);
+      
+      if (isAuthError && retryAttempt === 0) {
+        console.warn(`Authentication error in ${operation}, attempting token refresh for account ${this.accountId}`);
+        
+        try {
+          const newAccessToken = await refreshMicrosoftAccessToken({
+            refreshToken: this.refreshToken,
+            accountId: this.accountId,
+          });
 
-      throw new ProviderError(error as Error, operation, context);
+          this.graphClient = Client.initWithMiddleware({
+            authProvider: {
+              getAccessToken: async () => newAccessToken,
+            },
+          });
+
+          console.info(`Successfully refreshed token for account ${this.accountId}, retrying ${operation}`);
+          return await this.withErrorHandler(operation, fn, context, retryAttempt + 1);
+        } catch (refreshError) {
+          console.error(`Failed to refresh token for account ${this.accountId}:`, refreshError);
+          throw new ProviderError(refreshError as Error, `${operation}_token_refresh`, {
+            ...context,
+            originalError: error,
+            accountId: this.accountId,
+          });
+        }
+      }
+
+      console.error(`Failed to ${operation}:`, error);
+      throw new ProviderError(error as Error, operation, {
+        ...context,
+        accountId: this.accountId,
+        retryAttempt,
+      });
     }
+  }
+
+  private isAuthenticationError(error: unknown): boolean {
+    if (error && typeof error === 'object') {
+      const err = error as any;
+      // Microsoft Graph errors typically have a status or code property
+      return (
+        (err.status === 401) ||
+        (err.code === 401) ||
+        (err.statusCode === 401) ||
+        (err.message && err.message.includes('401')) ||
+        (err.message && err.message.toLowerCase().includes('unauthorized')) ||
+        (err.message && err.message.toLowerCase().includes('authentication'))
+      );
+    }
+    return false;
   }
 }

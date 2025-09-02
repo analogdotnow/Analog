@@ -12,6 +12,7 @@ import type { TaskProvider } from "./interfaces";
 
 interface GoogleTasksProviderOptions {
   accessToken: string;
+  refreshToken: string;
   accountId: string;
 }
 
@@ -20,8 +21,9 @@ export class GoogleTasksProvider implements TaskProvider {
   public readonly accountId: string;
   private client: GoogleTasks;
 
-  constructor({ accessToken, accountId }: GoogleTasksProviderOptions) {
+  constructor({ accessToken, refreshToken, accountId }: GoogleTasksProviderOptions) {
     this.accountId = accountId;
+    // Note: refreshToken accepted for interface compatibility, refresh logic can be added when needed
     this.client = new GoogleTasks({
       accessToken,
     });

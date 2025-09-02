@@ -6,6 +6,7 @@ import type { ConferencingProvider } from "./interfaces";
 
 interface ZoomProviderOptions {
   accessToken: string;
+  refreshToken: string;
   accountId?: string; // Unused but allows shared construction signature
 }
 
@@ -13,8 +14,9 @@ export class ZoomProvider implements ConferencingProvider {
   public readonly providerId = "zoom" as const;
   private accessToken: string;
 
-  constructor({ accessToken }: ZoomProviderOptions) {
+  constructor({ accessToken, refreshToken }: ZoomProviderOptions) {
     this.accessToken = accessToken;
+    // Note: refreshToken is accepted but not used in this implementation
   }
 
   /**
