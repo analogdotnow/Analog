@@ -30,7 +30,7 @@ export function CalendarLayout() {
 
   return (
     <FlowsProvider>
-      <AppSidebar variant="inset" side="left" />
+      <AppSidebar variant="inset" side="left" className="select-none" />
       <IsolatedCalendarLayout />
     </FlowsProvider>
   );
@@ -42,13 +42,13 @@ function IsolatedCalendarLayout() {
   return (
     <>
       <EventHotkeys />
-      <SidebarInset className="h-dvh overflow-hidden">
+      <SidebarInset className="h-dvh overflow-hidden select-none">
         <div className="flex h-full rounded-xl border border-sidebar-border bg-background">
           <CalendarView className="grow" events={events} />
         </div>
       </SidebarInset>
       <AppCommandMenu />
-      <RightSidebar variant="inset" side="right">
+      <RightSidebar variant="inset" side="right" className="select-none">
         <EventForm />
       </RightSidebar>
     </>

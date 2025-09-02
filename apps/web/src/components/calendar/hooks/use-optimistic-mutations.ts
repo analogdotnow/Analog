@@ -22,6 +22,7 @@ export function useCreateDraftAction() {
   const addOptimisticAction = useSetAtom(addOptimisticActionAtom);
   const trpc = useTRPC();
   const query = useQuery(trpc.calendars.list.queryOptions());
+  const { setOpen: setRightSidebarOpen } = useSidebarWithSide("right");
 
   const unselectAllAction = useUnselectAllAction();
   return React.useCallback(
@@ -47,6 +48,7 @@ export function useCreateDraftAction() {
       });
       setSelectedEvents([event]);
       setSelectedEventIds([event.id]);
+      setRightSidebarOpen(true);
     },
     [
       unselectAllAction,
@@ -54,6 +56,7 @@ export function useCreateDraftAction() {
       addOptimisticAction,
       setSelectedEvents,
       setSelectedEventIds,
+      setRightSidebarOpen,
     ],
   );
 }
@@ -64,8 +67,7 @@ export function useSelectAction() {
   const removeDraftOptimisticActionsByEventId = useSetAtom(
     removeDraftOptimisticActionsByEventIdAtom,
   );
-  const { open: rightSidebarOpen, setOpen: setRightSidebarOpen } =
-    useSidebarWithSide("right");
+  const { setOpen: setRightSidebarOpen } = useSidebarWithSide("right");
 
   return React.useCallback(
     (event: CalendarEvent) => {
@@ -78,15 +80,12 @@ export function useSelectAction() {
         return [event];
       });
       setSelectedEventIds((prev) => [...prev, event.id]);
-      if (!rightSidebarOpen) {
-        setRightSidebarOpen(true);
-      }
+      setRightSidebarOpen(true);
     },
     [
       setSelectedEvents,
       removeDraftOptimisticActionsByEventId,
       setSelectedEventIds,
-      rightSidebarOpen,
       setRightSidebarOpen,
     ],
   );
