@@ -99,55 +99,61 @@ export class GoogleCalendarProvider implements CalendarProvider {
     events: CalendarEvent[];
     recurringMasterEvents: CalendarEvent[];
   }> {
-    return this.withErrorHandler("events", async () => {
-      // Validate time range to prevent empty time range errors
-      const timeMinInstant = timeMin.withTimeZone("UTC").toInstant();
-      const timeMaxInstant = timeMax.withTimeZone("UTC").toInstant();
-      
-      if (Temporal.Instant.compare(timeMinInstant, timeMaxInstant) >= 0) {
-        throw new Error(`Invalid time range: timeMax (${timeMaxInstant}) must be after timeMin (${timeMinInstant})`);
-      }
+    return this.withErrorHandler(
+      "events",
+      async () => {
+        // Validate time range to prevent empty time range errors
+        const timeMinInstant = timeMin.withTimeZone("UTC").toInstant();
+        const timeMaxInstant = timeMax.withTimeZone("UTC").toInstant();
 
-      const { items } = await this.client.calendars.events.list(calendar.id, {
-        timeMin: timeMinInstant.toString(),
-        timeMax: timeMaxInstant.toString(),
-        singleEvents: CALENDAR_DEFAULTS.SINGLE_EVENTS,
-        orderBy: CALENDAR_DEFAULTS.ORDER_BY,
-        maxResults: CALENDAR_DEFAULTS.MAX_EVENTS_PER_CALENDAR,
-      });
+        if (Temporal.Instant.compare(timeMinInstant, timeMaxInstant) >= 0) {
+          throw new Error(
+            `Invalid time range: timeMax (${timeMaxInstant}) must be after timeMin (${timeMinInstant})`,
+          );
+        }
 
-      const events: CalendarEvent[] =
-        items?.map((event) =>
-          parseGoogleCalendarEvent({
-            calendar,
-            accountId: this.accountId,
-            event,
-            defaultTimeZone: timeZone ?? "UTC",
-          }),
-        ) ?? [];
+        const { items } = await this.client.calendars.events.list(calendar.id, {
+          timeMin: timeMinInstant.toString(),
+          timeMax: timeMaxInstant.toString(),
+          singleEvents: CALENDAR_DEFAULTS.SINGLE_EVENTS,
+          orderBy: CALENDAR_DEFAULTS.ORDER_BY,
+          maxResults: CALENDAR_DEFAULTS.MAX_EVENTS_PER_CALENDAR,
+        });
 
-      const instances = events.filter((e) => e.recurringEventId);
-      const masters = new Set<string>([]);
+        const events: CalendarEvent[] =
+          items?.map((event) =>
+            parseGoogleCalendarEvent({
+              calendar,
+              accountId: this.accountId,
+              event,
+              defaultTimeZone: timeZone ?? "UTC",
+            }),
+          ) ?? [];
 
-      for (const instance of instances) {
-        masters.add(instance.recurringEventId!);
-      }
+        const instances = events.filter((e) => e.recurringEventId);
+        const masters = new Set<string>([]);
 
-      if (masters.size === 0) {
-        return { events, recurringMasterEvents: [] };
-      }
+        for (const instance of instances) {
+          masters.add(instance.recurringEventId!);
+        }
 
-      const recurringMasterEvents = await Promise.all(
-        Array.from(masters).map((id) => this.event(calendar, id, timeZone)),
-      );
+        if (masters.size === 0) {
+          return { events, recurringMasterEvents: [] };
+        }
 
-      return { events, recurringMasterEvents };
-    }, {
-      calendarId: calendar.id,
-      timeMin: timeMin.toString(),
-      timeMax: timeMax.toString(),
-      timeZone
-    });
+        const recurringMasterEvents = await Promise.all(
+          Array.from(masters).map((id) => this.event(calendar, id, timeZone)),
+        );
+
+        return { events, recurringMasterEvents };
+      },
+      {
+        calendarId: calendar.id,
+        timeMin: timeMin.toString(),
+        timeMax: timeMax.toString(),
+        timeZone,
+      },
+    );
   }
 
   async event(
@@ -362,28 +368,34 @@ export class GoogleCalendarProvider implements CalendarProvider {
     timeMin: Temporal.ZonedDateTime,
     timeMax: Temporal.ZonedDateTime,
   ): Promise<CalendarFreeBusy[]> {
-    return this.withErrorHandler("freeBusy", async () => {
-      // Validate time range to prevent empty time range errors
-      const timeMinInstant = timeMin.withTimeZone("UTC").toInstant();
-      const timeMaxInstant = timeMax.withTimeZone("UTC").toInstant();
-      
-      if (Temporal.Instant.compare(timeMinInstant, timeMaxInstant) >= 0) {
-        throw new Error(`Invalid time range: timeMax (${timeMaxInstant}) must be after timeMin (${timeMinInstant})`);
-      }
+    return this.withErrorHandler(
+      "freeBusy",
+      async () => {
+        // Validate time range to prevent empty time range errors
+        const timeMinInstant = timeMin.withTimeZone("UTC").toInstant();
+        const timeMaxInstant = timeMax.withTimeZone("UTC").toInstant();
 
-      const response = await this.client.checkFreeBusy.checkFreeBusy({
-        timeMin: timeMinInstant.toString(),
-        timeMax: timeMaxInstant.toString(),
-        timeZone: "UTC",
-        items: schedules.map((id) => ({ id })),
-      });
+        if (Temporal.Instant.compare(timeMinInstant, timeMaxInstant) >= 0) {
+          throw new Error(
+            `Invalid time range: timeMax (${timeMaxInstant}) must be after timeMin (${timeMinInstant})`,
+          );
+        }
 
-      return parseGoogleCalendarFreeBusy(response);
-    }, {
-      schedules,
-      timeMin: timeMin.toString(),
-      timeMax: timeMax.toString(),
-    });
+        const response = await this.client.checkFreeBusy.checkFreeBusy({
+          timeMin: timeMinInstant.toString(),
+          timeMax: timeMaxInstant.toString(),
+          timeZone: "UTC",
+          items: schedules.map((id) => ({ id })),
+        });
+
+        return parseGoogleCalendarFreeBusy(response);
+      },
+      {
+        schedules,
+        timeMin: timeMin.toString(),
+        timeMax: timeMax.toString(),
+      },
+    );
   }
 
   private async withErrorHandler<T>(
@@ -394,10 +406,14 @@ export class GoogleCalendarProvider implements CalendarProvider {
     try {
       return await Promise.resolve(fn());
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+
       // Enhanced logging for time range errors
-      if (errorMessage.includes('timeRangeEmpty') || errorMessage.includes('Invalid time range')) {
+      if (
+        errorMessage.includes("timeRangeEmpty") ||
+        errorMessage.includes("Invalid time range")
+      ) {
         console.error(`Time range validation failed in ${operation}:`, {
           error: errorMessage,
           context,
