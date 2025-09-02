@@ -27,10 +27,7 @@ interface CalendarContentProps {
   scrollContainerRef: React.RefObject<HTMLDivElement | null>;
 }
 
-function CalendarContent({
-  events,
-  scrollContainerRef,
-}: CalendarContentProps) {
+function CalendarContent({ events, scrollContainerRef }: CalendarContentProps) {
   const { currentDate, view } = useCalendarState();
 
   if (view === "month") {
