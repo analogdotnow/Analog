@@ -15,7 +15,7 @@ export function useMatchMedia(query: string) {
     });
 
     return () => controller.abort();
-  }, [matches, query]);
+  }, [query]);
 
   return matches;
 }

@@ -82,6 +82,8 @@ export function useDragToCreate({
     () => {
       if (jotaiStore.get(isDraggingAtom)) {
         dragCancelled.current = true;
+        resetCursor();
+
         top.set(0);
         height.set(0);
         opacity.set(0);

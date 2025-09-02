@@ -9,6 +9,13 @@ export function useGlobalCursor() {
     document.body.style.removeProperty("cursor");
   }, []);
 
+  // Automatically reset cursor on unmount to prevent cursor getting stuck
+  React.useEffect(() => {
+    return () => {
+      document.body.style.removeProperty("cursor");
+    };
+  }, []);
+
   return {
     setCursor,
     resetCursor,
