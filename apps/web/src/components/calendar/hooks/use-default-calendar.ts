@@ -16,7 +16,7 @@ export function useDefaultCalendar() {
   }, [query.data?.defaultCalendar]);
 
   return {
-    ...query.data?.defaultCalendar,
+    ...(query.data?.defaultCalendar ?? {}),
     color,
   };
 }
