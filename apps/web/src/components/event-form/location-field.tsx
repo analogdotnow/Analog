@@ -18,14 +18,17 @@ export function LocationField({
   onChange,
   ...props
 }: LocationFieldProps) {
-  const onAddressChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    onChange?.(e.target.value);
-  }, [onChange]);
+  const onAddressChange = React.useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      onChange?.(e.target.value);
+    },
+    [onChange],
+  );
 
   return (
     <AddressCombobox
       className={cn(
-        "scrollbar-hidden field-sizing-content max-h-24 min-h-0 resize-none border-none bg-transparent py-1.5 ps-8 shadow-none dark:bg-transparent text-sm",
+        "scrollbar-hidden field-sizing-content max-h-24 min-h-0 resize-none border-none bg-transparent py-1.5 ps-8 text-sm shadow-none dark:bg-transparent",
         className,
       )}
       value={typeof value === "string" ? value : undefined}

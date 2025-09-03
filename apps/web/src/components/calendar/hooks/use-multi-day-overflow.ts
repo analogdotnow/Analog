@@ -71,33 +71,34 @@ export function useMultiDayOverflow({
     };
   }, [containerRef, measureHeight]);
 
-  return React.useMemo(
-    () => {
-      const capacityInfo = organizeEventsWithOverflow(
-        events,
-        minVisibleLanes
-          ? Math.max(
-              minVisibleLanes * (eventHeight + eventGap),
-              availableHeight,
-            )
-          : availableHeight,
-        timeZone,
-        eventHeight,
-        eventGap,
-      );
+  return React.useMemo(() => {
+    const capacityInfo = organizeEventsWithOverflow(
+      events,
+      minVisibleLanes
+        ? Math.max(minVisibleLanes * (eventHeight + eventGap), availableHeight)
+        : availableHeight,
+      timeZone,
+      eventHeight,
+      eventGap,
+    );
 
-      const visibleEvents = capacityInfo.visibleLanes.flat();
-      const overflowEvents = getOverflowEvents(capacityInfo);
+    const visibleEvents = capacityInfo.visibleLanes.flat();
+    const overflowEvents = getOverflowEvents(capacityInfo);
 
-      return {
-        availableHeight,
-        capacityInfo,
-        visibleEvents,
-        overflowEvents,
-        hasOverflow: capacityInfo.hasOverflow,
-        overflowCount: capacityInfo.overflowCount,
-      };
-    },
-    [events, minVisibleLanes, eventHeight, eventGap, availableHeight, timeZone],
-  );
+    return {
+      availableHeight,
+      capacityInfo,
+      visibleEvents,
+      overflowEvents,
+      hasOverflow: capacityInfo.hasOverflow,
+      overflowCount: capacityInfo.overflowCount,
+    };
+  }, [
+    events,
+    minVisibleLanes,
+    eventHeight,
+    eventGap,
+    availableHeight,
+    timeZone,
+  ]);
 }

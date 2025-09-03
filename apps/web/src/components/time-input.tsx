@@ -291,9 +291,7 @@ function TimeInputList({ suggestions, onSelect }: TimeInputListProps) {
 
   return (
     <MemoizedTimeInputListPopover ref={parentRef}>
-      <MemoizedTimeInputListContent height={rowVirtualizer.getTotalSize()}
-
-      >
+      <MemoizedTimeInputListContent height={rowVirtualizer.getTotalSize()}>
         {rowVirtualizer.getVirtualItems().map((virtualRow) => {
           const item = suggestions[virtualRow.index]!;
           return (
@@ -317,13 +315,10 @@ interface TimeInputListContentProps {
 
 function TimeInputListContent({ children, height }: TimeInputListContentProps) {
   return (
-    <div
-        className="relative w-full"
-        style={{ height }}
-      >
-        {children}
+    <div className="relative w-full" style={{ height }}>
+      {children}
     </div>
-  )
+  );
 }
 
 const MemoizedTimeInputListContent = React.memo(TimeInputListContent);

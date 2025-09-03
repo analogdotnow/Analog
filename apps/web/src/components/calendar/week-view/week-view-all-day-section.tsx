@@ -41,12 +41,12 @@ export function WeekViewAllDaySection({
     containerRef: overflowRef,
     minVisibleLanes: 10,
   });
-  
+
   return (
     <div className="border-b border-border/70 [--calendar-height:100%]">
       <div className="relative grid grid-cols-(--week-view-grid) transition-[grid-template-columns] duration-200 ease-linear">
         <div className="relative flex min-h-7 flex-col justify-center border-r border-border/70">
-          <span className="text-right pe-2 text-[10px] text-muted-foreground/70 select-none sm:text-xs">
+          <span className="pe-2 text-right text-[10px] text-muted-foreground/70 select-none sm:text-xs">
             All day
           </span>
         </div>
@@ -96,7 +96,7 @@ function WeekViewAllDayColumn({
   isWeekend,
   visibleDays,
   overflow,
-  overflowRef
+  overflowRef,
 }: WeekViewAllDayColumnProps) {
   const settings = useAtomValue(calendarSettingsAtom);
   const viewPreferences = useAtomValue(viewPreferencesAtom);

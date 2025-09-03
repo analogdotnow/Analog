@@ -9,7 +9,7 @@ type DescriptionFieldProps = Omit<
   "rows" | "placeholder" | "onChange"
 > & {
   onChange: (value: string) => void;
-}
+};
 
 export function DescriptionField({
   className,
@@ -18,9 +18,12 @@ export function DescriptionField({
 }: DescriptionFieldProps) {
   const ref = useAutoResizeTextarea(120);
 
-  const onTextareaChange = React.useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    onChange?.(e.target.value);
-  }, [onChange]);
+  const onTextareaChange = React.useCallback(
+    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      onChange?.(e.target.value);
+    },
+    [onChange],
+  );
 
   return (
     <Textarea

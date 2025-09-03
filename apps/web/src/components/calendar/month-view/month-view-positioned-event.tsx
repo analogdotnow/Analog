@@ -3,44 +3,49 @@
 import * as React from "react";
 import { Temporal } from "temporal-polyfill";
 
-import { DragAwareWrapper } from "@/components/calendar/event/drag-aware-wrapper";
+import { isAfter, isBefore, isSameDay } from "@repo/temporal";
+
 import { DraggableEvent } from "@/components/calendar/event/draggable-event";
 import { getGridPosition } from "@/components/calendar/utils/multi-day-layout";
+import { DragAwareWrapper } from "../event/drag-aware-wrapper";
 import { EventCollectionItem } from "../hooks/event-collection";
 
-interface WeekViewAllDayEventProps {
+interface PositionedEventProps {
   y: number;
   item: EventCollectionItem;
   weekStart: Temporal.PlainDate;
   weekEnd: Temporal.PlainDate;
   containerRef: React.RefObject<HTMLDivElement | null>;
+  rows: number;
 }
 
-export function WeekViewAllDayEvent({
+export function PositionedEvent({
   y,
   item,
   weekStart,
   weekEnd,
   containerRef,
-}: WeekViewAllDayEventProps) {
+  rows,
+}: PositionedEventProps) {
   return (
-    <WeekViewAllDayContainer
+    <PositionedContainer
       item={item}
       y={y}
       weekStart={weekStart}
       weekEnd={weekEnd}
     >
-      <WeekViewAllDayContent
+      <PositionedContent
         item={item}
         weekStart={weekStart}
         weekEnd={weekEnd}
         containerRef={containerRef}
+        rows={rows}
       />
-    </WeekViewAllDayContainer>
+    </PositionedContainer>
   );
 }
 
-interface WeekViewAllDayContainerProps {
+interface PositionedContainerProps {
   children: React.ReactNode;
   item: EventCollectionItem;
   y: number;
@@ -48,19 +53,18 @@ interface WeekViewAllDayContainerProps {
   weekEnd: Temporal.PlainDate;
 }
 
-function WeekViewAllDayContainer({
+function PositionedContainer({
   children,
   item,
   y,
   weekStart,
   weekEnd,
-}: WeekViewAllDayContainerProps) {
+}: PositionedContainerProps) {
   const style = React.useMemo(() => {
     const { colStart, span } = getGridPosition(item, weekStart, weekEnd);
 
     return {
-      // Add 1 to colStart to account for the time column
-      gridColumn: `${colStart + 2} / span ${span}`,
+      gridColumn: `${colStart + 1} / span ${span}`,
       gridRow: y + 1,
     };
   }, [item, weekStart, weekEnd, y]);
@@ -77,23 +81,31 @@ function WeekViewAllDayContainer({
   );
 }
 
-interface WeekViewAllDayContentProps {
+interface PositionedContentProps {
   item: EventCollectionItem;
   weekStart: Temporal.PlainDate;
   weekEnd: Temporal.PlainDate;
   containerRef: React.RefObject<HTMLDivElement | null>;
+  rows: number;
 }
 
-function WeekViewAllDayContent({
+function PositionedContent({
   item,
   weekStart,
   weekEnd,
   containerRef,
-}: WeekViewAllDayContentProps) {
+  rows,
+}: PositionedContentProps) {
   const { isFirstDay, isLastDay } = React.useMemo(() => {
+    // Calculate actual first/last day based on event dates
+    const eventStart = item.start.toPlainDate();
+    const eventEnd = item.end.toPlainDate();
+
     // For single-day events, ensure they are properly marked as first and last day
-    const isFirstDay = Temporal.PlainDate.compare(item.start, weekStart) >= 0;
-    const isLastDay = Temporal.PlainDate.compare(item.end, weekEnd) <= 0;
+    const isFirstDay =
+      isAfter(eventStart, weekStart) || isSameDay(eventStart, weekStart);
+    const isLastDay =
+      isBefore(eventEnd, weekEnd) || isSameDay(eventEnd, weekEnd);
 
     return { isFirstDay, isLastDay };
   }, [item.start, item.end, weekStart, weekEnd]);
@@ -105,9 +117,9 @@ function WeekViewAllDayContent({
       containerRef={containerRef}
       isFirstDay={isFirstDay}
       isLastDay={isLastDay}
-      rows={1}
+      rows={rows}
     />
   );
 }
 
-export const MemoizedWeekViewAllDayEvent = React.memo(WeekViewAllDayEvent);
+export const MemoizedPositionedEvent = React.memo(PositionedEvent);

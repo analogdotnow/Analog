@@ -3,9 +3,9 @@ import { ArrowRightIcon, ClockIcon } from "@heroicons/react/16/solid";
 import { useField } from "@tanstack/react-form";
 import { Temporal } from "temporal-polyfill";
 
-import { DateInput, MemoizedDateInput } from "@/components/date-input";
-import { MemoizedTimeInput, TimeInput } from "@/components/time-input";
-import { MemoizedTimezoneSelect, TimezoneSelect } from "@/components/timezone-select";
+import { MemoizedDateInput } from "@/components/date-input";
+import { MemoizedTimeInput } from "@/components/time-input";
+import { MemoizedTimezoneSelect } from "@/components/timezone-select";
 import { cn } from "@/lib/utils";
 import { defaultValues, withForm } from "./form";
 
@@ -123,7 +123,7 @@ export const DateInputSection = withForm({
           <label htmlFor="end.time" className="sr-only">
             End time
           </label>
-          <MemoizedTimeInput  
+          <MemoizedTimeInput
             id="end.time"
             className="col-span-2 col-start-3 h-8 border-none bg-transparent ps-8 shadow-none dark:bg-transparent"
             value={endField.state.value}

@@ -1,10 +1,15 @@
 "use client";
 
 import * as React from "react";
-import { useAtom, useAtomValue } from "jotai";
+import { useAtomValue } from "jotai";
 
+import {
+  calendarPreferencesAtom,
+  getCalendarPreference,
+} from "@/atoms/calendar-preferences";
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { cellHeightAtom } from "@/atoms/cell-height";
+import { viewPreferencesAtom } from "@/atoms/view-preferences";
 import { AgendaView } from "@/components/calendar/agenda-view/agenda-view";
 import { EventGap, EventHeight } from "@/components/calendar/constants";
 import { DayView } from "@/components/calendar/day-view/day-view";
@@ -16,9 +21,7 @@ import { cn } from "@/lib/utils";
 import { applyOptimisticActions } from "./calendar/hooks/apply-optimistic-actions";
 import { optimisticActionsByEventIdAtom } from "./calendar/hooks/optimistic-actions";
 import { useEventsForDisplay } from "./calendar/hooks/use-events";
-import { calendarPreferencesAtom, getCalendarPreference } from "@/atoms/calendar-preferences";
 import { filterPastEvents } from "./calendar/utils/event";
-import { viewPreferencesAtom } from "@/atoms/view-preferences";
 
 interface CalendarContentProps {
   scrollContainerRef: React.RefObject<HTMLDivElement | null>;
@@ -34,7 +37,6 @@ function CalendarContent({ scrollContainerRef }: CalendarContentProps) {
   const viewPreferences = useAtomValue(viewPreferencesAtom);
   const calendarPreferences = useAtomValue(calendarPreferencesAtom);
 
-
   const events = React.useMemo(() => {
     const events = applyOptimisticActions({
       items: data?.events ?? [],
@@ -42,7 +44,6 @@ function CalendarContent({ scrollContainerRef }: CalendarContentProps) {
       optimisticActions,
     });
 
-    // First filter past events
     const pastFiltered = filterPastEvents(
       events,
       viewPreferences.showPastEvents,
@@ -57,8 +58,14 @@ function CalendarContent({ scrollContainerRef }: CalendarContentProps) {
       );
 
       return !(preference?.hidden === true);
-    }); 
-  }, [data?.events, defaultTimeZone, optimisticActions, viewPreferences, calendarPreferences]);
+    });
+  }, [
+    data?.events,
+    defaultTimeZone,
+    optimisticActions,
+    viewPreferences,
+    calendarPreferences,
+  ]);
 
   if (view === "month") {
     return <MonthView currentDate={currentDate} events={events} />;
