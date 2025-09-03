@@ -1,10 +1,11 @@
-import { cn } from "@/lib/utils";
 import React, {
   forwardRef,
   useEffect,
   useImperativeHandle,
   useState,
 } from "react";
+
+import { cn } from "@/lib/utils";
 
 type SuggestionItem = {
   type: "time" | "duration";
@@ -18,7 +19,7 @@ export default forwardRef(function TimeSelector(
     items: SuggestionItem[];
     command: (item: SuggestionItem) => void;
   },
-  ref
+  ref,
 ) {
   const [selectedIndex, setSelectedIndex] = useState(0);
 
@@ -34,7 +35,7 @@ export default forwardRef(function TimeSelector(
 
   const upHandler = () => {
     setSelectedIndex(
-      (selectedIndex + props.items.length - 1) % props.items.length
+      (selectedIndex + props.items.length - 1) % props.items.length,
     );
   };
 
@@ -77,22 +78,22 @@ export default forwardRef(function TimeSelector(
       acc[item.type]?.push(item);
       return acc;
     },
-    {} as Record<string, SuggestionItem[]>
+    {} as Record<string, SuggestionItem[]>,
   );
 
   return (
     <div
       className={cn(
-        "bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 max-h-(--radix-dropdown-menu-content-available-height) min-w-[8rem] origin-(--radix-dropdown-menu-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-md border p-1 shadow-md"
+        "z-50 max-h-(--radix-dropdown-menu-content-available-height) min-w-[8rem] origin-(--radix-dropdown-menu-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-md border bg-popover p-1 text-popover-foreground shadow-md data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95",
       )}
     >
       <div className="flex flex-col gap-2">
         {Object.entries(groupedItems).map(([type, items]) => (
           <div key={type}>
-            <p className="px-1 pb-1 text-sm text-muted-foreground font-medium capitalize">
+            <p className="px-1 pb-1 text-sm font-medium text-muted-foreground capitalize">
               {type}
             </p>
-            <div className="flex flex-col gap-1 items-start">
+            <div className="flex flex-col items-start gap-1">
               {items.map((item, index) => (
                 <button
                   key={index}
@@ -102,7 +103,7 @@ export default forwardRef(function TimeSelector(
                       ? "selected"
                       : "unselected"
                   }
-                  className="px-2 rounded-sm hover:bg-accent w-full text-left text-sm data-[state=selected]:bg-accent"
+                  className="w-full rounded-sm px-2 text-left text-sm hover:bg-accent data-[state=selected]:bg-accent"
                 >
                   {item.label}
                 </button>
@@ -112,7 +113,7 @@ export default forwardRef(function TimeSelector(
         ))}
       </div>
       {props.items.length === 0 && (
-        <div className="px-1 text-sm text-muted-foreground font-medium">
+        <div className="px-1 text-sm font-medium text-muted-foreground">
           No results
         </div>
       )}
