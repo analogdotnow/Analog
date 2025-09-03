@@ -14,7 +14,7 @@ import { WeekView } from "@/components/calendar/week-view/week-view";
 import { useCalendarState } from "@/hooks/use-calendar-state";
 import { cn } from "@/lib/utils";
 import { applyOptimisticActions } from "./calendar/hooks/apply-optimistic-actions";
-import { optimisticActionsAtom } from "./calendar/hooks/optimistic-actions";
+import { optimisticActionsByEventIdAtom } from "./calendar/hooks/optimistic-actions";
 import { useEventsForDisplay } from "./calendar/hooks/use-events";
 import { calendarPreferencesAtom, getCalendarPreference } from "@/atoms/calendar-preferences";
 import { filterPastEvents } from "./calendar/utils/event";
@@ -29,7 +29,7 @@ function CalendarContent({ scrollContainerRef }: CalendarContentProps) {
   const { data } = useEventsForDisplay();
 
   const defaultTimeZone = useAtomValue(calendarSettingsAtom).defaultTimeZone;
-  const optimisticActions = useAtomValue(optimisticActionsAtom);
+  const optimisticActions = useAtomValue(optimisticActionsByEventIdAtom);
 
   const viewPreferences = useAtomValue(viewPreferencesAtom);
   const calendarPreferences = useAtomValue(calendarPreferencesAtom);

@@ -237,8 +237,6 @@ function MonthViewWeek({
     containerRef: overflowRef,
   });
 
-  console.log("overflow", JSON.stringify(overflow, null, 2));
-
   return (
     <div
       key={`week-${weekIndex}`}
@@ -285,40 +283,9 @@ function MonthViewWeek({
   );
 }
 
-const MemorizedMonthViewWeek = React.memo(
-  MonthViewWeek,
-  (prevProps, nextProps) => {
-    // Deep comparison for week array
-    if (prevProps.week.length !== nextProps.week.length) return false;
-    for (let i = 0; i < prevProps.week.length; i++) {
-      if (!prevProps.week[i]!.equals(nextProps.week[i]!)) return false;
-    }
+const MemorizedMonthViewWeek = React.memo(MonthViewWeek);
 
-    // Compare other props
-    return (
-      prevProps.weekIndex === nextProps.weekIndex &&
-      prevProps.rows === nextProps.rows &&
-      prevProps.gridTemplateColumns === nextProps.gridTemplateColumns &&
-      prevProps.eventCollection === nextProps.eventCollection &&
-      prevProps.settings === nextProps.settings &&
-      prevProps.containerRef === nextProps.containerRef &&
-      prevProps.currentDate.equals(nextProps.currentDate)
-    );
-  },
-);
-
-// Also memoize MonthViewDay to prevent unnecessary re-renders
-const MemoizedMonthViewDay = React.memo(
-  MonthViewDay,
-  (prevProps, nextProps) => {
-    return (
-      prevProps.day.equals(nextProps.day) &&
-      prevProps.dayIndex === nextProps.dayIndex &&
-      prevProps.overflow === nextProps.overflow &&
-      prevProps.currentDate.equals(nextProps.currentDate)
-    );
-  },
-);
+const MemoizedMonthViewDay = React.memo(MonthViewDay);
 
 interface MonthViewDayProps {
   day: Temporal.PlainDate;
@@ -432,6 +399,7 @@ interface PositionedEventProps {
   containerRef: React.RefObject<HTMLDivElement | null>;
   rows: number;
 }
+
 function PositionedEvent({
   y,
   item,
@@ -476,17 +444,4 @@ function PositionedEvent({
   );
 }
 
-// Memoize PositionedEvent to prevent unnecessary re-renders
-const MemoizedPositionedEvent = React.memo(
-  PositionedEvent,
-  (prevProps, nextProps) => {
-    return (
-      prevProps.y === nextProps.y &&
-      prevProps.item === nextProps.item &&
-      prevProps.weekStart.equals(nextProps.weekStart) &&
-      prevProps.weekEnd.equals(nextProps.weekEnd) &&
-      prevProps.containerRef === nextProps.containerRef &&
-      prevProps.rows === nextProps.rows
-    );
-  },
-);
+const MemoizedPositionedEvent = React.memo(PositionedEvent);
