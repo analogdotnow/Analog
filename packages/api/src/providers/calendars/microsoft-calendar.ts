@@ -324,7 +324,6 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
 
         try {
           const newAccessToken = await refreshMicrosoftAccessToken({
-            refreshToken: this.refreshToken,
             accountId: this.accountId,
           });
 

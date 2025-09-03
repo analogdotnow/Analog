@@ -389,7 +389,6 @@ export class GoogleCalendarProvider implements CalendarProvider {
 
         try {
           const newAccessToken = await refreshGoogleAccessToken({
-            refreshToken: this.refreshToken,
             accountId: this.accountId,
           });
 
