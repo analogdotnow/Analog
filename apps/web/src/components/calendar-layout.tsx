@@ -9,12 +9,13 @@ import {
 } from "@/atoms/calendar-settings";
 import { AppSidebar } from "@/components/app-sidebar";
 import { CalendarView } from "@/components/calendar-view";
+import { FlowsProvider } from "@/components/calendar/flows/provider";
+import { AppCommandMenu } from "@/components/command-menu/app-command-menu";
 import { EventForm } from "@/components/event-form/event-form";
 import { RightSidebar } from "@/components/right-sidebar";
 import { SidebarInset } from "@/components/ui/sidebar";
 import { EventHotkeys } from "@/lib/hotkeys/event-hotkeys";
-import { FlowsProvider } from "./calendar/flows/provider";
-import { AppCommandMenu } from "./command-menu/app-command-menu";
+import { ResponsiveView } from "./responsive-view";
 
 export function CalendarLayout() {
   const setSettings = useSetAtom(calendarSettingsAtom);
@@ -34,9 +35,9 @@ export function CalendarLayout() {
         <CalendarView className="grow" />
       </SidebarInset>
       <AppCommandMenu />
-      <RightSidebar side="right" className="select-none">
+      <ResponsiveView>
         <EventForm />
-      </RightSidebar>
+      </ResponsiveView>
     </FlowsProvider>
   );
 }

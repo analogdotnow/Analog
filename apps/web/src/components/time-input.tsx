@@ -290,30 +290,80 @@ function TimeInputList({ suggestions, onSelect }: TimeInputListProps) {
   });
 
   return (
-    <ComboboxPopover
-      className="max-h-64 overflow-y-auto"
-      ref={parentRef}
-      autoFocusOnHide={false}
-    >
-      <div
-        className="relative w-full"
-        style={{ height: rowVirtualizer.getTotalSize() }}
+    <MemoizedTimeInputListPopover ref={parentRef}>
+      <MemoizedTimeInputListContent height={rowVirtualizer.getTotalSize()}
+
       >
         {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-          const item = suggestions[virtualRow.index];
+          const item = suggestions[virtualRow.index]!;
           return (
-            <ComboboxItem
+            <MemoizedTimeInputListItem
               key={item?.key}
-              value={item?.label}
-              className="absolute left-0 w-full ps-7 text-sm font-medium tabular-nums"
+              item={item}
               style={{ transform: `translateY(${virtualRow.start}px)` }}
-              onClick={() => item && onSelect(item.label)}
+              onSelect={onSelect}
             />
           );
         })}
-      </div>
+      </MemoizedTimeInputListContent>
+    </MemoizedTimeInputListPopover>
+  );
+}
+
+interface TimeInputListContentProps {
+  children: React.ReactNode;
+  height: number;
+}
+
+function TimeInputListContent({ children, height }: TimeInputListContentProps) {
+  return (
+    <div
+        className="relative w-full"
+        style={{ height }}
+      >
+        {children}
+    </div>
+  )
+}
+
+const MemoizedTimeInputListContent = React.memo(TimeInputListContent);
+
+interface TimeInputListPopoverProps {
+  children: React.ReactNode;
+  ref: React.RefObject<HTMLDivElement | null>;
+}
+
+function TimeInputListPopover({ ref, children }: TimeInputListPopoverProps) {
+  return (
+    <ComboboxPopover
+      className="max-h-64 overflow-y-auto"
+      ref={ref}
+      autoFocusOnHide={false}
+    >
+      {children}
     </ComboboxPopover>
   );
 }
 
+const MemoizedTimeInputListPopover = React.memo(TimeInputListPopover);
+
+interface TimeInputListItemProps {
+  item: TimeInputValue;
+  onSelect: (value: string) => void;
+  style: React.CSSProperties;
+}
+
+function TimeInputListItem({ item, onSelect, style }: TimeInputListItemProps) {
+  return (
+    <ComboboxItem
+      key={item?.key}
+      value={item?.label}
+      className="absolute left-0 w-full ps-7 text-sm font-medium tabular-nums"
+      style={style}
+      onClick={() => item && onSelect(item.label)}
+    />
+  );
+}
+const MemoizedTimeInputListItem = React.memo(TimeInputListItem);
 const MemoizedTimeInputList = React.memo(TimeInputList);
+export const MemoizedTimeInput = React.memo(TimeInput);

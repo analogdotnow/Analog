@@ -149,9 +149,7 @@ export function EventForm() {
                   name={field.name}
                   value={field.state.value}
                   onBlur={field.handleBlur}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    field.handleChange(e.target.value)
-                  }
+                  onChange={field.handleChange}
                 />
               </div>
             )}
@@ -279,7 +277,7 @@ export function EventForm() {
                   name={field.name}
                   value={field.state.value}
                   onBlur={field.handleBlur}
-                  onChange={(e) => field.handleChange(e.target.value)}
+                  onChange={field.handleChange}
                   disabled={disabled}
                 />
               </div>
@@ -299,10 +297,8 @@ export function EventForm() {
                 id={field.name}
                 value={field.state.value}
                 items={calendars?.accounts ?? []}
-                onChange={(value) => {
-                  field.handleChange(value);
-                  field.handleBlur();
-                }}
+                onChange={field.handleChange}
+                onBlur={field.handleBlur}
                 disabled={disabled}
               />
             </>

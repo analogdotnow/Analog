@@ -16,6 +16,7 @@ interface CalendarFieldProps {
   items: CalenderAccount[];
   value: { accountId: string; calendarId: string };
   onChange: (calendar: { accountId: string; calendarId: string }) => void;
+  onBlur: () => void;
   disabled?: boolean;
 }
 
@@ -24,15 +25,16 @@ export function CalendarField({
   className,
   value,
   onChange,
+  onBlur,
   disabled,
   items,
-  ...props
 }: CalendarFieldProps) {
   const onSelect = React.useCallback(
     (calendar: Calendar) => {
       onChange({ accountId: calendar.accountId, calendarId: calendar.id });
+      onBlur();
     },
-    [onChange],
+    [onChange, onBlur],
   );
 
   const selected = React.useMemo(() => {
@@ -50,7 +52,6 @@ export function CalendarField({
           className,
         )}
         disabled={disabled}
-        {...props}
         asChild
       >
         <Button

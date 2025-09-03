@@ -29,7 +29,7 @@ export function useGridLayout(
   days: Temporal.PlainDate[],
   options: GridLayoutOptions = {},
 ) {
-  const { includeTimeColumn = false, timeColumnWidth = "5rem" } = options;
+  const { includeTimeColumn = false, timeColumnWidth = "var(--time-column-width)" } = options;
 
   const viewPreferences = useAtomValue(viewPreferencesAtom);
 

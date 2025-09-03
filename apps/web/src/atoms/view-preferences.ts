@@ -29,3 +29,11 @@ export const calendarViewAtom = atomWithStorage<CalendarView>(
 export const currentDateAtom = atom<Temporal.PlainDate>(
   Temporal.Now.plainDateISO(),
 );
+
+export const dateRangeAtom = atom<{
+  timeMin: Temporal.ZonedDateTime;
+  timeMax: Temporal.ZonedDateTime;
+}>({
+  timeMin: Temporal.Now.zonedDateTimeISO(),
+  timeMax: Temporal.Now.zonedDateTimeISO().add({ days: 30 }),
+});

@@ -6,14 +6,21 @@ import { cn } from "@/lib/utils";
 
 type DescriptionFieldProps = Omit<
   React.ComponentPropsWithoutRef<typeof Textarea>,
-  "rows" | "placeholder"
->;
+  "rows" | "placeholder" | "onChange"
+> & {
+  onChange: (value: string) => void;
+}
 
 export function DescriptionField({
   className,
+  onChange,
   ...props
 }: DescriptionFieldProps) {
   const ref = useAutoResizeTextarea(120);
+
+  const onTextareaChange = React.useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    onChange?.(e.target.value);
+  }, [onChange]);
 
   return (
     <Textarea
@@ -24,6 +31,7 @@ export function DescriptionField({
       ref={ref}
       placeholder="Description"
       rows={1}
+      onChange={onTextareaChange}
       {...props}
     />
   );

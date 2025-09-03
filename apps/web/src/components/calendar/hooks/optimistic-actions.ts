@@ -21,6 +21,7 @@ export const optimisticActionsAtom = atom<Record<string, OptimisticAction>>({});
 
 export const optimisticActionsByEventIdAtom = atom((get) => {
   const actions = get(optimisticActionsAtom);
+
   return Object.values(actions).reduce(
     (acc, action) => {
       acc[action.eventId] = action;

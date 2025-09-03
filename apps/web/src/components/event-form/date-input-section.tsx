@@ -3,9 +3,9 @@ import { ArrowRightIcon, ClockIcon } from "@heroicons/react/16/solid";
 import { useField } from "@tanstack/react-form";
 import { Temporal } from "temporal-polyfill";
 
-import { DateInput } from "@/components/date-input";
-import { TimeInput } from "@/components/time-input";
-import { TimezoneSelect } from "@/components/timezone-select";
+import { DateInput, MemoizedDateInput } from "@/components/date-input";
+import { MemoizedTimeInput, TimeInput } from "@/components/time-input";
+import { MemoizedTimezoneSelect, TimezoneSelect } from "@/components/timezone-select";
 import { cn } from "@/lib/utils";
 import { defaultValues, withForm } from "./form";
 
@@ -111,7 +111,7 @@ export const DateInputSection = withForm({
           <label htmlFor="start.time" className="sr-only">
             Start time
           </label>
-          <TimeInput
+          <MemoizedTimeInput
             id="start.time"
             className="col-span-2 col-start-1 h-8 border-none bg-transparent ps-8 shadow-none dark:bg-transparent"
             value={startField.state.value}
@@ -123,7 +123,7 @@ export const DateInputSection = withForm({
           <label htmlFor="end.time" className="sr-only">
             End time
           </label>
-          <TimeInput
+          <MemoizedTimeInput  
             id="end.time"
             className="col-span-2 col-start-3 h-8 border-none bg-transparent ps-8 shadow-none dark:bg-transparent"
             value={endField.state.value}
@@ -145,7 +145,7 @@ export const DateInputSection = withForm({
           <label htmlFor="start.date" className="sr-only">
             Start date
           </label>
-          <DateInput
+          <MemoizedDateInput
             id="start.date"
             className={cn(
               "col-span-1 col-start-2 h-8 border-none bg-transparent ps-3 shadow-none dark:bg-transparent",
@@ -158,7 +158,7 @@ export const DateInputSection = withForm({
           <label htmlFor="end.date" className="sr-only">
             End date
           </label>
-          <DateInput
+          <MemoizedDateInput
             id="end.date"
             className={cn(
               "col-span-1 col-start-4 h-8 border-none bg-transparent ps-3 shadow-none dark:bg-transparent",
@@ -185,7 +185,7 @@ export const DateInputSection = withForm({
             <label htmlFor="timezone" className="sr-only">
               Select a timezone
             </label>
-            <TimezoneSelect
+            <MemoizedTimezoneSelect
               id="timezone"
               className="w-full"
               value={startField.state.value.timeZoneId}
@@ -199,7 +199,7 @@ export const DateInputSection = withForm({
               <label htmlFor="start-timezone" className="sr-only">
                 Start timezone
               </label>
-              <TimezoneSelect
+              <MemoizedTimezoneSelect
                 id="start-timezone"
                 className="w-full"
                 value={startField.state.value.timeZoneId}
@@ -211,7 +211,7 @@ export const DateInputSection = withForm({
               <label htmlFor="end-timezone" className="sr-only">
                 End timezone
               </label>
-              <TimezoneSelect
+              <MemoizedTimezoneSelect
                 id="end-timezone"
                 className="w-full"
                 value={endField.state.value.timeZoneId}

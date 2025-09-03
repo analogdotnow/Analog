@@ -84,7 +84,7 @@ export function MonthView({ currentDate, events }: MonthViewProps) {
   const rows = weeks.length;
 
   return (
-    <div data-slot="month-view" className="contents min-w-0">
+    <div data-slot="month-view" className="min-w-0 h-full isolate">
       <MonthViewHeader style={{ gridTemplateColumns }} />
       <div
         ref={containerRef}
@@ -229,11 +229,15 @@ function MonthViewWeek({
     weekEnd,
   ]);
 
+  const overflowRef = React.useRef<HTMLDivElement | null>(null);
   // Use overflow hook to manage event display
   const overflow = useMultiDayOverflow({
     events: weekEvents,
     timeZone: settings.defaultTimeZone,
+    containerRef: overflowRef,
   });
+
+  console.log("overflow", JSON.stringify(overflow, null, 2));
 
   return (
     <div
@@ -250,6 +254,7 @@ function MonthViewWeek({
           dayIndex={dayIndex}
           overflow={overflow}
           currentDate={currentDate}
+          overflowRef={overflowRef}
         />
       ))}
 
@@ -319,6 +324,7 @@ interface MonthViewDayProps {
   day: Temporal.PlainDate;
   dayIndex: number;
   overflow: ReturnType<typeof useMultiDayOverflow>;
+  overflowRef: React.RefObject<HTMLDivElement | null>;
   currentDate: Temporal.PlainDate;
 }
 
@@ -326,6 +332,7 @@ function MonthViewDay({
   day,
   dayIndex,
   overflow,
+  overflowRef,
   currentDate,
 }: MonthViewDayProps) {
   const viewPreferences = useAtomValue(viewPreferencesAtom);
@@ -399,7 +406,7 @@ function MonthViewDay({
 
         <div
           className="flex grow flex-col justify-end place-self-stretch"
-          ref={overflow.containerRef}
+          ref={overflowRef}
         ></div>
 
         {/* Show overflow indicator for this day if there are overflow events that start on this day */}

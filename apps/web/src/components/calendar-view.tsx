@@ -1,34 +1,64 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import * as React from "react";
 import { useAtom, useAtomValue } from "jotai";
 
-import {
-  calendarPreferencesAtom,
-  getCalendarPreference,
-} from "@/atoms/calendar-preferences";
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { cellHeightAtom } from "@/atoms/cell-height";
-import { viewPreferencesAtom } from "@/atoms/view-preferences";
 import { AgendaView } from "@/components/calendar/agenda-view/agenda-view";
 import { EventGap, EventHeight } from "@/components/calendar/constants";
 import { DayView } from "@/components/calendar/day-view/day-view";
 import { CalendarHeader } from "@/components/calendar/header/calendar-header";
-import type { EventCollectionItem } from "@/components/calendar/hooks/event-collection";
 import { MonthView } from "@/components/calendar/month-view/month-view";
-import { filterPastEvents } from "@/components/calendar/utils/event";
 import { WeekView } from "@/components/calendar/week-view/week-view";
 import { useCalendarState } from "@/hooks/use-calendar-state";
 import { cn } from "@/lib/utils";
-import { useOptimisticEvents } from "./calendar/hooks/use-optimistic-events";
+import { applyOptimisticActions } from "./calendar/hooks/apply-optimistic-actions";
+import { optimisticActionsAtom } from "./calendar/hooks/optimistic-actions";
+import { useEventsForDisplay } from "./calendar/hooks/use-events";
+import { calendarPreferencesAtom, getCalendarPreference } from "@/atoms/calendar-preferences";
+import { filterPastEvents } from "./calendar/utils/event";
+import { viewPreferencesAtom } from "@/atoms/view-preferences";
 
 interface CalendarContentProps {
-  events: EventCollectionItem[];
   scrollContainerRef: React.RefObject<HTMLDivElement | null>;
 }
 
-function CalendarContent({ events, scrollContainerRef }: CalendarContentProps) {
+function CalendarContent({ scrollContainerRef }: CalendarContentProps) {
   const { currentDate, view } = useCalendarState();
+  const { data } = useEventsForDisplay();
+
+  const defaultTimeZone = useAtomValue(calendarSettingsAtom).defaultTimeZone;
+  const optimisticActions = useAtomValue(optimisticActionsAtom);
+
+  const viewPreferences = useAtomValue(viewPreferencesAtom);
+  const calendarPreferences = useAtomValue(calendarPreferencesAtom);
+
+
+  const events = React.useMemo(() => {
+    const events = applyOptimisticActions({
+      items: data?.events ?? [],
+      timeZone: defaultTimeZone,
+      optimisticActions,
+    });
+
+    // First filter past events
+    const pastFiltered = filterPastEvents(
+      events,
+      viewPreferences.showPastEvents,
+      defaultTimeZone,
+    );
+
+    return pastFiltered.filter((eventItem) => {
+      const preference = getCalendarPreference(
+        calendarPreferences,
+        eventItem.event.accountId,
+        eventItem.event.calendarId,
+      );
+
+      return !(preference?.hidden === true);
+    }); 
+  }, [data?.events, defaultTimeZone, optimisticActions, viewPreferences, calendarPreferences]);
 
   if (view === "month") {
     return <MonthView currentDate={currentDate} events={events} />;
@@ -48,7 +78,7 @@ function CalendarContent({ events, scrollContainerRef }: CalendarContentProps) {
     );
   }
 
-  return <AgendaView currentDate={currentDate} events={events} />;
+  return <AgendaView currentDate={currentDate} items={events} />;
 }
 
 interface CalendarViewProps {
@@ -56,38 +86,10 @@ interface CalendarViewProps {
 }
 
 export function CalendarView({ className }: CalendarViewProps) {
-  const events = useOptimisticEvents();
-  const viewPreferences = useAtomValue(viewPreferencesAtom);
-  const [calendarPreferences] = useAtom(calendarPreferencesAtom);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const calendarHeaderRef = useRef<HTMLElement | null>(null);
+  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+  const calendarHeaderRef = React.useRef<HTMLElement | null>(null);
 
   const cellHeight = useAtomValue(cellHeightAtom);
-
-  const { defaultTimeZone } = useAtomValue(calendarSettingsAtom);
-  const filteredEvents = useMemo(() => {
-    // First filter past events
-    const pastFiltered = filterPastEvents(
-      events,
-      viewPreferences.showPastEvents,
-      defaultTimeZone,
-    );
-
-    return pastFiltered.filter((eventItem) => {
-      const preference = getCalendarPreference(
-        calendarPreferences,
-        eventItem.event.accountId,
-        eventItem.event.calendarId,
-      );
-
-      return !(preference?.hidden === true);
-    });
-  }, [
-    events,
-    viewPreferences.showPastEvents,
-    calendarPreferences,
-    defaultTimeZone,
-  ]);
 
   return (
     <div
@@ -109,10 +111,7 @@ export function CalendarView({ className }: CalendarViewProps) {
         className="scrollbar-hidden grow overflow-x-hidden overflow-y-auto"
         ref={scrollContainerRef}
       >
-        <CalendarContent
-          events={filteredEvents}
-          scrollContainerRef={scrollContainerRef}
-        />
+        <CalendarContent scrollContainerRef={scrollContainerRef} />
       </div>
       {/* <SignalView className="absolute bottom-8 left-1/2 -translate-x-1/2" /> */}
     </div>

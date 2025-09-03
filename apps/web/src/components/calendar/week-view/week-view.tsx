@@ -70,7 +70,7 @@ export function WeekView({
   return (
     <div
       data-slot="week-view"
-      className="isolate flex flex-col"
+      className="isolate flex flex-col sm:[--time-column-width:5rem] [--time-column-width:3rem]"
       style={{ "--week-view-grid": gridTemplateColumns } as React.CSSProperties}
       {...props}
     >

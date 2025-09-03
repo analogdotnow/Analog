@@ -107,6 +107,7 @@
     "tw-animate-css": "^1.3.7",
     "use-stick-to-bottom": "^1.1.1",
     "usehooks-ts": "^3.1.1",
+    "vaul": "^1.1.2",
     "xstate": "^5.21.0",
     "zod": "^4.1.5"
   },

@@ -7,8 +7,11 @@ import { endOfMonth, startOfMonth } from "@repo/temporal";
 
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { currentDateAtom } from "@/atoms/view-preferences";
+import { RouterOutputs } from "@/lib/trpc";
 import { useTRPC } from "@/lib/trpc/client";
+import { applyOptimisticActions } from "./apply-optimistic-actions";
 import { mapEventsToItems } from "./event-collection";
+import { optimisticActionsByEventIdAtom } from "./optimistic-actions";
 
 const TIME_RANGE_DAYS_PAST = 30;
 const TIME_RANGE_DAYS_FUTURE = 30;
@@ -65,15 +68,36 @@ export function useEvents() {
   const { timeMin, timeMax, defaultTimeZone } = useEventQueryParams();
 
   return useQuery(
+    trpc.events.list.queryOptions({ timeMin, timeMax, defaultTimeZone }),
+  );
+}
+
+export function useEventsForDisplay() {
+  const trpc = useTRPC();
+  const { timeMin, timeMax, defaultTimeZone } = useEventQueryParams();
+
+  const select = React.useCallback(
+    (data: RouterOutputs["events"]["list"]) => {
+      if (!data.events) {
+        return {
+          events: [],
+          recurringMasterEvents: {},
+        };
+      }
+
+      return {
+        events: mapEventsToItems(data.events, defaultTimeZone),
+        recurringMasterEvents: data.recurringMasterEvents,
+      };
+    },
+    [defaultTimeZone],
+  );
+
+  return useQuery(
     trpc.events.list.queryOptions(
       { timeMin, timeMax, defaultTimeZone },
       {
-        select: (data) => {
-          return {
-            events: mapEventsToItems(data.events, defaultTimeZone),
-            recurringMasterEvents: data.recurringMasterEvents,
-          };
-        },
+        select,
       },
     ),
   );

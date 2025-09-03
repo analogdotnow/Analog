@@ -8,7 +8,7 @@ type LocationFieldProps = {
   id?: string;
   name?: string;
   value?: string;
-  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onChange?: (value: string) => void;
   onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
 };
 
@@ -18,28 +18,32 @@ export function LocationField({
   onChange,
   ...props
 }: LocationFieldProps) {
+  const onAddressChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    onChange?.(e.target.value);
+  }, [onChange]);
+
   return (
     <AddressCombobox
       className={cn(
-        "scrollbar-hidden field-sizing-content max-h-24 min-h-0 resize-none border-none bg-transparent py-1.5 ps-8 shadow-none dark:bg-transparent",
+        "scrollbar-hidden field-sizing-content max-h-24 min-h-0 resize-none border-none bg-transparent py-1.5 ps-8 shadow-none dark:bg-transparent text-sm",
         className,
       )}
       value={typeof value === "string" ? value : undefined}
       onValueChange={(val: string) => {
-        if (onChange) {
+        if (onAddressChange) {
           // Create a synthetic input event-like object for upstream consumers
           const event = {
             target: { value: val },
           } as unknown as React.ChangeEvent<HTMLInputElement>;
-          onChange(event);
+          onAddressChange(event);
         }
       }}
       onSubmit={(address) => {
-        if (onChange) {
+        if (onAddressChange) {
           const event = {
             target: { value: address },
           } as unknown as React.ChangeEvent<HTMLInputElement>;
-          onChange(event);
+          onAddressChange(event);
         }
       }}
       id={props.id}
