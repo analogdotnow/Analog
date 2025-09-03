@@ -4,7 +4,6 @@ import { Temporal } from "temporal-polyfill";
 import {
   Attendee,
   AttendeeStatus,
-  Calendar,
   CalendarEvent,
   Conference,
   Recurrence,
@@ -117,14 +116,16 @@ function parseRecurrence(
 }
 
 interface ParsedGoogleCalendarEventOptions {
-  calendar: Calendar;
+  calendarId: string;
+  readOnly: boolean;
   accountId: string;
   event: GoogleCalendarEvent;
   defaultTimeZone?: string;
 }
 
 export function parseGoogleCalendarEvent({
-  calendar,
+  calendarId,
+  readOnly,
   accountId,
   event,
   defaultTimeZone = "UTC",
@@ -157,9 +158,9 @@ export function parseGoogleCalendarEvent({
     etag: event.etag,
     providerId: "google",
     accountId,
-    calendarId: calendar.id,
+    calendarId,
     readOnly:
-      calendar.readOnly ||
+      readOnly ||
       ["birthday", "focusTime", "outOfOffice", "workingLocation"].includes(
         event.eventType ?? "",
       ),
