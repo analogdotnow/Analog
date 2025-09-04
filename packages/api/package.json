@@ -8,8 +8,7 @@
     "./providers": "./src/providers/index.ts",
     "./openapi": "./src/openapi.ts",
     "./interfaces": "./src/interfaces/index.ts",
-    "./schemas": "./src/schemas/index.ts",
-    "./utils/ip": "./src/utils/ip.ts"
+    "./schemas": "./src/schemas/index.ts"
   },
   "scripts": {
     "lint": "eslint .",

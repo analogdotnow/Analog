@@ -101,11 +101,6 @@ export const auth = betterAuth({
   plugins: [
     apiKey({
       enableMetadata: true,
-      rateLimit: {
-        enabled: true,
-        timeWindow: 1000 * 60, // 1 minute
-        maxRequests: 100, // 100 requests per minute
-      },
     }),
     mcp({
       loginPage: "/login",

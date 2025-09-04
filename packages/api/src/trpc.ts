@@ -24,8 +24,7 @@ import { superjson } from "./utils/superjson";
 type Unit = "ms" | "s" | "m" | "h" | "d";
 type Duration = `${number} ${Unit}` | `${number}${Unit}`;
 
-export type Meta = OpenApiMeta &
-  McpMeta & {
+export interface Meta extends OpenApiMeta, McpMeta {
     procedureName?: string;
     ratelimit?: {
       namespace: string;
@@ -34,8 +33,12 @@ export type Meta = OpenApiMeta &
     };
   };
 
-export const createTRPCContext = async (opts: { headers: Headers }) => {
-  const session = await auth.api.getSession({ headers: opts.headers });
+export const createTRPCContext = async (opts: {
+  headers: Headers;
+  _session?: Session;
+}) => {
+  const session =
+    opts?._session ?? (await auth.api.getSession({ headers: opts.headers }));
 
   return {
     authContext: await auth.$context,

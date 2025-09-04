@@ -1,8 +1,7 @@
 import { withMcpAuth } from "better-auth/plugins";
 import { trpcToMcpHandler } from "trpc-to-mcp/adapters/vercel-mcp-adapter";
 
-import { appRouter } from "@repo/api";
-import { getIp } from "@repo/api/utils/ip";
+import { appRouter, createContext } from "@repo/api";
 import { auth, type McpSession, type Session } from "@repo/auth/server";
 import { db } from "@repo/db";
 
@@ -34,17 +33,10 @@ const handler = withMcpAuth(auth, async (request, mcpSession) => {
     return new Response("Unauthorized", { status: 401 });
   }
 
-  // Did not use `createContext` because it was causing type errors
-  const ctx = {
-    authContext: await auth.$context,
-    db,
-    session: session?.session,
-    user: session?.user,
-    rateLimit: {
-      id: session?.user?.id ?? getIp(request.headers),
-    },
+  const ctx = await createContext({
     headers: request.headers,
-  };
+    _session: session,
+  });
 
   const handler = trpcToMcpHandler(appRouter, ctx, {
     config: {
