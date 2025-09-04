@@ -209,11 +209,13 @@ export function EventItem({
   // Agenda view - kept separate since it's significantly different
   return (
     <button
-      className={`${cn(
-        "@container/event flex w-full flex-col gap-1 rounded p-2 text-left transition outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 data-past-event:line-through data-past-event:opacity-90",
+      className={cn(
+        "group hover:text-event-hover @container/event flex w-full flex-col gap-1 rounded-md border border-event bg-event p-2 text-left text-event transition outline-none hover:border-event-hover hover:bg-event-hover focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 data-past-event:line-through data-past-event:opacity-90",
         "border-[color-mix(in_oklab,var(--background),var(--calendar-color)_30%)] bg-[color-mix(in_oklab,var(--background),var(--calendar-color)_20%)]",
+        isSelected &&
+          "bg-event-selected text-event-selected hover:bg-event-selected-hover",
         className,
-      )} `}
+      )}
       style={
         {
           "--calendar-color": color,
@@ -233,18 +235,18 @@ export function EventItem({
         ) : (
           <span className="uppercase">{eventTime}</span>
         )}
-        {item.event.location && (
+        {item.event.location ? (
           <>
-            <span className="px-1 opacity-35"> · </span>
+            <span className="px-1 opacity-70"> · </span>
             <span>{item.event.location}</span>
           </>
-        )}
+        ) : null}
       </div>
-      {item.event.description && (
+      {item.event.description ? (
         <div className="pointer-events-none my-1 text-xs opacity-90">
           {item.event.description}
         </div>
-      )}
+      ) : null}
     </button>
   );
 }

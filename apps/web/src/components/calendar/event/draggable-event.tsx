@@ -20,6 +20,7 @@ import { EventContextMenu } from "@/components/calendar/event/event-context-menu
 import { EventItem } from "@/components/calendar/event/event-item";
 import { ContextMenuTrigger } from "@/components/ui/context-menu";
 import { useUpdateAction } from "../flows/update-event/use-update-action";
+import { useGlobalCursor } from "../hooks/drag-and-drop/use-global-cursor";
 import type { EventCollectionItem } from "../hooks/event-collection";
 import { useSelectAction } from "../hooks/use-optimistic-mutations";
 
@@ -28,8 +29,6 @@ interface DraggableEventProps {
   view: "month" | "week" | "day";
   showTime?: boolean;
   height?: number;
-  isMultiDay?: boolean;
-  multiDayWidth?: number;
   isFirstDay?: boolean;
   isLastDay?: boolean;
   "aria-hidden"?: boolean | "true" | "false";
@@ -45,10 +44,10 @@ export function DraggableEvent({
   height: initialHeight,
   isFirstDay = true,
   isLastDay = true,
-  "aria-hidden": ariaHidden,
   containerRef,
   rows,
   zIndex,
+  ...props
 }: DraggableEventProps) {
   const dragRef = React.useRef<HTMLDivElement>(null);
 
@@ -74,6 +73,7 @@ export function DraggableEvent({
   const removeDraggedEventId = useSetAtom(removeDraggedEventIdAtom);
 
   const updateAction = useUpdateAction();
+  const { setCursor, resetCursor } = useGlobalCursor();
 
   const onDragStart = (e: PointerEvent, info: PanInfo) => {
     // Prevent possible text/image dragging flash on some browsers
@@ -210,6 +210,7 @@ export function DraggableEvent({
 
   const onResizeTopStart = (e: PointerEvent, info: PanInfo) => {
     e.preventDefault();
+    setCursor("row-resize");
 
     if (!containerRef.current) {
       return;
@@ -225,6 +226,7 @@ export function DraggableEvent({
 
   const onResizeBottomStart = (e: PointerEvent, info: PanInfo) => {
     e.preventDefault();
+    setCursor("row-resize");
 
     if (!containerRef.current) {
       return;
@@ -317,6 +319,7 @@ export function DraggableEvent({
 
   const onResizeTopEnd = (_: PointerEvent, info: PanInfo) => {
     setIsResizing(false);
+    resetCursor();
     // Keep the visual offset until optimistic update lands to avoid flashback
     if (!containerRef.current) {
       return;
@@ -335,6 +338,8 @@ export function DraggableEvent({
 
   const onResizeBottomEnd = (_: PointerEvent, info: PanInfo) => {
     setIsResizing(false);
+    resetCursor();
+
     // Keep the visual state until optimistic update applies
     if (!containerRef.current) {
       return;
@@ -365,7 +370,7 @@ export function DraggableEvent({
     return (
       <motion.div
         ref={dragRef}
-        className="size-full"
+        className="size-full touch-none"
         style={{ transform, height, top, zIndex }}
       >
         <EventContextMenu event={item.event}>
@@ -378,13 +383,12 @@ export function DraggableEvent({
               isLastDay={isLastDay}
               onClick={onClick}
               onMouseDown={onClick}
-              // onTouchStart={handleTouchStart}
-              aria-hidden={ariaHidden}
+              {...props}
             >
               {!item.event.readOnly ? (
                 <>
                   <motion.div
-                    className="absolute inset-x-0 inset-y-2 touch-pan-x touch-pan-y"
+                    className="absolute inset-x-0 inset-y-2 touch-none"
                     onPanStart={onDragStart}
                     onPan={onDrag}
                     onPanEnd={onDragEnd}
@@ -401,7 +405,7 @@ export function DraggableEvent({
   return (
     <motion.div
       ref={dragRef}
-      className="size-full"
+      className="size-full touch-none"
       style={{ transform, height, zIndex }}
     >
       <EventContextMenu event={item.event}>
@@ -414,25 +418,24 @@ export function DraggableEvent({
             isLastDay={isLastDay}
             onClick={onClick}
             onMouseDown={onClick}
-            // onTouchStart={handleTouchStart}
-            aria-hidden={ariaHidden}
+            {...props}
           >
             {!item.event.readOnly ? (
               <>
                 <motion.div
-                  className="absolute inset-0 touch-pan-x touch-pan-y"
+                  className="absolute inset-0 touch-none"
                   onPanStart={onDragStart}
                   onPan={onDrag}
                   onPanEnd={onDragEnd}
                 />
                 <motion.div
-                  className="absolute inset-x-0 top-0 h-[min(15%,_0.25rem)] cursor-row-resize touch-pan-y"
+                  className="absolute inset-x-0 top-0 h-[min(15%,_0.25rem)] cursor-row-resize touch-none"
                   onPanStart={onResizeTopStart}
                   onPan={onResizeTop}
                   onPanEnd={onResizeTopEnd}
                 />
                 <motion.div
-                  className="absolute inset-x-0 bottom-0 h-[min(15%,_0.25rem)] cursor-row-resize touch-pan-y"
+                  className="absolute inset-x-0 bottom-0 h-[min(15%,_0.25rem)] cursor-row-resize touch-none"
                   onPanStart={onResizeBottomStart}
                   onPan={onResizeBottom}
                   onPanEnd={onResizeBottomEnd}

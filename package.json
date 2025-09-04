@@ -16,11 +16,11 @@
     "db:studio": "dotenv -- turbo run db:studio"
   },
   "devDependencies": {
-    "@ianvs/prettier-plugin-sort-imports": "^4.5.1",
-    "dotenv-cli": "^8.0.0",
+    "@ianvs/prettier-plugin-sort-imports": "^4.7.0",
+    "dotenv-cli": "^10.0.0",
     "prettier": "^3.6.2",
     "prettier-plugin-tailwindcss": "^0.6.14",
-    "turbo": "^2.5.5"
+    "turbo": "^2.5.6"
   },
   "packageManager": "bun@1.2.18",
   "workspaces": [

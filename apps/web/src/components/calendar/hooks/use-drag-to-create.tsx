@@ -5,9 +5,10 @@ import { Temporal } from "temporal-polyfill";
 
 import { isDraggingAtom } from "@/atoms/drag-resize-state";
 import { jotaiStore } from "@/atoms/store";
-import { useSidebarWithSide } from "@/components/ui/sidebar";
+import { usePointerType } from "@/hooks/use-pointer-type";
 import { createDraftEvent } from "@/lib/utils/calendar";
 import { MINUTES_IN_HOUR, TOTAL_MINUTES_IN_DAY } from "../constants";
+import { useGlobalCursor } from "./drag-and-drop/use-global-cursor";
 import { useCreateDraftAction } from "./use-optimistic-mutations";
 
 interface UseDragToCreateOptions {
@@ -31,14 +32,13 @@ export function useDragToCreate({
   timeZone,
   columnRef,
 }: UseDragToCreateOptions) {
-  const { open: rightSidebarOpen, setOpen: setRightSidebarOpen } =
-    useSidebarWithSide("right");
   const initialMinutes = React.useRef(0);
   const top = useMotionValue<number | undefined>(undefined);
   const height = useMotionValue(0);
   const opacity = useMotionValue(0);
   const emptyImageRef = React.useRef<HTMLImageElement | null>(null);
   const dragCancelled = React.useRef(false);
+  const pointerType = usePointerType();
 
   // Create empty image on client side only to prevent globe icon on Mac Chrome
   React.useEffect(() => {
@@ -74,12 +74,16 @@ export function useDragToCreate({
 
   const createDraftAction = useCreateDraftAction();
 
+  const { setCursor, resetCursor } = useGlobalCursor();
+
   // Cancel dragging when Escape is pressed
   useHotkeys(
     "esc",
     () => {
       if (jotaiStore.get(isDraggingAtom)) {
         dragCancelled.current = true;
+        resetCursor();
+
         top.set(0);
         height.set(0);
         opacity.set(0);
@@ -119,15 +123,17 @@ export function useDragToCreate({
   };
 
   const onDragStart = (event: PointerEvent, info: PanInfo) => {
-    if (!columnRef.current) {
+    if (!columnRef.current || pointerType === "touch") {
       return;
     }
 
     if (isHotkeyPressed("esc")) {
       dragCancelled.current = true;
+      resetCursor();
       return;
     }
 
+    setCursor("row-resize");
     jotaiStore.set(isDraggingAtom, true);
     dragCancelled.current = false;
 
@@ -147,7 +153,7 @@ export function useDragToCreate({
   };
 
   const onDrag = (event: PointerEvent, info: PanInfo) => {
-    if (!columnRef.current) {
+    if (!columnRef.current || pointerType === "touch") {
       return;
     }
 
@@ -181,6 +187,12 @@ export function useDragToCreate({
   };
 
   const onDragEnd = (event: PointerEvent, info: PanInfo) => {
+    resetCursor();
+
+    if (pointerType === "touch") {
+      return;
+    }
+
     jotaiStore.set(isDraggingAtom, false);
 
     if (dragCancelled.current) {
@@ -222,10 +234,6 @@ export function useDragToCreate({
     opacity.set(0);
 
     createDraftAction(draft);
-
-    if (!rightSidebarOpen) {
-      setRightSidebarOpen(true);
-    }
   };
 
   return { onDragStart, onDrag, onDragEnd, top, height, opacity };
