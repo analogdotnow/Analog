@@ -25,13 +25,13 @@ type Unit = "ms" | "s" | "m" | "h" | "d";
 type Duration = `${number} ${Unit}` | `${number}${Unit}`;
 
 export interface Meta extends OpenApiMeta, McpMeta {
-    procedureName?: string;
-    ratelimit?: {
-      namespace: string;
-      limit: number;
-      duration: Duration;
-    };
+  procedureName?: string;
+  ratelimit?: {
+    namespace: string;
+    limit: number;
+    duration: Duration;
   };
+}
 
 export const createTRPCContext = async (opts: {
   headers: Headers;
