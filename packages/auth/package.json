@@ -15,9 +15,11 @@
     "server-only": "^0.0.1"
   },
   "dependencies": {
+    "@repo/api": "workspace:*",
     "@repo/db": "workspace:*",
     "@repo/env": "workspace:*",
-    "@upstash/redis": "^1.35.1"
+    "@upstash/redis": "^1.35.1",
+    "drizzle-orm": "^0.44.5"
   },
   "devDependencies": {
     "@microsoft/microsoft-graph-types": "^2.40.0",
