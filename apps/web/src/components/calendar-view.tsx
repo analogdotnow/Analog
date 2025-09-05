@@ -18,6 +18,7 @@ import { MonthView } from "@/components/calendar/month-view/month-view";
 import { WeekView } from "@/components/calendar/week-view/week-view";
 import { useCalendarState } from "@/hooks/use-calendar-state";
 import { cn } from "@/lib/utils";
+import { CreateEventInput } from "./ai-input/create-event-input";
 import { applyOptimisticActions } from "./calendar/hooks/apply-optimistic-actions";
 import { optimisticActionsByEventIdAtom } from "./calendar/hooks/optimistic-actions";
 import { useEventsForDisplay } from "./calendar/hooks/use-events";
@@ -120,6 +121,7 @@ export function CalendarView({ className }: CalendarViewProps) {
       >
         <CalendarContent scrollContainerRef={scrollContainerRef} />
       </div>
+      <CreateEventInput />
       {/* <SignalView className="absolute bottom-8 left-1/2 -translate-x-1/2" /> */}
     </div>
   );

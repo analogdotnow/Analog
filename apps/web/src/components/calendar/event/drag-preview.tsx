@@ -7,7 +7,7 @@ import { useDefaultCalendar } from "../hooks/use-default-calendar";
 type DragPreviewProps = React.ComponentProps<typeof motion.div>;
 
 export function DragPreview({ className, style, ...props }: DragPreviewProps) {
-  const { color } = useDefaultCalendar();
+  const defaultCalendar = useDefaultCalendar();
 
   return (
     <motion.div
@@ -15,7 +15,12 @@ export function DragPreview({ className, style, ...props }: DragPreviewProps) {
         "absolute inset-[2px] z-1000 rounded-sm bg-event transition-all duration-[10ms]",
         className,
       )}
-      style={{ ...style, "--calendar-color": color } as React.CSSProperties}
+      style={
+        {
+          ...style,
+          "--calendar-color": defaultCalendar?.color,
+        } as React.CSSProperties
+      }
       {...props}
     ></motion.div>
   );

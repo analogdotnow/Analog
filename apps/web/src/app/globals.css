@@ -260,6 +260,11 @@
       }
     }
 
+    .suggestion {
+      @apply bg-blue-500/10 text-blue-500;
+      @apply mr-0.5 rounded-sm px-1 py-0.5 font-medium;
+    }
+
     p {
       @apply leading-4;
     }

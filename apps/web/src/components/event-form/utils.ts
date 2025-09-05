@@ -112,6 +112,9 @@ export function parseDraftEvent({
       calendarId: event?.calendarId ?? defaultCalendar.id,
     },
     providerId: event?.providerId ?? defaultCalendar.providerId,
+    conference: event.conference
+      ? { type: "conference", conference: event.conference }
+      : undefined,
   };
 }
 
@@ -162,6 +165,9 @@ export function parseCalendarEvent({
       calendarId: event.calendarId ?? "",
     },
     providerId: event.providerId,
+    conference: event.conference
+      ? { type: "conference", conference: event.conference }
+      : undefined,
   };
 }
 
@@ -186,7 +192,6 @@ function toResponse(attendees: FormAttendee[]) {
 export function toCalendarEvent({
   values,
   event,
-  calendar,
 }: ToCalendarEvent): CalendarEvent {
   return {
     ...event,
@@ -206,6 +211,9 @@ export function toCalendarEvent({
     recurrence: values.recurrence,
     recurringEventId: values.recurringEventId,
     response: toResponse(values.attendees),
+    conference: values.conference?.type === "conference"
+      ? values.conference.conference
+      : undefined,
   };
 }
 

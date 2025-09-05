@@ -11,6 +11,7 @@ import {
 import { useSidebarWithSide } from "@/components/ui/sidebar";
 import type { CalendarEvent, DraftEvent } from "@/lib/interfaces";
 import { useTRPC } from "@/lib/trpc/client";
+import { EventFormStateContext } from "../flows/event-form/event-form-state-provider";
 import {
   addOptimisticActionAtom,
   removeDraftOptimisticActionsByEventIdAtom,
@@ -23,11 +24,13 @@ export function useCreateDraftAction() {
   const trpc = useTRPC();
   const query = useQuery(trpc.calendars.list.queryOptions());
   const { setOpen: setRightSidebarOpen } = useSidebarWithSide("right");
-
+  const actorRef = EventFormStateContext.useActorRef();
   const unselectAllAction = useUnselectAllAction();
+
   return React.useCallback(
     (event: DraftEvent) => {
       unselectAllAction();
+
       const defaultCalendar = query.data?.defaultCalendar;
 
       if (!defaultCalendar) {
@@ -49,8 +52,10 @@ export function useCreateDraftAction() {
       setSelectedEvents([event]);
       setSelectedEventIds([event.id]);
       setRightSidebarOpen(true);
+      actorRef.send({ type: "QUEUE", item: event as CalendarEvent });
     },
     [
+      actorRef,
       unselectAllAction,
       query.data?.defaultCalendar,
       addOptimisticAction,
@@ -68,6 +73,7 @@ export function useSelectAction() {
     removeDraftOptimisticActionsByEventIdAtom,
   );
   const { setOpen: setRightSidebarOpen } = useSidebarWithSide("right");
+  const actorRef = EventFormStateContext.useActorRef();
 
   return React.useCallback(
     (event: CalendarEvent) => {
@@ -79,14 +85,18 @@ export function useSelectAction() {
         }
         return [event];
       });
+
       setSelectedEventIds((prev) => [...prev, event.id]);
       setRightSidebarOpen(true);
+
+      actorRef.send({ type: "QUEUE", item: event });
     },
     [
       setSelectedEvents,
       removeDraftOptimisticActionsByEventId,
       setSelectedEventIds,
       setRightSidebarOpen,
+      actorRef,
     ],
   );
 }
@@ -103,9 +113,11 @@ export function useUnselectAction() {
       setSelectedEvents((prev) => {
         return prev.filter((e) => e.id !== event.id);
       });
+
       if (event.type === "draft") {
         removeDraftOptimisticActionsByEventId(event.id);
       }
+
       setSelectedEventIds((prev) => prev.filter((id) => id !== event.id));
     },
     [

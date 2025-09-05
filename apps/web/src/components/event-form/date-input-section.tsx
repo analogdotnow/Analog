@@ -7,10 +7,10 @@ import { MemoizedDateInput } from "@/components/date-input";
 import { MemoizedTimeInput } from "@/components/time-input";
 import { MemoizedTimezoneSelect } from "@/components/timezone-select";
 import { cn } from "@/lib/utils";
-import { defaultValues, withForm } from "./form";
+import { initialValues, withForm } from "./form";
 
 export const DateInputSection = withForm({
-  defaultValues,
+  defaultValues: initialValues,
   props: {
     disabled: false as boolean | undefined,
   },

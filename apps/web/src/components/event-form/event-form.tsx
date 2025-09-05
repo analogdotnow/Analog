@@ -8,8 +8,8 @@ import {
   UsersIcon,
   VideoCameraIcon,
 } from "@heroicons/react/16/solid";
+import { useOnClickOutside } from "usehooks-ts";
 
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
@@ -18,17 +18,50 @@ import { requiresAttendeeConfirmation } from "@/lib/utils/events";
 import { AttendeeList, AttendeeListItem } from "./attendees/attendee-list";
 import { AttendeeListInput } from "./attendees/attendee-list-input";
 import { CalendarField } from "./calendar-field";
-import { ConferenceDetails } from "./conference/conference-details";
+import { ConferenceSelect } from "./conference-select";
 import { DateInputSection } from "./date-input-section";
 import { DescriptionField } from "./description-field";
 import { FormRow, FormRowIcon } from "./form-row";
 import { LocationField } from "./location-field";
 import { RecurrenceField } from "./recurrences/recurrence-field";
 import { SendUpdateButton } from "./send-update-button";
+import { TitleField } from "./title-field";
 import { useEventForm } from "./use-event-form";
 
+function useClickOutsideEventForm(onClickOutside: () => void) {
+  const ref = React.useRef<HTMLFormElement>(null);
+  const focusRef = React.useRef(false);
+
+  const handleClickOutside = React.useCallback(async () => {
+    if (!focusRef.current) {
+      return;
+    }
+
+    focusRef.current = false;
+
+    onClickOutside();
+  }, [onClickOutside, focusRef]);
+
+  useOnClickOutside(ref as React.RefObject<HTMLElement>, handleClickOutside);
+}
+
 export function EventForm() {
-  const { form, disabled, ref, focusRef, calendars, event } = useEventForm();
+  const { form, disabled } = useEventForm();
+
+  const ref = React.useRef<HTMLFormElement>(null);
+  const focusRef = React.useRef(false);
+
+  const handleClickOutside = React.useCallback(async () => {
+    if (!focusRef.current) {
+      return;
+    }
+
+    focusRef.current = false;
+
+    form.handleSubmit();
+  }, [form, focusRef]);
+
+  useOnClickOutside(ref as React.RefObject<HTMLElement>, handleClickOutside);
 
   return (
     <form
@@ -49,19 +82,12 @@ export function EventForm() {
               <label htmlFor={field.name} className="sr-only">
                 Title
               </label>
-              <Input
+              <TitleField
                 id={field.name}
-                className="h-8 border-none bg-transparent px-3.5 text-base shadow-none dark:bg-transparent"
                 name={field.name}
                 value={field.state.value}
                 onBlur={field.handleBlur}
-                onChange={(e) => field.handleChange(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.currentTarget.blur();
-                  }
-                }}
-                placeholder="Title"
+                onChange={field.handleChange}
                 disabled={disabled}
               />
             </>
@@ -113,7 +139,7 @@ export function EventForm() {
                 <RecurrenceField
                   id={field.name}
                   className="ps-8"
-                  recurringEventId={event?.recurringEventId}
+                  recurringEventId={form.state.values.recurringEventId}
                   date={form.state.values.start}
                   value={field.state.value}
                   onChange={field.handleChange}
@@ -125,17 +151,24 @@ export function EventForm() {
           </form.Field>
         </FormRow>
         <Separator />
-        {event?.conference ? (
-          <>
-            <FormRow>
-              <FormRowIcon icon={VideoCameraIcon} />
-              <div className="col-span-4 col-start-1 flex flex-col pe-1">
-                <ConferenceDetails conference={event?.conference} />
+        <FormRow>
+          <FormRowIcon icon={VideoCameraIcon} />
+          <form.Field name="conference">
+            {(field) => (
+              <div className="col-span-4 col-start-1">
+                <label htmlFor={field.name} className="sr-only">
+                  Conference
+                </label>
+                <ConferenceSelect
+                  value={field.state.value}
+                  onChange={field.handleChange}
+                  onBlur={field.handleBlur}
+                />
               </div>
-            </FormRow>
-            <Separator />
-          </>
-        ) : null}
+            )}
+          </form.Field>
+        </FormRow>
+        <Separator />
         <FormRow>
           <FormRowIcon icon={MapPinIcon} />
           <form.Field name="location">
@@ -238,31 +271,25 @@ export function EventForm() {
                 isDefaultValue: state.isDefaultValue,
                 values: state.values.attendees,
               };
-            }}
-            // eslint-disable-next-line react/no-children-prop
-            children={(state) => {
-              if (
-                state.isDefaultValue ||
-                !requiresAttendeeConfirmation(state.values)
-              ) {
-                return null;
-              }
+            }}>
+              {({ isDefaultValue, values }) => {
+                if (isDefaultValue || !requiresAttendeeConfirmation(values)) {
+                  return null;
+                }
 
-              return (
-                <SendUpdateButton
-                  className="col-span-4 col-start-1 pt-2"
-                  onSave={() =>
-                    form.handleSubmit({ meta: { sendUpdate: true } })
-                  }
-                  onSaveWithoutNotifying={() =>
-                    form.handleSubmit({ meta: { sendUpdate: false } })
-                  }
-                  onDiscard={() => form.reset()}
-                />
-              );
-            }}
-          />
-        </FormRow>
+                return (
+                  <SendUpdateButton
+                    className="col-span-4 col-start-1 pt-2"
+                    onSave={() => form.handleSubmit({ sendUpdate: true })}
+                    onSaveWithoutNotifying={() =>
+                      form.handleSubmit({ sendUpdate: false })
+                    }
+                    onDiscard={() => form.reset()}
+                  />
+                );
+              }}
+            </form.Subscribe>
+          </FormRow>
         <Separator />
         <FormRow>
           <FormRowIcon icon={PencilSquareIcon} />
@@ -296,7 +323,6 @@ export function EventForm() {
                 className="px-1.5 text-base"
                 id={field.name}
                 value={field.state.value}
-                items={calendars?.accounts ?? []}
                 onChange={field.handleChange}
                 onBlur={field.handleBlur}
                 disabled={disabled}

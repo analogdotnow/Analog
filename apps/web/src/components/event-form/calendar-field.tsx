@@ -1,19 +1,19 @@
 import * as React from "react";
+import { useQuery } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
 import { PopoverTrigger } from "@/components/ui/popover";
 import type { Calendar } from "@/lib/interfaces";
+import { useTRPC } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
 import {
   CalendarColorIndicator,
   CalendarListPicker,
-  CalenderAccount,
 } from "./calendar-list-picker";
 
 interface CalendarFieldProps {
   id: string;
   className?: string;
-  items: CalenderAccount[];
   value: { accountId: string; calendarId: string };
   onChange: (calendar: { accountId: string; calendarId: string }) => void;
   onBlur: () => void;
@@ -27,8 +27,14 @@ export function CalendarField({
   onChange,
   onBlur,
   disabled,
-  items,
 }: CalendarFieldProps) {
+  const trpc = useTRPC();
+  const { data } = useQuery(trpc.calendars.list.queryOptions());
+
+  const items = React.useMemo(() => {
+    return data?.accounts ?? [];
+  }, [data]);
+
   const onSelect = React.useCallback(
     (calendar: Calendar) => {
       onChange({ accountId: calendar.accountId, calendarId: calendar.id });
@@ -38,10 +44,10 @@ export function CalendarField({
   );
 
   const selected = React.useMemo(() => {
-    return items
+    return data?.accounts
       .flatMap((item) => item.calendars)
       .find((item) => item.id === value.calendarId);
-  }, [items, value]);
+  }, [data, value]);
 
   return (
     <CalendarListPicker items={items} onSelect={onSelect} value={selected}>
