@@ -225,6 +225,7 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
   async deleteEvent(
     calendarId: string,
     eventId: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     sendUpdate: boolean = true,
   ): Promise<void> {
     await this.withErrorHandler("deleteEvent", async () => {
@@ -238,7 +239,8 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
     sourceCalendar: Calendar,
     destinationCalendar: Calendar,
     eventId: string,
-    _sendUpdate: boolean = true,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    sendUpdate: boolean = true,
   ): Promise<CalendarEvent> {
     return this.withErrorHandler("moveEvent", async () => {
       // Placeholder: Microsoft Graph does not have a direct move endpoint.

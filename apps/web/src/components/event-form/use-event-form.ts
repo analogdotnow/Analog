@@ -33,6 +33,13 @@ import {
   useAppForm,
 } from "./form";
 
+function requiresConfirmation(values: FormValues) {
+  return (
+    requiresAttendeeConfirmation(values.attendees) ||
+    requiresRecurrenceConfirmation(values.recurringEventId)
+  );
+}
+
 export function useEventForm() {
   const actorRef = EventFormStateContext.useActorRef();
   const settings = useAtomValue(calendarSettingsAtom);
@@ -65,17 +72,11 @@ export function useEventForm() {
     listeners: {
       onBlur: async ({ formApi }) => {
         // If unchanged or invalid, do nothing
-        if (
-          !formApi.state.isValid ||
-          (formApi.state.isDefaultValue && !formApi.state.isDirty)
-        ) {
+        if (!formApi.state.isValid || formApi.state.isPristine) {
           return;
         }
 
-        if (
-          requiresAttendeeConfirmation(formApi.state.values.attendees) ||
-          requiresRecurrenceConfirmation(formApi.state.values?.recurringEventId)
-        ) {
+        if (requiresConfirmation(formApi.state.values)) {
           return;
         }
 
@@ -99,12 +100,15 @@ export function useEventForm() {
       const previousEvent = snapshotRef.current?.context.formEvent ?? null;
 
       if (!event || !hasEventChanged(event, previousEvent)) {
+        actorRef.send({ type: "SAVE" });
+        console.log("no event changed", event, previousEvent);
         return;
       }
 
       snapshotRef.current = snapshot;
 
       if (isDraftEvent(event)) {
+        console.log("isDraftEvent", event, previousEvent);
         setDefaultValues(
           parseDraftEvent({
             event,
@@ -115,6 +119,8 @@ export function useEventForm() {
         setDisabled(event.readOnly);
         return;
       }
+
+      console.log("isCalendarEvent", event, previousEvent);
 
       setDefaultValues(parseCalendarEvent({ event, settings }));
       setDisabled(event.readOnly);
@@ -127,6 +133,7 @@ export function useEventForm() {
     }
 
     const values = createDefaultEvent({ settings, defaultCalendar });
+
     formAction(toCalendarEvent({ values }));
   }, [defaultCalendar, settings, form, formAction]);
 

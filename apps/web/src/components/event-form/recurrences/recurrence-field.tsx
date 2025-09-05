@@ -82,7 +82,7 @@ export function RecurrenceField({
             className={cn("flex h-8 w-full justify-start", className)}
             onBlur={onBlur}
           >
-            <span className="line-clamp-1 truncate text-sm">
+            <span className={cn("line-clamp-1 truncate text-sm", !value && "text-muted-foreground/70")}>
               {recurringEventId ? "Recurring" : (description ?? "Repeat")}
             </span>
           </Button>

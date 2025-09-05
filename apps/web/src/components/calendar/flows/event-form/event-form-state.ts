@@ -61,11 +61,11 @@ export function createEventFormMachine({
     },
     guards: {
       noActiveEvent: ({ context }) => {
-        console.log("noActiveEvent", context.formEvent, context.originalEvent);
+        // console.log("noActiveEvent", context.formEvent, context.originalEvent);
         return context.formEvent === null;
       },
       differentId: ({ context, event }) => {
-        console.log("differentId", context.formEvent, context.originalEvent);
+        // console.log("differentId", context.formEvent, context.originalEvent);
         if (context.formEvent === null) {
           return false;
         }

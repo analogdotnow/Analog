@@ -2,7 +2,6 @@
 
 import * as React from "react";
 
-import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,17 +25,18 @@ export function ConferenceSelect({
 }: ConferenceSelectProps) {
   const onValueChange = React.useCallback(
     (value: string) => {
-      console.log("onValueChange", value);
-      onChange({ type: "create", providerId: value as "google" });
+      onChange({
+        type: "create",
+        providerId: value as "google" | "microsoft",
+        requestId: crypto.randomUUID(),
+      });
       onBlur();
     },
     [onChange, onBlur],
   );
 
-  console.log("value", value);
-
   if (value?.type === "conference") {
-    return <ConferenceDetails conference={value.conference} />;
+    return <ConferenceDetails conference={value} />;
   }
 
   if (value?.type === "create") {
@@ -50,7 +50,7 @@ export function ConferenceSelect({
   return (
     <div className="group/conference-select h-8">
       <DropdownMenu>
-        <DropdownMenuTrigger className="flex h-8 w-full items-center justify-start gap-2 rounded-md border-none bg-transparent ps-8 text-sm shadow-none ring-0 hover:bg-input-focus focus:bg-input-focus focus-visible:bg-input-focus data-[state=open]:bg-input-focus dark:bg-transparent dark:hover:bg-input-focus dark:focus:bg-input-focus dark:focus-visible:bg-input-focus data-[state=open]:dark:bg-input-focus">
+        <DropdownMenuTrigger className="flex h-8 w-full items-center justify-start gap-2 rounded-md border-none bg-transparent ps-8 text-sm text-muted-foreground/70 shadow-none ring-0 hover:bg-input-focus focus:bg-input-focus focus-visible:bg-input-focus data-[state=open]:bg-input-focus dark:bg-transparent dark:hover:bg-input-focus dark:focus:bg-input-focus dark:focus-visible:bg-input-focus data-[state=open]:dark:bg-input-focus">
           Conference
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-(--radix-dropdown-menu-trigger-width)">

@@ -30,21 +30,21 @@ const conferenceEntryPointSchema = z.object({
 export const conferenceSchema = z.union([
   z.object({
     type: z.literal("create"),
-    providerId: z.literal("google"),
+    providerId: z.union([z.literal("google"), z.literal("microsoft")]),
+    requestId: z.string(),
   }),
   z.object({
     type: z.literal("conference"),
-    conference: z.object({
-      id: z.string().optional(),
-      conferenceId: z.string().optional(),
-      name: z.string().optional(),
-      video: conferenceEntryPointSchema.optional(),
-      sip: conferenceEntryPointSchema.optional(),
-      phone: z.array(conferenceEntryPointSchema).optional(),
-      hostUrl: z.string().url().optional(),
-      notes: z.string().optional(),
-      extra: z.record(z.string(), z.unknown()).optional(),
-    }),
+    providerId: z.union([z.literal("google"), z.literal("microsoft")]),
+    id: z.string().optional(),
+    conferenceId: z.string().optional(),
+    name: z.string().optional(),
+    video: conferenceEntryPointSchema.optional(),
+    sip: conferenceEntryPointSchema.optional(),
+    phone: z.array(conferenceEntryPointSchema).optional(),
+    hostUrl: z.string().url().optional(),
+    notes: z.string().optional(),
+    extra: z.record(z.string(), z.unknown()).optional(),
   }),
 ]);
 

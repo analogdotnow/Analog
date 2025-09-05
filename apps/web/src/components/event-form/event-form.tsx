@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowPathIcon,
   MapPinIcon,
@@ -16,11 +15,6 @@ import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { requiresAttendeeConfirmation } from "@/lib/utils/events";
-import { useTRPC } from "@/lib/trpc/client";
-import { useEventQueryParams } from "@/components/calendar/hooks/use-events";
-import { toCalendarEvent } from "@/components/event-form/utils";
-import { useFormAction } from "@/components/calendar/flows/event-form/use-form-action";
-import { toast } from "sonner";
 import { AttendeeList, AttendeeListItem } from "./attendees/attendee-list";
 import { AttendeeListInput } from "./attendees/attendee-list-input";
 import { CalendarField } from "./calendar-field";
@@ -34,29 +28,25 @@ import { SendUpdateButton } from "./send-update-button";
 import { TitleField } from "./title-field";
 import { useEventForm } from "./use-event-form";
 
-function useClickOutsideEventForm(onClickOutside: () => void) {
-  const ref = React.useRef<HTMLFormElement>(null);
-  const focusRef = React.useRef(false);
+// function useClickOutsideEventForm(onClickOutside: () => void) {
+//   const ref = React.useRef<HTMLFormElement>(null);
+//   const focusRef = React.useRef(false);
 
-  const handleClickOutside = React.useCallback(async () => {
-    if (!focusRef.current) {
-      return;
-    }
+//   const handleClickOutside = React.useCallback(async () => {
+//     if (!focusRef.current) {
+//       return;
+//     }
 
-    focusRef.current = false;
+//     focusRef.current = false;
 
-    onClickOutside();
-  }, [onClickOutside, focusRef]);
+//     onClickOutside();
+//   }, [onClickOutside, focusRef]);
 
-  useOnClickOutside(ref as React.RefObject<HTMLElement>, handleClickOutside);
-}
+//   useOnClickOutside(ref as React.RefObject<HTMLElement>, handleClickOutside);
+// }
 
 export function EventForm() {
   const { form, disabled } = useEventForm();
-  const trpc = useTRPC();
-  const queryClient = useQueryClient();
-  const { queryKey } = useEventQueryParams();
-  const formAction = useFormAction();
 
   const ref = React.useRef<HTMLFormElement>(null);
   const focusRef = React.useRef(false);
@@ -74,84 +64,90 @@ export function EventForm() {
   useOnClickOutside(ref as React.RefObject<HTMLElement>, handleClickOutside);
 
   // Create Google Meet when the user selects "Create" in conference field
-  const createConferenceMutation = useMutation(
-    trpc.conferencing.create.mutationOptions({
-      onError: (err) => {
-        toast.error(err.message);
-      },
-      onSettled: () => {
-        queryClient.invalidateQueries({ queryKey });
-      },
-    }),
-  );
+  // const createConferenceMutation = useMutation(
+  //   trpc.conferencing.create.mutationOptions({
+  //     onError: (err) => {
+  //       toast.error(err.message);
+  //     },
+  //     onSettled: () => {
+  //       queryClient.invalidateQueries({ queryKey });
+  //     },
+  //   }),
+  // );
 
-  const creatingRef = React.useRef<string | null>(null);
+  // const creatingRef = React.useRef<string | null>(null);
 
-  React.useEffect(() => {
-    const values = form.state.values;
-    const conf = values.conference;
+  // React.useEffect(() => {
+  //   const values = form.state.values;
+  //   const conf = values.conference;
 
-    // Only handle Google provider for now
-    if (conf?.type !== "create") {
-      return;
-    }
+  //   // Only handle Google provider for now
+  //   if (conf?.type !== "create") {
+  //     return;
+  //   }
 
-    if (values.providerId !== "google") {
-      // Reset selection and inform the user
-      toast.error("Conference creation is only supported on Google calendars.");
-      const updated = { ...values, conference: undefined } as const;
-      formAction(toCalendarEvent({ values: updated }));
-      return;
-    }
+  //   if (values.providerId !== "google") {
+  //     // Reset selection and inform the user
+  //     toast.error("Conference creation is only supported on Google calendars.");
+  //     const updated = { ...values, conference: undefined } as const;
+  //     formAction(toCalendarEvent({ values: updated }));
+  //     return;
+  //   }
 
-    // Avoid duplicate runs per event id
-    if (creatingRef.current === values.id) {
-      return;
-    }
+  //   // Avoid duplicate runs per event id
+  //   if (creatingRef.current === values.id) {
+  //     return;
+  //   }
 
-    // If this is a draft, save it first; the effect will re-run once it's an event
-    if (values.type === "draft") {
-      void form.handleSubmit();
-      return;
-    }
+  //   // If this is a draft, save it first; the effect will re-run once it's an event
+  //   if (values.type === "draft") {
+  //     void form.handleSubmit();
+  //     return;
+  //   }
 
-    creatingRef.current = values.id;
+  //   creatingRef.current = values.id;
 
-    const payload = {
-      calendarId: values.calendar.calendarId,
-      eventId: values.id,
-      conferencingAccountId: values.calendar.accountId,
-      calendarAccountId: values.calendar.accountId,
-      providerId: "google" as const,
-      agenda: values.title || "Meeting",
-      startTime: values.start.toInstant().toString(),
-      endTime: values.end.toInstant().toString(),
-      timeZone: values.start.timeZoneId,
-    };
+  //   const payload = {
+  //     calendarId: values.calendar.calendarId,
+  //     eventId: values.id,
+  //     conferencingAccountId: values.calendar.accountId,
+  //     calendarAccountId: values.calendar.accountId,
+  //     providerId: "google" as const,
+  //     agenda: values.title || "Meeting",
+  //     startTime: values.start.toInstant().toString(),
+  //     endTime: values.end.toInstant().toString(),
+  //     timeZone: values.start.timeZoneId,
+  //   };
 
-    createConferenceMutation
-      .mutateAsync(payload)
-      .then((res) => {
-        if (!res?.conference) return;
+  //   createConferenceMutation
+  //     .mutateAsync(payload)
+  //     .then((res) => {
+  //       if (!res?.conference) return;
 
-        // Update the form event with the new conference details
-        const updated = {
-          ...values,
-          conference: { type: "conference", conference: res.conference },
-        } as const;
+  //       // Update the form event with the new conference details
+  //       const updated = {
+  //         ...values,
+  //         conference: { type: "conference", conference: res.conference },
+  //       } as const;
 
-        formAction(toCalendarEvent({ values: updated }));
-      })
-      .catch(() => {
-        // Reset to no conference on failure
-        const updated = { ...values, conference: undefined } as const;
-        formAction(toCalendarEvent({ values: updated }));
-      })
-      .finally(() => {
-        // Allow re-trying for this event id in case user toggles again
-        creatingRef.current = null;
-      });
-  }, [form.state.values, createConferenceMutation, formAction, queryClient, queryKey]);
+  //       formAction(toCalendarEvent({ values: updated }));
+  //     })
+  //     .catch(() => {
+  //       // Reset to no conference on failure
+  //       const updated = { ...values, conference: undefined } as const;
+  //       formAction(toCalendarEvent({ values: updated }));
+  //     })
+  //     .finally(() => {
+  //       // Allow re-trying for this event id in case user toggles again
+  //       creatingRef.current = null;
+  //     });
+  // }, [
+  //   form.state.values,
+  //   createConferenceMutation,
+  //   formAction,
+  //   queryClient,
+  //   queryKey,
+  // ]);
 
   return (
     <form
@@ -213,6 +209,7 @@ export function EventForm() {
                   className={cn(
                     "col-start-2 ps-3.5",
                     disabled && "text-muted-foreground/70",
+                    !field.state.value && "text-muted-foreground/70",
                   )}
                 >
                   All Day
@@ -361,25 +358,26 @@ export function EventForm() {
                 isDefaultValue: state.isDefaultValue,
                 values: state.values.attendees,
               };
-            }}>
-              {({ isDefaultValue, values }) => {
-                if (isDefaultValue || !requiresAttendeeConfirmation(values)) {
-                  return null;
-                }
+            }}
+          >
+            {({ isDefaultValue, values }) => {
+              if (isDefaultValue || !requiresAttendeeConfirmation(values)) {
+                return null;
+              }
 
-                return (
-                  <SendUpdateButton
-                    className="col-span-4 col-start-1 pt-2"
-                    onSave={() => form.handleSubmit({ sendUpdate: true })}
-                    onSaveWithoutNotifying={() =>
-                      form.handleSubmit({ sendUpdate: false })
-                    }
-                    onDiscard={() => form.reset()}
-                  />
-                );
-              }}
-            </form.Subscribe>
-          </FormRow>
+              return (
+                <SendUpdateButton
+                  className="col-span-4 col-start-1 pt-2"
+                  onSave={() => form.handleSubmit({ sendUpdate: true })}
+                  onSaveWithoutNotifying={() =>
+                    form.handleSubmit({ sendUpdate: false })
+                  }
+                  onDiscard={() => form.reset()}
+                />
+              );
+            }}
+          </form.Subscribe>
+        </FormRow>
         <Separator />
         <FormRow>
           <FormRowIcon icon={PencilSquareIcon} />

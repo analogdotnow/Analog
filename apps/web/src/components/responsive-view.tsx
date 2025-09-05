@@ -27,7 +27,6 @@ export function ResponsiveView({ children }: ResponsiveViewProps) {
   );
   const [snap, setSnap] = useState<number | string | null>(snapPoints[0]!);
 
-  console.log(snapPoints);
   const isMobile = useIsMobile();
 
   if (!isMobile) {

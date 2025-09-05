@@ -15,17 +15,28 @@ const conferenceEntryPointSchema = z.object({
   password: z.string().optional(),
 });
 
-const conferenceSchema = z.object({
-  id: z.string().optional(),
-  conferenceId: z.string().optional(),
-  name: z.string().optional(),
-  video: conferenceEntryPointSchema.optional(),
-  sip: conferenceEntryPointSchema.optional(),
-  phone: z.array(conferenceEntryPointSchema).optional(),
-  hostUrl: z.string().url().optional(),
-  notes: z.string().optional(),
-  extra: z.record(z.string(), z.unknown()).optional(),
-});
+export const conferenceSchema = z.union([
+  z.object({
+    type: z.literal("create"),
+    providerId: z.union([z.literal("google"), z.literal("microsoft")]),
+    requestId: z.string(),
+  }),
+  z
+    .object({
+      type: z.literal("conference"),
+      providerId: z.union([z.literal("google"), z.literal("microsoft")]),
+      id: z.string().optional(),
+      conferenceId: z.string().optional(),
+      name: z.string().optional(),
+      video: conferenceEntryPointSchema.optional(),
+      sip: conferenceEntryPointSchema.optional(),
+      phone: z.array(conferenceEntryPointSchema).optional(),
+      hostUrl: z.string().url().optional(),
+      notes: z.string().optional(),
+      extra: z.record(z.string(), z.unknown()).optional(),
+    })
+    .passthrough(),
+]);
 
 const microsoftMetadataSchema = z.object({
   originalStartTimeZone: z
@@ -229,7 +240,6 @@ export const createEventInputSchema = z.object({
 export const updateEventInputSchema = createEventInputSchema.extend({
   id: z.string(),
   etag: z.string().optional(),
-  conference: conferenceSchema.optional(),
   metadata: z.union([microsoftMetadataSchema, googleMetadataSchema]).optional(),
   response: z
     .object({
