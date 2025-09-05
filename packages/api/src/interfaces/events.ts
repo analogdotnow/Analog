@@ -22,7 +22,7 @@ export interface CalendarEvent {
     comment?: string;
   };
   metadata?: Record<string, unknown>;
-  conference?: Conference;
+  conference?: Conference | CreateConferenceRequest;
   recurrence?: Recurrence;
   providerAccountId?: string;
   recurringEventId?: string;
@@ -38,7 +38,19 @@ export interface ConferenceEntryPoint {
   password?: string;
 }
 
+export interface CreateConferenceRequest {
+  type: "create";
+  providerId: "google";
+  requestId: string;
+}
+
 export interface Conference {
+  type: "conference";
+  providerId: "google";
+  conference: ConferenceData;
+}
+
+export interface ConferenceData {
   id?: string;
 
   /** Provider-specific meeting identifier (e.g. Google Meet code, Zoom UUID). */
