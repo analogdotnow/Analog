@@ -2,12 +2,12 @@ import "server-only";
 
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { apiKey, mcp, openAPI } from "better-auth/plugins";
 
 import { db } from "@repo/db";
 import type { account as accountTable } from "@repo/db/schema";
 import { env } from "@repo/env/server";
 
-import { secondaryStorage } from "./secondary-storage";
 import {
   createProviderHandler,
   handleUnlinkAccount,
@@ -98,8 +98,18 @@ export const auth = betterAuth({
       overrideUserInfoOnSignIn: true,
     },
   },
+  plugins: [
+    apiKey({
+      enableMetadata: true,
+    }),
+    mcp({
+      loginPage: "/login",
+    }),
+  ],
 });
 
 export type Session = typeof auth.$Infer.Session;
+export type McpSession = Awaited<ReturnType<typeof auth.api.getMcpSession>>;
 export type User = Session["user"];
 export type Account = typeof accountTable.$inferSelect;
+export type ApiKey = Awaited<ReturnType<typeof auth.api.getApiKey>>;

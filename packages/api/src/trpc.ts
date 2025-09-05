@@ -3,9 +3,11 @@ import "server-only";
 import * as Sentry from "@sentry/node";
 import { TRPCError, initTRPC } from "@trpc/server";
 import { Ratelimit } from "@upstash/ratelimit";
+import type { McpMeta } from "trpc-to-mcp";
+import type { OpenApiMeta } from "trpc-to-openapi";
 import { ZodError } from "zod/v3";
 
-import { auth } from "@repo/auth/server";
+import { auth, type Session } from "@repo/auth/server";
 import { db } from "@repo/db";
 
 import {
@@ -22,19 +24,21 @@ import { superjson } from "./utils/superjson";
 type Unit = "ms" | "s" | "m" | "h" | "d";
 type Duration = `${number} ${Unit}` | `${number}${Unit}`;
 
-export interface Meta {
-  procedureName: string;
-  ratelimit: {
+export interface Meta extends OpenApiMeta, McpMeta {
+  procedureName?: string;
+  ratelimit?: {
     namespace: string;
     limit: number;
     duration: Duration;
   };
 }
 
-export const createTRPCContext = async (opts: { headers: Headers }) => {
-  const session = await auth.api.getSession({
-    headers: opts.headers,
-  });
+export const createTRPCContext = async (opts: {
+  headers: Headers;
+  _session?: Session;
+}) => {
+  const session =
+    opts?._session ?? (await auth.api.getSession({ headers: opts.headers }));
 
   return {
     authContext: await auth.$context,
