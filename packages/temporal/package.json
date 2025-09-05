@@ -11,6 +11,7 @@
     "type-check": "tsc --noEmit"
   },
   "peerDependencies": {
+    "@formkit/tempo": "^0.1.2",
     "temporal-polyfill": "^0.3.0"
   },
   "devDependencies": {
