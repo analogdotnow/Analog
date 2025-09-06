@@ -96,7 +96,7 @@ function ConferenceVideo({ name, entryPoint }: ConferenceVideoProps) {
       )}
       {entryPoint.accessCode && (
         <ConferenceItem>
-          <ConferenceItemLabel>Code</ConferenceItemLabel>
+          <ConferenceItemLabel>Access code</ConferenceItemLabel>
           <ConferenceItemContent>{entryPoint.accessCode}</ConferenceItemContent>
           <ConferenceItemActions>
             <CopyButton value={entryPoint.accessCode}>
@@ -112,6 +112,17 @@ function ConferenceVideo({ name, entryPoint }: ConferenceVideoProps) {
           <ConferenceItemActions>
             <CopyButton value={entryPoint.password}>
               <span className="sr-only">Copy password</span>
+            </CopyButton>
+          </ConferenceItemActions>
+        </ConferenceItem>
+      )}
+      {entryPoint.pin && (
+        <ConferenceItem>
+          <ConferenceItemLabel>PIN</ConferenceItemLabel>
+          <ConferenceItemContent>{entryPoint.pin}</ConferenceItemContent>
+          <ConferenceItemActions>
+            <CopyButton value={entryPoint.pin}>
+              <span className="sr-only">Copy PIN</span>
             </CopyButton>
           </ConferenceItemActions>
         </ConferenceItem>
@@ -167,6 +178,10 @@ interface ConferenceDetailsProps {
 }
 
 export function ConferenceDetails({ conference }: ConferenceDetailsProps) {
+  if (conference.type !== "conference") {
+    return null;
+  }
+
   return (
     <div className="flex flex-col gap-2 ps-8">
       {conference.video ? (
