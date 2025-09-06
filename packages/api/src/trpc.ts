@@ -35,20 +35,32 @@ export interface Meta extends OpenApiMeta, McpMeta {
 
 export const createTRPCContext = async (opts: {
   headers: Headers;
-  _session?: Session;
+  session?: Session;
 }) => {
-  const session =
-    opts?._session ?? (await auth.api.getSession({ headers: opts.headers }));
+  if (opts.session) {
+    return {
+      ...opts,
+      db,
+      session: opts.session?.session,
+      user: opts.session?.user,
+      rateLimit: {
+        id: opts.session?.user?.id ?? getIp(opts.headers),
+      },
+    };
+  }
+
+  const session: Session | null = await auth.api.getSession({
+    headers: opts.headers,
+  });
 
   return {
-    authContext: await auth.$context,
+    ...opts,
     db,
     session: session?.session,
     user: session?.user,
     rateLimit: {
       id: session?.user?.id ?? getIp(opts.headers),
     },
-    ...opts,
   };
 };
 
@@ -113,8 +125,8 @@ export const protectedProcedure = t.procedure
     return next({
       ctx: {
         ...ctx,
-        session: { ...ctx.session },
-        user: { ...ctx.user },
+        session: ctx.session!,
+        user: ctx.user!,
       },
     });
   });

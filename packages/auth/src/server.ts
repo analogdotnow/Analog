@@ -2,7 +2,7 @@ import "server-only";
 
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { apiKey, mcp, openAPI } from "better-auth/plugins";
+import { apiKey, mcp } from "better-auth/plugins";
 
 import { db } from "@repo/db";
 import type { account as accountTable } from "@repo/db/schema";

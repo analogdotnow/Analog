@@ -1,6 +1,8 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod/v3";
 
+import { auth } from "@repo/auth/server";
+
 import { assignColor } from "../providers/calendars/colors";
 import {
   calendarProcedure,
@@ -193,7 +195,9 @@ export const calendarsRouter = createTRPCRouter({
         });
       }
 
-      await ctx.authContext.internalAdapter.updateUser(ctx.user.id, {
+      const authContext = await auth.$context;
+
+      await authContext.internalAdapter.updateUser(ctx.user.id, {
         defaultCalendarId: calendar.id,
         defaultAccountId: input.accountId,
       });
