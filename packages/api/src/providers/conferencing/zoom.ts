@@ -95,6 +95,9 @@ export class ZoomProvider implements ConferencingProvider {
       };
 
       const conference: Conference = {
+        type: "conference",
+        // @ts-expect-error - zoom provider is currently disabled
+        providerId: "zoom",
         id: data.uuid ?? String(data.id),
         name: "Zoom Meeting",
         video: {

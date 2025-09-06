@@ -202,19 +202,31 @@ export function EventContextMenu({ event, children }: EventContextMenuProps) {
         {/* Meeting actions */}
         <ContextMenuItem
           className="ps-8 font-medium"
-          disabled={!event.conference?.video?.joinUrl}
+          disabled={
+            event.conference?.type === "conference" &&
+            !event.conference.video?.joinUrl
+          }
           asChild
         >
-          <a
-            href={event.conference?.video?.joinUrl?.value}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Join meeting
-            <KeyboardShortcut className="ml-auto bg-transparent text-muted-foreground">
-              J
-            </KeyboardShortcut>
-          </a>
+          {event.conference?.type === "conference" ? (
+            <a
+              href={event.conference?.video?.joinUrl?.value}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Join meeting
+              <KeyboardShortcut className="ml-auto bg-transparent text-muted-foreground">
+                J
+              </KeyboardShortcut>
+            </a>
+          ) : (
+            <span>
+              Join meeting
+              <KeyboardShortcut className="ml-auto bg-transparent text-muted-foreground">
+                J
+              </KeyboardShortcut>
+            </span>
+          )}
         </ContextMenuItem>
 
         <ContextMenuSeparator />

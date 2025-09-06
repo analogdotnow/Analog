@@ -13,19 +13,29 @@ const conferenceEntryPointSchema = z.object({
   meetingCode: z.string().optional(),
   accessCode: z.string().optional(),
   password: z.string().optional(),
+  pin: z.string().optional(),
 });
 
-const conferenceSchema = z.object({
-  id: z.string().optional(),
-  conferenceId: z.string().optional(),
-  name: z.string().optional(),
-  video: conferenceEntryPointSchema.optional(),
-  sip: conferenceEntryPointSchema.optional(),
-  phone: z.array(conferenceEntryPointSchema).optional(),
-  hostUrl: z.string().url().optional(),
-  notes: z.string().optional(),
-  extra: z.record(z.string(), z.unknown()).optional(),
-});
+export const conferenceSchema = z.union([
+  z.object({
+    type: z.literal("create"),
+    providerId: z.union([z.literal("google"), z.literal("microsoft")]),
+    requestId: z.string(),
+  }),
+  z.object({
+    type: z.literal("conference"),
+    providerId: z.union([z.literal("google"), z.literal("microsoft")]),
+    id: z.string().optional(),
+    conferenceId: z.string().optional(),
+    name: z.string().optional(),
+    video: conferenceEntryPointSchema.optional(),
+    sip: conferenceEntryPointSchema.optional(),
+    phone: z.array(conferenceEntryPointSchema).optional(),
+    hostUrl: z.string().url().optional(),
+    notes: z.string().optional(),
+    extra: z.record(z.string(), z.unknown()).optional(),
+  }),
+]);
 
 const microsoftMetadataSchema = z.object({
   originalStartTimeZone: z
@@ -92,6 +102,7 @@ const googleMetadataSchema = z.object({
             meetingCode: z.string().optional(),
             accessCode: z.string().optional(),
             password: z.string().optional(),
+            pin: z.string().optional(),
           }),
         )
         .optional(),
@@ -229,7 +240,6 @@ export const createEventInputSchema = z.object({
 export const updateEventInputSchema = createEventInputSchema.extend({
   id: z.string(),
   etag: z.string().optional(),
-  conference: conferenceSchema.optional(),
   metadata: z.union([microsoftMetadataSchema, googleMetadataSchema]).optional(),
   response: z
     .object({
@@ -238,6 +248,7 @@ export const updateEventInputSchema = createEventInputSchema.extend({
       sendUpdate: z.boolean().default(false),
     })
     .optional(),
+  conference: conferenceSchema.optional(),
 });
 
 export type CreateEventInput = z.infer<typeof createEventInputSchema>;

@@ -1,7 +1,7 @@
 import GoogleCalendar from "@repo/google-calendar";
 
 import type { Conference } from "../../interfaces";
-import { parseGoogleCalendarConferenceData } from "../calendars/google-calendar/events";
+import { parseGoogleCalendarConferenceData } from "../calendars/google-calendar/conferences";
 import { ProviderError } from "../lib/provider-error";
 import type { ConferencingProvider } from "./interfaces";
 

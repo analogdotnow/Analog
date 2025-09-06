@@ -1,7 +1,10 @@
 import { Temporal } from "temporal-polyfill";
 
-import { CalendarFreeBusy, FreeBusySlot } from "../../../interfaces/calendars";
-import {
+import type {
+  CalendarFreeBusy,
+  FreeBusySlot,
+} from "../../../interfaces/calendars";
+import type {
   GoogleCalendarFreeBusyResponse,
   GoogleCalendarFreeBusyResponseCalendars,
 } from "./interfaces";
@@ -35,7 +38,6 @@ export function parseGoogleCalendarFreeBusySlots(
   calendar: GoogleCalendarFreeBusyResponseCalendars,
 ) {
   // TODO: Handle errors in calendar.errors
-
   return {
     scheduleId,
     busy: parseGoogleCalendarFreeBusySlot(calendar),

@@ -1,5 +1,5 @@
-import { Calendar } from "../../../interfaces";
-import { GoogleCalendarCalendarListEntry } from "./interfaces";
+import type { Calendar } from "../../../interfaces";
+import type { GoogleCalendarCalendarListEntry } from "./interfaces";
 
 interface ParsedGoogleCalendarCalendarListEntryOptions {
   accountId: string;
@@ -24,7 +24,6 @@ export function parseGoogleCalendarCalendarListEntry({
     primary: entry.primary!,
     readOnly:
       entry.accessRole === "reader" || entry.accessRole === "freeBusyReader",
-
     providerId: "google",
     accountId,
     providerAccountId: accountId,
