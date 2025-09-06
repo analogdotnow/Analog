@@ -228,6 +228,9 @@ export const createEventInputSchema = z.object({
   description: z.string().optional(),
   location: z.string().optional(),
   color: z.string().optional(),
+  visibility: z
+    .enum(["default", "public", "private", "confidential"])
+    .optional(),
   accountId: z.string(),
   calendarId: z.string(),
   providerId: z.enum(["google", "microsoft"]),

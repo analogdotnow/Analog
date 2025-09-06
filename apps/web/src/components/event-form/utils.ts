@@ -41,6 +41,7 @@ export function createDefaultEvent({
       calendarId: defaultCalendar.id,
     },
     providerId: defaultCalendar.providerId,
+    visibility: "default",
   };
 }
 
@@ -113,6 +114,7 @@ export function parseDraftEvent({
     },
     providerId: event?.providerId ?? defaultCalendar.providerId,
     conference: event.conference,
+    visibility: event.visibility ?? "default",
   };
 }
 
@@ -164,6 +166,7 @@ export function parseCalendarEvent({
     },
     providerId: event.providerId,
     conference: event.conference,
+    visibility: event.visibility ?? "default",
   };
 }
 
@@ -208,6 +211,7 @@ export function toCalendarEvent({
     recurringEventId: values.recurringEventId,
     response: toResponse(values.attendees),
     conference: values.conference,
+    visibility: values.visibility,
   };
 }
 
