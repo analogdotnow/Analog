@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { z } from "zod/v3";
+import { z } from "zod";
 
 import { auth } from "@repo/auth/server";
 
@@ -8,10 +8,19 @@ import {
   calendarProcedure,
   createTRPCRouter,
   protectedProcedure,
+  publicProcedure,
 } from "../trpc";
 
 export const calendarsRouter = createTRPCRouter({
-  list: calendarProcedure.query(async ({ ctx }) => {
+  sayHello: publicProcedure
+  .meta({ openapi: { method: 'GET', path: '/say-hello' } })
+  .input(z.void())
+  .output(z.object({ greeting: z.string() }))
+  .query(({  }) => {
+    return { greeting: `Hello!` };
+  }),
+  list: calendarProcedure
+  .query(async ({ ctx }) => {
     const promises = ctx.providers.map(async ({ client, account }) => {
       const calendars = await client.calendars();
 
