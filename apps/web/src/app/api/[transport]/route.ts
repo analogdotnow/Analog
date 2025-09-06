@@ -1,53 +1,30 @@
-import { withMcpAuth } from "better-auth/plugins";
 import { trpcToMcpHandler } from "trpc-to-mcp/adapters/vercel-mcp-adapter";
 
 import { appRouter, createContext } from "@repo/api";
-import { auth, type McpSession, type Session } from "@repo/auth/server";
-import { db } from "@repo/db";
+import { getMcpSession } from "@repo/auth/server/mcp";
 
-async function getSession(mcpSession: McpSession): Promise<Session | null> {
-  if (!mcpSession) {
-    return null;
-  }
-
-  const data = await db.query.session.findFirst({
-    where: (table, { eq }) => eq(table.userId, mcpSession.userId),
-    with: {
-      user: true,
-    },
-  });
-
-  if (!data) {
-    return null;
-  }
-
-  const { user, ...session } = data;
-
-  return { session, user };
-}
-
-const handler = withMcpAuth(auth, async (request, mcpSession) => {
-  const session = await getSession(mcpSession);
+const handler = async (req: Request) => {
+  const session = await getMcpSession(req.headers);
 
   if (!session) {
     return new Response("Unauthorized", { status: 401 });
   }
 
   const ctx = await createContext({
-    headers: request.headers,
-    _session: session,
+    headers: req.headers,
+    session,
   });
 
-  const handler = trpcToMcpHandler(appRouter, ctx, {
+  const mcpHandler = trpcToMcpHandler(appRouter, ctx, {
     config: {
       basePath: "/api",
-      verboseLogs: process.env.NODE_ENV === "production" ? false : true,
+      verboseLogs: process.env.NODE_ENV !== "production",
       maxDuration: 60,
       disableSse: true,
     },
   });
 
-  return await handler(request);
-});
+  return await mcpHandler(req);
+};
 
 export { handler as DELETE, handler as GET, handler as POST };

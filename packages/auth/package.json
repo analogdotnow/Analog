@@ -4,7 +4,8 @@
   "private": true,
   "exports": {
     "./client": "./src/client.ts",
-    "./server": "./src/server.ts"
+    "./server": "./src/server.ts",
+    "./server/mcp": "./src/server/mcp.ts"
   },
   "scripts": {
     "lint": "eslint .",
