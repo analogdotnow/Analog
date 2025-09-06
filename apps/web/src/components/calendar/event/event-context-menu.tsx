@@ -203,8 +203,8 @@ export function EventContextMenu({ event, children }: EventContextMenuProps) {
         <ContextMenuItem
           className="ps-8 font-medium"
           disabled={
-            event.conference?.type === "conference" &&
-            !event.conference.video?.joinUrl
+            event.conference?.type !== "conference" ||
+            !event.conference?.video?.joinUrl
           }
           asChild
         >
