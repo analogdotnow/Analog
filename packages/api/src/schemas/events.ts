@@ -227,6 +227,7 @@ export const createEventInputSchema = z.object({
   recurringEventId: z.string().optional(),
   description: z.string().optional(),
   location: z.string().optional(),
+  availability: z.enum(["busy", "free"]).optional(),
   color: z.string().optional(),
   visibility: z
     .enum(["default", "public", "private", "confidential"])
