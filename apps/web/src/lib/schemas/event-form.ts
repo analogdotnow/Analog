@@ -1,5 +1,5 @@
 import { isSameDay, parseDate, parseTime } from "@internationalized/date";
-import { z } from "zod/v3";
+import { z } from "zod";
 
 const participantSchema = z.object({
   id: z.string().min(1, "Participant ID is required"),
