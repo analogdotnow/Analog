@@ -41,10 +41,20 @@ export function VisibilityField({
   showConfidential,
 }: VisibilityFieldProps) {
   const options = React.useMemo(() => {
-    return showConfidential
+    const baseOptions = showConfidential
       ? [...BASE_OPTIONS, CONFIDENTIAL_OPTION]
       : BASE_OPTIONS;
-  }, [showConfidential]);
+
+    // Always include the current value in options to prevent empty Select display
+    if (
+      value === "confidential" &&
+      !baseOptions.some((opt) => opt.value === "confidential")
+    ) {
+      return [...baseOptions, CONFIDENTIAL_OPTION];
+    }
+
+    return baseOptions;
+  }, [showConfidential, value]);
 
   return (
     <Select value={value} onValueChange={onChange} disabled={disabled}>
