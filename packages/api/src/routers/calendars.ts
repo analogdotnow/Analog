@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { z } from "zod";
+import * as z from "zod";
 
 import { auth } from "@repo/auth/server";
 

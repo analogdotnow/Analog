@@ -3,7 +3,7 @@ import {
   zPlainDateInstance,
   zZonedDateTimeInstance,
 } from "temporal-zod";
-import { z } from "zod";
+import * as z from "zod";
 
 const conferenceEntryPointSchema = z.object({
   joinUrl: z.object({

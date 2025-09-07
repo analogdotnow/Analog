@@ -2,7 +2,7 @@ import { TRPCError } from "@trpc/server";
 import * as R from "remeda";
 import { Temporal } from "temporal-polyfill";
 import { zZonedDateTimeInstance } from "temporal-zod";
-import { z } from "zod";
+import * as z from "zod";
 
 import { toInstant } from "@repo/temporal";
 

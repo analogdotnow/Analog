@@ -1,4 +1,4 @@
-import { z } from "zod";
+import * as z from "zod";
 
 export const autocompleteInputSchema = z.object({
   input: z.string().min(1).max(256),

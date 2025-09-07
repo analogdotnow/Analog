@@ -1,7 +1,7 @@
 import { createFormHook, createFormHookContexts } from "@tanstack/react-form";
 import { Temporal } from "temporal-polyfill";
 import { zZonedDateTimeInstance } from "temporal-zod";
-import { z } from "zod";
+import * as z from "zod";
 
 import { recurrenceSchema } from "@repo/api/schemas";
 

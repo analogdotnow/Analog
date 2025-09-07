@@ -1,5 +1,5 @@
 import { Temporal } from "temporal-polyfill";
-import { z } from "zod";
+import * as z from "zod";
 
 // For compatibility with OpenAPI / MCP / tRPC with TanStack Query
 export const zTemporalZonedDateTime = z.preprocess(
