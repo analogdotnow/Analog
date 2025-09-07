@@ -185,7 +185,7 @@ export function toMicrosoftEvent(
     isAllDay: event.allDay ?? false,
     ...(event.location ? { location: { displayName: event.location } } : {}),
     ...(event.conference ? toMicrosoftConferenceData(event.conference) : {}),
-    showAs: event.availability === "free" ? "free" : "busy",
+    showAs: event.availability,
   };
 }
 

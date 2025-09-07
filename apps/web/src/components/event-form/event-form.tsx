@@ -547,7 +547,7 @@ export function EventForm() {
         </FormRow> */}
         {/* <Separator />
         <FormRow>
-          <form.Field name="status">
+          <form.Field name="availability">
             {(field) => (
               <div className="col-span-4 col-start-1">
                 <Label htmlFor={field.name} className="sr-only">
