@@ -13,6 +13,7 @@ export interface CalendarEvent {
   url?: string;
   etag?: string;
   color?: string;
+  visibility?: "default" | "public" | "private" | "confidential";
   readOnly: boolean;
   providerId: "google" | "microsoft";
   accountId: string;

@@ -77,6 +77,7 @@ export const formSchema = z.object({
   ),
   conference: conferenceSchema.optional(),
   providerId: z.enum(["google", "microsoft"]),
+  visibility: z.enum(["default", "public", "private", "confidential"]),
 });
 
 export type FormValues = z.infer<typeof formSchema>;
@@ -99,4 +100,5 @@ export const defaultValues: FormValues = {
   },
   conference: undefined,
   providerId: "google",
+  visibility: "default",
 };

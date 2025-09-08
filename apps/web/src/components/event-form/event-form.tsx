@@ -4,6 +4,7 @@ import * as React from "react";
 import {
   ArrowPathIcon,
   MapPinIcon,
+  // EyeIcon,
   PencilSquareIcon,
   UsersIcon,
   VideoCameraIcon,
@@ -50,6 +51,8 @@ import { FormRow, FormRowIcon } from "./form-row";
 import { LocationField } from "./location-field";
 import { RecurrenceField } from "./recurrences/recurrence-field";
 import { SendUpdateButton } from "./send-update-button";
+
+// import { VisibilityField } from "./visibility-field";
 
 interface GetDefaultValuesOptions {
   event?: CalendarEvent | DraftEvent;
@@ -521,6 +524,26 @@ export function EventForm() {
             )}
           </form.Field>
         </FormRow>
+        {/* <Separator />
+        <FormRow>
+          <FormRowIcon icon={EyeIcon} />
+          <form.Field name="visibility">
+            {(field) => (
+              <div className="col-span-4 col-start-1">
+                <label htmlFor={field.name} className="sr-only">
+                  Visibility
+                </label>
+                <VisibilityField
+                  id={field.name}
+                  value={field.state.value}
+                  onChange={field.handleChange}
+                  disabled={disabled}
+                  showConfidential={event?.visibility === "confidential"}
+                />
+              </div>
+            )}
+          </form.Field>
+        </FormRow> */}
       </FormContainer>
       <div className="">
         <form.Field name="calendar">

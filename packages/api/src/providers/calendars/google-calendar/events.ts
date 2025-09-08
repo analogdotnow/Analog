@@ -159,6 +159,12 @@ export function parseGoogleCalendarEvent({
       : [],
     url: event.htmlLink,
     etag: event.etag,
+    visibility: event.visibility as
+      | "default"
+      | "public"
+      | "private"
+      | "confidential"
+      | undefined,
     providerId: "google",
     accountId,
     calendarId: calendar.id,
@@ -216,6 +222,7 @@ export function toGoogleCalendarEvent(
     summary: event.title,
     description: event.description,
     location: event.location,
+    visibility: event.visibility,
     start: toGoogleCalendarDate(event.start),
     end: toGoogleCalendarDate(event.end),
     ...(event.attendees
