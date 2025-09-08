@@ -66,6 +66,7 @@ function accountToProvider<
 
   return new Provider({
     accessToken: activeAccount.accessToken,
+    refreshToken: activeAccount.refreshToken,
     accountId: activeAccount.accountId,
   });
 }
@@ -117,6 +118,7 @@ export function accountToConferencingProvider(
 
   return new Provider({
     accessToken: activeAccount.accessToken,
+    refreshToken: activeAccount.refreshToken,
     accountId: activeAccount.accountId,
   });
 }
