@@ -1,19 +1,21 @@
-import { detectIcsType, importEvent, importEvents } from "@analog/ical";
+import { importEvent, importCalendar, isCalendar, isEvent } from "@analog/ical";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
 import { createTRPCRouter, publicProcedure } from "../trpc";
 
+const FETCH_TIMEOUT = 10000;
+
 export const icsRouter = createTRPCRouter({
   parseFromUrl: publicProcedure
     .input(
       z.object({
-        url: z.string().url("Must be a valid URL"),
+        url: z.url(),
       }),
     )
     .query(async ({ input }) => {
       const response = await fetch(input.url, {
-        signal: AbortSignal.timeout(10000),
+        signal: AbortSignal.timeout(FETCH_TIMEOUT),
       });
 
       if (!response.ok) {
@@ -33,21 +35,26 @@ export const icsRouter = createTRPCRouter({
       }
 
       try {
-        const type = detectIcsType(content);
-
-        if (type === "calendar") {
-          const events = importEvents(content);
+        if (isCalendar(content)) {
+          const calendar = importCalendar(content);
           return {
             type: "calendar",
-            events,
+            events: calendar.events,
           };
-        } else {
+        }
+
+        if (isEvent(content)) {
           const event = importEvent(content);
           return {
             type: "event",
             events: [event],
           };
         }
+
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Invalid ICS content: not a VCALENDAR or VEVENT",
+        });
       } catch (error) {
         if (error instanceof TRPCError) {
           throw error;
