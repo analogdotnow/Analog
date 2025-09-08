@@ -131,50 +131,54 @@ export function parseGoogleCalendarConferenceData(
   return {
     type: "conference",
     providerId: "google",
-    ...(videoEntryPoint?.uri && {
-      id: detectMeetingLink(videoEntryPoint.uri)?.id,
-    }),
+    ...(videoEntryPoint?.uri
+      ? { id: detectMeetingLink(videoEntryPoint.uri)?.id }
+      : {}),
     conferenceId: event.conferenceData.conferenceId,
     name: event.conferenceData.conferenceSolution?.name,
-    ...(videoEntryPoint &&
-      videoEntryPoint.uri && {
-        video: {
-          joinUrl: {
-            label: videoEntryPoint.label,
-            value: videoEntryPoint.uri,
+    ...(videoEntryPoint && videoEntryPoint.uri
+      ? {
+          video: {
+            joinUrl: {
+              label: videoEntryPoint.label,
+              value: videoEntryPoint.uri,
+            },
+            meetingCode:
+              videoEntryPoint.meetingCode ?? event.conferenceData.conferenceId,
+            accessCode: videoEntryPoint.accessCode,
+            password: videoEntryPoint.password,
+            pin: videoEntryPoint.pin,
           },
-          meetingCode:
-            videoEntryPoint.meetingCode ?? event.conferenceData.conferenceId,
-          accessCode: videoEntryPoint.accessCode,
-          password: videoEntryPoint.password,
-          pin: videoEntryPoint.pin,
-        },
-      }),
-    ...(sipEntryPoint &&
-      sipEntryPoint.uri && {
-        sip: {
-          joinUrl: {
-            label: sipEntryPoint.label,
-            value: sipEntryPoint.uri,
+        }
+      : {}),
+    ...(sipEntryPoint && sipEntryPoint.uri
+      ? {
+          sip: {
+            joinUrl: {
+              label: sipEntryPoint.label,
+              value: sipEntryPoint.uri,
+            },
+            meetingCode: sipEntryPoint.meetingCode,
+            accessCode: sipEntryPoint.accessCode,
+            password: sipEntryPoint.password,
+            pin: sipEntryPoint.pin,
           },
-          meetingCode: sipEntryPoint.meetingCode,
-          accessCode: sipEntryPoint.accessCode,
-          password: sipEntryPoint.password,
-          pin: sipEntryPoint.pin,
-        },
-      }),
-    ...(phoneEntryPoints.length > 0 && {
-      phone: phoneEntryPoints.map((entryPoint) => ({
-        joinUrl: {
-          label: entryPoint.label,
-          value: entryPoint.uri!,
-        },
-        meetingCode: entryPoint.meetingCode,
-        accessCode: entryPoint.accessCode,
-        password: entryPoint.password,
-        pin: entryPoint.pin,
-      })),
-    }),
+        }
+      : {}),
+    ...(phoneEntryPoints.length > 0
+      ? {
+          phone: phoneEntryPoints.map((entryPoint) => ({
+            joinUrl: {
+              label: entryPoint.label,
+              value: entryPoint.uri!,
+            },
+            meetingCode: entryPoint.meetingCode,
+            accessCode: entryPoint.accessCode,
+            password: entryPoint.password,
+            pin: entryPoint.pin,
+          })),
+        }
+      : {}),
   };
 }
 

@@ -33,29 +33,35 @@ export function buildUpdateEvent(
   return {
     data: {
       ...event,
-      ...(isCalendarChanged && {
-        accountId: previous.accountId,
-        calendarId: previous.calendarId,
-      }),
-      ...(options.sendUpdate && {
-        response: {
-          status: event.response?.status ?? "unknown",
-          sendUpdate: options.sendUpdate,
-        },
-      }),
+      ...(isCalendarChanged
+        ? {
+            accountId: previous.accountId,
+            calendarId: previous.calendarId,
+          }
+        : {}),
+      ...(options.sendUpdate
+        ? {
+            response: {
+              status: event.response?.status ?? "unknown",
+              sendUpdate: options.sendUpdate,
+            },
+          }
+        : {}),
     },
-    ...(isCalendarChanged && {
-      move: {
-        source: {
-          accountId: previous.accountId,
-          calendarId: previous.calendarId,
-        },
-        destination: {
-          accountId: event.accountId,
-          calendarId: event.calendarId,
-        },
-      },
-    }),
+    ...(isCalendarChanged
+      ? {
+          move: {
+            source: {
+              accountId: previous.accountId,
+              calendarId: previous.calendarId,
+            },
+            destination: {
+              accountId: event.accountId,
+              calendarId: event.calendarId,
+            },
+          },
+        }
+      : {}),
   };
 }
 
@@ -73,30 +79,36 @@ export function buildUpdateSeries(
   return {
     data: {
       ...event,
-      ...(isCalendarChanged && {
-        accountId: previous.accountId,
-        calendarId: previous.calendarId,
-      }),
-      ...(options.sendUpdate && {
-        response: {
-          status: event.response?.status ?? "unknown",
-          sendUpdate: options.sendUpdate,
-        },
-      }),
+      ...(isCalendarChanged
+        ? {
+            accountId: previous.accountId,
+            calendarId: previous.calendarId,
+          }
+        : {}),
+      ...(options.sendUpdate
+        ? {
+            response: {
+              status: event.response?.status ?? "unknown",
+              sendUpdate: options.sendUpdate,
+            },
+          }
+        : {}),
       id: event.recurringEventId!,
       recurringEventId: undefined,
     },
-    ...(isCalendarChanged && {
-      move: {
-        source: {
-          accountId: previous.accountId,
-          calendarId: previous.calendarId,
-        },
-        destination: {
-          accountId: event.accountId,
-          calendarId: event.calendarId,
-        },
-      },
-    }),
+    ...(isCalendarChanged
+      ? {
+          move: {
+            source: {
+              accountId: previous.accountId,
+              calendarId: previous.calendarId,
+            },
+            destination: {
+              accountId: event.accountId,
+              calendarId: event.calendarId,
+            },
+          },
+        }
+      : {}),
   };
 }

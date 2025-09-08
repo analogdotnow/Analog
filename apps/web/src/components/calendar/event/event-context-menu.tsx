@@ -203,14 +203,15 @@ export function EventContextMenu({ event, children }: EventContextMenuProps) {
         <ContextMenuItem
           className="ps-8 font-medium"
           disabled={
-            event.conference?.type === "conference" &&
+            event.conference?.type !== "conference" ||
             !event.conference.video?.joinUrl
           }
           asChild
         >
-          {event.conference?.type === "conference" ? (
+          {event.conference?.type === "conference" &&
+          event.conference.video?.joinUrl ? (
             <a
-              href={event.conference?.video?.joinUrl?.value}
+              href={event.conference.video.joinUrl.value}
               target="_blank"
               rel="noopener noreferrer"
             >

@@ -168,16 +168,14 @@ export function parseGoogleCalendarEvent({
         event.eventType ?? "",
       ),
     conference: parseGoogleCalendarConferenceData(event),
-    ...(response && { response }),
-    ...(recurrence && { recurrence }),
+    ...(response ? { response } : {}),
+    ...(recurrence ? { recurrence } : {}),
     recurringEventId: event.recurringEventId,
     metadata: {
-      ...(event.recurrence && {
-        originalRecurrence: event.recurrence,
-      }),
-      ...(event.recurringEventId && {
-        recurringEventId: event.recurringEventId,
-      }),
+      ...(event.recurrence ? { originalRecurrence: event.recurrence } : {}),
+      ...(event.recurringEventId
+        ? { recurringEventId: event.recurringEventId }
+        : {}),
     },
   };
 }
@@ -196,12 +194,8 @@ export function toGoogleCalendarAttendee(
   return {
     email: attendee.email,
     displayName: attendee.name,
-    ...(attendee.type === "optional" && {
-      optional: true,
-    }),
-    ...(attendee.type === "resource" && {
-      resource: true,
-    }),
+    ...(attendee.type === "optional" ? { optional: true } : {}),
+    ...(attendee.type === "resource" ? { resource: true } : {}),
     responseStatus: toGoogleCalenderResponseStatus(attendee.status),
     comment: attendee.comment,
     additionalGuests: attendee.additionalGuests,
@@ -224,18 +218,18 @@ export function toGoogleCalendarEvent(
     location: event.location,
     start: toGoogleCalendarDate(event.start),
     end: toGoogleCalendarDate(event.end),
-    ...(event.attendees && {
-      attendees: toGoogleCalendarAttendees(event.attendees),
-    }),
-    ...(event.conference && {
-      conferenceData: toGoogleCalendarConferenceData(event.conference),
-    }),
+    ...(event.attendees
+      ? { attendees: toGoogleCalendarAttendees(event.attendees) }
+      : {}),
+    ...(event.conference
+      ? { conferenceData: toGoogleCalendarConferenceData(event.conference) }
+      : {}),
     // Should always be 1 to ensure conference data is retained for all event modification requests.
     conferenceDataVersion: 1,
     // TODO: how to handle recurrence when the time zone is changed (i.e. until, rDate, exDate).
-    ...(event.recurrence && {
-      recurrence: toRecurrenceProperties(event.recurrence),
-    }),
+    ...(event.recurrence
+      ? { recurrence: toRecurrenceProperties(event.recurrence) }
+      : {}),
     recurringEventId: event.recurringEventId,
   };
 }

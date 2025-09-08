@@ -135,7 +135,7 @@ export function parseMicrosoftEvent({
     calendarId: calendar.id,
     readOnly: calendar.readOnly,
     conference: parseMicrosoftConference(event),
-    ...(responseStatus && { response: { status: responseStatus } }),
+    ...(responseStatus ? { response: { status: responseStatus } } : {}),
     metadata: {
       ...(event.originalStartTimeZone
         ? {
@@ -169,9 +169,11 @@ export function toMicrosoftEvent(
 
   return {
     subject: event.title,
-    ...(event.description && {
-      body: { contentType: "text", content: event.description },
-    }),
+    ...(event.description
+      ? {
+          body: { contentType: "text", content: event.description },
+        }
+      : {}),
     start: toMicrosoftDate({
       value: event.start,
       originalTimeZone: metadata?.originalStartTimeZone,
@@ -181,10 +183,8 @@ export function toMicrosoftEvent(
       originalTimeZone: metadata?.originalEndTimeZone,
     }),
     isAllDay: event.allDay ?? false,
-    ...(event.location && {
-      location: { displayName: event.location },
-    }),
-    ...(event.conference && toMicrosoftConferenceData(event.conference)),
+    ...(event.location ? { location: { displayName: event.location } } : {}),
+    ...(event.conference ? toMicrosoftConferenceData(event.conference) : {}),
   };
 }
 

@@ -248,7 +248,6 @@ export const updateEventInputSchema = createEventInputSchema.extend({
       sendUpdate: z.boolean().default(false),
     })
     .optional(),
-  conference: conferenceSchema.optional(),
 });
 
 export type CreateEventInput = z.infer<typeof createEventInputSchema>;
