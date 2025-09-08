@@ -52,6 +52,7 @@ import { LocationField } from "./location-field";
 import { RecurrenceField } from "./recurrences/recurrence-field";
 import { SendUpdateButton } from "./send-update-button";
 
+//import { AvailabilityField } from "./availability-field";
 // import { VisibilityField } from "./visibility-field";
 
 interface GetDefaultValuesOptions {
@@ -539,6 +540,24 @@ export function EventForm() {
                   onChange={field.handleChange}
                   disabled={disabled}
                   showConfidential={event?.visibility === "confidential"}
+                />
+              </div>
+            )}
+          </form.Field>
+        </FormRow> */}
+        {/* <Separator />
+        <FormRow>
+          <form.Field name="availability">
+            {(field) => (
+              <div className="col-span-4 col-start-1">
+                <Label htmlFor={field.name} className="sr-only">
+                  Show as
+                </Label>
+                <AvailabilityField
+                  id={field.name}
+                  value={field.state.value}
+                  onChange={field.handleChange}
+                  disabled={disabled}
                 />
               </div>
             )}

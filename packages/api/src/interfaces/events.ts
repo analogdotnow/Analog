@@ -9,6 +9,7 @@ export interface CalendarEvent {
   allDay?: boolean;
   location?: string;
   status?: string;
+  availability?: "busy" | "free";
   attendees?: Attendee[];
   url?: string;
   etag?: string;

@@ -125,7 +125,7 @@ export function parseMicrosoftEvent({
       : parseDateTime(end.dateTime!, end.timeZone!),
     allDay: isAllDay ?? false,
     location: event.location?.displayName ?? undefined,
-    status: event.showAs ?? undefined,
+    availability: event.showAs === "free" ? "free" : "busy",
     attendees: event.attendees?.map(parseMicrosoftAttendee) ?? [],
     url: event.webLink ?? undefined,
     // @ts-expect-error -- type from Graph API package is incorrect
@@ -185,6 +185,7 @@ export function toMicrosoftEvent(
     isAllDay: event.allDay ?? false,
     ...(event.location ? { location: { displayName: event.location } } : {}),
     ...(event.conference ? toMicrosoftConferenceData(event.conference) : {}),
+    showAs: event.availability,
   };
 }
 
