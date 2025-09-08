@@ -226,9 +226,12 @@ export function toGoogleCalendarEvent(
     visibility: event.visibility,
     start: toGoogleCalendarDate(event.start),
     end: toGoogleCalendarDate(event.end),
-    ...(event.availability && {
-      transparency: event.availability === "free" ? "transparent" : "opaque",
-    }),
+    ...(event.availability
+      ? {
+          transparency:
+            event.availability === "free" ? "transparent" : "opaque",
+        }
+      : {}),
     ...(event.attendees
       ? { attendees: toGoogleCalendarAttendees(event.attendees) }
       : {}),
