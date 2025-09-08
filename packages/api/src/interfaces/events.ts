@@ -36,9 +36,21 @@ export interface ConferenceEntryPoint {
   meetingCode?: string;
   accessCode?: string;
   password?: string;
+  pin?: string;
 }
 
-export interface Conference {
+export interface CreateConferenceRequest {
+  type: "create";
+  providerId: "google" | "microsoft";
+  requestId: string;
+}
+
+export type Conference = ConferenceData | CreateConferenceRequest;
+
+export interface ConferenceData {
+  type: "conference";
+  providerId: "google" | "microsoft";
+
   id?: string;
 
   /** Provider-specific meeting identifier (e.g. Google Meet code, Zoom UUID). */

@@ -56,7 +56,10 @@ export function EventHotkeys() {
         return;
       }
 
-      if (!selectedEvents[0].conference?.video?.joinUrl) {
+      if (
+        selectedEvents[0].conference?.type !== "conference" ||
+        !selectedEvents[0].conference?.video?.joinUrl
+      ) {
         return;
       }
 

@@ -72,10 +72,12 @@ export function useUpdateEventMutation() {
 
           const updatedEvent = {
             ...data,
-            ...(move?.destination && {
-              accountId: move.destination.accountId,
-              calendarId: move.destination.calendarId,
-            }),
+            ...(move?.destination
+              ? {
+                  accountId: move.destination.accountId,
+                  calendarId: move.destination.calendarId,
+                }
+              : {}),
           };
 
           const events = insertIntoSorted(withoutEvent, updatedEvent, (a) =>

@@ -1,10 +1,7 @@
-import { detectMeetingLink } from "@analog/meeting-links";
 import type {
   Event as MicrosoftEvent,
   Attendee as MicrosoftEventAttendee,
   ResponseStatus as MicrosoftEventAttendeeResponseStatus,
-  OnlineMeetingInfo,
-  OnlineMeetingProviderType,
 } from "@microsoft/microsoft-graph-types";
 import { Temporal } from "temporal-polyfill";
 
@@ -13,13 +10,16 @@ import type {
   AttendeeStatus,
   Calendar,
   CalendarEvent,
-  Conference,
 } from "../../../interfaces";
-import {
+import type {
   CreateEventInput,
   MicrosoftEventMetadata,
   UpdateEventInput,
 } from "../../../schemas/events";
+import {
+  parseMicrosoftConference,
+  toMicrosoftConferenceData,
+} from "./conferences";
 import { parseDateTime, parseTimeZone } from "./utils";
 
 interface ToMicrosoftDateOptions {
@@ -135,7 +135,7 @@ export function parseMicrosoftEvent({
     calendarId: calendar.id,
     readOnly: calendar.readOnly,
     conference: parseMicrosoftConference(event),
-    ...(responseStatus && { response: { status: responseStatus } }),
+    ...(responseStatus ? { response: { status: responseStatus } } : {}),
     metadata: {
       ...(event.originalStartTimeZone
         ? {
@@ -162,44 +162,6 @@ export function parseMicrosoftEvent({
   };
 }
 
-function toMicrosoftConferenceData(conference: Conference) {
-  const onlineMeeting: Partial<OnlineMeetingInfo> = {};
-
-  // Set conference ID if available
-  if (conference.conferenceId) {
-    onlineMeeting.conferenceId = conference.conferenceId;
-  }
-
-  // Set join URL from video entry point
-  if (conference.video?.joinUrl?.value) {
-    onlineMeeting.joinUrl = conference.video.joinUrl.value;
-  }
-
-  // Set phone numbers if available
-  if (conference.phone?.length) {
-    onlineMeeting.phones = conference.phone.map((phoneEntry) => ({
-      number: phoneEntry.joinUrl.value.replace(/^tel:/, ""),
-    }));
-  }
-
-  // Determine the provider
-  let onlineMeetingProvider: OnlineMeetingProviderType = "unknown";
-  if (conference.name) {
-    const name = conference.name.toLowerCase();
-    if (name.includes("teams") || name.includes("microsoft")) {
-      onlineMeetingProvider = "teamsForBusiness";
-    } else if (name.includes("skype")) {
-      onlineMeetingProvider = "skypeForBusiness";
-    }
-  }
-
-  return {
-    isOnlineMeeting: true,
-    onlineMeeting,
-    onlineMeetingProvider,
-  };
-}
-
 export function toMicrosoftEvent(
   event: CreateEventInput | UpdateEventInput,
 ): MicrosoftEvent {
@@ -207,9 +169,11 @@ export function toMicrosoftEvent(
 
   return {
     subject: event.title,
-    body: event.description
-      ? { contentType: "text", content: event.description }
-      : undefined,
+    ...(event.description
+      ? {
+          body: { contentType: "text", content: event.description },
+        }
+      : {}),
     start: toMicrosoftDate({
       value: event.start,
       originalTimeZone: metadata?.originalStartTimeZone,
@@ -219,93 +183,8 @@ export function toMicrosoftEvent(
       originalTimeZone: metadata?.originalEndTimeZone,
     }),
     isAllDay: event.allDay ?? false,
-    location: event.location ? { displayName: event.location } : undefined,
-    // ...(event.conference && toMicrosoftConferenceData(event.conference)),
-  };
-}
-
-function parseConferenceFallback(
-  event: MicrosoftEvent,
-): Conference | undefined {
-  if (!event.location) {
-    return undefined;
-  }
-
-  if (event.location.locationUri) {
-    const service = detectMeetingLink(event.location.locationUri);
-
-    if (service) {
-      return {
-        id: service.id,
-        name: service.name,
-        video: {
-          joinUrl: {
-            value: service.joinUrl,
-          },
-        },
-      };
-    }
-  }
-
-  if (!event.location.displayName) {
-    return undefined;
-  }
-
-  const service = detectMeetingLink(event.location.displayName);
-
-  if (!service) {
-    return undefined;
-  }
-
-  return {
-    id: service.id,
-    name: service.name,
-    video: {
-      joinUrl: {
-        value: service.joinUrl,
-      },
-    },
-  };
-}
-
-function parseMicrosoftConference(
-  event: MicrosoftEvent,
-): Conference | undefined {
-  const joinUrl = event.onlineMeeting?.joinUrl ?? event.onlineMeetingUrl;
-
-  if (!joinUrl) {
-    return parseConferenceFallback(event);
-  }
-
-  const phoneNumbers = event.onlineMeeting?.phones
-    ?.map((p) => p.number)
-    .filter((n): n is string => Boolean(n));
-
-  // TODO: how to handle toll/toll-free numbers and quick dial?
-  return {
-    id: detectMeetingLink(joinUrl)?.id,
-    conferenceId: event.onlineMeeting?.conferenceId ?? undefined,
-    name:
-      event.onlineMeetingProvider === "teamsForBusiness"
-        ? "Microsoft Teams"
-        : undefined,
-    video: {
-      joinUrl: {
-        value: joinUrl,
-      },
-      meetingCode: event.onlineMeeting?.conferenceId ?? undefined,
-    },
-    ...(phoneNumbers &&
-      phoneNumbers.length && {
-        phone: phoneNumbers.map((number) => ({
-          joinUrl: {
-            label: number,
-            value: number.startsWith("tel:")
-              ? number
-              : `tel:${number.replace(/[- ]/g, "")}`,
-          },
-        })),
-      }),
+    ...(event.location ? { location: { displayName: event.location } } : {}),
+    ...(event.conference ? toMicrosoftConferenceData(event.conference) : {}),
   };
 }
 

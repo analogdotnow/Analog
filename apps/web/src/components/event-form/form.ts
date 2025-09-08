@@ -15,6 +15,40 @@ export const { useAppForm, withForm } = createFormHook({
   formComponents: {},
 });
 
+const conferenceEntryPointSchema = z.object({
+  joinUrl: z.object({
+    label: z.string().optional(),
+    value: z.string(),
+  }),
+  meetingCode: z.string().optional(),
+  accessCode: z.string().optional(),
+  password: z.string().optional(),
+  pin: z.string().optional(),
+});
+
+export const conferenceSchema = z.union([
+  z.object({
+    type: z.literal("create"),
+    providerId: z.union([z.literal("google"), z.literal("microsoft")]),
+    requestId: z.string(),
+  }),
+  z.object({
+    type: z.literal("conference"),
+    providerId: z.union([z.literal("google"), z.literal("microsoft")]),
+    id: z.string().optional(),
+    conferenceId: z.string().optional(),
+    name: z.string().optional(),
+    video: conferenceEntryPointSchema.optional(),
+    sip: conferenceEntryPointSchema.optional(),
+    phone: z.array(conferenceEntryPointSchema).optional(),
+    hostUrl: z.string().url().optional(),
+    notes: z.string().optional(),
+    extra: z.record(z.string(), z.unknown()).optional(),
+  }),
+]);
+
+export type FormConference = z.infer<typeof conferenceSchema>;
+
 export const formSchema = z.object({
   id: z.string(),
   type: z.enum(["draft", "event"]),
@@ -41,6 +75,7 @@ export const formSchema = z.object({
       comment: z.string().optional(),
     }),
   ),
+  conference: conferenceSchema.optional(),
   providerId: z.enum(["google", "microsoft"]),
 });
 
@@ -62,5 +97,6 @@ export const defaultValues: FormValues = {
     accountId: "",
     calendarId: "",
   },
+  conference: undefined,
   providerId: "google",
 };
