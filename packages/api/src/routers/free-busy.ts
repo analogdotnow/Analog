@@ -1,6 +1,6 @@
 import { Temporal } from "temporal-polyfill";
 import { zZonedDateTimeInstance } from "temporal-zod";
-import { z } from "zod/v3";
+import * as z from "zod";
 
 import { calendarProcedure, createTRPCRouter } from "../trpc";
 

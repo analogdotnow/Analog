@@ -1,4 +1,4 @@
-import { z } from "zod/v3";
+import * as z from "zod";
 
 export const createCalendarInputSchema = z.object({
   name: z.string(),

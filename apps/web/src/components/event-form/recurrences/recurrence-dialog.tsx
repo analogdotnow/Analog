@@ -4,7 +4,7 @@ import * as React from "react";
 import { useForm } from "@tanstack/react-form";
 import { format } from "date-fns";
 import { Temporal } from "temporal-polyfill";
-import { z } from "zod/v3";
+import * as z from "zod";
 
 import { Frequency, Recurrence, Weekday } from "@repo/api/interfaces";
 import { toDate } from "@repo/temporal";

@@ -1,4 +1,4 @@
-import z from "zod/v3";
+import * as z from "zod";
 
 const HEX_REGEX = /^#?([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/;
 

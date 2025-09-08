@@ -5,7 +5,7 @@ import { TRPCError, initTRPC } from "@trpc/server";
 import { Ratelimit } from "@upstash/ratelimit";
 import type { McpMeta } from "trpc-to-mcp";
 import type { OpenApiMeta } from "trpc-to-openapi";
-import { ZodError } from "zod/v3";
+import * as z from "zod";
 
 import { auth, type Session } from "@repo/auth/server";
 import { db } from "@repo/db";
@@ -75,7 +75,7 @@ export const t = initTRPC
         data: {
           ...shape.data,
           zodError:
-            error.cause instanceof ZodError ? error.cause.flatten() : null,
+            error.cause instanceof z.ZodError ? error.cause.flatten() : null,
         },
       };
     },

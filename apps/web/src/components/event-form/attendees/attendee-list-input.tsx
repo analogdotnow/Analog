@@ -1,5 +1,5 @@
 import React from "react";
-import z from "zod";
+import * as z from "zod";
 
 import { Button } from "@/components/ui/button";
 import {
