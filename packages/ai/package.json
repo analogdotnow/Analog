@@ -1,0 +1,29 @@
+{
+  "name": "@repo/ai",
+  "version": "0.1.0",
+  "private": true,
+  "exports": {
+    "./auth/session-store": "./src/auth/session-store.ts",
+    "./auth/oauth-client": "./src/auth/oauth-client.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "type-check": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "next": "^15.4.2",
+    "server-only": "^0.0.1",
+    "zod": "^4.0.5"
+  },
+  "dependencies": {
+    "@repo/env": "workspace:*",
+    "@upstash/redis": "^1.35.1"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "^22.9.0",
+    "eslint": "^9.31.0",
+    "typescript": "^5.8.3"
+  }
+}
