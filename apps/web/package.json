@@ -62,7 +62,7 @@
     "@tiptap/pm": "^2.26.1",
     "@tiptap/react": "^2.26.1",
     "@tiptap/suggestion": "^2.26.1",
-    "class-variance-authority": "^0.7.1",
+    "@todesktop/client-core": "^1.20.0",
     "@trpc/client": "^11.5.0",
     "@trpc/server": "^11.5.0",
     "@trpc/tanstack-react-query": "^11.5.0",
