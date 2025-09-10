@@ -7,6 +7,7 @@ import { conferencingRouter } from "./routers/conferencing";
 import { earlyAccessRouter } from "./routers/early-access";
 import { eventsRouter } from "./routers/events";
 import { freeBusyRouter } from "./routers/free-busy";
+import { icsRouter } from "./routers/ics";
 import { placesRouter } from "./routers/places";
 import { tasksRouter } from "./routers/tasks";
 import { userRouter } from "./routers/user";
@@ -27,6 +28,7 @@ export const appRouter = createTRPCRouter({
   conferencing: conferencingRouter,
   earlyAccess: earlyAccessRouter,
   places: placesRouter,
+  ics: icsRouter,
 });
 
 export type AppRouter = typeof appRouter;

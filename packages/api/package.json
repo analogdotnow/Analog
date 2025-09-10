@@ -34,6 +34,7 @@
     "@repo/auth": "workspace:*",
     "@repo/db": "workspace:*",
     "@repo/env": "workspace:*",
+    "@analog/ical": "workspace:*",
     "@repo/google-calendar": "workspace:*",
     "@repo/google-tasks": "workspace:*",
     "@repo/temporal": "workspace:*",
