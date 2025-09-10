@@ -5,6 +5,45 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@utility titlebar-draggable {
+  -webkit-app-region: drag;
+}
+
+@utility titlebar-no-draggable {
+  -webkit-app-region: no-drag;
+}
+
+@utility titlebar-draggable-except-children {
+  -webkit-app-region: drag;
+  & > * {
+    -webkit-app-region: no-drag;
+  }
+}
+
+@custom-variant todesktop {
+  html.todesktop & {
+    @slot;
+  }
+}
+
+@custom-variant windows {
+  html.todesktop.todesktop-platform-win32 & {
+    @slot;
+  }
+}
+
+@custom-variant mac {
+  html.todesktop.todesktop-platform-darwin & {
+    @slot;
+  }
+}
+
+@custom-variant linux {
+  html.todesktop.todesktop-platform-linux & {
+    @slot;
+  }
+}
+
 :root,
 .light {
   --background-landing: var(--color-neutral-50);
