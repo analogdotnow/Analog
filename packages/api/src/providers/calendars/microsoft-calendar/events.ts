@@ -136,6 +136,12 @@ export function parseMicrosoftEvent({
     readOnly: calendar.readOnly,
     conference: parseMicrosoftConference(event),
     ...(responseStatus ? { response: { status: responseStatus } } : {}),
+    ...(event.createdDateTime
+      ? { createdAt: Temporal.Instant.from(event.createdDateTime) }
+      : {}),
+    ...(event.lastModifiedDateTime
+      ? { updatedAt: Temporal.Instant.from(event.lastModifiedDateTime) }
+      : {}),
     metadata: {
       ...(event.originalStartTimeZone
         ? {

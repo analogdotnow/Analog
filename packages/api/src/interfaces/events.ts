@@ -19,6 +19,8 @@ export interface CalendarEvent {
   providerId: "google" | "microsoft";
   accountId: string;
   calendarId: string;
+  createdAt?: Temporal.Instant;
+  updatedAt?: Temporal.Instant;
   response?: {
     status: AttendeeStatus;
     comment?: string;

@@ -177,6 +177,12 @@ export function parseGoogleCalendarEvent({
     conference: parseGoogleCalendarConferenceData(event),
     ...(response ? { response } : {}),
     ...(recurrence ? { recurrence } : {}),
+    ...(event.created
+      ? { createdAt: Temporal.Instant.from(event.created) }
+      : {}),
+    ...(event.updated
+      ? { updatedAt: Temporal.Instant.from(event.updated) }
+      : {}),
     recurringEventId: event.recurringEventId,
     metadata: {
       ...(event.recurrence ? { originalRecurrence: event.recurrence } : {}),

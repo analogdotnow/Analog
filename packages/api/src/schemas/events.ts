@@ -1,3 +1,4 @@
+import { Temporal } from "temporal-polyfill";
 import {
   zInstantInstance,
   zPlainDateInstance,
@@ -239,6 +240,8 @@ export const createEventInputSchema = z.object({
   metadata: z.union([microsoftMetadataSchema, googleMetadataSchema]).optional(),
   attendees: z.array(attendeeSchema).optional(),
   conference: conferenceSchema.optional(),
+  createdAt: z.instanceof(Temporal.Instant).optional(),
+  updatedAt: z.instanceof(Temporal.Instant).optional(),
 });
 
 export const updateEventInputSchema = createEventInputSchema.extend({
