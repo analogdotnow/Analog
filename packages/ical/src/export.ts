@@ -11,6 +11,7 @@ import {
 } from "ts-ics";
 
 import type { Attendee } from "@repo/api/interfaces";
+
 import type { iCalendarEvent } from "./interfaces";
 
 function formatOffset(offset: string): string {
@@ -124,4 +125,3 @@ export function exportEvents(events: iCalendarEvent[]): string {
 export function exportTimezone(timezone: IcsTimezone): string {
   return generateIcsTimezone(timezone);
 }
-

@@ -1,4 +1,4 @@
-import { importEvent, importCalendar, isCalendar, isEvent } from "@analog/ical";
+import { importCalendar, importEvent, isCalendar, isEvent } from "@analog/ical";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 

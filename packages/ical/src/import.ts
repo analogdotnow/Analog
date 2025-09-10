@@ -9,6 +9,7 @@ import {
 } from "ts-ics";
 
 import type { Attendee } from "@repo/api/interfaces";
+
 import type { iCalendar, iCalendarEvent } from "./interfaces";
 
 function toTemporal(dateObj: IcsDateObject): iCalendarEvent["start"] {
@@ -39,8 +40,7 @@ function attendeeStatus(partstat: IcsAttendee["partstat"]): Attendee["status"] {
 function attendeeType(role: IcsAttendee["role"]): Attendee["type"] {
   if (role === "OPT-PARTICIPANT") {
     return "optional";
-  }
-  else if (role === "NON-PARTICIPANT") {
+  } else if (role === "NON-PARTICIPANT") {
     return "resource";
   }
 
@@ -104,7 +104,9 @@ function mapAttendees(event: IcsEvent): Attendee[] {
   return attendees;
 }
 
-function mapAvailability(event: IcsEvent): iCalendarEvent["availability"] | undefined {
+function mapAvailability(
+  event: IcsEvent,
+): iCalendarEvent["availability"] | undefined {
   if (event.timeTransparent === "TRANSPARENT") {
     return "free";
   }
@@ -116,7 +118,9 @@ function mapAvailability(event: IcsEvent): iCalendarEvent["availability"] | unde
   return undefined;
 }
 
-function mapVisibility(event: IcsEvent): iCalendarEvent["visibility"] | undefined {
+function mapVisibility(
+  event: IcsEvent,
+): iCalendarEvent["visibility"] | undefined {
   if (event.class) {
     return event.class.toLowerCase() as iCalendarEvent["visibility"];
   }
@@ -184,7 +188,7 @@ export function importEvent(ics: string): iCalendarEvent {
 
 export function importCalendar(ics: string): iCalendar {
   const calendar = convertIcsCalendar(undefined, ics);
-  
+
   return {
     name: calendar.name,
     events: calendar.events?.map(fromIcsEvent) ?? [],
@@ -198,5 +202,3 @@ export function isCalendar(ics: string): boolean {
 export function isEvent(ics: string): boolean {
   return ics.trim().toUpperCase().includes("BEGIN:VEVENT");
 }
-
-
