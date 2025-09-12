@@ -6,12 +6,16 @@ import type { FormValues } from "../utils/schema";
 
 interface Form {
   event: CalendarEvent | undefined;
+  initialValues: FormValues;
   values: FormValues;
+  state: "default" | "updated";
 }
 
 export const formAtom = atom<Form>({
   event: undefined,
+  initialValues,
   values: initialValues,
+  state: "default",
 });
 
 export const formDisabledAtom = atom((get) => {
@@ -25,3 +29,15 @@ export const defaultValuesAtom = atom((get) => {
 
   return form.values;
 });
+
+
+export const getEventInForm = (eventId: string) =>
+  atom((get) => {
+    const form = get(formAtom);
+
+    if (form.event?.id !== eventId) {
+      return undefined;
+    }
+    
+    return form.event;
+  });

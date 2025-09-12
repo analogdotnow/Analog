@@ -12,7 +12,7 @@ export function useFormAction() {
 
   const update = React.useCallback(
     async (event: CalendarEvent) => {
-      actorRef.send({ type: "QUEUE", item: event });
+      actorRef.send({ type: "LOAD", item: event });
     },
     [actorRef],
   );

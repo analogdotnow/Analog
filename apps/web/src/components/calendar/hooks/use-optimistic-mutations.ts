@@ -49,7 +49,7 @@ export function useCreateDraftAction() {
       setSelectedEventIds([event.id]);
       setRightSidebarOpen(true);
 
-      actorRef.send({ type: "QUEUE", item: event as CalendarEvent });
+      actorRef.send({ type: "LOAD", item: event as CalendarEvent });
     },
     [
       actorRef,
@@ -80,10 +80,10 @@ export function useSelectAction() {
         removeDraftOptimisticActionsByEventId(eventId);
       }
 
-      setSelectedEventIds((prev) => [...prev, event.id]);
+      setSelectedEventIds([event.id]);
       setRightSidebarOpen(true);
 
-      actorRef.send({ type: "QUEUE", item: event });
+      actorRef.send({ type: "LOAD", item: event });
     },
     [
       setSelectedEventIds,

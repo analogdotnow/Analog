@@ -23,6 +23,7 @@ import { useUpdateAction } from "../flows/update-event/use-update-action";
 import { useGlobalCursor } from "../hooks/drag-and-drop/use-global-cursor";
 import type { EventCollectionItem } from "../hooks/event-collection";
 import { useSelectAction } from "../hooks/use-optimistic-mutations";
+import { getEventInForm } from "@/components/event-form/atoms/form";
 
 interface DraggableEventProps {
   item: EventCollectionItem;
@@ -57,10 +58,20 @@ export function DraggableEvent({
   const dragStartRelative = React.useRef<{ x: number; y: number } | null>(null);
   const resizeStartRelativeY = React.useRef(0);
 
+  const eventInFormAtom = React.useMemo(
+    () => getEventInForm(item.event.id),
+    [item.event.id],
+  );
+
+  const eventInForm = useAtomValue(eventInFormAtom);
+
   React.useEffect(() => {
-    eventRef.current = item.event;
-    heightRef.current = initialHeight;
-  }, [item.event, initialHeight]);
+    eventRef.current = eventInForm ?? item.event;
+    console.log("initialHeight", initialHeight);
+    if (initialHeight || heightRef.current !== initialHeight) {
+      heightRef.current = initialHeight;
+    }
+  }, [item.event, eventInForm, initialHeight]);
 
   const top = useMotionValue(0);
   const left = useMotionValue(0);
@@ -90,7 +101,9 @@ export function DraggableEvent({
   };
 
   const onDrag = (_e: PointerEvent, info: PanInfo) => {
-    if (!containerRef.current || !dragStartRelative.current) return;
+    if (!containerRef.current || !dragStartRelative.current) {
+      return;
+    }
 
     const rect = containerRef.current.getBoundingClientRect();
     const relativeX = info.point.x - rect.left;

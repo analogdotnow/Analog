@@ -6,12 +6,12 @@ import { useHotkeys } from "react-hotkeys-hook";
 import { Temporal } from "temporal-polyfill";
 
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
+import { selectedEventIdsAtom } from "@/atoms/selected-events";
 import { useDeleteAction } from "@/components/calendar/flows/delete-event/use-delete-action";
 import {
   useCreateDraftAction,
   useUnselectAllAction,
 } from "@/components/calendar/hooks/use-optimistic-mutations";
-import { useSelectedEvents } from "@/components/calendar/hooks/use-selected-events";
 import { DeleteEventConfirmation } from "@/components/delete-event-confirmation";
 import { useSidebarWithSide } from "@/components/ui/sidebar";
 import { createDraftEvent, isDraftEvent } from "@/lib/utils/calendar";
@@ -27,7 +27,7 @@ export function EventHotkeys() {
   const { open: rightSidebarOpen, setOpen: setRightSidebarOpen } =
     useSidebarWithSide("right");
   const settings = useAtomValue(calendarSettingsAtom);
-  const selectedEvents = useSelectedEvents();
+  const selectedEventIds = useAtomValue(selectedEventIdsAtom);
 
   const createDraftAction = useCreateDraftAction();
 
@@ -52,22 +52,22 @@ export function EventHotkeys() {
   useHotkeys(
     KEYBOARD_SHORTCUTS.JOIN_MEETING,
     () => {
-      if (!selectedEvents[0] || !selectedEvents[0].conference) {
+      if (!selectedEventIds[0]) {
         return;
       }
 
-      if (
-        selectedEvents[0].conference?.type !== "conference" ||
-        !selectedEvents[0].conference?.video?.joinUrl
-      ) {
-        return;
-      }
+      // if (
+      //   selectedEvents[0].conference?.type !== "conference" ||
+      //   !selectedEvents[0].conference?.video?.joinUrl
+      // ) {
+      //   return;
+      // }
 
-      window.open(
-        selectedEvents[0].conference.video.joinUrl.value,
-        "_blank",
-        "noopener,noreferrer",
-      );
+      // window.open(
+      //   selectedEvents[0].conference.video.joinUrl.value,
+      //   "_blank",
+      //   "noopener,noreferrer",
+      // );
     },
     { scopes: ["event"] },
   );
@@ -75,7 +75,7 @@ export function EventHotkeys() {
   useHotkeys(
     KEYBOARD_SHORTCUTS.DELETE_EVENT,
     () => {
-      if (!selectedEvents[0]) {
+      if (!selectedEventIds[0]) {
         return;
       }
 
@@ -98,19 +98,19 @@ export function EventHotkeys() {
   const [open, setOpen] = React.useState(false);
 
   const onConfirm = React.useCallback(() => {
-    if (!selectedEvents[0]) {
+    if (!selectedEventIds[0]) {
       return;
     }
 
-    if (isDraftEvent(selectedEvents[0])) {
-      unselectAllAction();
-      return;
-    }
+    // if (isDraftEvent(selectedEvents[0])) {
+    //   unselectAllAction();
+    //   return;
+    // }
 
-    deleteAction({ event: selectedEvents[0] });
-  }, [selectedEvents, deleteAction, unselectAllAction]);
+    // deleteAction({ event: selectedEvents[0] });
+  }, [selectedEventIds, deleteAction, unselectAllAction]);
 
-  if (!selectedEvents[0]) {
+  if (!selectedEventIds[0]) {
     return null;
   }
 

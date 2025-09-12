@@ -1,24 +1,23 @@
-import { assign, fromPromise, setup } from "xstate";
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore: 'is declared but its value is never read': https://github.com/statelyai/xstate/issues/5090
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { Guard } from "xstate/guards";
+import { assign, setup } from "xstate";
 
 import type { CalendarEvent } from "@/lib/interfaces";
-import { hasEventChanged } from "./utils";
 
-export interface QueueEvent {
-  type: "QUEUE";
+export interface LoadEvent {
+  type: "LOAD";
   item: CalendarEvent;
 }
 
+export interface ConfirmedEvent {
+  type: "CONFIRMED";
+}
+
+// Keep SAVE in the event union for compatibility with existing callers.
 export interface SaveEvent {
   type: "SAVE";
   notify?: boolean;
 }
 
-export type UpdateEvent = (event: CalendarEvent) => Promise<CalendarEvent>;
-export type FormMachineEvent = QueueEvent | SaveEvent;
+export type FormMachineEvent = LoadEvent | ConfirmedEvent | SaveEvent;
 
 export interface Ctx {
   formEvent: CalendarEvent | null;
@@ -28,62 +27,27 @@ export interface Ctx {
 }
 
 export interface CreateEventFormMachineOptions {
-  updateEvent: UpdateEvent;
+  // Reserved for future use; not used by the new state flow.
+  updateEvent?: (event: CalendarEvent) => Promise<CalendarEvent>;
 }
 
-export function createEventFormMachine({
-  updateEvent,
-}: CreateEventFormMachineOptions) {
+export function createEventFormMachine(options: CreateEventFormMachineOptions) {
   return setup({
     types: {
       context: {} as Ctx,
       events: {} as FormMachineEvent,
     },
     actions: {
-      enqueue: assign(({ event }) => ({
-        queuedEvent: (event as QueueEvent).item,
+      queueEvent: assign(({ event }) => ({
+        queuedEvent: (event as LoadEvent).item,
       })),
-      finalize: assign(({ event }) => ({
-        formEvent: (event as QueueEvent).item,
+      dequeueToFormEvent: assign(({ context }) => ({
+        formEvent: context.queuedEvent ?? null,
+        queuedEvent: undefined,
       })),
     },
     guards: {
-      noActiveEvent: ({ context }) => {
-        // console.log("noActiveEvent", context.formEvent, context.originalEvent);
-        return context.formEvent === null;
-      },
-      differentId: ({ context, event }) => {
-        // console.log("differentId", context.formEvent, context.originalEvent);
-        if (context.formEvent === null) {
-          return false;
-        }
-
-        return (event as QueueEvent).item.id !== context.formEvent.id;
-      },
-      sameIdShouldUpdate: ({ context, event }) => {
-        // console.log(
-        //   "sameIdShouldUpdate",
-        //   context.formEvent,
-        //   context.originalEvent,
-        // );
-        if (context.formEvent === null || context.originalEvent === null) {
-          return false;
-        }
-
-        // if (
-        //   !hasEventChanged((event as QueueEvent).item, context.originalEvent)
-        // ) {
-        //   return false;
-        // }
-
-        return true;
-      },
       hasQueuedEvent: ({ context }) => context.queuedEvent !== undefined,
-    },
-    actors: {
-      updateEventActor: fromPromise(
-        async ({ input }: { input: CalendarEvent }) => updateEvent(input),
-      ),
     },
   }).createMachine({
     id: "eventForm",
@@ -95,51 +59,24 @@ export function createEventFormMachine({
     },
     initial: "ready",
     states: {
-      loading: {
-        on: {
-          QUEUE: { target: "ready" },
-        },
-      },
       ready: {
         on: {
-          QUEUE: [
-            {
-              guard: "noActiveEvent",
-              actions: ["setFormEvent"],
-            },
-            {
-              guard: "differentId",
-              // target: "saving",
-              actions: ["setFormEvent"],
-            },
-            {
-              guard: "sameIdShouldUpdate",
-              actions: ["setFormEvent"],
-            },
-          ],
-          SAVE: { target: "saving" },
+          LOAD: { actions: ["queueEvent"] },
+          // Keep SAVE accepted but do nothing in this flow
+          SAVE: {},
         },
-      },
-      saving: {
-        invoke: {
-          src: "updateEventActor",
-          input: ({ context }) => context.formEvent!,
-          onDone: [
-            {
-              guard: "hasQueuedEvent",
-              target: "ready",
-              actions: ["refreshWithSaved", "clearQueue"],
-            },
-            {
-              target: "ready",
-              actions: "refreshWithSaved",
-            },
-          ],
-        },
-        on: {
-          QUEUE: {
-            actions: "queueEvent",
+        always: [
+          {
+            guard: "hasQueuedEvent",
+            target: "loading",
+            actions: ["dequeueToFormEvent"],
           },
+        ],
+      },
+      loading: {
+        on: {
+          CONFIRMED: { target: "ready" },
+          LOAD: { actions: ["queueEvent"] },
         },
       },
     },

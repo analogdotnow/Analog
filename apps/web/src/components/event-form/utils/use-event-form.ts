@@ -19,7 +19,7 @@ import {
   requiresAttendeeConfirmation,
   requiresRecurrenceConfirmation,
 } from "@/lib/utils/events";
-import { defaultValuesAtom } from "../atoms/form";
+import { defaultValuesAtom, formAtom } from "../atoms/form";
 import { defaultFormMeta } from "./defaults";
 import { useAppForm } from "./form";
 import { FormValues, formSchema } from "./schema";
@@ -38,9 +38,8 @@ export function useEventForm() {
 
   const defaultCalendar = useDefaultCalendar();
 
-  const snapshotRef = React.useRef<SnapshotFrom<EventFormMachine> | null>(null);
-
   const defaultValues = useAtomValue(defaultValuesAtom);
+  const formState = useAtomValue(formAtom);
   const saveAction = useSaveAction();
   const formAction = useFormAction();
 
@@ -49,26 +48,23 @@ export function useEventForm() {
     onSubmitMeta: defaultFormMeta,
     validators: {
       onBlur: formSchema,
+      onSubmit: formSchema,
     },
     onSubmit: async ({ value, formApi, meta }) => {
       // If unchanged, do nothing
-      if (!formApi.state.isDirty && formApi.state.isDefaultValue) {
+      if (formApi.state.isPristine && formState.state === "default") {
+        console.log("Unchanged");
         return;
       }
 
-      console.log(
-        formApi.state.isDirty,
-        formApi.state.isDefaultValue,
-        formApi.state.isPristine,
-        formApi.state.isValid,
-      );
+      console.log("Saving", JSON.stringify(value, null, 2));
 
-      // await saveAction(value, meta?.sendUpdate);
+      await saveAction(value, meta?.sendUpdate);
     },
     listeners: {
       onBlur: async ({ formApi }) => {
-        // If unchanged or invalid, do nothing
-        if (!formApi.state.isValid || formApi.state.isPristine) {
+        // If invalid, do nothing
+        if (!formApi.state.isValid) {
           return;
         }
 
@@ -76,13 +72,13 @@ export function useEventForm() {
           return;
         }
 
-        await formApi.handleSubmit();
+        // await formApi.handleSubmit();
       },
     },
   });
 
   const updateFormState = useUpdateFormState();
-  
+
   useActorRefSubscription({
     actorRef,
     onUpdate: async (snapshot) => {
@@ -95,20 +91,23 @@ export function useEventForm() {
       if (!event) {
         return;
       }
-      
-      await updateFormState(event, form);
+
+      await updateFormState(event, form, form.state.values);
+
+      actorRef.send({ type: "CONFIRMED" });
     },
   });
 
   React.useEffect(() => {
-    if (!defaultCalendar || snapshotRef.current) {
+    if (!defaultCalendar || form.state.values.calendar.calendarId !== "") {
       return;
     }
 
     const values = createDefaultEvent({ settings, defaultCalendar });
 
     formAction(toCalendarEvent({ values }));
-  }, [defaultCalendar, settings, form, formAction]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [defaultCalendar]);
 
   return form;
 }

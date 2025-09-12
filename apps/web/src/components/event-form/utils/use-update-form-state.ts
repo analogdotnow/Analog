@@ -7,6 +7,7 @@ import type { CalendarEvent } from "@/lib/interfaces";
 import { mergeChanges } from "../../calendar/flows/event-form/merge-changes";
 import { formAtom } from "../atoms/form";
 import { parseFormValues } from "./transform/input";
+import { FormValues } from "./schema";
 
 interface FormHandle {
   reset: () => void;
@@ -20,17 +21,20 @@ export function useUpdateFormState() {
   const [formState, setFormState] = useAtom(formAtom);
 
   return React.useCallback(
-    async (event: CalendarEvent, form: FormHandle) => {
+    async (event: CalendarEvent, form: FormHandle, values: FormValues) => {
       if (!defaultCalendar) {
         throw new Error("Default calendar not found");
       }
 
-      if (!formState.event) {
+      if (!formState.event || formState.event.id !== event.id) {
         setFormState({
           event,
+          initialValues: parseFormValues(event, defaultCalendar, settings),
           values: parseFormValues(event, defaultCalendar, settings),
+          state: "default",
         });
-
+        
+        await form.handleSubmit();
         form.reset();
 
         return;
@@ -38,8 +42,9 @@ export function useUpdateFormState() {
 
       const updatedValues = mergeChanges({
         form: {
+          initialValues: formState.initialValues,
           defaultValues: formState.values,
-          values: formState.values,
+          values,
           event: formState.event,
         },
         update: {
@@ -48,31 +53,19 @@ export function useUpdateFormState() {
         },
       });
 
-      if (updatedValues.values) {
-        setFormState({
-          event,
-          values: updatedValues.values,
-        });
-
-        form.reset();
-
-        return;
-      }
+      console.log("UPDATED VALUES", updatedValues.values.title);
 
       setFormState({
         event,
-        values: parseFormValues(event, defaultCalendar, settings),
+        initialValues: parseFormValues(event, defaultCalendar, settings),
+        values: updatedValues.values,
+        state: updatedValues.state,
       });
 
-      await form.handleSubmit();
       form.reset();
+
+      return;
     },
-    [
-      defaultCalendar,
-      formState.event,
-      formState.values,
-      setFormState,
-      settings,
-    ],
+    [defaultCalendar, formState.event, formState.values, setFormState, settings],
   );
 }

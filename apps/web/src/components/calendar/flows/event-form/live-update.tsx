@@ -44,12 +44,12 @@ export function useLiveUpdate() {
     }
 
     const event = eventQuery(result);
-    const differences = compareEvents(event, snapshot.context.formEvent);
-    // console.log("differences", JSON.stringify(differences, null, 2));
-    if (differences.length === 0) {
-      return;
-    }
+    // const differences = compareEvents(snapshot.context.formEvent, event);
+    // // console.log("differences", JSON.stringify(differences, null, 2));
+    // if (differences.length === 0) {
+    //   return;
+    // }
 
-    actorRef.send({ type: "QUEUE", item: event });
+    actorRef.send({ type: "LOAD", item: event });
   }, [result, actorRef]);
 }

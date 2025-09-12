@@ -1,6 +1,8 @@
 import * as React from "react";
 import { useSetAtom } from "jotai";
+import { Temporal } from "temporal-polyfill";
 
+import { CalendarEvent } from "@/lib/interfaces";
 import {
   addOptimisticActionAtom,
   generateOptimisticId,
@@ -21,13 +23,18 @@ export function useUpdateAction() {
     async (req: UpdateQueueRequest) => {
       const optimisticId = generateOptimisticId();
 
+      const event: CalendarEvent = {
+        ...req.event,
+        updatedAt: Temporal.Now.instant(),
+      };
+
       if (req.event.type === "draft") {
         React.startTransition(() => {
           removeDraftOptimisticActionsByEventId(req.event.id);
           addOptimisticAction({
             type: "draft",
             eventId: req.event.id,
-            event: req.event,
+            event,
           });
         });
       } else {
@@ -36,14 +43,14 @@ export function useUpdateAction() {
             id: optimisticId,
             type: "update",
             eventId: req.event.id,
-            event: req.event,
+            event,
           });
         });
       }
 
       const item: UpdateQueueItem = {
         optimisticId,
-        event: req.event,
+        event,
         scope: req.scope,
         notify: req.notify,
       };
