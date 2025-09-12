@@ -18,7 +18,10 @@ export function useScrollToCurrentTime({
     }
 
     const { hour, minute } = Temporal.Now.plainTimeISO();
-    const top = hour * cellHeight + (minute * cellHeight) / 60;
+    const top = Math.max(
+      0,
+      hour * cellHeight + (minute * cellHeight) / 60 - cellHeight,
+    );
 
     scrollContainerRef.current.scrollTo({
       top,

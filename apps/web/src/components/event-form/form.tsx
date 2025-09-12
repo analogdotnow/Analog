@@ -39,3 +39,21 @@ export function FormRowIcon({ icon: Icon, className }: FormRowIconProps) {
     </div>
   );
 }
+
+export function FormContainer({
+  className,
+  children,
+  ...props
+}: React.ComponentProps<"div">) {
+  return (
+    <div
+      className={cn(
+        "flex flex-col gap-y-2 rounded-2xl border border-input bg-background px-0.5 py-2.5",
+        className,
+      )}
+      {...props}
+    >
+      {children}
+    </div>
+  );
+}

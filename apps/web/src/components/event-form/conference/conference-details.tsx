@@ -1,6 +1,9 @@
 import * as React from "react";
 
-import { Conference, ConferenceEntryPoint } from "@repo/api/interfaces";
+import type {
+  ConferenceData,
+  ConferenceEntryPoint,
+} from "@repo/api/interfaces";
 
 import { cn } from "@/lib/utils";
 import { CopyButton } from "../copy-button";
@@ -174,7 +177,7 @@ function ConferenceSip({ entryPoint }: ConferenceSipProps) {
 }
 
 interface ConferenceDetailsProps {
-  conference: Conference;
+  conference: ConferenceData;
 }
 
 export function ConferenceDetails({ conference }: ConferenceDetailsProps) {

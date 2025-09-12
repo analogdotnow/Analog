@@ -3,8 +3,9 @@ import { toast } from "sonner";
 
 import { isBefore } from "@repo/temporal";
 
+import { insertIntoSorted } from "@/lib/sorted-actions";
 import { useTRPC } from "@/lib/trpc/client";
-import { insertIntoSorted, useEventQueryParams } from "./use-events";
+import { useEventQueryParams } from "./use-events";
 
 export function useCreateEventMutation() {
   const trpc = useTRPC();

@@ -7,3 +7,4 @@ export * from "./microsoft";
 export * from "./attendees";
 export * from "./notes";
 export * from "./zoom";
+export * from "./google-meet";

@@ -6,8 +6,6 @@ export type OptimisticAction =
   | { id?: string; type: "draft"; eventId: string; event: CalendarEvent }
   | { id?: string; type: "create"; eventId: string; event: CalendarEvent }
   | { id?: string; type: "update"; eventId: string; event: CalendarEvent }
-  // | { type: "select"; eventId: string; event: CalendarEvent }
-  // | { type: "unselect"; eventId: string }
   | { id?: string; type: "delete"; eventId: string }
   | {
       id?: string;
@@ -21,6 +19,7 @@ export const optimisticActionsAtom = atom<Record<string, OptimisticAction>>({});
 
 export const optimisticActionsByEventIdAtom = atom((get) => {
   const actions = get(optimisticActionsAtom);
+
   return Object.values(actions).reduce(
     (acc, action) => {
       acc[action.eventId] = action;
@@ -78,7 +77,10 @@ export const removeDraftOptimisticActionsByEventIdAtom = atom(
     const currentActions = get(optimisticActionsAtom);
     const filtered = Object.fromEntries(
       Object.entries(currentActions).filter(([, action]) => {
-        if (action.eventId !== eventId) return true;
+        if (action.eventId !== eventId) {
+          return true;
+        }
+
         return action.type !== "draft";
       }),
     );

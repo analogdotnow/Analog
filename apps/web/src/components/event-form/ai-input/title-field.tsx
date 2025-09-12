@@ -3,7 +3,7 @@ import { SparklesIcon } from "lucide-react";
 import { motion, type MotionProps } from "motion/react";
 
 import { useExpandingInput } from "@/components/event-form/ai-input/hooks/use-expanding-input";
-import { useFieldContext } from "@/components/event-form/form";
+import { useFieldContext } from "@/components/event-form/utils/form";
 import { BorderTrail } from "@/components/ui/border-trail";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

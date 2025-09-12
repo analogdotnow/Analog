@@ -4,8 +4,8 @@ import { Temporal } from "temporal-polyfill";
 
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { createDraftEvent } from "@/lib/utils/calendar";
-import { TIME_INTERVALS } from "../constants";
-import { useCreateDraftAction } from "./use-optimistic-mutations";
+import { TIME_INTERVALS } from "../../constants";
+import { useCreateDraftAction } from "../use-optimistic-mutations";
 
 interface UseDoubleClickToCreateOptions {
   date: Temporal.PlainDate;
@@ -33,6 +33,7 @@ export function useDoubleClickToCreate({
 
   return React.useCallback(
     (e: React.MouseEvent) => {
+      // Month view
       if (!columnRef?.current) {
         const start = date.toZonedDateTime({
           timeZone: defaultTimeZone,
@@ -44,6 +45,7 @@ export function useDoubleClickToCreate({
         return;
       }
 
+      // Day or week view
       const rect = columnRef.current.getBoundingClientRect();
       const relativeY = e.clientY - rect.top;
       const columnHeight = rect.height;

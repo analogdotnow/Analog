@@ -15,8 +15,14 @@ export function useDefaultCalendar() {
     return `var(${calendarColorVariable(query.data?.defaultCalendar?.accountId, query.data?.defaultCalendar?.id)}, var(--color-muted-foreground))`;
   }, [query.data?.defaultCalendar]);
 
-  return {
-    ...(query.data?.defaultCalendar ?? {}),
-    color,
-  };
+  return React.useMemo(() => {
+    if (!query.data?.defaultCalendar) {
+      return undefined;
+    }
+
+    return {
+      ...query.data.defaultCalendar,
+      color,
+    };
+  }, [query.data?.defaultCalendar, color]);
 }

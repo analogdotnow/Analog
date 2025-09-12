@@ -40,8 +40,8 @@ import { getGridPosition } from "@/components/calendar/utils/multi-day-layout";
 import { cn, groupArrayIntoChunks } from "@/lib/utils";
 import { createDraftEvent } from "@/lib/utils/calendar";
 import { DragAwareWrapper } from "../event/drag-aware-wrapper";
+import { useDoubleClickToCreate } from "../hooks/drag-and-drop/use-double-click-to-create";
 import { EventCollectionItem } from "../hooks/event-collection";
-import { useDoubleClickToCreate } from "../hooks/use-double-click-to-create";
 import {
   useEventCollection,
   type EventCollectionForMonth,
