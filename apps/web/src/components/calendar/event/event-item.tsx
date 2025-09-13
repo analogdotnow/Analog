@@ -5,7 +5,7 @@ import { useAtomValue } from "jotai";
 import { Temporal } from "temporal-polyfill";
 
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
-import { selectedEventsAtom } from "@/atoms/selected-events";
+import { isEventSelected } from "@/atoms/selected-events";
 import {
   getBorderRadiusClasses,
   getContentPaddingClasses,
@@ -97,9 +97,11 @@ export function EventItem({
   const displayStart = currentTime ?? item.start;
   const displayEnd = currentTime ?? item.end;
 
-  const selectedEvents = useAtomValue(selectedEventsAtom);
-
-  const isSelected = selectedEvents.some((e) => e.id === item.event.id);
+  const isSelectedAtom = React.useMemo(
+    () => isEventSelected(item.event.id),
+    [item.event.id],
+  );
+  const isSelected = useAtomValue(isSelectedAtom);
 
   const duration = React.useMemo(() => {
     return displayStart.until(displayEnd).total({ unit: "minute" });
