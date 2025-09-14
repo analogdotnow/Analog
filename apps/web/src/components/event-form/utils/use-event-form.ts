@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { ckb } from "date-fns/locale";
 import { useAtom, useAtomValue } from "jotai";
 
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
@@ -12,8 +11,7 @@ import {
 } from "@/components/calendar/flows/event-form/use-form-action";
 import { useActorRefSubscription } from "@/components/calendar/flows/use-actor-subscription";
 import { useDefaultCalendar } from "@/components/calendar/hooks/use-default-calendar";
-import { createDefaultEvent } from "@/components/event-form/utils/defaults";
-import { toCalendarEvent } from "@/components/event-form/utils/transform/output";
+import { getDefaultEvent } from "@/components/event-form/utils/defaults";
 import {
   requiresAttendeeConfirmation,
   requiresRecurrenceConfirmation,
@@ -79,7 +77,6 @@ export function useEventForm() {
   });
 
   React.useEffect(() => {
-    console.log("????", formState.values.title ?? "No title");
     form.reset();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formState]);
@@ -109,9 +106,9 @@ export function useEventForm() {
       return;
     }
 
-    const values = createDefaultEvent({ settings, defaultCalendar });
+    const event = getDefaultEvent({ settings, defaultCalendar });
 
-    formAction(toCalendarEvent({ values }));
+    formAction(event);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [defaultCalendar]);
 

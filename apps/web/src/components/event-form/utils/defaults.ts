@@ -1,10 +1,11 @@
 import { Temporal } from "temporal-polyfill";
 
 import type { CalendarSettings } from "@/atoms/calendar-settings";
-import type { Calendar } from "@/lib/interfaces";
+import type { Calendar, CalendarEvent } from "@/lib/interfaces";
 import { createEventId, roundTo15Minutes } from "@/lib/utils/calendar";
 import { FormMeta } from "./form";
 import type { FormValues } from "./schema";
+import { toCalendarEvent } from "./transform/output";
 
 export const initialValues: FormValues = {
   id: createEventId(),
@@ -41,7 +42,7 @@ interface CreateDefaultEvent {
   defaultCalendar: Calendar;
 }
 
-export function createDefaultEvent({
+export function getDefaultValues({
   settings,
   defaultCalendar,
 }: CreateDefaultEvent): FormValues {
@@ -71,6 +72,15 @@ export function createDefaultEvent({
     providerId: defaultCalendar.providerId,
     visibility: "default",
   };
+}
+
+export function getDefaultEvent({
+  settings,
+  defaultCalendar,
+}: CreateDefaultEvent): CalendarEvent {
+  const values = getDefaultValues({ settings, defaultCalendar });
+
+  return toCalendarEvent({ values });
 }
 
 export const defaultFormMeta: FormMeta = {

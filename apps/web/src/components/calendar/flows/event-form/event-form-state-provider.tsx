@@ -3,6 +3,7 @@ import { createActorContext } from "@xstate/react";
 
 import { CalendarEvent } from "@/lib/interfaces";
 import { createEventFormMachine } from "./event-form-state";
+import { LiveUpdateProvider } from "./live-update";
 
 export const EventFormStateContext = createActorContext(
   createEventFormMachine({
@@ -32,7 +33,9 @@ export function EventFormStateProvider({
 
   return (
     <EventFormStateContext.Provider logic={logic}>
-      {children}
+      <LiveUpdateProvider>
+        {children}
+      </LiveUpdateProvider>
     </EventFormStateContext.Provider>
   );
 }

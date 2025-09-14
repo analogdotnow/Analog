@@ -22,7 +22,11 @@ function useEventFormId() {
   return id;
 }
 
-export function useLiveUpdate() {
+interface LiveUpdateProviderProps {
+  children: React.ReactNode;
+}
+
+export function LiveUpdateProvider({ children }: LiveUpdateProviderProps) {
   const actorRef = EventFormStateContext.useActorRef();
   const id = useEventFormId();
 
@@ -51,4 +55,6 @@ export function useLiveUpdate() {
 
     actorRef.send({ type: "LOAD", item: event });
   }, [result, actorRef]);
+
+  return <>{children}</>;
 }
