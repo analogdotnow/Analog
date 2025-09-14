@@ -46,6 +46,9 @@ export function UpdateQueueProvider({ children }: UpdateQueueProviderProps) {
             },
             onSuccess: () => {
               // removeOptimisticAction(item.optimisticId);
+              if (item.onSuccess) {
+                item.onSuccess();
+              }
             },
           },
         );
@@ -61,6 +64,9 @@ export function UpdateQueueProvider({ children }: UpdateQueueProviderProps) {
           },
           onSuccess: () => {
             // removeOptimisticAction(item.optimisticId);
+            if (item.onSuccess) {
+              item.onSuccess();
+            }
           },
         },
       );

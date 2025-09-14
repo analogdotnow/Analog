@@ -18,12 +18,17 @@ import {
 } from "@/atoms/drag-resize-state";
 import { EventContextMenu } from "@/components/calendar/event/event-context-menu";
 import { EventItem } from "@/components/calendar/event/event-item";
+import { getEventInForm } from "@/components/event-form/atoms/form";
 import { ContextMenuTrigger } from "@/components/ui/context-menu";
-import { useUpdateAction } from "../flows/update-event/use-update-action";
+import { usePartialUpdateAction } from "../flows/update-event/use-update-action";
 import { useGlobalCursor } from "../hooks/drag-and-drop/use-global-cursor";
 import type { EventCollectionItem } from "../hooks/event-collection";
 import { useSelectAction } from "../hooks/use-optimistic-mutations";
-import { getEventInForm } from "@/components/event-form/atoms/form";
+import {
+  calculateColumnOffset,
+  calculateOffsetInMinutes,
+  calculateRowOffset,
+} from "./utils";
 
 interface DraggableEventProps {
   item: EventCollectionItem;
@@ -50,8 +55,6 @@ export function DraggableEvent({
   zIndex,
   ...props
 }: DraggableEventProps) {
-  const dragRef = React.useRef<HTMLDivElement>(null);
-
   const eventRef = React.useRef(item.event);
   const heightRef = React.useRef(initialHeight);
 
@@ -67,7 +70,7 @@ export function DraggableEvent({
 
   React.useEffect(() => {
     eventRef.current = eventInForm ?? item.event;
-    console.log("initialHeight", initialHeight);
+
     if (initialHeight || heightRef.current !== initialHeight) {
       heightRef.current = initialHeight;
     }
@@ -83,17 +86,21 @@ export function DraggableEvent({
   const addDraggedEventId = useSetAtom(addDraggedEventIdAtom);
   const removeDraggedEventId = useSetAtom(removeDraggedEventIdAtom);
 
-  const updateAction = useUpdateAction();
+  const updateAction = usePartialUpdateAction();
   const { setCursor, resetCursor } = useGlobalCursor();
 
   const onDragStart = (e: PointerEvent, info: PanInfo) => {
     // Prevent possible text/image dragging flash on some browsers
     e.preventDefault();
+
     addDraggedEventId(item.event.id);
 
-    if (!containerRef.current) return;
+    if (!containerRef.current) {
+      return;
+    }
 
     const rect = containerRef.current.getBoundingClientRect();
+
     dragStartRelative.current = {
       x: info.point.x - rect.left,
       y: info.point.y - rect.top,
@@ -113,19 +120,93 @@ export function DraggableEvent({
     top.set(relativeY - dragStartRelative.current.y);
   };
 
+  const moveEvent = React.useCallback(
+    (deltaY: number, columnOffset: number) => {
+      const event = eventRef.current;
+      // @ts-expect-error -- should both be of the same type
+      const duration = event.start.until(event.end);
+
+      if (view === "month") {
+        if (!rows) {
+          return;
+        }
+
+        const rowOffset = calculateRowOffset({
+          deltaY,
+          containerHeight:
+            containerRef.current?.getBoundingClientRect().height ?? 0,
+          rows,
+        });
+
+        const start = event.start.add({
+          days: columnOffset + rowOffset * 7,
+        });
+
+        updateAction({
+          changes: { id: event.id, start, end: start.add(duration) },
+        });
+
+        return;
+      }
+
+      if (view === "day") {
+        // Can't move all day events in the day view
+        if (event.start instanceof Temporal.PlainDate) {
+          return;
+        }
+
+        const minutes = calculateOffsetInMinutes(deltaY, cellHeight);
+
+        const start = event.start.add({ minutes }).round({
+          smallestUnit: "minute",
+          roundingIncrement: 15,
+          roundingMode: "halfExpand",
+        });
+
+        updateAction({
+          changes: { id: event.id, start, end: start.add(duration) },
+        });
+
+        return;
+      }
+
+      if (event.start instanceof Temporal.PlainDate) {
+        const start = event.start.add({ days: columnOffset });
+
+        updateAction({
+          changes: { id: event.id, start, end: start.add(duration) },
+        });
+
+        return;
+      }
+
+      const minutes = calculateOffsetInMinutes(deltaY, cellHeight);
+      const start = event.start
+        .add({ days: columnOffset })
+        .add({ minutes })
+        .round({
+          smallestUnit: "minute",
+          roundingIncrement: 15,
+          roundingMode: "halfExpand",
+        });
+
+      updateAction({
+        changes: { id: event.id, start, end: start.add(duration) },
+      });
+    },
+    [updateAction, cellHeight, view, rows, containerRef],
+  );
+
   const onDragEnd = (_e: PointerEvent, info: PanInfo) => {
     removeDraggedEventId(item.event.id);
     // Do not reset transform immediately to avoid flashback to original
     // position. We'll reset when the event data updates optimistically.
 
-    // @ts-expect-error -- should both be of the same type
-    const duration = eventRef.current.start.until(eventRef.current.end);
-
-    const columnDelta = Math.round(
-      (info.offset.x /
-        (containerRef.current?.getBoundingClientRect().width || 0)) *
-        7,
-    );
+    const columnOffset = calculateColumnOffset({
+      deltaX: info.offset.x,
+      containerWidth: containerRef.current?.getBoundingClientRect().width ?? 0,
+      columns: 7,
+    });
 
     // Calculate vertical movement relative to the container so that auto-scroll is taken into account.
     let deltaY = info.offset.y;
@@ -138,81 +219,13 @@ export function DraggableEvent({
 
     dragStartRelative.current = null;
 
-    if (view === "month") {
-      if (!rows) {
-        return;
-      }
-
-      const rowDelta = Math.round(
-        (deltaY / (containerRef.current?.getBoundingClientRect().height || 0)) *
-          rows,
-      );
-
-      const start = eventRef.current.start.add({
-        days: columnDelta + rowDelta * 7,
-      });
-      const end = start.add(duration);
-
-      updateAction({
-        event: { ...eventRef.current, start, end },
-      });
-
-      return;
-    }
-
-    if (view === "day") {
-      if (eventRef.current.start instanceof Temporal.PlainDate) {
-        return;
-      }
-
-      const minutes = Math.round((deltaY / cellHeight) * 60);
-      const start = eventRef.current.start.add({ minutes }).round({
-        smallestUnit: "minute",
-        roundingIncrement: 15,
-        roundingMode: "halfExpand",
-      });
-
-      const end = start.add(duration);
-
-      updateAction({
-        event: { ...eventRef.current, start, end },
-      });
-
-      return;
-    }
-
-    if (eventRef.current.start instanceof Temporal.PlainDate) {
-      const start = eventRef.current.start.add({ days: columnDelta });
-      const end = start.add(duration);
-
-      updateAction({
-        event: { ...eventRef.current, start, end },
-      });
-
-      return;
-    }
-
-    const minutes = Math.round((deltaY / cellHeight) * 60);
-    const start = eventRef.current.start
-      .add({ days: columnDelta })
-      .add({ minutes })
-      .round({
-        smallestUnit: "minute",
-        roundingIncrement: 15,
-        roundingMode: "halfExpand",
-      });
-
-    const end = start.add(duration);
-
-    updateAction({
-      event: { ...eventRef.current, start, end },
-    });
+    moveEvent(deltaY, columnOffset);
   };
 
   // When the event time updates (optimistic or confirmed), reset the local
   // transform so the item renders at its new computed position without a
-  // visual flash back to the original slot.
-  React.useEffect(() => {
+  // visual flash. Use layout effect to apply before paint to avoid flicker.
+  React.useLayoutEffect(() => {
     top.set(0);
     left.set(0);
     height.set(initialHeight ?? "100%");
@@ -305,7 +318,7 @@ export function DraggableEvent({
       });
 
       updateAction({
-        event: { ...eventRef.current, start: rounded },
+        changes: { id: eventRef.current.id, start: rounded },
       });
     },
     [updateAction, cellHeight],
@@ -324,7 +337,7 @@ export function DraggableEvent({
       });
 
       updateAction({
-        event: { ...eventRef.current, end: rounded },
+        changes: { id: eventRef.current.id, end: rounded },
       });
     },
     [updateAction, cellHeight],
@@ -382,7 +395,6 @@ export function DraggableEvent({
   if (item.event.allDay || view === "month") {
     return (
       <motion.div
-        ref={dragRef}
         className="size-full touch-none"
         style={{ transform, height, top, zIndex }}
       >
@@ -417,7 +429,6 @@ export function DraggableEvent({
 
   return (
     <motion.div
-      ref={dragRef}
       className="size-full touch-none"
       style={{ transform, height, zIndex }}
     >

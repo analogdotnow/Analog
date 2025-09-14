@@ -20,7 +20,7 @@ export function EventFormStateProvider({
   children,
 }: EventFormStateProviderProps) {
   const updateEvent = React.useCallback(async (item: CalendarEvent) => {
-    console.log("updateEvent", item);
+    // console.log("updateEvent", item);
     return item;
   }, []);
 

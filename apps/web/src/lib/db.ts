@@ -7,10 +7,12 @@ import { startOfDay } from "@repo/temporal";
 import { Calendar, CalendarEvent } from "./interfaces";
 import { superjson } from "./trpc/superjson";
 
-export interface EventRow extends Omit<CalendarEvent, "start" | "end"> {
+export interface EventRow
+  extends Omit<CalendarEvent, "start" | "end" | "createdAt" | "updatedAt"> {
   start: SuperJSONResult;
   end: SuperJSONResult;
-
+  createdAt: SuperJSONResult | undefined;
+  updatedAt: SuperJSONResult | undefined;
   startUnix: number;
   endUnix: number;
 }
@@ -57,7 +59,8 @@ export class Database extends Dexie {
         "location",
         "url",
         "color",
-
+        "createdAt",
+        "updatedAt",
         "startUnix",
         "endUnix",
 
@@ -92,12 +95,21 @@ export function eventQueryInput(event: CalendarEvent): EventRow {
   const start = superjson.serialize(event.start);
   const end = superjson.serialize(event.end);
 
+  const createdAt = event.createdAt
+    ? superjson.serialize(event.createdAt)
+    : undefined;
+  const updatedAt = event.updatedAt
+    ? superjson.serialize(event.updatedAt)
+    : undefined;
+
   return {
     ...event,
     start,
     end,
     startUnix,
     endUnix,
+    createdAt,
+    updatedAt,
   };
 }
 
@@ -113,8 +125,25 @@ export function eventQuery(row: EventRow): CalendarEvent {
     | Temporal.PlainDate
     | Temporal.ZonedDateTime
     | Temporal.Instant;
+  const createdAt = row.createdAt
+    ? (superjson.deserialize(row.createdAt) as Temporal.Instant)
+    : undefined;
+  const updatedAt = row.updatedAt
+    ? (superjson.deserialize(row.updatedAt) as Temporal.Instant)
+    : undefined;
 
-  return { ...rest, start, end };
+  return { ...rest, start, end, createdAt, updatedAt };
 }
 
 export const db = new Database();
+
+export async function getEventById(id: string) {
+  const row = await db.events.where("id").equals(id).first();
+
+  // console.log("getEventById row", JSON.stringify(row, null, 2));
+  if (!row) {
+    return undefined;
+  }
+
+  return eventQuery(row);
+}

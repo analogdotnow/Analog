@@ -24,18 +24,19 @@ import { CalendarField } from "./calendar-field";
 import { ConferenceField } from "./conference-field";
 import { DateInputSection } from "./date-input-section";
 import { DescriptionField } from "./description-field";
-import { ControlFeed, Feed } from "./feed";
+import { Feed } from "./feed";
 import { FormContainer, FormRow, FormRowIcon } from "./form";
 import { LocationField } from "./location-field";
 import { RecurrenceField } from "./recurrences/recurrence-field";
 import { SendUpdateButton } from "./send-update-button";
 import { TitleField } from "./title-field";
-import { useEventForm } from "./utils/use-event-form";
+import { Form, useEventForm } from "./utils/use-event-form";
+import { useSaveAction } from "../calendar/flows/event-form/use-form-action";
 
 //import { AvailabilityField } from "./availability-field";
 // import { VisibilityField } from "./visibility-field";
 
-function useClickOutsideEventForm(onClickOutside: () => void) {
+function useSubmitOnClickOutside(form: Form) {
   const ref = React.useRef<HTMLFormElement>(null);
   const focusRef = React.useRef(false);
 
@@ -44,47 +45,40 @@ function useClickOutsideEventForm(onClickOutside: () => void) {
       return;
     }
 
+    await form.handleSubmit();
+
     focusRef.current = false;
 
-    onClickOutside();
-  }, [onClickOutside, focusRef]);
+  }, [form, focusRef]);
 
   useOnClickOutside(ref as React.RefObject<HTMLElement>, handleClickOutside);
+
+  const onFocus = React.useCallback(() => {
+    focusRef.current = true;
+  }, [focusRef]);
+
+  return React.useMemo(() => ({ ref, onFocus }), [ref, onFocus]);
 }
 
 export function EventForm() {
   const form = useEventForm();
   const disabled = useAtomValue(formDisabledAtom);
 
-  const ref = React.useRef<HTMLFormElement>(null);
-  const focusRef = React.useRef(false);
+  const { ref, onFocus } = useSubmitOnClickOutside(form);
 
-  const handleClickOutside = React.useCallback(async () => {
-    if (!focusRef.current) {
-      return;
-    }
-
-    focusRef.current = false;
-
-    form.handleSubmit();
-  }, [form, focusRef]);
-
-  useOnClickOutside(ref as React.RefObject<HTMLElement>, handleClickOutside);
+  const onSubmit = React.useCallback(async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
 
   return (
     <form
       ref={ref}
       className={cn("flex flex-col gap-y-1")}
-      onFocusCapture={() => {
-        focusRef.current = true;
-      }}
-      onSubmit={async (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-      }}
+      onFocusCapture={onFocus}
+      onSubmit={onSubmit}
     >
       <Feed />
-      <ControlFeed />
       <div className="p-1">
         <form.Field name="title">
           {(field) => (

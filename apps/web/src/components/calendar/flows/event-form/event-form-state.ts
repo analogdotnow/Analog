@@ -78,6 +78,12 @@ export function createEventFormMachine(options: CreateEventFormMachineOptions) {
           CONFIRMED: { target: "ready" },
           LOAD: { actions: ["queueEvent"] },
         },
+        always: [
+          {
+            guard: "hasQueuedEvent",
+            actions: ["dequeueToFormEvent"],
+          },
+        ],
       },
     },
   });

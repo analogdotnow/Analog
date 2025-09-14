@@ -1,11 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { useAtomValue } from "jotai";
-import { SnapshotFrom } from "xstate";
+import { ckb } from "date-fns/locale";
+import { useAtom, useAtomValue } from "jotai";
 
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
-import { EventFormMachine } from "@/components/calendar/flows/event-form/event-form-state";
 import { EventFormStateContext } from "@/components/calendar/flows/event-form/event-form-state-provider";
 import {
   useFormAction,
@@ -19,7 +18,7 @@ import {
   requiresAttendeeConfirmation,
   requiresRecurrenceConfirmation,
 } from "@/lib/utils/events";
-import { defaultValuesAtom, formAtom } from "../atoms/form";
+import { defaultValuesAtom, formAtom, isPristineAtom } from "../atoms/form";
 import { defaultFormMeta } from "./defaults";
 import { useAppForm } from "./form";
 import { FormValues, formSchema } from "./schema";
@@ -42,6 +41,7 @@ export function useEventForm() {
   const formState = useAtomValue(formAtom);
   const saveAction = useSaveAction();
   const formAction = useFormAction();
+  const [isPristine, setIsPristine] = useAtom(isPristineAtom);
 
   const form = useAppForm({
     defaultValues,
@@ -50,51 +50,57 @@ export function useEventForm() {
       onBlur: formSchema,
       onSubmit: formSchema,
     },
-    onSubmit: async ({ value, formApi, meta }) => {
-      // If unchanged, do nothing
-      if (formApi.state.isPristine && formState.state === "default") {
-        console.log("Unchanged");
-        return;
-      }
-
-      console.log("Saving", JSON.stringify(value, null, 2));
-
-      await saveAction(value, meta?.sendUpdate);
+    onSubmit: async ({ value, meta }) => {
+      await saveAction(value, meta?.sendUpdate, () => {
+        actorRef.send({ type: "CONFIRMED" });
+        setIsPristine(true);
+      });
     },
     listeners: {
       onBlur: async ({ formApi }) => {
         // If invalid, do nothing
-        if (!formApi.state.isValid) {
+        if (
+          !formApi.state.isValid ||
+          requiresConfirmation(formApi.state.values)
+        ) {
           return;
         }
 
-        if (requiresConfirmation(formApi.state.values)) {
+        await formApi.handleSubmit();
+      },
+      onChange: async ({ formApi }) => {
+        if (formApi.state.isPristine) {
           return;
         }
 
-        // await formApi.handleSubmit();
+        setIsPristine(false);
       },
     },
   });
+
+  React.useEffect(() => {
+    console.log("????", formState.values.title ?? "No title");
+    form.reset();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formState]);
 
   const updateFormState = useUpdateFormState();
 
   useActorRefSubscription({
     actorRef,
     onUpdate: async (snapshot) => {
-      if (!snapshot.matches("loading")) {
+      if (!snapshot.matches("loading") || !defaultCalendar) {
         return;
       }
 
-      const event = snapshot.context.formEvent;
+      const event = snapshot.context.formEvent!;
 
-      if (!event) {
+      if (formState.event?.id !== event.id || isPristine) {
+        setIsPristine(true);
+        await updateFormState(event);
+
         return;
       }
-
-      await updateFormState(event, form, form.state.values);
-
-      actorRef.send({ type: "CONFIRMED" });
     },
   });
 
@@ -111,3 +117,5 @@ export function useEventForm() {
 
   return form;
 }
+
+export type Form = ReturnType<typeof useEventForm>;

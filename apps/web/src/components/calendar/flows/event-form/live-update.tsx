@@ -4,7 +4,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { db, eventQuery } from "@/lib/db";
 import { useActorRefSubscription } from "../use-actor-subscription";
 import { EventFormStateContext } from "./event-form-state-provider";
-import { compareEvents } from "./merge-changes";
+import { getDifferences } from "./merge-changes";
 
 function useEventFormId() {
   const actorRef = EventFormStateContext.useActorRef();
@@ -13,7 +13,7 @@ function useEventFormId() {
   useActorRefSubscription({
     actorRef,
     onUpdate: (snapshot) => {
-      if (snapshot.matches("ready")) {
+      if (snapshot.matches("loading")) {
         setId(snapshot.context.formEvent?.id ?? "");
       }
     },
@@ -32,7 +32,6 @@ export function useLiveUpdate() {
   );
 
   React.useEffect(() => {
-    // console.log("dexie event", row);
     if (!result) {
       return;
     }
@@ -44,11 +43,11 @@ export function useLiveUpdate() {
     }
 
     const event = eventQuery(result);
-    // const differences = compareEvents(snapshot.context.formEvent, event);
-    // // console.log("differences", JSON.stringify(differences, null, 2));
-    // if (differences.length === 0) {
-    //   return;
-    // }
+    const differences = getDifferences(snapshot.context.formEvent, event);
+
+    if (differences.length === 0) {
+      return;
+    }
 
     actorRef.send({ type: "LOAD", item: event });
   }, [result, actorRef]);

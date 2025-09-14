@@ -20,6 +20,21 @@ export function useFormAction() {
   return update;
 }
 
+export function useResetFormAction() {
+  const actorRef = EventFormStateContext.useActorRef();
+
+  const save = React.useCallback(
+    async (values: FormValues) => {
+      const event = toCalendarEvent({ values });
+
+      actorRef.send({ type: "LOAD", item: event });
+    },
+    [actorRef],
+  );
+
+  return save;
+}
+
 export function useSaveAction() {
   const actorRef = EventFormStateContext.useActorRef();
 
@@ -27,19 +42,23 @@ export function useSaveAction() {
   const updateAction = useUpdateAction();
 
   const save = React.useCallback(
-    async (values: FormValues, notify?: boolean) => {
+    async (values: FormValues, notify?: boolean, onSuccess?: () => void) => {
+      const event = toCalendarEvent({ values });
+
       if (values.type === "draft") {
         await createAction({
-          event: toCalendarEvent({ values }),
+          event,
           notify,
+          onSuccess,
         });
 
         return;
       }
 
       await updateAction({
-        event: toCalendarEvent({ values }),
+        event,
         notify,
+        onSuccess,
       });
 
       actorRef.send({ type: "SAVE", notify });
