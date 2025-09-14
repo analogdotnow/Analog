@@ -28,7 +28,7 @@ export function CalendarLayout() {
 
   return (
     <FlowsProvider>
-      <AppSidebar side="left" className="select-none" />
+      <AppSidebar variant="inset" side="left" className="select-none" />
       <EventHotkeys />
       <SidebarInset className="h-dvh overflow-hidden select-none">
         <div className="flex h-full rounded-xl border border-sidebar-border bg-background">
