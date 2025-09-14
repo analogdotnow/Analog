@@ -1,3 +1,5 @@
+"use client";
+
 import * as React from "react";
 import { createActorContext } from "@xstate/react";
 
@@ -21,7 +23,6 @@ export function EventFormStateProvider({
   children,
 }: EventFormStateProviderProps) {
   const updateEvent = React.useCallback(async (item: CalendarEvent) => {
-    // console.log("updateEvent", item);
     return item;
   }, []);
 

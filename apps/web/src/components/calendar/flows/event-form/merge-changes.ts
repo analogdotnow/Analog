@@ -13,15 +13,15 @@ export function getDifferences<T>(a: T, b: T) {
     }
 
     if (
-      (change.type === "ADD" && change.value === "") ||
-      change.value === undefined
+      change.type === "ADD" &&
+      (change.value === "" || change.value === undefined)
     ) {
       continue;
     }
 
     if (
-      (change.type === "REMOVE" && change.oldValue === "") ||
-      change.oldValue === undefined
+      change.type === "REMOVE" &&
+      (change.oldValue === "" || change.oldValue === undefined)
     ) {
       continue;
     }

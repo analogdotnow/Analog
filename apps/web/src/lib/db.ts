@@ -40,9 +40,6 @@ export class Database extends Dexie {
         "color",
         "readOnly",
       ].join(","),
-    });
-
-    this.version(1).stores({
       events: [
         "id",
         "start",

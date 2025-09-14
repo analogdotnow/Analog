@@ -28,6 +28,11 @@ export function TitleField({
 
   const onKeyDown = React.useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
+      // Ignore key events during IME composition
+      if (e.nativeEvent.isComposing || e.key === "Process") {
+        return;
+      }
+
       if (e.key === "Enter") {
         e.currentTarget.blur();
       }

@@ -58,7 +58,7 @@ export function requiresAttendeeConfirmation(event: CalendarEvent) {
 }
 
 export function requiresRecurrenceConfirmation(event: CalendarEvent) {
-  return event.recurringEventId !== undefined;
+  return !!event.recurringEventId;
 }
 
 interface BuildUpdateEventOptions {

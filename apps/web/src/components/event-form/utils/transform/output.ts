@@ -37,7 +37,7 @@ export function toCalendarEvent({
     providerId: values.providerId,
     start: values.isAllDay ? values.start.toPlainDate() : values.start,
     end: values.isAllDay ? values.end.toPlainDate() : values.end,
-    readOnly: false,
+    readOnly: event?.readOnly ?? false,
     attendees: values.attendees.length > 0 ? values.attendees : undefined,
     recurrence: values.recurrence,
     recurringEventId: values.recurringEventId,

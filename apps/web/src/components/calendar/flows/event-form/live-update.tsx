@@ -1,7 +1,8 @@
-import * as React from "react";
-import { useLiveQuery } from "dexie-react-hooks";
+"use client";
 
-import { db, mapEventQuery, useLiveEventById } from "@/lib/db";
+import * as React from "react";
+
+import { useLiveEventById } from "@/lib/db";
 import { useActorRefSubscription } from "../use-actor-subscription";
 import { EventFormStateContext } from "./event-form-state-provider";
 import { getDifferences } from "./merge-changes";

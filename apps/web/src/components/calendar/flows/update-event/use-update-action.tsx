@@ -65,6 +65,7 @@ function useOptimisticUpdateAction() {
           removeDraftOptimisticActionsByEventId(event.id);
 
           addOptimisticAction({
+            id: optimisticId,
             type: "draft",
             eventId: event.id,
             event,
@@ -161,6 +162,7 @@ export function useUpdateAction() {
         event,
         scope: req.scope,
         notify: req.notify,
+        onSuccess: req.onSuccess,
       };
 
       actorRef.send({ type: "START", item });

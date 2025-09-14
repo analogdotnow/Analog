@@ -16,11 +16,10 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { calendarColorVariable } from "@/lib/css";
-import { Calendar } from "@/lib/interfaces";
-import { RouterOutputs } from "@/lib/trpc";
+import type { Calendar } from "@/lib/interfaces";
+import type { RouterOutputs } from "@/lib/trpc";
 import { useTRPC } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
-import { useDefaultCalendar } from "../calendar/hooks/use-default-calendar";
 
 interface CalendarFieldProps {
   id: string;

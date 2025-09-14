@@ -40,16 +40,3 @@ export function isFirstInstance(
 
   return isStartDateTimeEqual(event, masterEvent);
 }
-
-export function hasEventChanged(
-  currentEvent: CalendarEvent | null,
-  originalEvent: CalendarEvent | null,
-): boolean {
-  if (!currentEvent || !originalEvent) {
-    return currentEvent !== originalEvent;
-  }
-
-  // const differences = diff(currentEvent, originalEvent);
-  // console.log("differences", JSON.stringify(differences, null, 2));
-  return JSON.stringify(currentEvent) !== JSON.stringify(originalEvent);
-}

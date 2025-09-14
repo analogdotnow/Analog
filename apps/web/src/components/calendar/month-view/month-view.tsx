@@ -345,7 +345,7 @@ function MonthViewDay({
   const cellRef = React.useRef<HTMLDivElement>(null);
 
   const onDoubleClick = useDoubleClickToCreate({
-    date: currentDate,
+    date: day,
     columnRef: cellRef,
   });
 
