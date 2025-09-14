@@ -14,7 +14,8 @@ import {
 } from "@/components/calendar/hooks/use-optimistic-mutations";
 import { DeleteEventConfirmation } from "@/components/delete-event-confirmation";
 import { useSidebarWithSide } from "@/components/ui/sidebar";
-import { createDraftEvent, isDraftEvent } from "@/lib/utils/calendar";
+import { createDraftEvent } from "@/lib/utils/calendar";
+import { getEventById } from "../db";
 
 const KEYBOARD_SHORTCUTS = {
   CREATE_EVENT: "c",
@@ -51,23 +52,25 @@ export function EventHotkeys() {
 
   useHotkeys(
     KEYBOARD_SHORTCUTS.JOIN_MEETING,
-    () => {
+    async () => {
       if (!selectedEventIds[0]) {
         return;
       }
 
-      // if (
-      //   selectedEvents[0].conference?.type !== "conference" ||
-      //   !selectedEvents[0].conference?.video?.joinUrl
-      // ) {
-      //   return;
-      // }
+      const event = await getEventById(selectedEventIds[0]);
 
-      // window.open(
-      //   selectedEvents[0].conference.video.joinUrl.value,
-      //   "_blank",
-      //   "noopener,noreferrer",
-      // );
+      if (
+        event?.conference?.type !== "conference" ||
+        !event?.conference?.video?.joinUrl
+      ) {
+        return;
+      }
+
+      window.open(
+        event.conference.video.joinUrl.value,
+        "_blank",
+        "noopener,noreferrer",
+      );
     },
     { scopes: ["event"] },
   );
@@ -97,17 +100,19 @@ export function EventHotkeys() {
 
   const [open, setOpen] = React.useState(false);
 
-  const onConfirm = React.useCallback(() => {
+  const onConfirm = React.useCallback(async () => {
     if (!selectedEventIds[0]) {
       return;
     }
 
-    // if (isDraftEvent(selectedEvents[0])) {
-    //   unselectAllAction();
-    //   return;
-    // }
+    const event = await getEventById(selectedEventIds[0]);
 
-    // deleteAction({ event: selectedEvents[0] });
+    if (!event) {
+      unselectAllAction();
+      return;
+    }
+
+    deleteAction({ event });
   }, [selectedEventIds, deleteAction, unselectAllAction]);
 
   if (!selectedEventIds[0]) {

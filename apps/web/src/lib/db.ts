@@ -1,5 +1,6 @@
 import * as React from "react";
 import { Dexie, Table } from "dexie";
+import { useLiveQuery } from "dexie-react-hooks";
 import { SuperJSONResult } from "superjson";
 import { Temporal } from "temporal-polyfill";
 
@@ -7,7 +8,6 @@ import { startOfDay } from "@repo/temporal";
 
 import { Calendar, CalendarEvent } from "./interfaces";
 import { superjson } from "./trpc/superjson";
-import { useLiveQuery } from "dexie-react-hooks";
 
 export interface EventRow
   extends Omit<CalendarEvent, "start" | "end" | "createdAt" | "updatedAt"> {
