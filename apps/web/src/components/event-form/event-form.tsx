@@ -24,14 +24,12 @@ import { CalendarField } from "./calendar-field";
 import { ConferenceField } from "./conference-field";
 import { DateInputSection } from "./date-input-section";
 import { DescriptionField } from "./description-field";
-import { Feed } from "./feed";
 import { FormContainer, FormRow, FormRowIcon } from "./form";
 import { LocationField } from "./location-field";
 import { RecurrenceField } from "./recurrences/recurrence-field";
 import { SendUpdateButton } from "./send-update-button";
 import { TitleField } from "./title-field";
 import { Form, useEventForm } from "./utils/use-event-form";
-import { useSaveAction } from "../calendar/flows/event-form/use-form-action";
 
 //import { AvailabilityField } from "./availability-field";
 // import { VisibilityField } from "./visibility-field";
@@ -48,7 +46,6 @@ function useSubmitOnClickOutside(form: Form) {
     await form.handleSubmit();
 
     focusRef.current = false;
-
   }, [form, focusRef]);
 
   useOnClickOutside(ref as React.RefObject<HTMLElement>, handleClickOutside);
@@ -66,10 +63,13 @@ export function EventForm() {
 
   const { ref, onFocus } = useSubmitOnClickOutside(form);
 
-  const onSubmit = React.useCallback(async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-  }, []);
+  const onSubmit = React.useCallback(
+    async (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
+    },
+    [],
+  );
 
   return (
     <form
@@ -78,7 +78,6 @@ export function EventForm() {
       onFocusCapture={onFocus}
       onSubmit={onSubmit}
     >
-      <Feed />
       <div className="p-1">
         <form.Field name="title">
           {(field) => (

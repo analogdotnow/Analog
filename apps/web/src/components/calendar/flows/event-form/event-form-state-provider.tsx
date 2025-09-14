@@ -33,9 +33,7 @@ export function EventFormStateProvider({
 
   return (
     <EventFormStateContext.Provider logic={logic}>
-      <LiveUpdateProvider>
-        {children}
-      </LiveUpdateProvider>
+      <LiveUpdateProvider>{children}</LiveUpdateProvider>
     </EventFormStateContext.Provider>
   );
 }

@@ -53,7 +53,7 @@ function useOptimisticUpdateAction() {
   const removeDraftOptimisticActionsByEventId = useSetAtom(
     removeDraftOptimisticActionsByEventIdAtom,
   );
-  
+
   return React.useCallback(
     async (
       optimisticId: string,
