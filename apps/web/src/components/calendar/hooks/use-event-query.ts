@@ -8,7 +8,7 @@ import { endOfMonth, startOfMonth } from "@repo/temporal";
 
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { currentDateAtom } from "@/atoms/view-preferences";
-import { db, eventQuery } from "@/lib/db";
+import { db, mapEventQuery } from "@/lib/db";
 import { RouterOutputs } from "@/lib/trpc";
 import { useTRPC } from "@/lib/trpc/client";
 import { mapEventsToItems } from "./event-collection";
@@ -86,7 +86,7 @@ function useEventQuery(props: EventQueryParams) {
 
   return React.useMemo(() => {
     return [...(overlappingEvents ?? []), ...(eventsInRange ?? [])].map(
-      eventQuery,
+      mapEventQuery,
     );
   }, [overlappingEvents, eventsInRange]);
 }

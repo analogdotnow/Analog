@@ -17,7 +17,7 @@ import { CalendarHeader } from "@/components/calendar/header/calendar-header";
 import { MonthView } from "@/components/calendar/month-view/month-view";
 import { WeekView } from "@/components/calendar/week-view/week-view";
 import { useCalendarState } from "@/hooks/use-calendar-state";
-import { db, eventQueryInput } from "@/lib/db";
+import { db, mapEventQueryInput } from "@/lib/db";
 import { cn } from "@/lib/utils";
 import { applyOptimisticActions } from "./calendar/hooks/apply-optimistic-actions";
 import { optimisticActionsByEventIdAtom } from "./calendar/hooks/optimistic-actions";
@@ -40,7 +40,7 @@ function CalendarContent({ scrollContainerRef }: CalendarContentProps) {
 
   React.useEffect(() => {
     db.events.bulkPut(
-      data?.events?.map((item) => eventQueryInput(item.event)) ?? [],
+      data?.events?.map((item) => mapEventQueryInput(item.event)) ?? [],
     );
   }, [data?.events]);
 

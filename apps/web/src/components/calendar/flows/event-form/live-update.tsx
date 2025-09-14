@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 
-import { db, eventQuery } from "@/lib/db";
+import { db, mapEventQuery, useLiveEventById } from "@/lib/db";
 import { useActorRefSubscription } from "../use-actor-subscription";
 import { EventFormStateContext } from "./event-form-state-provider";
 import { getDifferences } from "./merge-changes";
@@ -30,13 +30,10 @@ export function LiveUpdateProvider({ children }: LiveUpdateProviderProps) {
   const actorRef = EventFormStateContext.useActorRef();
   const id = useEventFormId();
 
-  const result = useLiveQuery(
-    () => db.events.where("id").equals(id).first(),
-    [id],
-  );
+  const event = useLiveEventById(id);
 
   React.useEffect(() => {
-    if (!result) {
+    if (!event) {
       return;
     }
 
@@ -46,7 +43,6 @@ export function LiveUpdateProvider({ children }: LiveUpdateProviderProps) {
       return;
     }
 
-    const event = eventQuery(result);
     const differences = getDifferences(snapshot.context.formEvent, event);
 
     if (differences.length === 0) {
@@ -54,7 +50,7 @@ export function LiveUpdateProvider({ children }: LiveUpdateProviderProps) {
     }
 
     actorRef.send({ type: "LOAD", item: event });
-  }, [result, actorRef]);
+  }, [event, actorRef]);
 
   return <>{children}</>;
 }

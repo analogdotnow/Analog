@@ -1,3 +1,4 @@
+import * as React from "react";
 import { Dexie, Table } from "dexie";
 import { SuperJSONResult } from "superjson";
 import { Temporal } from "temporal-polyfill";
@@ -6,6 +7,7 @@ import { startOfDay } from "@repo/temporal";
 
 import { Calendar, CalendarEvent } from "./interfaces";
 import { superjson } from "./trpc/superjson";
+import { useLiveQuery } from "dexie-react-hooks";
 
 export interface EventRow
   extends Omit<CalendarEvent, "start" | "end" | "createdAt" | "updatedAt"> {
@@ -88,7 +90,7 @@ export function temporalToEpochMs(
   return startOfDay(value, { timeZone: "UTC" }).epochMilliseconds;
 }
 
-export function eventQueryInput(event: CalendarEvent): EventRow {
+export function mapEventQueryInput(event: CalendarEvent): EventRow {
   const startUnix = temporalToEpochMs(event.start);
   const endUnix = temporalToEpochMs(event.end);
 
@@ -113,7 +115,7 @@ export function eventQueryInput(event: CalendarEvent): EventRow {
   };
 }
 
-export function eventQuery(row: EventRow): CalendarEvent {
+export function mapEventQuery(row: EventRow): CalendarEvent {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { startUnix, endUnix, ...rest } = row;
 
@@ -145,5 +147,16 @@ export async function getEventById(id: string) {
     return undefined;
   }
 
-  return eventQuery(row);
+  return mapEventQuery(row);
+}
+
+export function useLiveEventById(id: string) {
+  const result = useLiveQuery(
+    () => db.events.where("id").equals(id).first(),
+    [id],
+  );
+
+  return React.useMemo(() => {
+    return result ? mapEventQuery(result) : undefined;
+  }, [result]);
 }
