@@ -26,7 +26,7 @@ import type { CalendarEvent } from "@/lib/interfaces";
 import { useTRPC } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
 import { useDeleteAction } from "../flows/delete-event/use-delete-action";
-import { useUpdateAction } from "../flows/update-event/use-update-action";
+import { usePartialUpdateAction } from "../flows/update-event/use-update-action";
 
 function CalendarRadioItem({
   className,
@@ -72,20 +72,20 @@ function EventContextMenuCalendarList({
   const trpc = useTRPC();
   const calendarQuery = useQuery(trpc.calendars.list.queryOptions());
 
-  const updateAction = useUpdateAction();
+  const updateAction = usePartialUpdateAction();
 
   const moveEvent = React.useCallback(
     (accountId: string, calendarId: string) => {
       updateAction({
-        event: {
-          ...event,
+        changes: {
+          id: event.id,
           accountId,
           calendarId,
         },
         notify: true,
       });
     },
-    [updateAction, event],
+    [updateAction, event.id],
   );
 
   return (
@@ -125,7 +125,7 @@ interface EventContextMenuProps {
 export function EventContextMenu({ event, children }: EventContextMenuProps) {
   const responseStatus = event.response?.status;
 
-  const updateAction = useUpdateAction();
+  const updateAction = usePartialUpdateAction();
 
   const handleRespond = React.useCallback(
     (status: AttendeeStatus) => {
@@ -134,15 +134,15 @@ export function EventContextMenu({ event, children }: EventContextMenuProps) {
       }
 
       updateAction({
-        event: {
-          ...event,
+        changes: {
+          id: event.id,
           response: { status },
         },
         // TODO: should this be the default?
         notify: true,
       });
     },
-    [updateAction, event, responseStatus],
+    [updateAction, responseStatus, event.id],
   );
 
   const deleteAction = useDeleteAction();

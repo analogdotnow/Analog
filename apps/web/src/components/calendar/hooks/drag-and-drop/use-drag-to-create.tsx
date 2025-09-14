@@ -7,9 +7,9 @@ import { isDraggingAtom } from "@/atoms/drag-resize-state";
 import { jotaiStore } from "@/atoms/store";
 import { usePointerType } from "@/hooks/use-pointer-type";
 import { createDraftEvent } from "@/lib/utils/calendar";
-import { MINUTES_IN_HOUR, TOTAL_MINUTES_IN_DAY } from "../constants";
-import { useGlobalCursor } from "./drag-and-drop/use-global-cursor";
-import { useCreateDraftAction } from "./use-optimistic-mutations";
+import { MINUTES_IN_HOUR, TOTAL_MINUTES_IN_DAY } from "../../constants";
+import { useCreateDraftAction } from "../use-optimistic-mutations";
+import { useGlobalCursor } from "./use-global-cursor";
 
 interface UseDragToCreateOptions {
   date: Temporal.PlainDate;

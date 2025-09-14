@@ -284,10 +284,6 @@ function List({ sortedTimezones, value, onSelect }: ListProps) {
   );
 }
 
-const MemoizedList = React.memo(List, (prevProps, nextProps) => {
-  return (
-    prevProps.value === nextProps.value &&
-    prevProps.onSelect === nextProps.onSelect &&
-    prevProps.sortedTimezones === nextProps.sortedTimezones
-  );
-});
+const MemoizedList = React.memo(List);
+
+export const MemoizedTimezoneSelect = React.memo(TimezoneSelect);

@@ -2,37 +2,36 @@
 
 import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useSetAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 
-import {
-  selectedEventIdsAtom,
-  selectedEventsAtom,
-} from "@/atoms/selected-events";
+import { selectedEventIdsAtom } from "@/atoms/selected-events";
 import { useSidebarWithSide } from "@/components/ui/sidebar";
 import type { CalendarEvent, DraftEvent } from "@/lib/interfaces";
 import { useTRPC } from "@/lib/trpc/client";
+import { EventFormStateContext } from "../flows/event-form/event-form-state-provider";
 import {
   addOptimisticActionAtom,
   removeDraftOptimisticActionsByEventIdAtom,
 } from "./optimistic-actions";
 
 export function useCreateDraftAction() {
-  const setSelectedEvents = useSetAtom(selectedEventsAtom);
   const setSelectedEventIds = useSetAtom(selectedEventIdsAtom);
   const addOptimisticAction = useSetAtom(addOptimisticActionAtom);
   const trpc = useTRPC();
   const query = useQuery(trpc.calendars.list.queryOptions());
   const { setOpen: setRightSidebarOpen } = useSidebarWithSide("right");
-
+  const actorRef = EventFormStateContext.useActorRef();
   const unselectAllAction = useUnselectAllAction();
+
   return React.useCallback(
     (event: DraftEvent) => {
-      unselectAllAction();
       const defaultCalendar = query.data?.defaultCalendar;
 
       if (!defaultCalendar) {
-        throw new Error("Default calendar not found");
+        return;
       }
+
+      unselectAllAction();
 
       addOptimisticAction({
         type: "draft",
@@ -46,53 +45,57 @@ export function useCreateDraftAction() {
           calendarId: defaultCalendar.id,
         },
       });
-      setSelectedEvents([event]);
+
       setSelectedEventIds([event.id]);
       setRightSidebarOpen(true);
+
+      actorRef.send({ type: "LOAD", item: event as CalendarEvent });
     },
     [
-      unselectAllAction,
+      actorRef,
       query.data?.defaultCalendar,
       addOptimisticAction,
-      setSelectedEvents,
       setSelectedEventIds,
       setRightSidebarOpen,
+      unselectAllAction,
     ],
   );
 }
 
 export function useSelectAction() {
-  const setSelectedEvents = useSetAtom(selectedEventsAtom);
-  const setSelectedEventIds = useSetAtom(selectedEventIdsAtom);
+  const [selectedEventIds, setSelectedEventIds] = useAtom(selectedEventIdsAtom);
   const removeDraftOptimisticActionsByEventId = useSetAtom(
     removeDraftOptimisticActionsByEventIdAtom,
   );
   const { setOpen: setRightSidebarOpen } = useSidebarWithSide("right");
+  const actorRef = EventFormStateContext.useActorRef();
 
   return React.useCallback(
     (event: CalendarEvent) => {
-      setSelectedEvents((prev) => {
-        for (const e of prev) {
-          if (e.type === "draft" && e.id !== event.id) {
-            removeDraftOptimisticActionsByEventId(e.id);
-          }
+      for (const eventId of selectedEventIds) {
+        if (eventId === event.id) {
+          continue;
         }
-        return [event];
-      });
-      setSelectedEventIds((prev) => [...prev, event.id]);
+
+        removeDraftOptimisticActionsByEventId(eventId);
+      }
+
+      setSelectedEventIds([event.id]);
       setRightSidebarOpen(true);
+
+      actorRef.send({ type: "LOAD", item: event });
     },
     [
-      setSelectedEvents,
-      removeDraftOptimisticActionsByEventId,
       setSelectedEventIds,
       setRightSidebarOpen,
+      actorRef,
+      removeDraftOptimisticActionsByEventId,
+      selectedEventIds,
     ],
   );
 }
 
 export function useUnselectAction() {
-  const setSelectedEvents = useSetAtom(selectedEventsAtom);
   const setSelectedEventIds = useSetAtom(selectedEventIdsAtom);
   const removeDraftOptimisticActionsByEventId = useSetAtom(
     removeDraftOptimisticActionsByEventIdAtom,
@@ -100,41 +103,30 @@ export function useUnselectAction() {
 
   return React.useCallback(
     (event: CalendarEvent) => {
-      setSelectedEvents((prev) => {
-        return prev.filter((e) => e.id !== event.id);
-      });
       if (event.type === "draft") {
         removeDraftOptimisticActionsByEventId(event.id);
       }
+
       setSelectedEventIds((prev) => prev.filter((id) => id !== event.id));
     },
-    [
-      setSelectedEvents,
-      removeDraftOptimisticActionsByEventId,
-      setSelectedEventIds,
-    ],
+    [removeDraftOptimisticActionsByEventId, setSelectedEventIds],
   );
 }
 
 export function useUnselectAllAction() {
-  const setSelectedEvents = useSetAtom(selectedEventsAtom);
-  const setSelectedEventIds = useSetAtom(selectedEventIdsAtom);
+  const [selectedEventIds, setSelectedEventIds] = useAtom(selectedEventIdsAtom);
   const removeDraftOptimisticActionsByEventId = useSetAtom(
     removeDraftOptimisticActionsByEventIdAtom,
   );
 
   return React.useCallback(() => {
-    setSelectedEvents((prev) => {
-      for (const e of prev) {
-        if (e.type === "draft") {
-          removeDraftOptimisticActionsByEventId(e.id);
-        }
-      }
-      return [];
-    });
+    for (const eventId of selectedEventIds) {
+      removeDraftOptimisticActionsByEventId(eventId);
+    }
+
     setSelectedEventIds([]);
   }, [
-    setSelectedEvents,
+    selectedEventIds,
     removeDraftOptimisticActionsByEventId,
     setSelectedEventIds,
   ]);

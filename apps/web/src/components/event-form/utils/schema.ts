@@ -1,21 +1,12 @@
-import { createFormHook, createFormHookContexts } from "@tanstack/react-form";
 import { Temporal } from "temporal-polyfill";
 import { zZonedDateTimeInstance } from "temporal-zod";
 import * as z from "zod";
 
 import { recurrenceSchema } from "@repo/api/schemas";
 
-export const { fieldContext, formContext, useFieldContext } =
-  createFormHookContexts();
+import { createEventId } from "@/lib/utils/calendar";
 
-export const { useAppForm, withForm } = createFormHook({
-  fieldContext,
-  formContext,
-  fieldComponents: {},
-  formComponents: {},
-});
-
-const conferenceEntryPointSchema = z.object({
+export const conferenceEntryPointSchema = z.object({
   joinUrl: z.object({
     label: z.string().optional(),
     value: z.string(),
@@ -48,6 +39,17 @@ export const conferenceSchema = z.union([
 ]);
 
 export type FormConference = z.infer<typeof conferenceSchema>;
+const attendeeSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().optional(),
+  email: z.string(),
+  status: z.enum(["accepted", "declined", "tentative", "unknown"]),
+  type: z.enum(["required", "optional", "resource"]),
+  organizer: z.boolean().optional(),
+  comment: z.string().optional(),
+});
+
+export type FormAttendee = z.infer<typeof attendeeSchema>;
 
 export const formSchema = z.object({
   id: z.string(),
@@ -65,42 +67,10 @@ export const formSchema = z.object({
     accountId: z.string(),
     calendarId: z.string(),
   }),
-  attendees: z.array(
-    z.object({
-      id: z.string().optional(),
-      name: z.string().optional(),
-      email: z.string(),
-      status: z.enum(["accepted", "declined", "tentative", "unknown"]),
-      type: z.enum(["required", "optional", "resource"]),
-      organizer: z.boolean().optional(),
-      comment: z.string().optional(),
-    }),
-  ),
+  attendees: z.array(attendeeSchema),
   conference: conferenceSchema.optional(),
   providerId: z.enum(["google", "microsoft"]),
   visibility: z.enum(["default", "public", "private", "confidential"]),
 });
 
 export type FormValues = z.infer<typeof formSchema>;
-
-export const defaultValues: FormValues = {
-  id: "",
-  type: "draft",
-  title: "",
-  start: Temporal.Now.zonedDateTimeISO(),
-  end: Temporal.Now.zonedDateTimeISO().add({ hours: 2 }),
-  isAllDay: false,
-  location: "",
-  availability: "busy",
-  description: "",
-  recurrence: undefined,
-  recurringEventId: undefined,
-  attendees: [],
-  calendar: {
-    accountId: "",
-    calendarId: "",
-  },
-  conference: undefined,
-  providerId: "google",
-  visibility: "default",
-};

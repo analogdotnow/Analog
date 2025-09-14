@@ -6,15 +6,16 @@ import { useHotkeys } from "react-hotkeys-hook";
 import { Temporal } from "temporal-polyfill";
 
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
+import { selectedEventIdsAtom } from "@/atoms/selected-events";
 import { useDeleteAction } from "@/components/calendar/flows/delete-event/use-delete-action";
 import {
   useCreateDraftAction,
   useUnselectAllAction,
 } from "@/components/calendar/hooks/use-optimistic-mutations";
-import { useSelectedEvents } from "@/components/calendar/hooks/use-selected-events";
 import { DeleteEventConfirmation } from "@/components/delete-event-confirmation";
 import { useSidebarWithSide } from "@/components/ui/sidebar";
-import { createDraftEvent, isDraftEvent } from "@/lib/utils/calendar";
+import { createDraftEvent } from "@/lib/utils/calendar";
+import { getEventById } from "../db";
 
 const KEYBOARD_SHORTCUTS = {
   CREATE_EVENT: "c",
@@ -27,7 +28,7 @@ export function EventHotkeys() {
   const { open: rightSidebarOpen, setOpen: setRightSidebarOpen } =
     useSidebarWithSide("right");
   const settings = useAtomValue(calendarSettingsAtom);
-  const selectedEvents = useSelectedEvents();
+  const selectedEventIds = useAtomValue(selectedEventIdsAtom);
 
   const createDraftAction = useCreateDraftAction();
 
@@ -51,20 +52,22 @@ export function EventHotkeys() {
 
   useHotkeys(
     KEYBOARD_SHORTCUTS.JOIN_MEETING,
-    () => {
-      if (!selectedEvents[0] || !selectedEvents[0].conference) {
+    async () => {
+      if (!selectedEventIds[0]) {
         return;
       }
 
+      const event = await getEventById(selectedEventIds[0]);
+
       if (
-        selectedEvents[0].conference?.type !== "conference" ||
-        !selectedEvents[0].conference?.video?.joinUrl
+        event?.conference?.type !== "conference" ||
+        !event?.conference?.video?.joinUrl
       ) {
         return;
       }
 
       window.open(
-        selectedEvents[0].conference.video.joinUrl.value,
+        event.conference.video.joinUrl.value,
         "_blank",
         "noopener,noreferrer",
       );
@@ -75,7 +78,7 @@ export function EventHotkeys() {
   useHotkeys(
     KEYBOARD_SHORTCUTS.DELETE_EVENT,
     () => {
-      if (!selectedEvents[0]) {
+      if (!selectedEventIds[0]) {
         return;
       }
 
@@ -97,20 +100,22 @@ export function EventHotkeys() {
 
   const [open, setOpen] = React.useState(false);
 
-  const onConfirm = React.useCallback(() => {
-    if (!selectedEvents[0]) {
+  const onConfirm = React.useCallback(async () => {
+    if (!selectedEventIds[0]) {
       return;
     }
 
-    if (isDraftEvent(selectedEvents[0])) {
+    const event = await getEventById(selectedEventIds[0]);
+
+    if (!event) {
       unselectAllAction();
       return;
     }
 
-    deleteAction({ event: selectedEvents[0] });
-  }, [selectedEvents, deleteAction, unselectAllAction]);
+    deleteAction({ event });
+  }, [selectedEventIds, deleteAction, unselectAllAction]);
 
-  if (!selectedEvents[0]) {
+  if (!selectedEventIds[0]) {
     return null;
   }
 

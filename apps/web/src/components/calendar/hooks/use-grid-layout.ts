@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import * as React from "react";
 import { useAtomValue } from "jotai";
 import { Temporal } from "temporal-polyfill";
 
@@ -33,7 +33,7 @@ export function useGridLayout(
 
   const viewPreferences = useAtomValue(viewPreferencesAtom);
 
-  const gridTemplateColumns = useMemo(() => {
+  return React.useMemo(() => {
     const columnSizes = days.map((day) => {
       // A day is visible if either the user wants to show weekends or the day is **not** a weekend.
       // We always rely on the actual `Date` object instead of a numeric index so that the check works
@@ -47,6 +47,4 @@ export function useGridLayout(
 
     return includeTimeColumn ? `${timeColumnWidth} ${dayColumns}` : dayColumns;
   }, [days, viewPreferences.showWeekends, includeTimeColumn, timeColumnWidth]);
-
-  return gridTemplateColumns;
 }

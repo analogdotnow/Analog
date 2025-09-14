@@ -7,8 +7,8 @@ import { isWeekend } from "@repo/temporal";
 
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { currentDateAtom, viewPreferencesAtom } from "@/atoms/view-preferences";
+import { useEdgeAutoScroll } from "@/components/calendar/hooks/drag-and-drop/use-auto-scroll";
 import type { EventCollectionItem } from "@/components/calendar/hooks/event-collection";
-import { useEdgeAutoScroll } from "@/components/calendar/hooks/use-auto-scroll";
 import { useEventCollection } from "@/components/calendar/hooks/use-event-collection";
 import { useGridLayout } from "@/components/calendar/hooks/use-grid-layout";
 import { TimeIndicatorBackground } from "@/components/calendar/timeline/time-indicator";

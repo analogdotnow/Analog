@@ -4,16 +4,24 @@ import { Textarea } from "@/components/ui/textarea";
 import { useAutoResizeTextarea } from "@/hooks/use-auto-resize-textarea";
 import { cn } from "@/lib/utils";
 
-type DescriptionFieldProps = Omit<
-  React.ComponentPropsWithoutRef<typeof Textarea>,
-  "rows" | "placeholder"
->;
+interface DescriptionFieldProps
+  extends Omit<React.ComponentPropsWithoutRef<typeof Textarea>, "onChange"> {
+  onChange: (value: string) => void;
+}
 
 export function DescriptionField({
   className,
+  onChange,
   ...props
 }: DescriptionFieldProps) {
   const ref = useAutoResizeTextarea(120);
+
+  const onTextareaChange = React.useCallback(
+    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      onChange?.(e.target.value);
+    },
+    [onChange],
+  );
 
   return (
     <Textarea
@@ -24,6 +32,7 @@ export function DescriptionField({
       ref={ref}
       placeholder="Description"
       rows={1}
+      onChange={onTextareaChange}
       {...props}
     />
   );

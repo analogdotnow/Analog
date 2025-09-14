@@ -218,3 +218,5 @@ export function DateInput({
     </Popover>
   );
 }
+
+export const MemoizedDateInput = React.memo(DateInput);

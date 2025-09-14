@@ -9,12 +9,14 @@ import { CalendarEvent } from "@repo/api/interfaces";
 export interface CreateQueueRequest {
   event: CalendarEvent;
   notify?: boolean;
+  onSuccess?: () => void;
 }
 
 export interface CreateQueueItem {
   optimisticId: string;
   event: CalendarEvent;
   notify?: boolean;
+  onSuccess?: () => void;
 }
 
 export function hasAttendees(event: CalendarEvent) {

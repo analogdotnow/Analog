@@ -7,9 +7,17 @@ import { Guard } from "xstate/guards";
 import type { CalendarEvent } from "@/lib/interfaces";
 
 export interface UpdateQueueRequest {
+  changes: Partial<CalendarEvent> & Required<Pick<CalendarEvent, "id">>;
+  scope?: "series" | "instance";
+  notify?: boolean;
+  onSuccess?: () => void;
+}
+
+export interface ReplaceQueueRequest {
   event: CalendarEvent;
   scope?: "series" | "instance";
   notify?: boolean;
+  onSuccess?: () => void;
 }
 
 export interface UpdateQueueItem {
@@ -17,6 +25,7 @@ export interface UpdateQueueItem {
   event: CalendarEvent;
   scope?: "series" | "instance";
   notify?: boolean;
+  onSuccess?: () => void;
 }
 
 export function isRecurring(event: CalendarEvent) {

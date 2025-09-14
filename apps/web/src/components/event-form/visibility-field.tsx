@@ -28,6 +28,7 @@ const BASE_OPTIONS: { value: VisibilityOption; label: string }[] = [
   { value: "public", label: "Public" },
   { value: "private", label: "Private" },
 ];
+
 const CONFIDENTIAL_OPTION: {
   value: VisibilityOption;
   label: string;

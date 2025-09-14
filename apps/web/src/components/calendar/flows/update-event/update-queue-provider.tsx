@@ -4,13 +4,10 @@ import { createActorContext } from "@xstate/react";
 import { useSetAtom } from "jotai";
 
 import { removeOptimisticActionAtom } from "@/components/calendar/hooks/optimistic-actions";
-import {
-  buildUpdateEvent,
-  buildUpdateSeries,
-} from "@/components/calendar/hooks/update-utils";
 import { useUpdateEventMutation } from "@/components/calendar/hooks/use-event-mutations";
 import { useEventQueryParams } from "@/components/calendar/hooks/use-events";
 import { createUpdateQueueMachine, type UpdateQueueItem } from "./update-queue";
+import { buildUpdateEvent, buildUpdateSeries } from "./utils";
 
 export const UpdateQueueContext = createActorContext(
   createUpdateQueueMachine({
@@ -44,8 +41,14 @@ export function UpdateQueueProvider({ children }: UpdateQueueProviderProps) {
         updateMutation.mutate(
           buildUpdateSeries(item.event, prevEvent, { sendUpdate }),
           {
-            onSettled: () => {
+            onError: () => {
               removeOptimisticAction(item.optimisticId);
+            },
+            onSuccess: () => {
+              // removeOptimisticAction(item.optimisticId);
+              if (item.onSuccess) {
+                item.onSuccess();
+              }
             },
           },
         );
@@ -56,8 +59,14 @@ export function UpdateQueueProvider({ children }: UpdateQueueProviderProps) {
       updateMutation.mutate(
         buildUpdateEvent(item.event, prevEvent, { sendUpdate }),
         {
-          onSettled: () => {
+          onError: () => {
             removeOptimisticAction(item.optimisticId);
+          },
+          onSuccess: () => {
+            // removeOptimisticAction(item.optimisticId);
+            if (item.onSuccess) {
+              item.onSuccess();
+            }
           },
         },
       );

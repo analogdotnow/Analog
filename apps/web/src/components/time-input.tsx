@@ -317,3 +317,4 @@ function TimeInputList({ suggestions, onSelect }: TimeInputListProps) {
 }
 
 const MemoizedTimeInputList = React.memo(TimeInputList);
+export const MemoizedTimeInput = React.memo(TimeInput);

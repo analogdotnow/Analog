@@ -38,6 +38,7 @@ export function useCreateAction() {
         optimisticId,
         event: req.event,
         notify: req.notify,
+        onSuccess: req.onSuccess,
       };
 
       actorRef.send({ type: "START", item });

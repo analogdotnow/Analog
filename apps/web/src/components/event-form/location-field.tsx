@@ -8,7 +8,7 @@ type LocationFieldProps = {
   id?: string;
   name?: string;
   value?: string;
-  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onChange?: (value: string) => void;
   onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
 };
 
@@ -25,23 +25,8 @@ export function LocationField({
         className,
       )}
       value={typeof value === "string" ? value : undefined}
-      onValueChange={(val: string) => {
-        if (onChange) {
-          // Create a synthetic input event-like object for upstream consumers
-          const event = {
-            target: { value: val },
-          } as unknown as React.ChangeEvent<HTMLInputElement>;
-          onChange(event);
-        }
-      }}
-      onSubmit={(address) => {
-        if (onChange) {
-          const event = {
-            target: { value: address },
-          } as unknown as React.ChangeEvent<HTMLInputElement>;
-          onChange(event);
-        }
-      }}
+      onValueChange={onChange}
+      onSubmit={onChange}
       id={props.id}
       name={props.name}
       onBlur={props.onBlur}
