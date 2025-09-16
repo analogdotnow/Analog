@@ -10,6 +10,7 @@ import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { timeZonesAtom } from "@/atoms/timezones";
 import { currentDateAtom } from "@/atoms/view-preferences";
 import { range } from "@/lib/utils";
+import { WeekViewHeaderTimeZone } from "../week-view/week-view-header-time-zone";
 
 export function TimelineHeader() {
   const timeZones = useAtomValue(timeZonesAtom);
@@ -17,7 +18,7 @@ export function TimelineHeader() {
   return (
     <div className="grid grid-flow-col grid-cols-[3rem_repeat(auto-fill,_2.5rem)] items-end justify-end py-2 pb-2.5 text-center text-sm text-[10px] font-medium text-muted-foreground/70 sm:grid-cols-[4rem_repeat(auto-fill,_3rem)] sm:text-xs">
       {timeZones.map((timeZone) => (
-        <TimelineHeaderItem key={timeZone.id} timeZone={timeZone.id} />
+        <WeekViewHeaderTimeZone key={timeZone.id} timeZone={timeZone.id} />
       ))}
     </div>
   );

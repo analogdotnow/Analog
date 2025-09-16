@@ -21,6 +21,7 @@ export function TimeIndicator({ date }: TimeIndicatorProps) {
     <div
       className="pointer-events-none absolute right-0 left-0 z-20 select-none"
       style={{ top: `${currentTimePosition}%` }}
+      suppressHydrationWarning
     >
       <div className="relative flex items-center gap-0.5">
         <div className="absolute left-0.5 h-3.5 w-1 rounded-full bg-red-500/90"></div>

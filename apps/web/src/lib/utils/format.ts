@@ -1,4 +1,4 @@
-import { format } from "@formkit/tempo";
+import * as Tempo from "@formkit/tempo";
 import { Temporal } from "temporal-polyfill";
 
 import { toDate } from "@repo/temporal";
@@ -19,7 +19,7 @@ export function formatTime({
   const date = toDate(value, { timeZone: timeZone ?? value.timeZoneId });
 
   if (use12Hour) {
-    return format({
+    return Tempo.format({
       date,
       format: "h:mm a",
       locale,
@@ -27,10 +27,19 @@ export function formatTime({
     });
   }
 
-  return format({
+  return Tempo.format({
     date,
     format: "HH:mm",
     locale,
     tz: value.timeZoneId,
+  });
+}
+
+export function format(value: Temporal.ZonedDateTime, format: Tempo.Format, locale: string, timeZone?: string) {
+  return Tempo.format({
+    date: toDate(value, { timeZone: timeZone ?? value.timeZoneId }),
+    format,
+    locale,
+    tz: timeZone ?? value.timeZoneId,
   });
 }

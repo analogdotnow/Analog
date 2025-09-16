@@ -23,31 +23,9 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { TimeZoneAwareGlobeIcon } from "./timezone-aware-globe-icon";
 
 const timezones = Intl.supportedValuesOf("timeZone").concat(["UTC"]);
-
-interface GlobeIconProps {
-  offset: number;
-  className?: string;
-}
-
-/**
- * Globe icon component that shows the appropriate region based on timezone offset
- * @param offset - The numeric UTC offset (e.g., -5, +1, +9)
- * @param className - Optional CSS classes to apply to the icon
- */
-function GlobeIcon({ offset, className }: GlobeIconProps) {
-  if (offset >= -11 && offset <= -3) {
-    // Americas: UTC-11 to UTC-3 (Hawaii to Brazil)
-    return <GlobeAmericasIcon className={className} />;
-  } else if (offset >= 4 && offset <= 12) {
-    // Asia/Australia: UTC+4 to UTC+12 (Middle East to Pacific)
-    return <GlobeAsiaAustraliaIcon className={className} />;
-  } else {
-    // Europe/Africa: UTC-1 to UTC+3 and edge cases
-    return <GlobeEuropeAfricaIcon className={className} />;
-  }
-}
 
 const formattedTimezones = timezones
   .map((timeZone) => getDisplayValue(timeZone))
@@ -61,6 +39,7 @@ interface TimezoneSelectProps {
   disabled?: boolean;
   isDirty?: boolean;
 }
+
 function getDisplayValue(timeZone: string) {
   const formatter = new Intl.DateTimeFormat("en", {
     timeZone,
@@ -166,7 +145,7 @@ export function TimezoneSelect({
             className={cn("w-full justify-start gap-2.5 px-2", className)}
             disabled={disabled}
           >
-            <GlobeIcon
+            <TimeZoneAwareGlobeIcon
               offset={displayValue?.numericOffset ?? 0}
               className="size-4 text-muted-foreground hover:text-foreground"
             />
