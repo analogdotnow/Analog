@@ -1,11 +1,10 @@
 import * as React from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import { createActorContext } from "@xstate/react";
 import { useSetAtom } from "jotai";
 
 import { removeOptimisticActionAtom } from "@/components/calendar/hooks/optimistic-actions";
 import { useUpdateEventMutation } from "@/components/calendar/hooks/use-event-mutations";
-import { useEventQueryParams } from "@/components/calendar/hooks/use-events";
+import { getEventById } from "@/lib/db";
 import { createUpdateQueueMachine, type UpdateQueueItem } from "./update-queue";
 import { buildUpdateEvent, buildUpdateSeries } from "./utils";
 
@@ -21,34 +20,33 @@ interface UpdateQueueProviderProps {
 }
 
 export function UpdateQueueProvider({ children }: UpdateQueueProviderProps) {
-  const queryClient = useQueryClient();
-  const { queryKey } = useEventQueryParams();
   const updateMutation = useUpdateEventMutation();
   const removeOptimisticAction = useSetAtom(removeOptimisticActionAtom);
 
   const updateEvent = React.useCallback(
     async (item: UpdateQueueItem) => {
-      const events = queryClient.getQueryData(queryKey)?.events ?? [];
-      const prevEvent = events.find((e) => e.id === item.event.id);
+      const prevEvent = await getEventById(item.event.id);
 
       if (!prevEvent) {
-        throw new Error("Previous event not found");
-      }
+        if (item.event.type !== "draft") {
+          throw new Error("Event not found");
+        }
 
-      const sendUpdate = item.notify ?? undefined;
+        item.onSuccess?.();
+
+        return;
+      }
 
       if (item.event.recurringEventId && item.scope === "series") {
         updateMutation.mutate(
-          buildUpdateSeries(item.event, prevEvent, { sendUpdate }),
+          buildUpdateSeries(item.event, prevEvent, { sendUpdate: item.notify }),
           {
             onError: () => {
               removeOptimisticAction(item.optimisticId);
             },
             onSuccess: () => {
               // removeOptimisticAction(item.optimisticId);
-              if (item.onSuccess) {
-                item.onSuccess();
-              }
+              item.onSuccess?.();
             },
           },
         );
@@ -57,21 +55,19 @@ export function UpdateQueueProvider({ children }: UpdateQueueProviderProps) {
       }
 
       updateMutation.mutate(
-        buildUpdateEvent(item.event, prevEvent, { sendUpdate }),
+        buildUpdateEvent(item.event, prevEvent, { sendUpdate: item.notify }),
         {
           onError: () => {
             removeOptimisticAction(item.optimisticId);
           },
           onSuccess: () => {
             // removeOptimisticAction(item.optimisticId);
-            if (item.onSuccess) {
-              item.onSuccess();
-            }
+            item.onSuccess?.();
           },
         },
       );
     },
-    [queryClient, queryKey, updateMutation, removeOptimisticAction],
+    [updateMutation, removeOptimisticAction],
   );
 
   const logic = React.useMemo(() => {

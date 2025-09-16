@@ -143,7 +143,6 @@ export function usePartialUpdateAction() {
 
 export function useUpdateAction() {
   const actorRef = UpdateQueueContext.useActorRef();
-
   const updateOptimisticUpdate = useOptimisticUpdateAction();
 
   return React.useCallback(

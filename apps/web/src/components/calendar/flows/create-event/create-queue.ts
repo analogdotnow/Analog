@@ -4,7 +4,7 @@ import { assign, fromPromise, setup } from "xstate";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Guard } from "xstate/guards";
 
-import { CalendarEvent } from "@repo/api/interfaces";
+import type { CalendarEvent } from "@/lib/interfaces";
 
 export interface CreateQueueRequest {
   event: CalendarEvent;
