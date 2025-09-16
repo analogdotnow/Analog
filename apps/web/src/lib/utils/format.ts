@@ -35,7 +35,12 @@ export function formatTime({
   });
 }
 
-export function format(value: Temporal.ZonedDateTime, format: Tempo.Format, locale: string, timeZone?: string) {
+export function format(
+  value: Temporal.ZonedDateTime,
+  format: Tempo.Format,
+  locale: string,
+  timeZone?: string,
+) {
   return Tempo.format({
     date: toDate(value, { timeZone: timeZone ?? value.timeZoneId }),
     format,

@@ -42,7 +42,6 @@ export function applyOptimisticActions({
     } else if (action.type === "draft") {
       const item = convertEventToItem(action.event, timeZone);
 
-      console.log("DRAFT ITEM", JSON.stringify(item, null, 2));
       optimisticItems = insertIntoSorted(optimisticItems, item, (a) =>
         isBefore(a.start, action.event.start, {
           timeZone,

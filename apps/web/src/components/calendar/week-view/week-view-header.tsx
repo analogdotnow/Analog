@@ -1,3 +1,5 @@
+"use client";
+
 import * as React from "react";
 import { format } from "date-fns";
 import { useAtomValue } from "jotai";
@@ -8,32 +10,16 @@ import { isToday, isWeekend, toDate } from "@repo/temporal";
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { viewPreferencesAtom } from "@/atoms/view-preferences";
 import { cn } from "@/lib/utils";
-import { TimelineHeader } from "../timeline/timeline";
+import { TimelineHeader } from "../timeline/timeline-header";
 
 interface WeekViewHeaderProps {
   allDays: Temporal.PlainDate[];
 }
 
 export function WeekViewHeader({ allDays }: WeekViewHeaderProps) {
-  const settings = useAtomValue(calendarSettingsAtom);
-
-  const timeZone = React.useMemo(() => {
-    const value = toDate(allDays[0]!, { timeZone: settings.defaultTimeZone });
-
-    const parts = new Intl.DateTimeFormat(settings.locale, {
-      timeZoneName: "short",
-      timeZone: settings.defaultTimeZone,
-    }).formatToParts(value);
-
-    return parts.find((part) => part.type === "timeZoneName")?.value ?? " ";
-  }, [allDays, settings.defaultTimeZone, settings.locale]);
-
   return (
     <div className="grid grid-cols-(--week-view-grid) border-b border-border/70 transition-[grid-template-columns] duration-200 ease-linear select-none">
       <TimelineHeader />
-      {/* <div className="flex flex-col items-end justify-end py-2 pe-2 pb-2.5 text-center text-sm text-[10px] font-medium text-muted-foreground/70 sm:pe-4 sm:text-xs">
-        <span className="max-[479px]:sr-only">{timeZone}</span>
-      </div> */}
       {allDays.map((day) => (
         <WeekViewHeaderDay key={day.toString()} day={day} />
       ))}
@@ -51,7 +37,10 @@ function WeekViewHeaderDay({ day }: WeekViewHeaderDayProps) {
 
   const isDayVisible = viewPreferences.showWeekends || !isWeekend(day);
 
-  const value = toDate(day, { timeZone: settings.defaultTimeZone });
+  const value = React.useMemo(
+    () => toDate(day, { timeZone: settings.defaultTimeZone }),
+    [day, settings.defaultTimeZone],
+  );
 
   return (
     <div

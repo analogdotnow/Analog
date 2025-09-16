@@ -20,10 +20,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useLiveEventById } from "@/lib/db";
+import { CalendarEvent } from "@/lib/interfaces";
 import { cn } from "@/lib/utils";
 import { RecurrenceDialog } from "./recurrence-dialog";
 import { generateRecurrenceSuggestions } from "./recurrence-suggestions";
-import { CalendarEvent } from "@/lib/interfaces";
 
 interface RecurrenceFieldProps {
   className?: string;
@@ -44,7 +44,10 @@ function useBaseEvent(recurringEventId?: string) {
       return undefined;
     }
 
-    return event as Omit<CalendarEvent, "recurrence"> & Required<Pick<CalendarEvent, "recurrence">> | undefined;
+    return event as
+      | (Omit<CalendarEvent, "recurrence"> &
+          Required<Pick<CalendarEvent, "recurrence">>)
+      | undefined;
   }, [event, recurringEventId]);
 }
 
@@ -104,7 +107,11 @@ export function RecurrenceField({
     return date.timeZoneId;
   }, [date]);
 
-  const recurrence = useRecurrence({ recurrence: displayRecurrence ?? undefined, date, timeZone });
+  const recurrence = useRecurrence({
+    recurrence: displayRecurrence ?? undefined,
+    date,
+    timeZone,
+  });
 
   return (
     <DropdownMenu>
@@ -130,7 +137,8 @@ export function RecurrenceField({
                 !displayRecurrence && "text-muted-foreground/70",
               )}
             >
-              {recurrence.description ?? (recurringEventId ? "Recurring" : "Repeat")}
+              {recurrence.description ??
+                (recurringEventId ? "Recurring" : "Repeat")}
             </span>
           </Button>
         </DropdownMenuTrigger>

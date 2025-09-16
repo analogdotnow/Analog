@@ -1,4 +1,8 @@
-import { GlobeAmericasIcon, GlobeAsiaAustraliaIcon, GlobeEuropeAfricaIcon } from "@heroicons/react/16/solid";
+import {
+  GlobeAmericasIcon,
+  GlobeAsiaAustraliaIcon,
+  GlobeEuropeAfricaIcon,
+} from "@heroicons/react/16/solid";
 
 interface TimeZoneAwareGlobeIconProps {
   offset: number;
@@ -10,7 +14,10 @@ interface TimeZoneAwareGlobeIconProps {
  * @param offset - The numeric UTC offset (e.g., -5, +1, +9)
  * @param className - Optional CSS classes to apply to the icon
  */
-export function TimeZoneAwareGlobeIcon({ offset, className }: TimeZoneAwareGlobeIconProps) {
+export function TimeZoneAwareGlobeIcon({
+  offset,
+  className,
+}: TimeZoneAwareGlobeIconProps) {
   if (offset >= -11 && offset <= -3) {
     // Americas: UTC-11 to UTC-3 (Hawaii to Brazil)
     return <GlobeAmericasIcon className={className} />;

@@ -3,6 +3,7 @@
 import * as React from "react";
 import { geoEquirectangular } from "d3-geo";
 import { line } from "d3-shape";
+import { useAtomValue } from "jotai";
 import {
   ComposableMap,
   Geographies,
@@ -10,13 +11,13 @@ import {
   Marker,
   ProjectionFunction,
 } from "react-simple-maps";
-
-import WorldMap from "./land-110m.json";
-import { useZonedDateTime } from "./calendar/context/datetime-provider";
-import { calendarSettingsAtom } from "@/atoms/calendar-settings";
-import { useAtomValue } from "jotai";
 import { Temporal } from "temporal-polyfill";
+
 import { TIMEZONE_LOCATIONS } from "@repo/timezones";
+
+import { calendarSettingsAtom } from "@/atoms/calendar-settings";
+import { useZonedDateTime } from "@/components/calendar/context/datetime-provider";
+import WorldMap from "./land-110m.json";
 
 interface UseTerminatorProps {
   step?: number;
@@ -32,15 +33,15 @@ function useTerminator({ step = 2, date }: UseTerminatorProps) {
     // Calculate the sun's subsolar point (where sun is directly overhead)
     const declination =
       (23.45 *
-        Math.sin((((360 * (284 + timeInUTC.dayOfYear)) / 365) * Math.PI) / 180) *
+        Math.sin(
+          (((360 * (284 + timeInUTC.dayOfYear)) / 365) * Math.PI) / 180,
+        ) *
         Math.PI) /
       180;
 
     // Solar longitude (where the sun is at zenith)
     const utcHours =
-      timeInUTC.hour +
-      timeInUTC.minute / 60 +
-      timeInUTC.second / 3600;
+      timeInUTC.hour + timeInUTC.minute / 60 + timeInUTC.second / 3600;
     const solarLongitude = (utcHours - 12) * 15; // 15 degrees per hour
 
     const φ0 = (declination * 180) / Math.PI; // Sun's declination in degrees
@@ -65,25 +66,27 @@ function useTerminator({ step = 2, date }: UseTerminatorProps) {
       }
     }
 
-    console.log(`Sun position: φ0=${φ0.toFixed(2)}°, λ0=${λ0.toFixed(2)}°`);
-    console.log(`Terminator points: ${pts.length}`);
-
     return {
       terminator: pts,
       sunLongitude: λ0,
       sunDeclination: φ0,
-    }
-
+    };
   }, [now, step, date]);
 }
 
 interface SolarTerminatorMapProps {
-  timeZone: string;
+  timeZoneId: string;
   date: Temporal.PlainDate;
 }
 
-export function SolarTerminatorMap({ timeZone, date }: SolarTerminatorMapProps) {
-  const projection = React.useMemo(() => geoEquirectangular().scale(128).translate([400, 200]), [])
+export function SolarTerminatorMap({
+  timeZoneId,
+  date,
+}: SolarTerminatorMapProps) {
+  const projection = React.useMemo(
+    () => geoEquirectangular().scale(128).translate([400, 200]),
+    [],
+  );
 
   const { terminator, sunDeclination } = useTerminator({ step: 2, date });
 
@@ -159,23 +162,27 @@ export function SolarTerminatorMap({ timeZone, date }: SolarTerminatorMapProps) 
 
   return (
     <div className="flex flex-col items-center justify-center">
-      <div className="rounded-md overflow-hidden">
-        <svg className="w-full h-full" viewBox="0 0 800 400">
-          <ComposableMap projection={projection as unknown as ProjectionFunction} width={800} height={400}>
+      <div className="overflow-hidden rounded-md">
+        <svg className="h-full w-full" viewBox="0 0 800 400">
+          <ComposableMap
+            projection={projection as unknown as ProjectionFunction}
+            width={800}
+            height={400}
+          >
             <defs>
               <mask id="map" fill="white">
-              <Geographies geography={WorldMap}>
-                {({ geographies }) =>
-                  geographies.map((geo) => (
-                    <Geography
-                      key={geo.rsmKey}
-                      geography={geo}
-                      className="outline-none fill-white stroke-white"
-                      strokeWidth={1}
-                    />
-                  ))
-                }
-              </Geographies>
+                <Geographies geography={WorldMap}>
+                  {({ geographies }) =>
+                    geographies.map((geo) => (
+                      <Geography
+                        key={geo.rsmKey}
+                        geography={geo}
+                        className="fill-white stroke-white outline-none"
+                        strokeWidth={1}
+                      />
+                    ))
+                  }
+                </Geographies>
               </mask>
               <mask id="night" fill="white">
                 <rect width="100%" height="100%" />
@@ -199,10 +206,10 @@ export function SolarTerminatorMap({ timeZone, date }: SolarTerminatorMapProps) 
 
             <path
               d={terminatorPath}
-              className="stroke-primary/20 fill-none"
+              className="fill-none stroke-primary/20"
               strokeWidth={2}
             />
-            <TimeZoneMarkers timeZone={timeZone} />
+            <TimeZoneMarkers timeZoneId={timeZoneId} />
           </ComposableMap>
         </svg>
       </div>
@@ -210,22 +217,16 @@ export function SolarTerminatorMap({ timeZone, date }: SolarTerminatorMapProps) 
   );
 }
 
-const TIMEZONE_MARKERS: Record<string, [number, number]> = {
-
-  "America/Los_Angeles": [-118.243683, 34.052235],
-  "Europe/Amsterdam": [4.897070, 52.377956],
-}
-
 interface TimeZoneMarkersProps {
-  timeZone: string;
+  timeZoneId: string;
 }
 
-function TimeZoneMarkers({ timeZone }: TimeZoneMarkersProps) {
+function TimeZoneMarkers({ timeZoneId }: TimeZoneMarkersProps) {
   const { defaultTimeZone } = useAtomValue(calendarSettingsAtom);
 
-  if (timeZone === defaultTimeZone) {
+  if (timeZoneId === defaultTimeZone) {
     const coordinates = TIMEZONE_LOCATIONS[defaultTimeZone];
-    
+
     if (!coordinates) {
       return null;
     }
@@ -233,23 +234,24 @@ function TimeZoneMarkers({ timeZone }: TimeZoneMarkersProps) {
       <Marker coordinates={[coordinates[1], coordinates[0]]}>
         <circle r={4} className="fill-red-500/80" />
       </Marker>
-    )
+    );
   }
 
-  const coordinatesA = TIMEZONE_LOCATIONS[timeZone];
+  const coordinatesA = TIMEZONE_LOCATIONS[timeZoneId];
   const coordinatesB = TIMEZONE_LOCATIONS[defaultTimeZone];
 
   return (
     <>
-      {coordinatesA ? <Marker coordinates={[coordinatesA[1], coordinatesA[0]]}>
-        <circle r={4} className="fill-red-500/80" />
-      </Marker>
-      : null}
-      {coordinatesB ? <Marker coordinates={[coordinatesB[1], coordinatesB[0]]}>
-        <circle r={4} className="fill-yellow-500/80" />
+      {coordinatesA ? (
+        <Marker coordinates={[coordinatesA[1], coordinatesA[0]]}>
+          <circle r={4} className="fill-red-500/80" />
         </Marker>
-      : null}
-      
+      ) : null}
+      {coordinatesB ? (
+        <Marker coordinates={[coordinatesB[1], coordinatesB[0]]}>
+          <circle r={4} className="fill-yellow-500/80" />
+        </Marker>
+      ) : null}
     </>
-  )
+  );
 }

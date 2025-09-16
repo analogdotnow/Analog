@@ -55,12 +55,12 @@ export function CalendarViewTitle({ className }: CalendarViewTitleProps) {
     <div className="relative h-8 w-full">
       <Popover>
         <PopoverTrigger asChild>
-          <Button variant="ghost" className="w-fit px-2 py-0 h-8">
+          <Button variant="ghost" className="h-8 w-fit px-2 py-0">
             <AnimatePresence>
               <motion.h2
                 key={titleData.full}
                 className={cn(
-                  "inset-0 flex items-center justify-start gap-2 transition-all leading-none h-8",
+                  "inset-0 flex h-8 items-center justify-start gap-2 leading-none transition-all",
                   className,
                 )}
                 variants={variants}

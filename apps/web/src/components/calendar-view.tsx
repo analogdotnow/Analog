@@ -20,7 +20,10 @@ import { useCalendarState } from "@/hooks/use-calendar-state";
 import { db, mapEventQueryInput } from "@/lib/db";
 import { cn } from "@/lib/utils";
 import { applyOptimisticActions } from "./calendar/hooks/apply-optimistic-actions";
-import { optimisticActionsAtom, optimisticActionsByEventIdAtom } from "./calendar/hooks/optimistic-actions";
+import {
+  optimisticActionsAtom,
+  optimisticActionsByEventIdAtom,
+} from "./calendar/hooks/optimistic-actions";
 import { useEventsForDisplay } from "./calendar/hooks/use-events";
 import { filterPastEvents } from "./calendar/utils/event";
 
@@ -39,7 +42,10 @@ function CalendarContent({ scrollContainerRef }: CalendarContentProps) {
   const calendarPreferences = useAtomValue(calendarPreferencesAtom);
   const optimisticActions2 = useAtomValue(optimisticActionsAtom);
 
-  console.log("optimisticActions2", JSON.stringify(optimisticActions2, null, 2));
+  console.log(
+    "optimisticActions2",
+    JSON.stringify(optimisticActions2, null, 2),
+  );
 
   React.useEffect(() => {
     db.events.bulkPut(

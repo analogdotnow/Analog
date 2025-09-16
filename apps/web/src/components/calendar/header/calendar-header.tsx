@@ -25,7 +25,7 @@ export function CalendarHeader({
     >
       <div className="flex flex-1 items-center gap-0 sm:gap-3">
         <SidebarTrigger className="-ml-1 @max-md/header:hidden" />
-        <CalendarViewTitle className="text-sm font-medium @sm/header:text-lg @md/header:text-xl h-8" />
+        <CalendarViewTitle className="h-8 text-sm font-medium @sm/header:text-lg @md/header:text-xl" />
       </div>
 
       <div className="flex items-center gap-2">

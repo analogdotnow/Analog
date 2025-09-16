@@ -143,7 +143,12 @@ export function DraggableEvent({
         });
 
         updateAction({
-          changes: { id: event.id, start, end: start.add(duration), type: event.type },
+          changes: {
+            id: event.id,
+            start,
+            end: start.add(duration),
+            type: event.type,
+          },
         });
 
         return;
@@ -164,7 +169,12 @@ export function DraggableEvent({
         });
 
         updateAction({
-          changes: { id: event.id, start, end: start.add(duration), type: event.type },
+          changes: {
+            id: event.id,
+            start,
+            end: start.add(duration),
+            type: event.type,
+          },
         });
 
         return;
@@ -174,7 +184,12 @@ export function DraggableEvent({
         const start = event.start.add({ days: columnOffset });
 
         updateAction({
-          changes: { id: event.id, start, end: start.add(duration), type: event.type },
+          changes: {
+            id: event.id,
+            start,
+            end: start.add(duration),
+            type: event.type,
+          },
         });
 
         return;
@@ -191,7 +206,12 @@ export function DraggableEvent({
         });
 
       updateAction({
-        changes: { id: event.id, start, end: start.add(duration), type: event.type },
+        changes: {
+          id: event.id,
+          start,
+          end: start.add(duration),
+          type: event.type,
+        },
       });
     },
     [updateAction, cellHeight, view, rows, containerRef],
@@ -318,7 +338,11 @@ export function DraggableEvent({
       });
 
       updateAction({
-        changes: { id: eventRef.current.id, start: rounded, type: eventRef.current.type },
+        changes: {
+          id: eventRef.current.id,
+          start: rounded,
+          type: eventRef.current.type,
+        },
       });
     },
     [updateAction, cellHeight],
@@ -337,7 +361,11 @@ export function DraggableEvent({
       });
 
       updateAction({
-        changes: { id: eventRef.current.id, end: rounded, type: eventRef.current.type },
+        changes: {
+          id: eventRef.current.id,
+          end: rounded,
+          type: eventRef.current.type,
+        },
       });
     },
     [updateAction, cellHeight],

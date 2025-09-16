@@ -139,7 +139,6 @@ export const db = new Database();
 export async function getEventById(id: string) {
   const row = await db.events.where("id").equals(id).first();
 
-  // console.log("getEventById row", JSON.stringify(row, null, 2));
   if (!row) {
     return undefined;
   }
