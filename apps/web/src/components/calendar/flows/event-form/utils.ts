@@ -1,6 +1,6 @@
 import { Temporal } from "temporal-polyfill";
 
-import { CalendarEvent } from "@repo/api/interfaces";
+import type { CalendarEvent } from "@/lib/interfaces";
 
 function isStartDateTimeEqual(
   event: CalendarEvent,

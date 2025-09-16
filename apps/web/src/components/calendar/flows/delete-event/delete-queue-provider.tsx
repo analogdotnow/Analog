@@ -1,11 +1,10 @@
 import * as React from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import { createActorContext } from "@xstate/react";
 import { useSetAtom } from "jotai";
 
 import { removeOptimisticActionAtom } from "@/components/calendar/hooks/optimistic-actions";
 import { useDeleteEventMutation } from "@/components/calendar/hooks/use-event-mutations";
-import { useEventQueryParams } from "@/components/calendar/hooks/use-events";
+import { getEventById } from "@/lib/db";
 import { createDeleteQueueMachine, type DeleteQueueItem } from "./delete-queue";
 
 export const DeleteQueueContext = createActorContext(
@@ -20,21 +19,20 @@ interface DeleteQueueProviderProps {
 }
 
 export function DeleteQueueProvider({ children }: DeleteQueueProviderProps) {
-  const queryClient = useQueryClient();
-  const { queryKey } = useEventQueryParams();
   const deleteMutation = useDeleteEventMutation();
   const removeOptimisticAction = useSetAtom(removeOptimisticActionAtom);
 
   const deleteEvent = React.useCallback(
     async (item: DeleteQueueItem) => {
-      const events = queryClient.getQueryData(queryKey)?.events ?? [];
-      const prevEvent = events.find((e) => e.id === item.event.id);
+      const prevEvent = await getEventById(item.event.id);
 
       if (!prevEvent) {
-        throw new Error("Previous event not found");
-      }
+        if (item.event?.type === "draft") {
+          removeOptimisticAction(item.optimisticId);
+        }
 
-      const sendUpdate = item.notify ?? undefined;
+        return;
+      }
 
       const eventId =
         item.event.recurringEventId && item.scope === "series"
@@ -46,7 +44,7 @@ export function DeleteQueueProvider({ children }: DeleteQueueProviderProps) {
           accountId: item.event.accountId,
           calendarId: item.event.calendarId,
           eventId,
-          sendUpdate,
+          sendUpdate: item.notify,
         },
         {
           onSettled: () => {
@@ -55,7 +53,7 @@ export function DeleteQueueProvider({ children }: DeleteQueueProviderProps) {
         },
       );
     },
-    [queryClient, queryKey, deleteMutation, removeOptimisticAction],
+    [deleteMutation, removeOptimisticAction],
   );
 
   const logic = React.useMemo(() => {
