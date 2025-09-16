@@ -48,7 +48,6 @@ export function DeleteQueueProvider({ children }: DeleteQueueProviderProps) {
         },
         {
           onSettled: () => {
-            console.log("onSettled delete", item.optimisticId);
             removeOptimisticAction(item.optimisticId);
           },
         },

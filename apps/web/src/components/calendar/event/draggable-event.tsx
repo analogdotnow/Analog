@@ -70,7 +70,6 @@ export function DraggableEvent({
 
   React.useEffect(() => {
     eventRef.current = eventInForm ?? item.event;
-    console.log("eventRef.current", eventRef.current.start.toString());
 
     if (initialHeight || heightRef.current !== initialHeight) {
       heightRef.current = initialHeight;
@@ -227,7 +226,6 @@ export function DraggableEvent({
   // transform so the item renders at its new computed position without a
   // visual flash. Use layout effect to apply before paint to avoid flicker.
   React.useLayoutEffect(() => {
-    console.log("resetting transform");
     top.set(0);
     left.set(0);
     height.set(initialHeight ?? "100%");

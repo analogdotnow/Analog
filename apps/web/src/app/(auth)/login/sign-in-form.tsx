@@ -46,12 +46,6 @@ export function SignInForm({ redirectUrl = "/calendar" }: SignInFormProps) {
     <Card className="max-w-xs border-none bg-transparent subpixel-antialiased shadow-none todesktop:select-none">
       <CardHeader className="flex flex-col items-center justify-center gap-4 pb-4">
         <Logo className="w-32 overflow-visible opacity-80" />
-        {/* <CardTitle className="text-center text-xl font-medium md:text-2xl">
-          Analog
-        </CardTitle> */}
-        {/* <CardDescription className="text-md text-center text-balance md:text-lg">
-          The calendar that changes everything
-        </CardDescription> */}
       </CardHeader>
       <CardContent>
         <div className="grid gap-8">

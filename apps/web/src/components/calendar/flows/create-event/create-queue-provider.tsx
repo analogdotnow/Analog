@@ -28,7 +28,6 @@ export function CreateQueueProvider({ children }: CreateQueueProviderProps) {
           item.onSuccess?.();
         },
         onSettled: () => {
-          console.log("onSettled create", item.optimisticId);
           removeOptimisticAction(item.optimisticId);
         },
       });
