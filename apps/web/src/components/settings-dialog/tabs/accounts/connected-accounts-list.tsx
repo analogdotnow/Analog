@@ -84,7 +84,7 @@ function AccountListItem({ account }: AccountListItemProps) {
       </p>
 
       <DisconnectAccountButton
-        accountId={account.id}
+        providerAccountId={account.providerAccountId}
         providerId={account.providerId}
       />
     </li>
@@ -92,12 +92,12 @@ function AccountListItem({ account }: AccountListItemProps) {
 }
 
 interface DisconnectAccountButtonProps {
-  accountId: string;
+  providerAccountId: string;
   providerId: "google" | "microsoft" | "zoom";
 }
 
 function DisconnectAccountButton({
-  accountId,
+  providerAccountId,
   providerId,
 }: DisconnectAccountButtonProps) {
   const trpc = useTRPC();
@@ -107,7 +107,7 @@ function DisconnectAccountButton({
     mutationFn: async () => {
       const { error } = await authClient.unlinkAccount({
         providerId,
-        accountId,
+        accountId: providerAccountId,
       });
 
       if (error) {
