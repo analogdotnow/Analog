@@ -43,12 +43,12 @@ export function TimeIndicatorBackground() {
       style={{ top: `${currentTimePosition}%` }}
     >
       <div className="relative flex items-center">
-        <div className="absolute flex h-4 w-20 items-center justify-end border-r border-transparent">
+        <div className="absolute flex h-4 w-(--timeline-container-width) items-center justify-end border-r border-transparent">
           <p className="z-[1000] pe-2 text-[10px] font-medium text-red-500/80 tabular-nums sm:pe-4 sm:text-xs">
             {formattedTime}
           </p>
         </div>
-        <div className="h-0.5 w-20"></div>
+        <div className="h-0.5 w-(--timeline-container-width)"></div>
         <div className="h-0.5 grow bg-red-500/10"></div>
       </div>
     </div>

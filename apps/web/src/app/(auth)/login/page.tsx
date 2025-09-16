@@ -27,7 +27,7 @@ export default async function Page({
   const showReauthAlert = errorParam === "required_scopes_missing";
 
   return (
-    <div className="flex h-dvh w-dvw items-center justify-center">
+    <div className="flex h-dvh w-dvw items-center justify-center titlebar-draggable-except-children">
       <div className="w-full max-w-sm px-4">
         {showReauthAlert ? (
           <div className="mb-6">

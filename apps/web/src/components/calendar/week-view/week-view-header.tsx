@@ -8,6 +8,7 @@ import { isToday, isWeekend, toDate } from "@repo/temporal";
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { viewPreferencesAtom } from "@/atoms/view-preferences";
 import { cn } from "@/lib/utils";
+import { TimelineHeader } from "../timeline/timeline";
 
 interface WeekViewHeaderProps {
   allDays: Temporal.PlainDate[];
@@ -28,10 +29,11 @@ export function WeekViewHeader({ allDays }: WeekViewHeaderProps) {
   }, [allDays, settings.defaultTimeZone, settings.locale]);
 
   return (
-    <div className="grid grid-cols-(--week-view-grid) border-b border-border/70 transition-[grid-template-columns] duration-200 ease-linear">
-      <div className="flex flex-col items-end justify-end py-2 pe-2 pb-2.5 text-center text-sm text-[10px] font-medium text-muted-foreground/70 sm:pe-4 sm:text-xs">
+    <div className="grid grid-cols-(--week-view-grid) border-b border-border/70 transition-[grid-template-columns] duration-200 ease-linear select-none">
+      <TimelineHeader />
+      {/* <div className="flex flex-col items-end justify-end py-2 pe-2 pb-2.5 text-center text-sm text-[10px] font-medium text-muted-foreground/70 sm:pe-4 sm:text-xs">
         <span className="max-[479px]:sr-only">{timeZone}</span>
-      </div>
+      </div> */}
       {allDays.map((day) => (
         <WeekViewHeaderDay key={day.toString()} day={day} />
       ))}
@@ -62,10 +64,15 @@ function WeekViewHeaderDay({ day }: WeekViewHeaderDayProps) {
         isToday(day, { timeZone: settings.defaultTimeZone }) || undefined
       }
     >
-      <span className="truncate sm:hidden" aria-hidden="true">
+      <span
+        className="truncate text-xs @xs/calendar-view:text-sm @md/calendar-view:hidden"
+        aria-hidden="true"
+      >
         {format(value, "E")[0]} {format(value, "d")}
       </span>
-      <span className="truncate max-sm:hidden">{format(value, "EEE d")}</span>
+      <span className="truncate text-sm @max-md/calendar-view:hidden @lg/calendar-view:text-base">
+        {format(value, "EEE d")}
+      </span>
     </div>
   );
 }

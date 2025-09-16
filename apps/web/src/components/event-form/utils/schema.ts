@@ -60,7 +60,7 @@ export const formSchema = z.object({
   isAllDay: z.boolean(),
   location: z.string(),
   availability: z.enum(["busy", "free"]),
-  recurrence: recurrenceSchema.optional(),
+  recurrence: recurrenceSchema.nullable().optional(),
   recurringEventId: z.string().optional(),
   description: z.string(),
   calendar: z.object({

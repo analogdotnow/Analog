@@ -224,7 +224,7 @@ export const createEventInputSchema = z.object({
   start: dateInputSchema,
   end: dateInputSchema,
   allDay: z.boolean().optional(),
-  recurrence: recurrenceSchema.optional(),
+  recurrence: recurrenceSchema.nullable().optional(),
   recurringEventId: z.string().optional(),
   description: z.string().optional(),
   location: z.string().optional(),
@@ -255,6 +255,40 @@ export const updateEventInputSchema = createEventInputSchema.extend({
       sendUpdate: z.boolean().default(false),
     })
     .optional(),
+});
+
+export const patchEventInputSchema = z.object({
+  id: z.string(),
+  title: z.string().optional(),
+  start: dateInputSchema.optional(),
+  end: dateInputSchema.optional(),
+  allDay: z.boolean().optional(),
+  recurrence: recurrenceSchema.nullish(),
+  recurringEventId: z.string().optional(),
+  description: z.string().nullish(),
+  location: z.string().nullish(),
+  availability: z.enum(["busy", "free"]).optional(),
+  color: z.string().optional(),
+  visibility: z
+    .enum(["default", "public", "private", "confidential"])
+    .optional(),
+  accountId: z.string(),
+  calendarId: z.string(),
+  providerId: z.enum(["google", "microsoft"]),
+  readOnly: z.boolean(),
+  attendees: z.array(attendeeSchema).optional(),
+  conference: conferenceSchema.optional(),
+  createdAt: z.instanceof(Temporal.Instant).optional(),
+  updatedAt: z.instanceof(Temporal.Instant).optional(),
+  etag: z.string().optional(),
+  response: z
+    .object({
+      status: z.enum(["accepted", "tentative", "declined", "unknown"]),
+      comment: z.string().optional(),
+      sendUpdate: z.boolean().default(false),
+    })
+    .optional(),
+  metadata: z.union([microsoftMetadataSchema, googleMetadataSchema]).optional(),
 });
 
 export type CreateEventInput = z.infer<typeof createEventInputSchema>;

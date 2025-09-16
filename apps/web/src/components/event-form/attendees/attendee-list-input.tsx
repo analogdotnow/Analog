@@ -64,7 +64,7 @@ export function AttendeeListInput({
       <ComboboxInput
         id="attendees"
         className={cn(
-          "h-8 border-none bg-transparent font-medium shadow-none dark:bg-transparent",
+          "h-8 border-none bg-transparent text-sm font-medium shadow-none dark:bg-transparent",
           className,
         )}
         placeholder="Add attendee"

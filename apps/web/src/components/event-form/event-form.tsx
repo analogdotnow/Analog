@@ -103,11 +103,6 @@ export function EventForm() {
         </div>
         <Separator />
         <FormRow className="gap-x-1">
-          <div className="pointer-events-none absolute inset-0 grid grid-cols-(--grid-event-form) items-center gap-2">
-            <div className="col-start-3 ps-1.5">
-              <ArrowPathIcon className="size-4 text-muted-foreground peer-hover:text-foreground" />
-            </div>
-          </div>
           <form.Field name="isAllDay">
             {(field) => (
               <>
@@ -153,6 +148,11 @@ export function EventForm() {
               </div>
             )}
           </form.Field>
+          <div className="pointer-events-none absolute inset-0 grid grid-cols-(--grid-event-form) items-center gap-2">
+            <div className="col-start-3 ps-1.5">
+              <ArrowPathIcon className="size-4 text-muted-foreground peer-hover:text-foreground" />
+            </div>
+          </div>
         </FormRow>
         <Separator />
         <FormRow>
@@ -355,7 +355,7 @@ export function EventForm() {
           </form.Field>
         </FormRow> */}
       </FormContainer>
-      <div className="">
+      <div className="px-2">
         <form.Field name="calendar">
           {(field) => (
             <>
@@ -363,7 +363,7 @@ export function EventForm() {
                 Calendar
               </label>
               <CalendarField
-                className="px-4 text-base"
+                className="px-1.5 text-base"
                 id={field.name}
                 value={field.state.value}
                 onChange={field.handleChange}

@@ -19,42 +19,48 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useLiveEventById } from "@/lib/db";
 import { cn } from "@/lib/utils";
 import { RecurrenceDialog } from "./recurrence-dialog";
 import { generateRecurrenceSuggestions } from "./recurrence-suggestions";
+import { CalendarEvent } from "@/lib/interfaces";
 
 interface RecurrenceFieldProps {
   className?: string;
   id?: string;
   date: Temporal.ZonedDateTime;
-  timeZone?: string;
-  value: Recurrence | undefined;
-  onChange: (value: Recurrence) => void;
+  value: Recurrence | null | undefined;
+  onChange: (value: Recurrence | null) => void;
   onBlur: () => void;
   disabled?: boolean;
   recurringEventId?: string;
 }
 
-export function RecurrenceField({
-  className,
-  id,
-  date,
-  value,
-  timeZone = "UTC",
-  onChange,
-  onBlur,
-  disabled,
-  recurringEventId,
-}: RecurrenceFieldProps) {
-  const { locale } = useAtomValue(calendarSettingsAtom);
-  const options = generateRecurrenceSuggestions({ date, locale });
+function useBaseEvent(recurringEventId?: string) {
+  const event = useLiveEventById(recurringEventId ?? "");
 
-  const { description, rrule } = React.useMemo(() => {
-    if (!value) {
+  return React.useMemo(() => {
+    if (!recurringEventId) {
+      return undefined;
+    }
+
+    return event as Omit<CalendarEvent, "recurrence"> & Required<Pick<CalendarEvent, "recurrence">> | undefined;
+  }, [event, recurringEventId]);
+}
+
+interface UseRecurrenceOptions {
+  recurrence: Recurrence | undefined;
+  date: Temporal.ZonedDateTime;
+  timeZone: string;
+}
+
+function useRecurrence({ recurrence, date, timeZone }: UseRecurrenceOptions) {
+  return React.useMemo(() => {
+    if (!recurrence) {
       return { description: undefined, rrule: undefined, rule: undefined };
     }
 
-    const { until, rDate, exDate, ...params } = value;
+    const { until, rDate, exDate, ...params } = recurrence;
 
     const rule = new RRuleTemporal({
       ...params,
@@ -69,31 +75,84 @@ export function RecurrenceField({
       rule,
       rrule: rule.toString(),
     };
-  }, [date, value, timeZone]);
+  }, [date, recurrence, timeZone]);
+}
+
+export function RecurrenceField({
+  className,
+  id,
+  date,
+  value,
+  onChange,
+  onBlur,
+  disabled,
+  recurringEventId,
+}: RecurrenceFieldProps) {
+  const { locale } = useAtomValue(calendarSettingsAtom);
+  const options = generateRecurrenceSuggestions({ date, locale });
+  const masterEvent = useBaseEvent(recurringEventId);
+
+  const displayRecurrence = React.useMemo(() => {
+    if (value !== undefined) {
+      return value;
+    }
+
+    return masterEvent?.recurrence;
+  }, [value, masterEvent?.recurrence]);
+
+  const timeZone = React.useMemo(() => {
+    return date.timeZoneId;
+  }, [date]);
+
+  const recurrence = useRecurrence({ recurrence: displayRecurrence ?? undefined, date, timeZone });
 
   return (
     <DropdownMenu>
-      <RecurrenceDialog start={date} recurrence={value} onChange={onChange}>
+      <RecurrenceDialog
+        start={date}
+        recurrence={value ?? undefined}
+        onChange={onChange}
+      >
         <DropdownMenuTrigger asChild>
           <Button
             id={id}
             variant="ghost"
             disabled={disabled || !!recurringEventId}
-            className={cn("flex h-8 w-full justify-start", className)}
+            className={cn(
+              "flex h-8 w-full justify-start focus:bg-input-focus focus-visible:bg-input-focus data-[state=open]:bg-input-focus data-[state=open]:dark:bg-input-focus",
+              className,
+            )}
             onBlur={onBlur}
           >
-            <span className="line-clamp-1 truncate text-sm">
-              {recurringEventId ? "Recurring" : (description ?? "Repeat")}
+            <span
+              className={cn(
+                "line-clamp-1 truncate text-sm",
+                !displayRecurrence && "text-muted-foreground/70",
+              )}
+            >
+              {recurrence.description ?? (recurringEventId ? "Recurring" : "Repeat")}
             </span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="min-w-64" align="end">
+          {value ? (
+            <>
+              <DropdownMenuItem
+                onSelect={() => {
+                  onChange(null);
+                }}
+              >
+                Do not repeat
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+            </>
+          ) : null}
           {options.map((option) => (
             <DropdownMenuGroup key={option.id}>
               <DropdownMenuLabel>{option.label}</DropdownMenuLabel>
               {option.items.map((item) => (
                 <DropdownMenuItem
-                  className={cn(item.rrule === rrule && "bg-accent")}
+                  className={cn(item.rrule === recurrence.rrule && "bg-accent")}
                   key={item.id}
                   onSelect={() => {
                     onChange(item.recurrence);

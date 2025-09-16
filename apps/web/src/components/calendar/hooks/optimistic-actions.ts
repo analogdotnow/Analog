@@ -55,6 +55,7 @@ export const addOptimisticActionAtom = atom(
     const id = action.id ?? generateOptimisticId();
     const currentActions = get(optimisticActionsAtom);
 
+    console.log("adding optimistic action", id, action);
     set(optimisticActionsAtom, {
       ...currentActions,
       [id]: action,
@@ -64,6 +65,7 @@ export const addOptimisticActionAtom = atom(
 );
 
 export const removeOptimisticActionAtom = atom(null, (get, set, id: string) => {
+  console.log("removing optimistic action", id);
   const currentActions = get(optimisticActionsAtom);
   const { [id]: _, ...rest } = currentActions;
   set(optimisticActionsAtom, rest);
@@ -72,6 +74,7 @@ export const removeOptimisticActionAtom = atom(null, (get, set, id: string) => {
 export const removeDraftOptimisticActionsByEventIdAtom = atom(
   null,
   (get, set, eventId: string) => {
+    console.log("removing draft optimistic actions by event id", eventId);
     const currentActions = get(optimisticActionsAtom);
     const filtered = Object.fromEntries(
       Object.entries(currentActions).filter(([, action]) => {

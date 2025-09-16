@@ -108,8 +108,9 @@ export function AddressCombobox({
           onBlur?.(e);
         }}
         className={cn(
-          "flex h-8 w-full rounded-md border border-input bg-transparent px-3 py-0.5 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50",
-          "placeholder:font-light",
+          "flex h-8 w-full appearance-none rounded-md border-0 bg-transparent px-3 py-0.5 text-sm outline-none file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground/70 disabled:cursor-not-allowed disabled:opacity-50",
+          "focus:bg-input-focus focus:ring-0 focus:ring-offset-0 focus-visible:bg-input-focus focus-visible:ring-0 focus-visible:ring-offset-0 dark:focus:bg-input-focus dark:focus-visible:bg-input-focus",
+          // "placeholder:font-light",
           className,
         )}
       />

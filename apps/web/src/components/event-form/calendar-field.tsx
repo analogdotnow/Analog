@@ -64,13 +64,16 @@ export function CalendarField({
       <PopoverTrigger
         id={id}
         className={cn(
-          "flex h-9 w-full items-center gap-2 font-medium",
+          "flex h-8 w-full items-center gap-2 font-medium",
           className,
         )}
         disabled={disabled}
         asChild
       >
-        <Button variant="ghost" className="grow justify-start text-sm">
+        <Button
+          variant="ghost"
+          className="grow justify-start text-sm hover:bg-input-focus focus:bg-input-focus focus:ring-0 focus:ring-offset-0 focus-visible:bg-input-focus focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=open]:bg-input-focus dark:hover:bg-input-focus dark:focus:bg-input-focus dark:focus-visible:bg-input-focus data-[state=open]:dark:bg-input-focus"
+        >
           <CalendarColorIndicator
             primary={selected?.primary ?? false}
             calendarId={selected?.id ?? ""}

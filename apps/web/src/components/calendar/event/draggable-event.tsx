@@ -70,6 +70,7 @@ export function DraggableEvent({
 
   React.useEffect(() => {
     eventRef.current = eventInForm ?? item.event;
+    console.log("eventRef.current", eventRef.current.start.toString());
 
     if (initialHeight || heightRef.current !== initialHeight) {
       heightRef.current = initialHeight;
@@ -143,7 +144,7 @@ export function DraggableEvent({
         });
 
         updateAction({
-          changes: { id: event.id, start, end: start.add(duration) },
+          changes: { id: event.id, start, end: start.add(duration), type: event.type },
         });
 
         return;
@@ -164,7 +165,7 @@ export function DraggableEvent({
         });
 
         updateAction({
-          changes: { id: event.id, start, end: start.add(duration) },
+          changes: { id: event.id, start, end: start.add(duration), type: event.type },
         });
 
         return;
@@ -174,7 +175,7 @@ export function DraggableEvent({
         const start = event.start.add({ days: columnOffset });
 
         updateAction({
-          changes: { id: event.id, start, end: start.add(duration) },
+          changes: { id: event.id, start, end: start.add(duration), type: event.type },
         });
 
         return;
@@ -191,7 +192,7 @@ export function DraggableEvent({
         });
 
       updateAction({
-        changes: { id: event.id, start, end: start.add(duration) },
+        changes: { id: event.id, start, end: start.add(duration), type: event.type },
       });
     },
     [updateAction, cellHeight, view, rows, containerRef],
@@ -226,6 +227,7 @@ export function DraggableEvent({
   // transform so the item renders at its new computed position without a
   // visual flash. Use layout effect to apply before paint to avoid flicker.
   React.useLayoutEffect(() => {
+    console.log("resetting transform");
     top.set(0);
     left.set(0);
     height.set(initialHeight ?? "100%");
@@ -318,7 +320,7 @@ export function DraggableEvent({
       });
 
       updateAction({
-        changes: { id: eventRef.current.id, start: rounded },
+        changes: { id: eventRef.current.id, start: rounded, type: eventRef.current.type },
       });
     },
     [updateAction, cellHeight],
@@ -337,7 +339,7 @@ export function DraggableEvent({
       });
 
       updateAction({
-        changes: { id: eventRef.current.id, end: rounded },
+        changes: { id: eventRef.current.id, end: rounded, type: eventRef.current.type },
       });
     },
     [updateAction, cellHeight],

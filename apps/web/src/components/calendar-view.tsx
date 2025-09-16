@@ -20,7 +20,7 @@ import { useCalendarState } from "@/hooks/use-calendar-state";
 import { db, mapEventQueryInput } from "@/lib/db";
 import { cn } from "@/lib/utils";
 import { applyOptimisticActions } from "./calendar/hooks/apply-optimistic-actions";
-import { optimisticActionsByEventIdAtom } from "./calendar/hooks/optimistic-actions";
+import { optimisticActionsAtom, optimisticActionsByEventIdAtom } from "./calendar/hooks/optimistic-actions";
 import { useEventsForDisplay } from "./calendar/hooks/use-events";
 import { filterPastEvents } from "./calendar/utils/event";
 
@@ -37,12 +37,20 @@ function CalendarContent({ scrollContainerRef }: CalendarContentProps) {
 
   const viewPreferences = useAtomValue(viewPreferencesAtom);
   const calendarPreferences = useAtomValue(calendarPreferencesAtom);
+  const optimisticActions2 = useAtomValue(optimisticActionsAtom);
+
+  console.log("optimisticActions2", JSON.stringify(optimisticActions2, null, 2));
 
   React.useEffect(() => {
     db.events.bulkPut(
       data?.events?.map((item) => mapEventQueryInput(item.event)) ?? [],
     );
-  }, [data?.events]);
+    db.events.bulkPut(
+      Object.values(data?.recurringMasterEvents ?? {}).map((event) =>
+        mapEventQueryInput(event),
+      ) ?? [],
+    );
+  }, [data?.events, data?.recurringMasterEvents]);
 
   const events = React.useMemo(() => {
     const events = applyOptimisticActions({
@@ -92,7 +100,7 @@ function CalendarContent({ scrollContainerRef }: CalendarContentProps) {
     );
   }
 
-  return <AgendaView currentDate={currentDate} events={events} />;
+  return <AgendaView currentDate={currentDate} items={events} />;
 }
 
 interface CalendarViewProps {
@@ -108,7 +116,7 @@ export function CalendarView({ className }: CalendarViewProps) {
   return (
     <div
       className={cn(
-        "relative flex flex-col overflow-auto has-data-[slot=month-view]:flex-1",
+        "@container/calendar-view relative flex flex-col overflow-auto select-none has-data-[slot=month-view]:flex-1",
         className,
       )}
       style={
@@ -127,6 +135,7 @@ export function CalendarView({ className }: CalendarViewProps) {
       >
         <CalendarContent scrollContainerRef={scrollContainerRef} />
       </div>
+      {/*<CreateEventInput />*/}
       {/* <SignalView className="absolute bottom-8 left-1/2 -translate-x-1/2" /> */}
     </div>
   );

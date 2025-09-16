@@ -53,8 +53,9 @@ export function NavUser() {
     <SidebarMenu>
       <SidebarMenuItem>
         <DropdownMenu>
-          <DropdownMenuTrigger asChild suppressHydrationWarning>
+          <DropdownMenuTrigger asChild>
             <SidebarMenuButton
+              id="nav-user-button"
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >

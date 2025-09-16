@@ -81,11 +81,12 @@ function EventContextMenuCalendarList({
           id: event.id,
           accountId,
           calendarId,
+          type: event.type,
         },
         notify: true,
       });
     },
-    [updateAction, event.id],
+    [updateAction, event.id, event.type],
   );
 
   return (
@@ -137,12 +138,13 @@ export function EventContextMenu({ event, children }: EventContextMenuProps) {
         changes: {
           id: event.id,
           response: { status },
+          type: event.type,
         },
         // TODO: should this be the default?
         notify: true,
       });
     },
-    [updateAction, responseStatus, event.id],
+    [updateAction, responseStatus, event.id, event.type],
   );
 
   const deleteAction = useDeleteAction();

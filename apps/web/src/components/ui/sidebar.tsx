@@ -312,7 +312,7 @@ function Sidebar({
           data-slot="sidebar"
           data-side={side}
           className={cn(
-            "flex h-full w-[var(--sidebar-width)] flex-col bg-sidebar text-sidebar-foreground",
+            "flex h-full w-[var(--sidebar-width)] flex-col bg-sidebar text-sidebar-foreground mac:bg-sidebar/80",
             className,
           )}
           style={

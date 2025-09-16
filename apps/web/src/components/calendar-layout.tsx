@@ -15,6 +15,7 @@ import { EventForm } from "@/components/event-form/event-form";
 import { RightSidebar } from "@/components/right-sidebar";
 import { SidebarInset } from "@/components/ui/sidebar";
 import { EventHotkeys } from "@/lib/hotkeys/event-hotkeys";
+import { ResponsiveView } from "./responsive-view";
 
 export function CalendarLayout() {
   const setSettings = useSetAtom(calendarSettingsAtom);
@@ -28,17 +29,15 @@ export function CalendarLayout() {
 
   return (
     <FlowsProvider>
-      <AppSidebar variant="inset" side="left" className="select-none" />
+      <AppSidebar side="left" className="select-none" />
       <EventHotkeys />
-      <SidebarInset className="h-dvh overflow-hidden select-none">
-        <div className="flex h-full rounded-xl border border-sidebar-border bg-background">
-          <CalendarView className="grow" />
-        </div>
+      <SidebarInset className="h-dvh overflow-hidden bg-background select-none mac:bg-background/80">
+        <CalendarView className="grow" />
       </SidebarInset>
       <AppCommandMenu />
-      <RightSidebar variant="inset" side="right" className="select-none">
+      <ResponsiveView>
         <EventForm />
-      </RightSidebar>
+      </ResponsiveView>
     </FlowsProvider>
   );
 }

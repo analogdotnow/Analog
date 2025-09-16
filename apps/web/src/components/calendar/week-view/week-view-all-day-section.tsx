@@ -33,10 +33,12 @@ export function WeekViewAllDaySection({
 }: WeekViewAllDaySectionProps) {
   const settings = useAtomValue(calendarSettingsAtom);
 
+  const overflowRef = React.useRef<HTMLDivElement | null>(null);
   // Use overflow hook for all-day events
   const overflow = useMultiDayOverflow({
     events: eventCollection.allDayEvents,
     timeZone: settings.defaultTimeZone,
+    containerRef: overflowRef,
     minVisibleLanes: 10,
   });
 
@@ -44,7 +46,7 @@ export function WeekViewAllDaySection({
     <div className="border-b border-border/70 [--calendar-height:100%]">
       <div className="relative grid grid-cols-(--week-view-grid) transition-[grid-template-columns] duration-200 ease-linear">
         <div className="relative flex min-h-7 flex-col justify-center border-r border-border/70">
-          <span className="w-16 max-w-full ps-2 text-right text-[10px] text-muted-foreground/70 sm:ps-4 sm:text-xs">
+          <span className="pe-2 text-right text-[10px] text-muted-foreground/70 select-none sm:text-xs">
             All day
           </span>
         </div>
@@ -53,8 +55,10 @@ export function WeekViewAllDaySection({
           <WeekViewAllDayColumn
             key={day.toString()}
             day={day}
+            isWeekend={isWeekend(day)}
             visibleDays={visibleDays}
             overflow={overflow}
+            overflowRef={overflowRef}
           />
         ))}
 
@@ -81,14 +85,18 @@ export function WeekViewAllDaySection({
 
 interface WeekViewAllDayColumnProps {
   day: Temporal.PlainDate;
+  isWeekend: boolean;
   visibleDays: Temporal.PlainDate[];
   overflow: UseMultiDayOverflowResult;
+  overflowRef: React.RefObject<HTMLDivElement | null>;
 }
 
 function WeekViewAllDayColumn({
   day,
+  isWeekend,
   visibleDays,
   overflow,
+  overflowRef,
 }: WeekViewAllDayColumnProps) {
   const settings = useAtomValue(calendarSettingsAtom);
   const viewPreferences = useAtomValue(viewPreferencesAtom);
@@ -96,7 +104,7 @@ function WeekViewAllDayColumn({
 
   const { isDayVisible, isLastVisibleDay, dayOverflowEvents } =
     React.useMemo(() => {
-      const isDayVisible = viewPreferences.showWeekends || !isWeekend(day);
+      const isDayVisible = viewPreferences.showWeekends || !isWeekend;
       const visibleDayIndex = visibleDays.findIndex(
         (d) => Temporal.PlainDate.compare(d, day) === 0,
       );
@@ -114,6 +122,7 @@ function WeekViewAllDayColumn({
     }, [
       day,
       visibleDays,
+      isWeekend,
       overflow.overflowEvents,
       viewPreferences.showWeekends,
     ]);
@@ -132,6 +141,7 @@ function WeekViewAllDayColumn({
       className={cn(
         "relative border-r border-border/70",
         isLastVisibleDay && "border-r-0",
+        isWeekend && "bg-column-weekend",
         isDayVisible ? "visible" : "hidden w-0",
       )}
       data-today={
@@ -145,7 +155,7 @@ function WeekViewAllDayColumn({
         style={{
           paddingTop: `${overflow.capacityInfo.totalLanes * 28}px`, // 24px event height + 4px gap
         }}
-        ref={overflow.containerRef}
+        ref={overflowRef}
       />
 
       {/* Show overflow indicator for this day if there are overflow events that start on this day */}

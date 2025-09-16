@@ -44,7 +44,7 @@ export function TitleField({
     <Input
       id={id}
       name={name}
-      className="border-none bg-transparent px-3.5 text-base shadow-none dark:bg-transparent"
+      className="h-8 border-none bg-transparent px-3.5 text-base shadow-none dark:bg-transparent"
       value={value}
       onBlur={onBlur}
       onChange={onInputChange}

@@ -18,9 +18,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   return (
     <Sidebar {...props}>
-      <SidebarContent className="relative overflow-hidden">
+      <SidebarContent className="relative gap-0 overflow-hidden">
+        <div className="hidden h-12 titlebar-draggable mac:block" />
         <SidebarGroup className="sticky top-0 px-0">
-          <SidebarGroupContent>
+          <SidebarGroupContent className="px-1.5">
             <DatePicker />
             {calendarSettings.easterEggsEnabled && <SubwaySurfers />}
           </SidebarGroupContent>

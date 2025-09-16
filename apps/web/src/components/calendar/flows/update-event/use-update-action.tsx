@@ -61,9 +61,12 @@ function useOptimisticUpdateAction() {
       type?: "draft" | "event",
     ) => {
       React.startTransition(() => {
+        console.log("type", type);
         if (type === "draft") {
+          console.log("removeDraftOptimisticActionsByEventId", event.id);
           removeDraftOptimisticActionsByEventId(event.id);
 
+          console.log("EVENT", JSON.stringify(event, null, 2));
           addOptimisticAction({
             id: optimisticId,
             type: "draft",
@@ -74,6 +77,7 @@ function useOptimisticUpdateAction() {
           return;
         }
 
+        console.log("addOptimisticAction", event.id);
         addOptimisticAction({
           id: optimisticId,
           type: "update",

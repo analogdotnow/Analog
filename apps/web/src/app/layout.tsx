@@ -72,7 +72,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${satoshi.variable} flex min-h-screen flex-col bg-background-landing bg-linear-to-b/oklch from-blue-900/5 to-background-landing`}
+        className={`${geistSans.variable} ${geistMono.variable} ${satoshi.variable} flex min-h-screen flex-col`}
       >
         <Providers>
           <Toaster richColors position="top-center" />

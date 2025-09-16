@@ -59,7 +59,7 @@ function ConferenceSelect({ onChange, onBlur }: ConferenceSelectProps) {
   return (
     <div className="group/conference-select h-8">
       <DropdownMenu>
-        <DropdownMenuTrigger className="hover:bg-input-focus focus:bg-input-focus focus-visible:bg-input-focus data-[state=open]:bg-input-focus dark:hover:bg-input-focus dark:focus:bg-input-focus dark:focus-visible:bg-input-focus data-[state=open]:dark:bg-input-focus flex h-8 w-full items-center justify-start gap-2 rounded-md border-none bg-transparent ps-8 text-sm text-muted-foreground/70 shadow-none ring-0 dark:bg-transparent">
+        <DropdownMenuTrigger className="flex h-8 w-full items-center justify-start gap-2 rounded-md border-none bg-transparent ps-8 text-sm text-muted-foreground/70 shadow-none ring-0 hover:bg-input-focus focus:bg-input-focus focus:ring-0 focus:ring-offset-0 focus-visible:bg-input-focus data-[state=open]:bg-input-focus dark:bg-transparent dark:hover:bg-input-focus dark:focus:bg-input-focus dark:focus-visible:bg-input-focus data-[state=open]:dark:bg-input-focus">
           Conference
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-(--radix-dropdown-menu-trigger-width)">
