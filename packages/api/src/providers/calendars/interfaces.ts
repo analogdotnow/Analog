@@ -33,6 +33,16 @@ export interface CalendarProvider {
     events: CalendarEvent[];
     recurringMasterEvents: CalendarEvent[];
   }>;
+  sync(
+    calendar: Calendar,
+    timeMin: Temporal.ZonedDateTime,
+    timeMax: Temporal.ZonedDateTime,
+    initialSyncToken: string | undefined,
+    timeZone?: string,
+  ): Promise<{
+    events: CalendarEvent[];
+    syncToken: string | undefined;
+  }>;
   event(
     calendar: Calendar,
     eventId: string,

@@ -17,6 +17,7 @@ import {
   toGoogleCalendarEvent,
 } from "./google-calendar/events";
 import { parseGoogleCalendarFreeBusy } from "./google-calendar/freebusy";
+import { GoogleCalendarEvent } from "./google-calendar/interfaces";
 import type { CalendarProvider, ResponseToEventInput } from "./interfaces";
 
 interface GoogleCalendarProviderOptions {
@@ -134,6 +135,60 @@ export class GoogleCalendarProvider implements CalendarProvider {
       );
 
       return { events, recurringMasterEvents };
+    });
+  }
+
+  async sync(
+    calendar: Calendar,
+    timeMin: Temporal.ZonedDateTime,
+    timeMax: Temporal.ZonedDateTime,
+    initialSyncToken: string | undefined,
+    timeZone?: string,
+  ): Promise<{
+    events: CalendarEvent[];
+    syncToken: string | undefined;
+  }> {
+    return this.withErrorHandler("sync", async () => {
+      const events: CalendarEvent[] = [];
+
+      let syncToken: string | undefined = initialSyncToken;
+      let pageToken: string | undefined = undefined;
+
+      do {
+        const { items, nextSyncToken, nextPageToken } =
+          await this.client.calendars.events.list(calendar.id, {
+            timeMin: timeMin.withTimeZone("UTC").toInstant().toString(),
+            timeMax: timeMax.withTimeZone("UTC").toInstant().toString(),
+            singleEvents: true,
+            orderBy: "startTime",
+            maxResults: 2500,
+            syncToken: initialSyncToken,
+            pageToken,
+          });
+
+        syncToken = nextSyncToken;
+        pageToken = nextPageToken;
+
+        if (!items) {
+          break;
+        }
+
+        events.push(
+          ...items.map((event) =>
+            parseGoogleCalendarEvent({
+              calendar,
+              accountId: this.accountId,
+              event,
+              defaultTimeZone: timeZone ?? "UTC",
+            }),
+          ),
+        );
+      } while (pageToken);
+
+      return {
+        events,
+        syncToken,
+      };
     });
   }
 

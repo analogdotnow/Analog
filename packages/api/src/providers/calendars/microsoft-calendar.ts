@@ -132,6 +132,62 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
     });
   }
 
+  async sync(
+    calendar: Calendar,
+    timeMin: Temporal.ZonedDateTime,
+    timeMax: Temporal.ZonedDateTime,
+    initialSyncToken: string | undefined,
+    timeZone: string,
+  ): Promise<{
+    events: CalendarEvent[];
+    syncToken: string | undefined;
+  }> {
+    return this.withErrorHandler("sync", async () => {
+      const startTime = timeMin.withTimeZone("UTC").toInstant().toString();
+      const endTime = timeMax.withTimeZone("UTC").toInstant().toString();
+
+      const events: CalendarEvent[] = [];
+      let syncToken: string | undefined;
+      let pageToken: string | undefined = undefined;
+
+      do {
+        const url =
+          pageToken ??
+          initialSyncToken ??
+          `${calendarPath(calendar.id)}/calendarView/delta?startDateTime=${encodeURIComponent(
+            startTime,
+          )}&endDateTime=${encodeURIComponent(endTime)}`;
+
+        const response = await this.graphClient
+          .api(url)
+          .header("Prefer", `outlook.timezone="${timeZone}"`)
+          .filter(
+            `start/dateTime ge '${startTime}' and end/dateTime le '${endTime}'`,
+          )
+          .orderby("start/dateTime")
+          .top(CALENDAR_DEFAULTS.MAX_EVENTS_PER_CALENDAR)
+          .get();
+
+        const pageEvents = (response.value as MicrosoftEvent[])
+          // @ts-expect-error -- type from Graph API package is incorrect
+          .filter((e: unknown) => !e["@removed"])
+          .map((event: MicrosoftEvent) =>
+            parseMicrosoftEvent({ event, accountId: this.accountId, calendar }),
+          );
+
+        events.push(...pageEvents);
+
+        pageToken = response["@odata.nextLink"] as string | undefined;
+        syncToken = response["@odata.deltaLink"] as string | undefined;
+      } while (pageToken);
+
+      return {
+        events,
+        syncToken,
+      };
+    });
+  }
+
   async event(
     calendar: Calendar,
     eventId: string,

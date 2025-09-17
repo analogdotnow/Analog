@@ -27,7 +27,9 @@ interface LiveUpdateProviderProps {
   children: React.ReactNode;
 }
 
-export function LiveUpdateProvider({ children }: LiveUpdateProviderProps) {
+export function ClientLiveUpdateProvider({
+  children,
+}: LiveUpdateProviderProps) {
   const actorRef = EventFormStateContext.useActorRef();
   const id = useEventFormId();
 
@@ -54,4 +56,16 @@ export function LiveUpdateProvider({ children }: LiveUpdateProviderProps) {
   }, [event, actorRef]);
 
   return <>{children}</>;
+}
+
+interface LiveUpdateProviderProps {
+  children: React.ReactNode;
+}
+
+export function LiveUpdateProvider({ children }: LiveUpdateProviderProps) {
+  if (typeof window === "undefined") {
+    return <>{children}</>;
+  }
+
+  return <ClientLiveUpdateProvider>{children}</ClientLiveUpdateProvider>;
 }

@@ -12,6 +12,7 @@ export interface Calendar {
   providerAccountId: string;
   color?: string;
   readOnly: boolean;
+  syncToken: string | null;
 }
 
 export interface FreeBusySlot {
