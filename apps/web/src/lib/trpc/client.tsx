@@ -44,6 +44,27 @@ interface TRPCReactProviderProps {
   children: ReactNode;
 }
 
+export const trpc = createTRPCClient<AppRouter>({
+  links: [
+    loggerLink({
+      enabled: (op) =>
+        process.env.NEXT_PUBLIC_ENV === "development" ||
+        (op.direction === "down" && op.result instanceof Error),
+    }),
+    httpBatchStreamLink({
+      transformer: superjson,
+      url: getUrl(),
+      methodOverride: "POST",
+      headers: () => {
+        const headers = new Headers();
+        headers.set("x-trpc-source", "nextjs-react");
+
+        return headers;
+      },
+    }),
+  ],
+});
+
 export function TRPCReactProvider(props: Readonly<TRPCReactProviderProps>) {
   // NOTE: Avoid useState when initializing the query client if you don't
   //       have a suspense boundary between this and the code that may

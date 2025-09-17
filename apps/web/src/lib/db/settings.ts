@@ -1,0 +1,1 @@
+export const IDB_NAME = "analog-local-pglite";

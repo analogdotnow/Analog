@@ -28,5 +28,6 @@ export function parseGoogleCalendarCalendarListEntry({
     accountId,
     providerAccountId: accountId,
     color: entry.backgroundColor,
+    syncToken: null,
   };
 }

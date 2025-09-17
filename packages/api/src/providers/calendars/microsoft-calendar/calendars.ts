@@ -20,6 +20,7 @@ export function parseMicrosoftCalendar({
     providerAccountId: accountId,
     color: calendar.hexColor!,
     readOnly: !calendar.canEdit,
+    syncToken: null,
   };
 }
 

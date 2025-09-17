@@ -80,6 +80,65 @@ export const eventsRouter = createTRPCRouter({
 
       return { events, recurringMasterEvents };
     }),
+  sync: calendarProcedure
+    .input(
+      z.object({
+        timeMin: zZonedDateTimeInstance,
+        timeMax: zZonedDateTimeInstance,
+        state: z.record(z.string(), z.string().optional()).default({}),
+        timeZone: z.string().optional(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const results = await Promise.all(
+        ctx.providers.map(async ({ client, account }) => {
+          const calendars = await client.calendars();
+
+          const promises = calendars.map(async (calendar) => {
+            const { events, syncToken } = await client.sync(
+              calendar,
+              input.timeMin,
+              input.timeMax,
+              input.state[calendar.id],
+              input.timeZone,
+            );
+
+            const mapped = events.map((event) => ({
+              ...event,
+              calendarId: calendar.id,
+              providerId: account.providerId,
+              accountId: account.accountId,
+              providerAccountId: account.accountId,
+            }));
+
+            return {
+              events: mapped,
+              syncToken,
+              calendarId: calendar.id,
+            };
+          });
+
+          return Promise.all(promises);
+        }),
+      );
+
+      const events = results
+        .flat()
+        .map((result) => result.events)
+        .flat();
+      const syncTokens = results.flat().reduce(
+        (acc, result) => {
+          acc[result.calendarId] = result.syncToken;
+          return acc;
+        },
+        {} as Record<string, string | undefined>,
+      );
+
+      return {
+        events,
+        syncTokens,
+      };
+    }),
   get: calendarProcedure
     .input(
       z.object({

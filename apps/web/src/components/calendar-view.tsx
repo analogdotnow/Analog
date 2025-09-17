@@ -18,12 +18,14 @@ import { CalendarHeader } from "@/components/calendar/header/calendar-header";
 import { MonthView } from "@/components/calendar/month-view/month-view";
 import { WeekView } from "@/components/calendar/week-view/week-view";
 import { useCalendarState } from "@/hooks/use-calendar-state";
-import { db, mapEventQueryInput } from "@/lib/db";
+import { upsertEvents } from "@/lib/db";
 import { cn } from "@/lib/utils";
 import { applyOptimisticActions } from "./calendar/hooks/apply-optimistic-actions";
 import { optimisticActionsByEventIdAtom } from "./calendar/hooks/optimistic-actions";
 import { useEventsForDisplay } from "./calendar/hooks/use-events";
 import { filterPastEvents } from "./calendar/utils/event";
+import { calendarsCollection, eventsCollection } from "@/lib/pglite/collections";
+import { useLiveQuery } from "@tanstack/react-db";
 
 interface CalendarContentProps {
   scrollContainerRef: React.RefObject<HTMLDivElement | null>;
@@ -39,16 +41,36 @@ function CalendarContent({ scrollContainerRef }: CalendarContentProps) {
   const viewPreferences = useAtomValue(viewPreferencesAtom);
   const calendarPreferences = useAtomValue(calendarPreferencesAtom);
 
+  // React.useEffect(() => {
+  //   if (!data?.events) {
+  //     return;
+  //   }
+
+  //   // void (async () => {
+  //   //   try {
+  //   //     await upsertEvents(data.events.map((item) => item.event));
+  //   //   } catch (error) {
+  //   //     console.error("Failed to sync events into TanStack DB", error);
+  //   //   }
+  //   // })();
+  // }, [data?.events]);
+
   React.useEffect(() => {
-    db.events.bulkPut(
-      data?.events?.map((item) => mapEventQueryInput(item.event)) ?? [],
-    );
-    db.events.bulkPut(
-      Object.values(data?.recurringMasterEvents ?? {}).map((event) =>
-        mapEventQueryInput(event),
-      ) ?? [],
-    );
-  }, [data?.events, data?.recurringMasterEvents]);
+    if (!data?.events) {
+      return;
+    }
+
+    const func = async () => {
+      const state = await eventsCollection.stateWhenReady();
+      const calendarState = await calendarsCollection.stateWhenReady();
+
+    };
+
+    func();
+  }, [data?.events]);
+
+  const events2 = useLiveQuery(q => q.from({ event: eventsCollection }), []);
+  console.log("FUCK YOU 3", JSON.stringify(events2, null, 2));
 
   const events = React.useMemo(() => {
     const events = applyOptimisticActions({
