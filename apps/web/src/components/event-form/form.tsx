@@ -10,7 +10,7 @@ export function FormRow({
   return (
     <div
       className={cn(
-        "relative grid grid-cols-(--grid-event-form) items-center px-2",
+        "relative grid grid-cols-(--grid-event-form) items-center",
         className,
       )}
       {...props}
@@ -28,7 +28,7 @@ interface FormRowIconProps {
 export function FormRowIcon({ icon: Icon, className }: FormRowIconProps) {
   return (
     <div className="pointer-events-none absolute inset-0 grid grid-cols-(--grid-event-form) items-start gap-2 pt-2">
-      <div className="col-start-1 ps-4">
+      <div className="col-start-1 ps-2">
         <Icon
           className={cn(
             "size-4 text-muted-foreground peer-hover:text-foreground",
@@ -47,7 +47,7 @@ export function FormContainer({
 }: React.ComponentProps<"div">) {
   return (
     <div
-      className={cn("flex flex-col gap-y-2 px-0 py-2.5", className)}
+      className={cn("flex flex-col gap-y-1 px-0 py-0", className)}
       {...props}
     >
       {children}

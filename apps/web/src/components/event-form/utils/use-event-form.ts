@@ -49,6 +49,10 @@ export function useEventForm() {
       onSubmit: formSchema,
     },
     onSubmit: async ({ value, meta }) => {
+      if (isPristine) {
+        return;
+      }
+
       await saveAction(value, meta?.sendUpdate, () => {
         actorRef.send({ type: "CONFIRMED" });
         setIsPristine(true);

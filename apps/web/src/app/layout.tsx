@@ -13,6 +13,7 @@ import "./globals.css";
 
 import { URLS } from "@/lib/urls";
 import { Providers } from "./providers";
+import { env } from "@repo/env/server";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -71,6 +72,14 @@ export default function RootLayout({
 }: Readonly<{ children: ReactNode }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      {env.NODE_ENV === "development" ? (
+        <head>
+          <script
+            crossOrigin="anonymous"
+            src="//unpkg.com/react-scan/dist/auto.global.js"
+          />
+        </head>
+      ) : null}
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${satoshi.variable} flex min-h-screen flex-col`}
       >

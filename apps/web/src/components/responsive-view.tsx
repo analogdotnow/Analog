@@ -31,7 +31,7 @@ export function ResponsiveView({ children }: ResponsiveViewProps) {
 
   if (!isMobile) {
     return (
-      <RightSidebar side="right" className="select-none">
+      <RightSidebar variant="inset" side="right" className="select-none">
         {children}
       </RightSidebar>
     );

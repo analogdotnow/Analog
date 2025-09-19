@@ -36,6 +36,9 @@ interface RecurrenceFieldProps {
   recurringEventId?: string;
 }
 
+type BaseEvent = Omit<CalendarEvent, "recurrence"> &
+  Required<Pick<CalendarEvent, "recurrence">>;
+
 function useBaseEvent(recurringEventId?: string) {
   const event = useLiveEventById(recurringEventId ?? "");
 
@@ -45,9 +48,8 @@ function useBaseEvent(recurringEventId?: string) {
     }
 
     return event as
-      | (Omit<CalendarEvent, "recurrence"> &
-          Required<Pick<CalendarEvent, "recurrence">>)
-      | undefined;
+        | BaseEvent
+        | undefined;
   }, [event, recurringEventId]);
 }
 
@@ -133,7 +135,7 @@ export function RecurrenceField({
           >
             <span
               className={cn(
-                "line-clamp-1 truncate text-sm",
+                "line-clamp-1 truncate text-sm first-letter:capitalize",
                 !displayRecurrence && "text-muted-foreground/70",
               )}
             >

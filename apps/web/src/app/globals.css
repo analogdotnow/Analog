@@ -98,6 +98,7 @@
 
   --input-focus: var(--color-neutral-200);
   --column-weekend: var(--color-neutral-100);
+  --column-background: var(--color-neutral-50);
 }
 
 .dark {
@@ -114,7 +115,11 @@
   --foreground: var(--color-neutral-50);
   --card: var(--color-neutral-900);
   --card-foreground: var(--color-neutral-50);
-  --popover: var(--color-neutral-800);
+  --popover: color-mix(
+    in oklch,
+    var(--color-neutral-900) 50%,
+    var(--color-neutral-800) 50%
+  );
   --popover-foreground: var(--color-neutral-50);
   --primary: var(--color-neutral-200);
   --primary-foreground: var(--color-neutral-900);
@@ -155,6 +160,11 @@
   --column-weekend: color-mix(
     in oklch,
     var(--color-neutral-950) 20%,
+    var(--color-neutral-900)
+  );
+  --column-background: color-mix(
+    in oklch,
+    var(--color-neutral-950) 10%,
     var(--color-neutral-900)
   );
   --input-focus: var(--color-neutral-800);
@@ -206,6 +216,8 @@
 
   --color-input-focus: var(--input-focus);
   --color-column-weekend: var(--column-weekend);
+
+  --color-column: var(--column-background);
 
   --background-color-event: color-mix(
     in oklab,
@@ -271,6 +283,7 @@
   );
 
   --grid-event-form: 1em minmax(0, 1fr) 1em minmax(0, 1fr);
+  --grid-event-form-half: 1em minmax(0, 1fr);
 
   --font-weight-normal: 350;
   --font-weight-medium: 400;
@@ -326,49 +339,6 @@
   &::-webkit-scrollbar {
     display: none;
   }
-}
-
-@utility scroll-shadow {
-  /* background: 
-    linear-gradient(to right, #ffffff 33%, rgba(255,255,255,0)),
-    linear-gradient(to left, #ffffff 66%, rgba(255,255,255,0)) 100% 0,
-    radial-gradient(farthest-side at 0 50%, rgba(0,0,0,0.5), rgba(0,0,0,0)),
-    radial-gradient(farthest-side at 100% 50%, rgba(0,0,0,0.5), rgba(0,0,0,0)) 100% 0;
-  background-color: #ffffff;
-  background-repeat: no-repeat;
-  background-attachment: local, local, scroll, scroll;
-  background-size: 15px 100%, 15px 100%, 5px 100%, 5px 100%; */
-  background:
-    linear-gradient(
-      to right,
-      var(--scroll-shadow-bg) 33%,
-      color-mix(in oklab, var(--scroll-shadow-bg) 0%, transparent)
-    ),
-    linear-gradient(
-        to left,
-        var(--scroll-shadow-bg) 66%,
-        color-mix(in oklab, var(--scroll-shadow-bg) 0%, transparent)
-      )
-      100% 0,
-    radial-gradient(
-      farthest-side at 0 50%,
-      color-mix(in oklab, var(--scroll-shadow) 50%, transparent),
-      color-mix(in oklab, var(--scroll-shadow) 0%, transparent)
-    ),
-    radial-gradient(
-        farthest-side at 100% 50%,
-        color-mix(in oklab, var(--scroll-shadow) 50%, transparent),
-        color-mix(in oklab, var(--scroll-shadow) 0%, transparent)
-      )
-      100% 0;
-  background-color: var(--scroll-shadow-bg);
-  background-repeat: no-repeat;
-  background-attachment: local, local, scroll, scroll;
-  background-size:
-    15px 100%,
-    15px 100%,
-    5px 100%,
-    5px 100%;
 }
 
 @keyframes shimmer {

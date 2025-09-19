@@ -48,7 +48,11 @@ export function TimeZonePopoverContent({
     >
       <SolarTerminatorMap timeZoneId={timeZoneId} date={date} />
       <Separator orientation="horizontal" className="bg-primary/10" />
-      <TimeZoneDetails className="px-2 py-2" timeZoneId={timeZoneId} date={date} />
+      <TimeZoneDetails
+        className="px-2 py-2"
+        timeZoneId={timeZoneId}
+        date={date}
+      />
     </PopoverContent>
   );
 }

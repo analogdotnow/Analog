@@ -3,15 +3,16 @@
 import * as React from "react";
 import {
   ArrowPathIcon,
+  EyeIcon,
   MapPinIcon,
   // EyeIcon,
   PencilSquareIcon,
   UsersIcon,
   VideoCameraIcon,
 } from "@heroicons/react/16/solid";
-import { useAtomValue } from "jotai";
-import { useOnClickOutside } from "usehooks-ts";
+import { useAtomValue, useSetAtom } from "jotai";
 
+import { activeLayoutAtom } from "@/atoms/active-layout";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
@@ -30,38 +31,34 @@ import { RecurrenceField } from "./recurrences/recurrence-field";
 import { SendUpdateButton } from "./send-update-button";
 import { TitleField } from "./title-field";
 import { Form, useEventForm } from "./utils/use-event-form";
+import { VisibilityField } from "./visibility-field";
+import { AvailabilityField } from "./availability-field";
 
 //import { AvailabilityField } from "./availability-field";
 // import { VisibilityField } from "./visibility-field";
 
 function useSubmitOnClickOutside(form: Form) {
-  const ref = React.useRef<HTMLFormElement>(null);
-  const focusRef = React.useRef(false);
+  const activeLayout = useAtomValue(activeLayoutAtom);
 
-  const handleClickOutside = React.useCallback(async () => {
-    if (!focusRef.current) {
+  React.useEffect(() => {
+    if (activeLayout === "form") {
       return;
     }
 
-    await form.handleSubmit();
-
-    focusRef.current = false;
-  }, [form, focusRef]);
-
-  useOnClickOutside(ref as React.RefObject<HTMLElement>, handleClickOutside);
-
-  const onFocus = React.useCallback(() => {
-    focusRef.current = true;
-  }, [focusRef]);
-
-  return React.useMemo(() => ({ ref, onFocus }), [ref, onFocus]);
+    form.handleSubmit();
+  }, [activeLayout, form]);
 }
 
-export function EventForm() {
+interface EventFormProps {
+  className?: string;
+}
+
+export function EventForm({ className }: EventFormProps) {
   const form = useEventForm();
   const disabled = useAtomValue(formDisabledAtom);
+  const setActiveLayout = useSetAtom(activeLayoutAtom);
 
-  const { ref, onFocus } = useSubmitOnClickOutside(form);
+  useSubmitOnClickOutside(form);
 
   const onSubmit = React.useCallback(
     async (e: React.FormEvent<HTMLFormElement>) => {
@@ -71,14 +68,17 @@ export function EventForm() {
     [],
   );
 
+  const onFocus = React.useCallback(() => {
+    setActiveLayout("form");
+  }, [setActiveLayout]);
+
   return (
     <form
-      ref={ref}
-      className={cn("flex flex-col gap-y-1")}
+      className={cn("flex flex-col gap-y-1", className)}
       onFocusCapture={onFocus}
       onSubmit={onSubmit}
     >
-      <div className="p-1">
+      <div className="">
         <form.Field name="title">
           {(field) => (
             <>
@@ -98,62 +98,66 @@ export function EventForm() {
         </form.Field>
       </div>
       <FormContainer>
-        <div className="px-2">
+        <div className="flex">
           <DateInputSection form={form} disabled={disabled} />
-        </div>
-        <Separator />
-        <FormRow className="gap-x-1">
-          <form.Field name="isAllDay">
-            {(field) => (
-              <>
-                <div className="col-start-1 flex ps-2">
-                  <Switch
-                    id={field.name}
-                    checked={field.state.value}
-                    onCheckedChange={field.handleChange}
-                    onBlur={field.handleBlur}
-                    size="sm"
-                    disabled={disabled}
-                  />
+          <div className="flex w-32 flex-col items-end gap-y-1">
+            <div className="grid h-8 grid-cols-(--grid-event-form-half) items-center gap-x-1">
+              <form.Field name="isAllDay">
+                {(field) => (
+                  <>
+                    <div className="col-start-1 flex ps-2">
+                      <Switch
+                        id={field.name}
+                        checked={field.state.value}
+                        onCheckedChange={field.handleChange}
+                        onBlur={field.handleBlur}
+                        size="sm"
+                        disabled={disabled}
+                      />
+                    </div>
+                    <Label
+                      htmlFor={field.name}
+                      className={cn(
+                        "col-start-2 line-clamp-1 ps-3 pe-4 transition-colors",
+                        disabled && "text-muted-foreground/70",
+                        !field.state.value && "text-muted-foreground/70",
+                      )}
+                    >
+                      All Day
+                    </Label>
+                  </>
+                )}
+              </form.Field>
+            </div>
+            <div className="relative grid grid-cols-(--grid-event-form-half) gap-x-1">
+              <form.Field name="recurrence">
+                {(field) => (
+                  <div className="relative col-span-2 col-start-1">
+                    <label htmlFor={field.name} className="sr-only">
+                      Repeat
+                    </label>
+                    <RecurrenceField
+                      id={field.name}
+                      className="w-fit ps-8"
+                      recurringEventId={form.state.values.recurringEventId}
+                      date={form.state.values.start}
+                      value={field.state.value}
+                      onChange={field.handleChange}
+                      onBlur={field.handleBlur}
+                      disabled={disabled}
+                    />
+                  </div>
+                )}
+              </form.Field>
+              <div className="pointer-events-none absolute inset-0 grid grid-cols-(--grid-event-form-half) items-start gap-2 pt-2">
+                <div className="col-start-1 ps-2">
+                  <ArrowPathIcon className="size-4 text-muted-foreground peer-hover:text-foreground" />
                 </div>
-                <Label
-                  htmlFor={field.name}
-                  className={cn(
-                    "col-start-2 ps-3.5",
-                    disabled && "text-muted-foreground/70",
-                    !field.state.value && "text-muted-foreground/70",
-                  )}
-                >
-                  All Day
-                </Label>
-              </>
-            )}
-          </form.Field>
-          <form.Field name="recurrence">
-            {(field) => (
-              <div className="relative col-span-2 col-start-3">
-                <label htmlFor={field.name} className="sr-only">
-                  Repeat
-                </label>
-                <RecurrenceField
-                  id={field.name}
-                  className="ps-8"
-                  recurringEventId={form.state.values.recurringEventId}
-                  date={form.state.values.start}
-                  value={field.state.value}
-                  onChange={field.handleChange}
-                  onBlur={field.handleBlur}
-                  disabled={disabled}
-                />
               </div>
-            )}
-          </form.Field>
-          <div className="pointer-events-none absolute inset-0 grid grid-cols-(--grid-event-form) items-center gap-2">
-            <div className="col-start-3 ps-1.5">
-              <ArrowPathIcon className="size-4 text-muted-foreground peer-hover:text-foreground" />
             </div>
           </div>
-        </FormRow>
+        </div>
+
         <Separator />
         <FormRow>
           <FormRowIcon icon={VideoCameraIcon} />
@@ -355,7 +359,7 @@ export function EventForm() {
           </form.Field>
         </FormRow> */}
       </FormContainer>
-      <div className="px-2">
+      <div className="px-0 flex">
         <form.Field name="calendar">
           {(field) => (
             <>
@@ -373,6 +377,42 @@ export function EventForm() {
             </>
           )}
         </form.Field>
+        <FormRow>
+          <FormRowIcon icon={EyeIcon} />
+          <form.Field name="visibility">
+            {(field) => (
+              <div className="col-span-4 col-start-1">
+                <label htmlFor={field.name} className="sr-only">
+                  Visibility
+                </label>
+                <VisibilityField
+                  id={field.name}
+                  value={field.state.value}
+                  onChange={field.handleChange}
+                  disabled={disabled}
+                  showConfidential={form.state.values.visibility === "confidential"}
+                />
+              </div>
+            )}
+          </form.Field>
+        </FormRow>
+        <FormRow>
+          <form.Field name="availability">
+            {(field) => (
+              <div className="col-span-4 col-start-1">
+                <Label htmlFor={field.name} className="sr-only">
+                  Show as
+                </Label>
+                <AvailabilityField
+                  id={field.name}
+                  value={field.state.value}
+                  onChange={field.handleChange}
+                  disabled={disabled}
+                />
+              </div>
+            )}
+          </form.Field>
+        </FormRow>
       </div>
     </form>
   );

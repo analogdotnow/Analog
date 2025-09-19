@@ -53,4 +53,26 @@ function PopoverAnchor({
   return <PopoverPrimitive.Anchor data-slot="popover-anchor" {...props} />;
 }
 
-export { Popover, PopoverAnchor, PopoverContent, PopoverTrigger };
+type PointerDownOutsideEvent = Parameters<
+  NonNullable<PopoverPrimitive.PopoverContentProps["onPointerDownOutside"]>
+>[0];
+type FocusOutsideEvent = Parameters<
+  NonNullable<PopoverPrimitive.PopoverContentProps["onFocusOutside"]>
+>[0];
+type InteractOutsideEvent = Parameters<
+  NonNullable<PopoverPrimitive.PopoverContentProps["onInteractOutside"]>
+>[0];
+type FocusEvent = Parameters<
+  NonNullable<PopoverPrimitive.PopoverContentProps["onFocus"]>
+>[0];
+
+export {
+  Popover,
+  PopoverAnchor,
+  PopoverContent,
+  PopoverTrigger,
+  type PointerDownOutsideEvent,
+  type FocusOutsideEvent,
+  type InteractOutsideEvent,
+  type FocusEvent,
+};

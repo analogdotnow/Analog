@@ -80,7 +80,7 @@ export function CalendarField({
             accountId={selected?.accountId ?? ""}
             disabled={disabled}
           />
-          {selected?.name}
+          {/* {selected?.name} */}
         </Button>
       </PopoverTrigger>
     </CalendarListPicker>

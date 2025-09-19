@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 
+import { activeLayoutAtom } from "@/atoms/active-layout";
 import {
   calendarPreferencesAtom,
   getCalendarPreference,
@@ -20,10 +21,7 @@ import { useCalendarState } from "@/hooks/use-calendar-state";
 import { db, mapEventQueryInput } from "@/lib/db";
 import { cn } from "@/lib/utils";
 import { applyOptimisticActions } from "./calendar/hooks/apply-optimistic-actions";
-import {
-  optimisticActionsAtom,
-  optimisticActionsByEventIdAtom,
-} from "./calendar/hooks/optimistic-actions";
+import { optimisticActionsByEventIdAtom } from "./calendar/hooks/optimistic-actions";
 import { useEventsForDisplay } from "./calendar/hooks/use-events";
 import { filterPastEvents } from "./calendar/utils/event";
 
@@ -40,12 +38,6 @@ function CalendarContent({ scrollContainerRef }: CalendarContentProps) {
 
   const viewPreferences = useAtomValue(viewPreferencesAtom);
   const calendarPreferences = useAtomValue(calendarPreferencesAtom);
-  const optimisticActions2 = useAtomValue(optimisticActionsAtom);
-
-  console.log(
-    "optimisticActions2",
-    JSON.stringify(optimisticActions2, null, 2),
-  );
 
   React.useEffect(() => {
     db.events.bulkPut(
@@ -119,12 +111,41 @@ export function CalendarView({ className }: CalendarViewProps) {
 
   const cellHeight = useAtomValue(cellHeightAtom);
 
+  const setActiveLayout = useSetAtom(activeLayoutAtom);
+
+  const onFocus = React.useCallback(() => {
+    setActiveLayout("calendar");
+  }, [setActiveLayout]);
+
+  const calendarViewRef = React.useRef<HTMLDivElement>(null);
+
+  const onClickInside = React.useCallback(
+    (e: MouseEvent) => {
+      if (!calendarViewRef.current?.contains(e.target as Node)) {
+        return;
+      }
+
+      setActiveLayout("calendar");
+    },
+    [setActiveLayout],
+  );
+
+  React.useEffect(() => {
+    document.addEventListener("mousedown", onClickInside);
+
+    return () => {
+      document.removeEventListener("mousedown", onClickInside);
+    };
+  }, [onClickInside]);
+
   return (
     <div
+      ref={calendarViewRef}
       className={cn(
         "@container/calendar-view relative flex flex-col overflow-auto select-none has-data-[slot=month-view]:flex-1",
         className,
       )}
+      onClick={onFocus}
       style={
         {
           "--event-height": `${EventHeight}px`,

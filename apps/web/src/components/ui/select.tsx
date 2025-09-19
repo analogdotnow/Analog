@@ -33,7 +33,7 @@ function SelectTrigger({
     <SelectPrimitive.Trigger
       data-slot="select-trigger"
       className={cn(
-        "border-input aro:dark:bg-input-focus flex h-8 w-full items-center justify-between gap-2 rounded-md border px-3 py-2 text-sm text-foreground shadow-xs transition-[color,box-shadow] outline-none focus:bg-input-focus focus-visible:bg-input-focus disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive data-[placeholder]:text-muted-foreground *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 data-[state=open]:bg-input-focus dark:bg-input/30 dark:focus:bg-input-focus dark:focus-visible:bg-input-focus [&_svg]:pointer-events-none [&_svg]:shrink-0 [&>span]:line-clamp-1",
+        "aro:dark:bg-input-focus flex h-8 w-full items-center justify-between gap-2 rounded-md border border-input px-3 py-2 text-sm text-foreground shadow-xs transition-[color,box-shadow] outline-none focus:bg-input-focus focus-visible:bg-input-focus disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive data-[placeholder]:text-muted-foreground *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 data-[state=open]:bg-input-focus dark:bg-input/30 dark:focus:bg-input-focus dark:focus-visible:bg-input-focus [&_svg]:pointer-events-none [&_svg]:shrink-0 [&>span]:line-clamp-1",
         "focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0 aria-expanded:bg-input-focus aria-expanded:dark:bg-input-focus",
         className,
       )}
