@@ -3,6 +3,11 @@ import { ReactRenderer } from "@tiptap/react";
 import tippy, { Instance, Props } from "tippy.js";
 
 import { generateDateSuggestions } from "@/lib/event-input";
+import {
+  DURATION_SUGGESTIONS,
+  SUGGESTION_LIMITS,
+  TIME_SUGGESTIONS,
+} from "./constants";
 import { TimeSelector, type TimeSelectorProps } from "./time-selector";
 
 type MentionSuggestion = MentionOptions["suggestion"];
@@ -17,31 +22,16 @@ export const createEventInputSuggestions: MentionSuggestion = {
   allowSpaces: true,
   items: ({ query }: { query: string }) => {
     const suggestions: SuggestionItem[] = [
-      // Time suggestions
-      { type: "time", label: "9:00 AM", value: "09:00" },
-      { type: "time", label: "10:00 AM", value: "10:00" },
-      { type: "time", label: "11:00 AM", value: "11:00" },
-      { type: "time", label: "12:00 PM", value: "12:00" },
-      { type: "time", label: "1:00 PM", value: "13:00" },
-      { type: "time", label: "2:00 PM", value: "14:00" },
-      { type: "time", label: "3:00 PM", value: "15:00" },
-      { type: "time", label: "4:00 PM", value: "16:00" },
-      { type: "time", label: "5:00 PM", value: "17:00" },
-      { type: "time", label: "6:00 PM", value: "18:00" },
-      { type: "time", label: "7:00 PM", value: "19:00" },
-      { type: "time", label: "8:00 PM", value: "20:00" },
-      { type: "time", label: "9:00 PM", value: "21:00" },
-      { type: "time", label: "10:00 PM", value: "22:00" },
-      { type: "time", label: "11:00 PM", value: "23:00" },
-      { type: "time", label: "12:00 AM", value: "00:00" },
-      // Duration suggestions
-      { type: "duration", label: "15m", value: "15m" },
-      { type: "duration", label: "30m", value: "30m" },
-      { type: "duration", label: "45m", value: "45m" },
-      { type: "duration", label: "1h", value: "1h" },
-      { type: "duration", label: "2h", value: "2h" },
-      { type: "duration", label: "3h", value: "3h" },
-      { type: "duration", label: "4h", value: "4h" },
+      ...TIME_SUGGESTIONS.map(({ label, value }) => ({
+        type: "time" as const,
+        label,
+        value,
+      })),
+      ...DURATION_SUGGESTIONS.map(({ label, value }) => ({
+        type: "duration" as const,
+        label,
+        value,
+      })),
     ];
 
     const dateSuggestions = generateDateSuggestions(query);
@@ -56,7 +46,7 @@ export const createEventInputSuggestions: MentionSuggestion = {
       })
       .reduce((acc, item) => {
         const sameTypeCount = acc.filter((i) => i.type === item.type).length;
-        const maxCount = item.type === "date" ? 3 : 5;
+        const maxCount = SUGGESTION_LIMITS[item.type];
         if (sameTypeCount < maxCount) {
           acc.push(item);
         }

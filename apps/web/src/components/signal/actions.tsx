@@ -10,7 +10,7 @@ export function ActionButton({ children, ...props }: ActionButtonProps) {
       variant="outline"
       size="sm"
       className={cn(
-        "h-7 gap-2 rounded-md ps-2 pe-1 text-xs shadow-none dark:bg-neutral-700/40",
+        "h-7 gap-2 rounded-md ps-2 pe-1 text-xs shadow-none dark:bg-neutral-700/40 hover:bg-neutral-700/80",
       )}
       {...props}
     >
@@ -28,7 +28,7 @@ interface ActionProps
 export function Action({ children, type, href, ...props }: ActionProps) {
   if (type === "link") {
     return (
-      <ActionButton asChild {...props}>
+      <ActionButton {...props}>
         <a href={href} target="_blank" rel="noopener noreferrer">
           {children}
         </a>

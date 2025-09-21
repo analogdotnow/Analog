@@ -6,7 +6,7 @@ import { toDate } from "@repo/temporal";
 interface FormatTimeOptions {
   value: Temporal.ZonedDateTime | Temporal.PlainTime;
   use12Hour: boolean;
-  locale: string;
+  locale?: string;
   timeZone?: string;
 }
 

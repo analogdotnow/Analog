@@ -1,23 +1,23 @@
 import * as React from "react";
-import { format } from "@formkit/tempo";
 import { useAtomValue } from "jotai";
 import { Temporal } from "temporal-polyfill";
 
-import { startOfDay, toDate } from "@repo/temporal";
+import { startOfDay } from "@repo/temporal";
 
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { timeZonesAtom } from "@/atoms/timezones";
 import { currentDateAtom } from "@/atoms/view-preferences";
 import { range } from "@/lib/utils";
+import { formatTime } from "@/lib/utils/format";
 
-export function TimelineContainer() {
+export function Timeline() {
   const timeZones = useAtomValue(timeZonesAtom);
   const currentDate = useAtomValue(currentDateAtom);
 
   return (
     <div className="grid grid-flow-col grid-cols-[3rem_repeat(auto-fill,_2.5rem)] grid-rows-1 border-r border-border/70 select-none sm:grid-cols-[4rem_repeat(auto-fill,_3rem)]">
       {timeZones.map((timeZone) => (
-        <Timeline
+        <TimelineColumn
           key={timeZone.id}
           currentDate={currentDate}
           timeZone={timeZone.id}
@@ -45,22 +45,22 @@ export function useHours(currentDate: Temporal.PlainDate, timeZone: string) {
     });
 
     return hours.map((hour) => ({
-      label: format({
-        date: toDate(hour),
-        format: use12Hour ? "h:mm a" : "HH:mm",
-        tz: timeZone,
+      label: formatTime({
+        value: hour,
+        use12Hour,
+        timeZone,
       }),
       value: hour,
     }));
   }, [currentDate, timeZone, use12Hour, defaultTimeZone]);
 }
 
-interface TimelineProps {
+interface TimelineColumnProps {
   currentDate: Temporal.PlainDate;
   timeZone: string;
 }
 
-export function Timeline({ currentDate, timeZone }: TimelineProps) {
+export function TimelineColumn({ currentDate, timeZone }: TimelineColumnProps) {
   const hours = useHours(currentDate, timeZone);
 
   return (
@@ -68,7 +68,7 @@ export function Timeline({ currentDate, timeZone }: TimelineProps) {
       {hours.map((hour, index) => (
         <div
           key={index}
-          className="relative min-h-[var(--week-cells-height)] border-b border-transparent last:border-b-0"
+          className="relative min-h-(--week-cells-height) border-b border-transparent last:border-b-0"
         >
           {index > 0 ? (
             <span className="absolute -top-3 left-0 flex h-6 w-20 max-w-full items-center justify-end bg-background/0 pe-2 text-[10px] font-medium text-muted-foreground/70 tabular-nums sm:pe-4 sm:text-xs">
@@ -77,8 +77,9 @@ export function Timeline({ currentDate, timeZone }: TimelineProps) {
           ) : null}
         </div>
       ))}
+      <div className="pointer-events-none h-(--week-view-bottom-padding)" />
     </div>
   );
 }
 
-export const MemoizedTimeline = React.memo(Timeline);
+export const MemoizedTimeline = React.memo(TimelineColumn);

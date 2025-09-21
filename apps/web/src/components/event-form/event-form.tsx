@@ -3,6 +3,7 @@
 import * as React from "react";
 import {
   ArrowPathIcon,
+  CalendarIcon,
   EyeIcon,
   MapPinIcon,
   // EyeIcon,
@@ -21,6 +22,7 @@ import { requiresAttendeeConfirmation } from "@/lib/utils/events";
 import { formDisabledAtom } from "./atoms/form";
 import { AttendeeList, AttendeeListItem } from "./attendees/attendee-list";
 import { AttendeeListInput } from "./attendees/attendee-list-input";
+import { AvailabilityField } from "./availability-field";
 import { CalendarField } from "./calendar-field";
 import { ConferenceField } from "./conference-field";
 import { DateInputSection } from "./date-input-section";
@@ -30,24 +32,9 @@ import { LocationField } from "./location-field";
 import { RecurrenceField } from "./recurrences/recurrence-field";
 import { SendUpdateButton } from "./send-update-button";
 import { TitleField } from "./title-field";
-import { Form, useEventForm } from "./utils/use-event-form";
+import { useEventForm } from "./utils/use-event-form";
 import { VisibilityField } from "./visibility-field";
-import { AvailabilityField } from "./availability-field";
-
-//import { AvailabilityField } from "./availability-field";
-// import { VisibilityField } from "./visibility-field";
-
-function useSubmitOnClickOutside(form: Form) {
-  const activeLayout = useAtomValue(activeLayoutAtom);
-
-  React.useEffect(() => {
-    if (activeLayout === "form") {
-      return;
-    }
-
-    form.handleSubmit();
-  }, [activeLayout, form]);
-}
+import { useSubmitOnClickOutside } from "./utils/use-submit-on-click-outside";
 
 interface EventFormProps {
   className?: string;
@@ -78,8 +65,7 @@ export function EventForm({ className }: EventFormProps) {
       onFocusCapture={onFocus}
       onSubmit={onSubmit}
     >
-      <div className="">
-        <form.Field name="title">
+      <form.Field name="title">
           {(field) => (
             <>
               <label htmlFor={field.name} className="sr-only">
@@ -96,7 +82,6 @@ export function EventForm({ className }: EventFormProps) {
             </>
           )}
         </form.Field>
-      </div>
       <FormContainer>
         <div className="flex">
           <DateInputSection form={form} disabled={disabled} />
@@ -320,46 +305,8 @@ export function EventForm({ className }: EventFormProps) {
             )}
           </form.Field>
         </FormRow>
-        {/* <Separator />
-        <FormRow>
-          <FormRowIcon icon={EyeIcon} />
-          <form.Field name="visibility">
-            {(field) => (
-              <div className="col-span-4 col-start-1">
-                <label htmlFor={field.name} className="sr-only">
-                  Visibility
-                </label>
-                <VisibilityField
-                  id={field.name}
-                  value={field.state.value}
-                  onChange={field.handleChange}
-                  disabled={disabled}
-                  showConfidential={event?.visibility === "confidential"}
-                />
-              </div>
-            )}
-          </form.Field>
-        </FormRow> */}
-        {/* <Separator />
-        <FormRow>
-          <form.Field name="availability">
-            {(field) => (
-              <div className="col-span-4 col-start-1">
-                <Label htmlFor={field.name} className="sr-only">
-                  Show as
-                </Label>
-                <AvailabilityField
-                  id={field.name}
-                  value={field.state.value}
-                  onChange={field.handleChange}
-                  disabled={disabled}
-                />
-              </div>
-            )}
-          </form.Field>
-        </FormRow> */}
       </FormContainer>
-      <div className="px-0 flex">
+      <div className="flex gap-x-1 px-0">
         <form.Field name="calendar">
           {(field) => (
             <>
@@ -390,19 +337,22 @@ export function EventForm({ className }: EventFormProps) {
                   value={field.state.value}
                   onChange={field.handleChange}
                   disabled={disabled}
-                  showConfidential={form.state.values.visibility === "confidential"}
+                  showConfidential={
+                    form.state.values.visibility === "confidential"
+                  }
                 />
               </div>
             )}
           </form.Field>
         </FormRow>
         <FormRow>
+          <FormRowIcon icon={CalendarIcon} />
           <form.Field name="availability">
             {(field) => (
               <div className="col-span-4 col-start-1">
-                <Label htmlFor={field.name} className="sr-only">
+                <label htmlFor={field.name} className="sr-only">
                   Show as
-                </Label>
+                </label>
                 <AvailabilityField
                   id={field.name}
                   value={field.state.value}

@@ -40,7 +40,7 @@ export function CalendarLayout() {
       {/* <ResponsiveView>
         <EventForm />
       </ResponsiveView> */}
-      <EventWindow className="absolute bottom-8 left-1/2 -translate-x-1/2" />
+      <EventWindow />
     </FlowsProvider>
   );
 }

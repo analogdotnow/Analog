@@ -1,11 +1,13 @@
+"use client";
+
 import * as React from "react";
 import { ArrowRightIcon, ClockIcon } from "@heroicons/react/16/solid";
 import { useField } from "@tanstack/react-form";
 import { Temporal } from "temporal-polyfill";
 
-import { MemoizedDateInput } from "@/components/event-form/date-input";
+import { MemoizedDateInput } from "@/components/event-form/date-input/date-input";
 import { MemoizedTimeInput } from "@/components/event-form/time-input/time-input";
-import { MemoizedTimezoneSelect } from "@/components/timezone-select";
+import { MemoizedTimezoneSelect } from "@/components/event-form/timezone-input/timezone-select";
 import { cn } from "@/lib/utils";
 import { initialValues } from "./utils/defaults";
 import { withForm } from "./utils/form";

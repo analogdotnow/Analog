@@ -4,8 +4,9 @@ import { Temporal } from "temporal-polyfill";
 
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { createDraftEvent } from "@/lib/utils/calendar";
-import { TIME_INTERVALS } from "../../constants";
+import { TIME_INTERVALS, TOTAL_MINUTES_IN_DAY } from "../../constants";
 import { useCreateDraftAction } from "../use-optimistic-mutations";
+import { columnHeightAtom } from "@/atoms/cell-height";
 
 interface UseDoubleClickToCreateOptions {
   date: Temporal.PlainDate;
@@ -29,6 +30,8 @@ export function useDoubleClickToCreate({
   const { defaultTimeZone, defaultStartTime, defaultEventDuration } =
     useAtomValue(calendarSettingsAtom);
 
+  const columnHeight = useAtomValue(columnHeightAtom);
+
   const createDraftAction = useCreateDraftAction();
 
   return React.useCallback(
@@ -48,9 +51,8 @@ export function useDoubleClickToCreate({
       // Day or week view
       const rect = columnRef.current.getBoundingClientRect();
       const relativeY = e.clientY - rect.top;
-      const columnHeight = rect.height;
-
-      const minutes = (relativeY / columnHeight) * 1440;
+      
+      const minutes = (relativeY / columnHeight) * TOTAL_MINUTES_IN_DAY;
       const snapped =
         Math.floor(
           Math.max(0, Math.min(1440, minutes)) / TIME_INTERVALS.SNAP_TO_MINUTES,
@@ -66,13 +68,6 @@ export function useDoubleClickToCreate({
 
       createDraftAction(createDraftEvent({ start, end, allDay: false }));
     },
-    [
-      columnRef,
-      createDraftAction,
-      date,
-      defaultEventDuration,
-      defaultStartTime,
-      defaultTimeZone,
-    ],
+    [columnHeight, columnRef, createDraftAction, date, defaultEventDuration, defaultStartTime, defaultTimeZone],
   );
 }

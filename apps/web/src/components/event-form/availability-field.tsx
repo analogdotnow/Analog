@@ -1,3 +1,5 @@
+"use client";
+
 import * as React from "react";
 
 import {
@@ -7,7 +9,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { cn } from "@/lib/utils";
 
 export type AvailabilityOption = "busy" | "free";
 
@@ -18,11 +19,6 @@ interface AvailabilityFieldProps {
   disabled?: boolean;
 }
 
-const AVAILABILITY_OPTIONS = [
-  { value: "busy", label: "Busy" },
-  { value: "free", label: "Free" },
-];
-
 export function AvailabilityField({
   id,
   value,
@@ -31,20 +27,12 @@ export function AvailabilityField({
 }: AvailabilityFieldProps) {
   return (
     <Select value={value} onValueChange={onChange} disabled={disabled}>
-      <SelectTrigger
-        id={id}
-        className={cn(
-          "h-8 border-none bg-transparent ps-8 shadow-none dark:bg-transparent",
-        )}
-      >
+      <SelectTrigger id={id} className="h-8 ps-8">
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
-        {AVAILABILITY_OPTIONS.map((opt) => (
-          <SelectItem key={opt.value} value={opt.value}>
-            {opt.label}
-          </SelectItem>
-        ))}
+        <SelectItem value="busy">Busy</SelectItem>
+        <SelectItem value="free">Free</SelectItem>
       </SelectContent>
     </Select>
   );

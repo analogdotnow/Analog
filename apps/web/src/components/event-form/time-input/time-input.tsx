@@ -18,6 +18,39 @@ import { cn } from "@/lib/utils";
 import { formatTime } from "@/lib/utils/format";
 import { TimeInputValue, useTimeSuggestions } from "./use-time-suggestions";
 
+interface TimeInputListItemProps {
+  item: TimeInputValue;
+  onSelect: (value: string) => void;
+  start: number;
+}
+
+function TimeInputListItem({ item, onSelect, start }: TimeInputListItemProps) {
+  const style = React.useMemo(() => {
+    return {
+      transform: `translateY(${start}px)`,
+    };
+  }, [start]);
+
+  const onClick = React.useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      onSelect(item.label);
+    },
+    [item.label, onSelect],
+  );
+
+  return (
+    <ComboboxItem
+      key={item.key}
+      value={item.label}
+      className="absolute left-0 w-full ps-7 text-sm font-medium tabular-nums"
+      onClick={onClick}
+      style={style}
+    />
+  );
+}
+
+const MemoizedTimeInputList = React.memo(TimeInputList);
+
 interface TimeInputProps {
   className?: string;
   id?: string;
@@ -171,33 +204,4 @@ function TimeInputList({ suggestions, onSelect }: TimeInputListProps) {
   );
 }
 
-interface TimeInputListItemProps {
-  item: TimeInputValue;
-  onSelect: (value: string) => void;
-  start: number;
-}
-
-function TimeInputListItem({ item, onSelect, start }: TimeInputListItemProps) {
-  const style = React.useMemo(() => {
-    return {
-      transform: `translateY(${start}px)`,
-    };
-  }, [start]);
-  
-  const onClick = React.useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    onSelect(item.label);
-  }, [item.label, onSelect]);
-
-  return (
-    <ComboboxItem
-      key={item.key}
-      value={item.label}
-      className="absolute left-0 w-full ps-7 text-sm font-medium tabular-nums"
-      onClick={onClick}
-      style={style}
-    />
-  );
-}
-
-const MemoizedTimeInputList = React.memo(TimeInputList);
 export const MemoizedTimeInput = React.memo(TimeInput);

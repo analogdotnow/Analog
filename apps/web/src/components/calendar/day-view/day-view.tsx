@@ -15,7 +15,7 @@ import {
   TimeIndicator,
   TimeIndicatorBackground,
 } from "@/components/calendar/timeline/time-indicator";
-import { TimelineContainer } from "@/components/calendar/timeline/timeline";
+import { Timeline } from "@/components/calendar/timeline/timeline";
 import { cn } from "@/lib/utils";
 import { DragAwareWrapper } from "../event/drag-aware-wrapper";
 import { useEdgeAutoScroll } from "../hooks/drag-and-drop/use-auto-scroll";
@@ -104,7 +104,7 @@ export function DayView({ events, scrollContainerRef }: DayViewProps) {
         ref={containerRef}
         className="relative isolate grid flex-1 grid-cols-[5rem_1fr] overflow-hidden border-border/70"
       >
-        <TimelineContainer />
+        <Timeline />
         <div className="relative">
           {eventCollection.positionedEvents.map((positionedEvent) => (
             <PositionedEvent

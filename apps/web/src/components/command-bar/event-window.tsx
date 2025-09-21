@@ -1,10 +1,13 @@
 import * as React from "react";
+import { atom, useAtomValue } from "jotai";
+import { motion, type Variants } from "motion/react";
+
+import { selectedEventIdsAtom } from "@/atoms/selected-events";
 import { cn } from "@/lib/utils";
+import { CommandBar, CreateEventInput } from "../ai-input/create-event-input";
 import { EventForm } from "../event-form/event-form";
 import { Window } from "./window";
-import { atom, useAtomValue } from "jotai";
-import { selectedEventIdsAtom } from "@/atoms/selected-events";
-import { motion, type Variants } from "motion/react";
+import { Action, ActionButton, ActionShortcut } from "../signal/actions";
 
 const VARIANTS: Variants = {
   default: {
@@ -28,6 +31,14 @@ const EVENT_FORM_VARIANTS: Variants = {
   },
 };
 
+const EVENT_INPUT_VARIANTS: Variants = {
+  default: {
+    opacity: 1,
+  },
+  expanded: {
+    opacity: 0,
+  },
+};
 
 export const windowStateAtom = atom<"default" | "expanded">((get) => {
   const events = get(selectedEventIdsAtom);
@@ -42,29 +53,46 @@ export function EventWindow({ className }: EventWindowProps) {
   const state = useAtomValue(windowStateAtom);
 
   return (
-    <Window
-      className={cn("absolute bottom-0 z-50 w-lg max-w-screen", className)}
-      variants={VARIANTS}
-      initial="default"
-      animate={state}
-    >
-      <div className="flex flex-col p-2 inset-fade-shadow-light">
-         <motion.div
-          variants={EVENT_FORM_VARIANTS}
-          initial="default"
-          animate={state}
-        >
-          <EventForm />
-        </motion.div>
-      </div>
-    </Window>
+    <div className={cn("absolute bottom-8 left-1/2 -translate-x-1/2 z-50 w-lg max-w-screen", className)}>
+      <Window
+        className="w-full"
+        variants={VARIANTS}
+        initial="default"
+        animate={state}
+      >
+        <div className="flex flex-col p-2 inset-fade-shadow-light">
+          <motion.div
+            variants={EVENT_INPUT_VARIANTS}
+            initial="default"
+            animate={state}
+          >
+            {/* <CommandBar>
+              <CreateEventInput />
+            </CommandBar> */}
+          </motion.div>
+          <motion.div
+            variants={EVENT_FORM_VARIANTS}
+            initial="default"
+            animate={state}
+          >
+            <EventForm />
+          </motion.div>
+        </div>
+      </Window>
+      <EventActions />
+    </div>
   );
 }
 
 export function EventActions() {
   return (
     <div className="flex flex-col p-2 inset-fade-shadow-light">
-      <EventForm />
+      <div className="flex w-full gap-2">
+          <ActionButton onClick={() => {}}>
+                Voice
+                <ActionShortcut>V</ActionShortcut>
+          </ActionButton>
+        </div>  
     </div>
   );
 }

@@ -11,9 +11,10 @@ import { Toaster } from "@/components/ui/sonner";
 
 import "./globals.css";
 
+import { env } from "@repo/env/server";
+
 import { URLS } from "@/lib/urls";
 import { Providers } from "./providers";
-import { env } from "@repo/env/server";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

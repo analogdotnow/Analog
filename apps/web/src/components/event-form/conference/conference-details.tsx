@@ -67,9 +67,13 @@ interface ConferenceVideoProps {
 }
 
 function ConferenceVideo({ name, entryPoint }: ConferenceVideoProps) {
+  // const isDuplicateCode = (code: string) => {
+  //   return entryPoint.meetingCode && code === entryPoint.meetingCode;
+  // };
+
   return (
     <div className="flex flex-col gap-1">
-      <ConferenceItem>
+      <ConferenceItem className="grow truncate">
         <ConferenceItemLabel>{name}</ConferenceItemLabel>
         <ConferenceItemLink
           href={entryPoint.joinUrl.value}
@@ -84,7 +88,7 @@ function ConferenceVideo({ name, entryPoint }: ConferenceVideoProps) {
           </CopyButton>
         </ConferenceItemActions>
       </ConferenceItem>
-      {entryPoint.meetingCode && (
+      {/* {entryPoint.meetingCode && (
         <ConferenceItem>
           <ConferenceItemLabel>Code</ConferenceItemLabel>
           <ConferenceItemContent>
@@ -97,7 +101,7 @@ function ConferenceVideo({ name, entryPoint }: ConferenceVideoProps) {
           </ConferenceItemActions>
         </ConferenceItem>
       )}
-      {entryPoint.accessCode && (
+      {entryPoint.accessCode && !isDuplicateCode(entryPoint.accessCode) && (
         <ConferenceItem>
           <ConferenceItemLabel>Access code</ConferenceItemLabel>
           <ConferenceItemContent>{entryPoint.accessCode}</ConferenceItemContent>
@@ -108,7 +112,7 @@ function ConferenceVideo({ name, entryPoint }: ConferenceVideoProps) {
           </ConferenceItemActions>
         </ConferenceItem>
       )}
-      {entryPoint.password && (
+      {entryPoint.password && !isDuplicateCode(entryPoint.password) && (
         <ConferenceItem>
           <ConferenceItemLabel>Password</ConferenceItemLabel>
           <ConferenceItemContent>{entryPoint.password}</ConferenceItemContent>
@@ -119,7 +123,7 @@ function ConferenceVideo({ name, entryPoint }: ConferenceVideoProps) {
           </ConferenceItemActions>
         </ConferenceItem>
       )}
-      {entryPoint.pin && (
+      {entryPoint.pin && !isDuplicateCode(entryPoint.pin) && (
         <ConferenceItem>
           <ConferenceItemLabel>PIN</ConferenceItemLabel>
           <ConferenceItemContent>{entryPoint.pin}</ConferenceItemContent>
@@ -129,7 +133,7 @@ function ConferenceVideo({ name, entryPoint }: ConferenceVideoProps) {
             </CopyButton>
           </ConferenceItemActions>
         </ConferenceItem>
-      )}
+      )} */}
     </div>
   );
 }
@@ -194,11 +198,9 @@ export function ConferenceDetails({ conference }: ConferenceDetailsProps) {
         />
       ) : null}
       {conference.sip ? <ConferenceSip entryPoint={conference.sip} /> : null}
-      {conference.phone
-        ? conference.phone.map((phone, idx) => (
-            <ConferencePhone key={idx} entryPoint={phone} />
-          ))
-        : null}
+      {conference.phone?.map((phone, idx) => (
+        <ConferencePhone key={idx} entryPoint={phone} />
+      ))}
     </div>
   );
 }

@@ -10,6 +10,8 @@ import { createDraftEvent } from "@/lib/utils/calendar";
 import { MINUTES_IN_HOUR, TOTAL_MINUTES_IN_DAY } from "../../constants";
 import { useCreateDraftAction } from "../use-optimistic-mutations";
 import { useGlobalCursor } from "./use-global-cursor";
+import { useAtomValue } from "jotai";
+import { columnHeightAtom } from "@/atoms/cell-height";
 
 interface UseDragToCreateOptions {
   date: Temporal.PlainDate;
@@ -40,17 +42,7 @@ export function useDragToCreate({
   const dragCancelled = React.useRef(false);
   const pointerType = usePointerType();
 
-  // Create empty image on client side only to prevent globe icon on Mac Chrome
-  React.useEffect(() => {
-    if (typeof window === "undefined" || emptyImageRef.current) {
-      return;
-    }
-
-    const emptyImage = new Image(1, 1);
-    emptyImage.src =
-      "data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==";
-    emptyImageRef.current = emptyImage;
-  }, []);
+  const columnHeight = useAtomValue(columnHeightAtom);
 
   // Prevent HTML5 drag and drop which causes the globe icon on Mac Chrome
   React.useEffect(() => {
@@ -92,35 +84,33 @@ export function useDragToCreate({
     { scopes: ["calendar"] },
   );
 
-  const getMinutesFromPosition = (globalY: number) => {
-    if (!columnRef.current) return 0;
+  const getMinutesFromPosition = React.useCallback( (globalY: number) => {
+    if (!columnRef.current) {
+      return 0;
+    }
 
     const columnRect = columnRef.current.getBoundingClientRect();
     const relativeY = globalY - columnRect.top;
 
     // Calculate minutes from the top (0 = 00:00, columnHeight = 24:00)
-    const minutes = (relativeY / columnRect.height) * TOTAL_MINUTES_IN_DAY;
+    const minutes = (relativeY / columnHeight) * TOTAL_MINUTES_IN_DAY;
     return Math.max(0, Math.min(TOTAL_MINUTES_IN_DAY, minutes));
-  };
+  }, [columnRef, columnHeight]);
 
-  const getSnappedPosition = (relativeY: number) => {
-    if (!columnRef.current) return 0;
-
-    const columnRect = columnRef.current.getBoundingClientRect();
-
+  const getSnappedPosition = React.useCallback( (relativeY: number) => {
     // Calculate which 15-minute interval this position corresponds to
     const minutes = Math.max(
       0,
       Math.min(
         TOTAL_MINUTES_IN_DAY,
-        (relativeY / columnRect.height) * TOTAL_MINUTES_IN_DAY,
+        (relativeY / columnHeight) * TOTAL_MINUTES_IN_DAY,
       ),
     );
     const snappedMinutes = Math.floor(minutes / 15) * 15;
 
     // Convert back to position
-    return (snappedMinutes / TOTAL_MINUTES_IN_DAY) * columnRect.height;
-  };
+    return (snappedMinutes / TOTAL_MINUTES_IN_DAY) * columnHeight;
+  }, [columnHeight]);
 
   const onDragStart = (event: PointerEvent, info: PanInfo) => {
     if (!columnRef.current || pointerType === "touch") {
@@ -169,7 +159,7 @@ export function useDragToCreate({
     const columnRect = columnRef.current.getBoundingClientRect();
     const currentRelativeY = info.point.y - columnRect.top;
     const initialRelativeY =
-      (initialMinutes.current / TOTAL_MINUTES_IN_DAY) * columnRect.height;
+      (initialMinutes.current / TOTAL_MINUTES_IN_DAY) * columnHeight;
 
     const snappedCurrentY = getSnappedPosition(currentRelativeY);
     const snappedInitialY = getSnappedPosition(initialRelativeY);

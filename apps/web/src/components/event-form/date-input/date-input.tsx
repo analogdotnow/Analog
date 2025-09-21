@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { format, sameDay } from "@formkit/tempo";
+import { format } from "@formkit/tempo";
 import { parseDate as parseLegacyDate } from "chrono-node";
 import { useAtomValue } from "jotai";
 import { Temporal } from "temporal-polyfill";
@@ -81,6 +81,8 @@ export function DateInput({
 }: DateInputProps) {
   const { locale } = useAtomValue(calendarSettingsAtom);
   const [open, setOpen] = React.useState(false);
+  const triggerRef = React.useRef<HTMLButtonElement>(null);
+  const inputRef = React.useRef<HTMLInputElement>(null);
 
   const date = React.useMemo(() => {
     if (isAllDay && start) {
@@ -190,9 +192,6 @@ export function DateInput({
     setDisplayedMonth(date.toPlainYearMonth());
   }, []);
 
-  const triggerRef = React.useRef<HTMLButtonElement>(null);
-  const inputRef = React.useRef<HTMLInputElement>(null);
-
   const onOpenChange = React.useCallback(
     (open: boolean) => {
       if (disabled) {
@@ -201,15 +200,6 @@ export function DateInput({
       setOpen(open);
     },
     [disabled],
-  );
-
-  const onOutside = React.useCallback(
-    (e: PointerDownOutsideEvent | FocusOutsideEvent | InteractOutsideEvent) => {
-      if (inputRef.current && inputRef.current.contains(e.target as Node)) {
-        e.preventDefault();
-      }
-    },
-    [],
   );
 
   const onFocus = React.useCallback(() => {
@@ -269,14 +259,7 @@ export function DateInput({
           onKeyDown={onKeyDown}
         />
       </PopoverAnchor>
-      <PopoverContent
-        className="w-auto overflow-hidden p-0"
-        align="end"
-        onOpenAutoFocus={(e) => e.preventDefault()}
-        onPointerDownOutside={onOutside}
-        onFocusOutside={onOutside}
-        onInteractOutside={onOutside}
-      >
+      <DateInputPopoverContent inputRef={inputRef}>
         <TemporalCalendar
           defaultMonth={defaultMonth}
           selected={date}
@@ -286,8 +269,41 @@ export function DateInput({
           onSelect={onSelect}
           timeZone={value.timeZoneId}
         />
-      </PopoverContent>
+      </DateInputPopoverContent>
     </Popover>
+  );
+}
+
+interface DateInputPopoverContentProps {
+  children: React.ReactNode;
+  inputRef: React.RefObject<HTMLInputElement | null>;
+}
+
+function DateInputPopoverContent({ children, inputRef }: DateInputPopoverContentProps) {
+  const onOutside = React.useCallback(
+    (e: PointerDownOutsideEvent | FocusOutsideEvent | InteractOutsideEvent) => {
+      if (inputRef.current && inputRef.current.contains(e.target as Node)) {
+        e.preventDefault();
+      }
+    },
+    [inputRef],
+  );
+
+  const onOpenAutoFocus = React.useCallback((e: Event) => {
+    e.preventDefault();
+  }, []);
+
+  return (
+    <PopoverContent
+      className="w-auto overflow-hidden p-0"
+      align="end"
+      onOpenAutoFocus={onOpenAutoFocus}
+      onPointerDownOutside={onOutside}
+      onFocusOutside={onOutside}
+      onInteractOutside={onOutside}
+    >
+      {children}
+    </PopoverContent>
   );
 }
 

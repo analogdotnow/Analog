@@ -7,21 +7,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { cn } from "@/lib/utils";
 
 export type VisibilityOption =
   | "default"
   | "public"
   | "private"
   | "confidential";
-
-interface VisibilityFieldProps {
-  id: string;
-  value: VisibilityOption;
-  onChange: (value: VisibilityOption) => void;
-  disabled?: boolean;
-  showConfidential?: boolean;
-}
 
 const BASE_OPTIONS: { value: VisibilityOption; label: string }[] = [
   { value: "default", label: "Default" },
@@ -33,6 +24,14 @@ const CONFIDENTIAL_OPTION: {
   value: VisibilityOption;
   label: string;
 } = { value: "confidential", label: "Confidential" };
+
+interface VisibilityFieldProps {
+  id: string;
+  value: VisibilityOption;
+  onChange: (value: VisibilityOption) => void;
+  disabled?: boolean;
+  showConfidential?: boolean;
+}
 
 export function VisibilityField({
   id,
@@ -59,14 +58,8 @@ export function VisibilityField({
 
   return (
     <Select value={value} onValueChange={onChange} disabled={disabled}>
-      <SelectTrigger
-        id={id}
-        className={cn(
-          "h-8 border-none bg-transparent ps-8 shadow-none dark:bg-transparent",
-          value === "default" && "text-muted-foreground/70",
-        )}
-      >
-        <SelectValue />
+      <SelectTrigger id={id} className="h-8 ps-8">
+        {value !== "default" && <SelectValue />}
       </SelectTrigger>
       <SelectContent>
         {options.map((opt) => (

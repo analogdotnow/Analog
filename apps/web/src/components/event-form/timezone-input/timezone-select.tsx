@@ -1,13 +1,8 @@
+"use client";
+
 import * as React from "react";
-import {
-  CheckIcon,
-  GlobeAmericasIcon,
-  GlobeAsiaAustraliaIcon,
-  GlobeEuropeAfricaIcon,
-} from "@heroicons/react/16/solid";
+import { CheckIcon } from "@heroicons/react/16/solid";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { matchSorter } from "match-sorter";
-import { Temporal } from "temporal-polyfill";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -24,59 +19,53 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import {
-  TIMEZONES_DISPLAY,
   TimeZoneDisplayValue,
-  getDisplayValue,
 } from "@/lib/timezones";
 import { cn } from "@/lib/utils";
-import { TimeZoneAwareGlobeIcon } from "./timezone-aware-globe-icon";
+import { TimeZoneAwareGlobeIcon } from "../../timezone-aware-globe-icon";
+import { useTimezoneList, useTimezoneSearch } from "./use-timezone-list";
 
-function useTimezoneList(value: string) {
-  return React.useMemo(() => {
-    if (!value) {
-      const timezone = TIMEZONES_DISPLAY.find((tz) => tz.id === value);
-      const now = Temporal.Now.plainDateISO();
-      return {
-        timezones: TIMEZONES_DISPLAY,
-        displayValue: timezone ?? getDisplayValue(value, now),
-      };
-    }
+interface TimezoneListItemProps {
+  item: TimeZoneDisplayValue;
+  value: string;
+  onSelect: (value: string) => void;
+  start: number;
+}
 
-    const timezones = [
-      ...TIMEZONES_DISPLAY.filter((timezone) => timezone.id === value),
-      ...TIMEZONES_DISPLAY.filter((timezone) => timezone.id !== value),
-    ];
-
-    const timezone = timezones.find((tz) => tz.id === value);
-    const now = Temporal.Now.plainDateISO();
-
+function TimezoneListItem({
+  item,
+  value,
+  onSelect,
+  start,
+}: TimezoneListItemProps) {
+  const style = React.useMemo(() => {
     return {
-      timezones,
-      displayValue: timezone ?? getDisplayValue(value, now),
+      transform: `translateY(${start}px)`,
     };
-  }, [value]);
+  }, [start]);
+
+  return (
+    <CommandItem
+      key={item.id}
+      value={item.id}
+      onSelect={onSelect}
+      className="absolute top-0 left-0 w-full text-sm tabular-nums [&_svg]:size-3.5"
+      style={style}
+    >
+      <span>
+        <span className="text-muted-foreground/80">UTC</span>
+        <span className="inline-block w-12 text-muted-foreground/80">
+          {item.offset.label}
+        </span>
+      </span>
+      <span className="truncate">{item.fullName}</span>
+      <span className="text-muted-foreground/80">({item.abbreviation})</span>
+      {value === item.id ? <CheckIcon className="ml-auto" /> : null}
+    </CommandItem>
+  );
 }
 
-interface UseSearchProps {
-  timezones: TimeZoneDisplayValue[];
-  search: string;
-}
-
-function useSearch({ timezones, search }: UseSearchProps) {
-  return React.useMemo(() => {
-    if (!search) {
-      return timezones;
-    }
-
-    return matchSorter(timezones, search, {
-      keys: [
-        (item) => item.id,
-        (item) => item.name,
-        (item) => item.offset.label,
-      ],
-    });
-  }, [timezones, search]);
-}
+const MemoizedTimezoneList = React.memo(TimezoneList);
 
 interface TimezoneSelectProps {
   id?: string;
@@ -99,7 +88,7 @@ export function TimezoneSelect({
 
   const { timezones, displayValue } = useTimezoneList(value);
 
-  const searchResults = useSearch({ timezones, search });
+  const searchResults = useTimezoneSearch({ timezones, search });
 
   const onOpenChange = React.useCallback(
     (open: boolean) => {
@@ -155,7 +144,7 @@ export function TimezoneSelect({
           </Button>
         </PopoverTrigger>
         <PopoverContent
-          className="w-96 min-w-(--radix-popper-anchor-width) p-0"
+          className="max-w-screen w-fit min-w-(--radix-popper-anchor-width) p-0"
           align="end"
           side="bottom"
           sideOffset={4}
@@ -225,47 +214,5 @@ function TimezoneList({ timezones, value, onSelect }: TimezoneListProps) {
     </CommandGroup>
   );
 }
-
-interface TimezoneListItemProps {
-  item: TimeZoneDisplayValue;
-  value: string;
-  onSelect: (value: string) => void;
-  start: number;
-}
-
-function TimezoneListItem({
-  item,
-  value,
-  onSelect,
-  start,
-}: TimezoneListItemProps) {
-  const style = React.useMemo(() => {
-    return {
-      transform: `translateY(${start}px)`,
-    };
-  }, [start]);
-
-  return (
-    <CommandItem
-      key={item.id}
-      value={item.id}
-      onSelect={onSelect}
-      className="absolute top-0 left-0 w-full text-sm tabular-nums [&_svg]:size-3.5"
-      style={style}
-    >
-      <span>
-        <span className="text-muted-foreground/80">UTC</span>
-        <span className="inline-block w-12 text-muted-foreground/80">
-          {item.offset.label}
-        </span>
-      </span>
-      <span className="truncate">{item.fullName}</span>
-      <span className="text-muted-foreground/80">({item.abbreviation})</span>
-      {value === item.id ? <CheckIcon className="ml-auto" /> : null}
-    </CommandItem>
-  );
-}
-
-const MemoizedTimezoneList = React.memo(TimezoneList);
 
 export const MemoizedTimezoneSelect = React.memo(TimezoneSelect);

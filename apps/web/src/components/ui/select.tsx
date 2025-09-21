@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
+import { ChevronDownIcon } from "@heroicons/react/16/solid";
 import * as SelectPrimitive from "@radix-ui/react-select";
-import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react";
+import { CheckIcon, ChevronUpIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -33,8 +34,8 @@ function SelectTrigger({
     <SelectPrimitive.Trigger
       data-slot="select-trigger"
       className={cn(
-        "aro:dark:bg-input-focus flex h-8 w-full items-center justify-between gap-2 rounded-md border border-input px-3 py-2 text-sm text-foreground shadow-xs transition-[color,box-shadow] outline-none focus:bg-input-focus focus-visible:bg-input-focus disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive data-[placeholder]:text-muted-foreground *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 data-[state=open]:bg-input-focus dark:bg-input/30 dark:focus:bg-input-focus dark:focus-visible:bg-input-focus [&_svg]:pointer-events-none [&_svg]:shrink-0 [&>span]:line-clamp-1",
-        "focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0 aria-expanded:bg-input-focus aria-expanded:dark:bg-input-focus",
+        "flex h-8 w-full items-center justify-between gap-2 rounded-md px-3 py-2 text-sm text-foreground transition-colors outline-none focus:bg-input-focus focus-visible:bg-input-focus disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive data-[placeholder]:text-muted-foreground *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 data-[state=open]:bg-input-focus [&_svg]:pointer-events-none [&_svg]:shrink-0 [&>span]:line-clamp-1",
+        "hover:bg-input-focus/50 focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0 aria-expanded:bg-input-focus",
         className,
       )}
       {...props}
@@ -42,10 +43,7 @@ function SelectTrigger({
       {children}
       {props.asChild ? null : (
         <SelectPrimitive.Icon asChild>
-          <ChevronDownIcon
-            size={16}
-            className="shrink-0 text-muted-foreground/80 in-aria-invalid:text-destructive/80"
-          />
+          <ChevronDownIcon className="size-4 shrink-0 text-muted-foreground/80 in-aria-invalid:text-destructive/80" />
         </SelectPrimitive.Icon>
       )}
     </SelectPrimitive.Trigger>
@@ -63,7 +61,7 @@ function SelectContent({
       <SelectPrimitive.Content
         data-slot="select-content"
         className={cn(
-          "relative z-50 max-h-[min(24rem,var(--radix-select-content-available-height))] min-w-32 overflow-hidden rounded-md border border-input bg-popover text-popover-foreground shadow-lg outline-hidden data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:bg-input-focus data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=open]:dark:bg-input-focus [&_[role=group]]:py-1",
+          "relative z-50 max-h-[min(24rem,var(--radix-select-content-available-height))] min-w-32 overflow-hidden rounded-md border border-input bg-popover text-popover-foreground shadow-lg outline-hidden data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:bg-input-focus data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 [&_[role=group]]:py-1",
           "focus:ring-0 focus:ring-offset-0",
           position === "popper" &&
             "w-full min-w-[var(--radix-select-trigger-width)] data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
@@ -171,7 +169,7 @@ function SelectScrollDownButton({
       )}
       {...props}
     >
-      <ChevronDownIcon size={16} />
+      <ChevronDownIcon className="size-4" />
     </SelectPrimitive.ScrollDownButton>
   );
 }

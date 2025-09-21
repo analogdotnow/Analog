@@ -13,17 +13,21 @@ export function WeekViewEvent({
   positionedEvent,
   containerRef,
 }: WeekViewEventProps) {
+  const style = React.useMemo(() => {
+    return {
+      top: `${positionedEvent.top}px`,
+      height: `${positionedEvent.height}px`,
+      left: `${positionedEvent.left * 100}%`,
+      width: `${positionedEvent.width * 100}%`,
+    };
+  }, [positionedEvent]);
+
   return (
     <DragAwareWrapper
       key={positionedEvent.item.event.id}
       eventId={positionedEvent.item.event.id}
       className="absolute z-10"
-      style={{
-        top: `${positionedEvent.top}px`,
-        height: `${positionedEvent.height}px`,
-        left: `${positionedEvent.left * 100}%`,
-        width: `${positionedEvent.width * 100}%`,
-      }}
+      style={style}
     >
       <DraggableEvent
         item={positionedEvent.item}
