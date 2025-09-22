@@ -1,5 +1,6 @@
 export interface ProviderConfig {
   accessToken: string;
+  refreshToken: string;
   accountId: string;
 }
 
