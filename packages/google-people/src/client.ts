@@ -114,12 +114,12 @@ import {
 } from "./resources/people-batch-update-contacts";
 import * as PeopleCreateContactAPI from "./resources/people-create-contact";
 import {
-  type Date,
   FieldMetadata,
   PeopleCreateContact,
   PeopleCreateContactCreateParams,
   PersonMerged,
   Source,
+  type Date,
 } from "./resources/people-create-contact";
 import {
   PeopleListDirectoryPeople,
