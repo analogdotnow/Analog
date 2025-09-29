@@ -114,7 +114,7 @@ import {
 } from "./resources/people-batch-update-contacts";
 import * as PeopleCreateContactAPI from "./resources/people-create-contact";
 import {
-  Date,
+  type Date,
   FieldMetadata,
   PeopleCreateContact,
   PeopleCreateContactCreateParams,
