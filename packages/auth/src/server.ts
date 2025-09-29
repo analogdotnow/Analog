@@ -45,6 +45,9 @@ export const auth = betterAuth({
     provider: "pg",
   }),
   // secondaryStorage: secondaryStorage(),
+  session: {
+    updateAge: 24 * 60 * 60 * 3, // 3 days in seconds
+  },
   account: {
     accountLinking: {
       enabled: true,
