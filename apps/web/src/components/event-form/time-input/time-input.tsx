@@ -114,7 +114,7 @@ export function TimeInput({
 
   const onInputChange = React.useCallback((newValue: string) => {
     setSearchValue(newValue);
-    onInputChange(newValue);
+    setInput(newValue);
   }, []);
 
   const onInput = React.useCallback(
@@ -145,7 +145,7 @@ export function TimeInput({
       <ComboboxLabel className="sr-only">Time</ComboboxLabel>
       <ComboboxInput
         id={id}
-        className={cn("font-medium transition-colors", className)}
+        className={className}
         onChange={onInput}
         onKeyDown={onKeyDown}
         disabled={disabled}

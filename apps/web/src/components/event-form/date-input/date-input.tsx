@@ -279,7 +279,10 @@ interface DateInputPopoverContentProps {
   inputRef: React.RefObject<HTMLInputElement | null>;
 }
 
-function DateInputPopoverContent({ children, inputRef }: DateInputPopoverContentProps) {
+function DateInputPopoverContent({
+  children,
+  inputRef,
+}: DateInputPopoverContentProps) {
   const onOutside = React.useCallback(
     (e: PointerDownOutsideEvent | FocusOutsideEvent | InteractOutsideEvent) => {
       if (inputRef.current && inputRef.current.contains(e.target as Node)) {

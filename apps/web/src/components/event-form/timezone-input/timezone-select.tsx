@@ -18,9 +18,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  TimeZoneDisplayValue,
-} from "@/lib/timezones";
+import { TimeZoneDisplayValue } from "@/lib/timezones";
 import { cn } from "@/lib/utils";
 import { TimeZoneAwareGlobeIcon } from "../../timezone-aware-globe-icon";
 import { useTimezoneList, useTimezoneSearch } from "./use-timezone-list";
@@ -49,17 +47,19 @@ function TimezoneListItem({
       key={item.id}
       value={item.id}
       onSelect={onSelect}
-      className="absolute top-0 left-0 w-full text-sm tabular-nums [&_svg]:size-3.5"
+      className="absolute top-0 left-0 flex w-full text-sm tabular-nums [&_svg]:size-3.5"
       style={style}
     >
-      <span>
+      <span className="line-clamp-1 flex-none">
         <span className="text-muted-foreground/80">UTC</span>
         <span className="inline-block w-12 text-muted-foreground/80">
           {item.offset.label}
         </span>
       </span>
-      <span className="truncate">{item.fullName}</span>
-      <span className="text-muted-foreground/80">({item.abbreviation})</span>
+      <span className="grow truncate">{item.fullName}</span>
+      <span className="flex-none text-muted-foreground/80">
+        ({item.abbreviation})
+      </span>
       {value === item.id ? <CheckIcon className="ml-auto" /> : null}
     </CommandItem>
   );
@@ -118,33 +118,29 @@ export function TimezoneSelect({
             size="sm"
             role="combobox"
             aria-expanded={open}
-            className={cn("w-full justify-start gap-2 px-2", className)}
+            className={cn(
+              "w-full justify-start gap-2 px-2 data-[state=open]:bg-accent",
+              className,
+            )}
             disabled={disabled}
           >
             <TimeZoneAwareGlobeIcon
               offset={displayValue?.offset.value ?? 0}
-              className="size-4 text-muted-foreground hover:text-foreground"
+              className="size-4 text-muted-foreground"
             />
             {displayValue ? (
-              <span
-                className={cn(
-                  "space-x-2 truncate text-sm",
-                  !value && "text-muted-foreground",
-                )}
-              >
-                <span className="pr-2">
-                  <span className="text-muted-foreground/80">UTC</span>
-                  <span className="inline-block w-12 text-muted-foreground/80">
-                    {displayValue.offset.label}
-                  </span>
+              <span className="truncate text-sm text-muted-foreground">
+                UTC
+                <span className="inline-block w-12 text-muted-foreground/80">
+                  {displayValue.offset.label}
                 </span>
-                {displayValue.name}
+                <span className="grow truncate ps-1">{displayValue.name}</span>
               </span>
             ) : null}
           </Button>
         </PopoverTrigger>
         <PopoverContent
-          className="max-w-screen w-fit min-w-(--radix-popper-anchor-width) p-0"
+          className="w-96 max-w-screen min-w-(--radix-popper-anchor-width) p-0"
           align="end"
           side="bottom"
           sideOffset={4}

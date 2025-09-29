@@ -6,8 +6,8 @@ import { selectedEventIdsAtom } from "@/atoms/selected-events";
 import { cn } from "@/lib/utils";
 import { CommandBar, CreateEventInput } from "../ai-input/create-event-input";
 import { EventForm } from "../event-form/event-form";
-import { Window } from "./window";
 import { Action, ActionButton, ActionShortcut } from "../signal/actions";
+import { Window } from "./window";
 
 const VARIANTS: Variants = {
   default: {
@@ -53,7 +53,12 @@ export function EventWindow({ className }: EventWindowProps) {
   const state = useAtomValue(windowStateAtom);
 
   return (
-    <div className={cn("absolute bottom-8 left-1/2 -translate-x-1/2 z-50 w-lg max-w-screen", className)}>
+    <div
+      className={cn(
+        "absolute bottom-8 left-1/2 z-50 w-lg max-w-screen -translate-x-1/2",
+        className,
+      )}
+    >
       <Window
         className="w-full"
         variants={VARIANTS}
@@ -88,11 +93,11 @@ export function EventActions() {
   return (
     <div className="flex flex-col p-2 inset-fade-shadow-light">
       <div className="flex w-full gap-2">
-          <ActionButton onClick={() => {}}>
-                Voice
-                <ActionShortcut>V</ActionShortcut>
-          </ActionButton>
-        </div>  
+        <ActionButton onClick={() => {}}>
+          Voice
+          <ActionShortcut>V</ActionShortcut>
+        </ActionButton>
+      </div>
     </div>
   );
 }

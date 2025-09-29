@@ -7,9 +7,9 @@ import { Temporal } from "temporal-polyfill";
 import { isToday } from "@repo/temporal";
 
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
-import { useZonedDateTime } from "../context/datetime-provider";
-import { formatTime } from "@/lib/utils/format";
 import { columnHeightAtom } from "@/atoms/cell-height";
+import { formatTime } from "@/lib/utils/format";
+import { useZonedDateTime } from "../context/datetime-provider";
 
 const END_OF_DAY_MINUTES = 1440; // 24 hours * 60 minutes
 

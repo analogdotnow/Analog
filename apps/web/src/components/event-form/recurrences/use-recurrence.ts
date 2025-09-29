@@ -12,7 +12,11 @@ interface UseRecurrenceOptions {
   timeZone: string;
 }
 
-export function useRecurrence({ recurrence, date, timeZone }: UseRecurrenceOptions) {
+export function useRecurrence({
+  recurrence,
+  date,
+  timeZone,
+}: UseRecurrenceOptions) {
   return React.useMemo(() => {
     if (!recurrence) {
       return { description: undefined, rrule: undefined, rule: undefined };

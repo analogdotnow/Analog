@@ -1,14 +1,19 @@
-import { TimeZoneDisplayValue, TIMEZONES_DISPLAY } from "@/lib/timezones";
 import * as React from "react";
-import { Temporal } from "temporal-polyfill";
-import { getDisplayValue } from "@/lib/timezones";
 import { matchSorter } from "match-sorter";
+import { Temporal } from "temporal-polyfill";
+
+import {
+  TIMEZONES_DISPLAY,
+  TimeZoneDisplayValue,
+  getDisplayValue,
+} from "@/lib/timezones";
 
 export function useTimezoneList(value: string) {
   return React.useMemo(() => {
     if (!value) {
       const timezone = TIMEZONES_DISPLAY.find((tz) => tz.id === value);
       const now = Temporal.Now.plainDateISO();
+
       return {
         timezones: TIMEZONES_DISPLAY,
         displayValue: timezone ?? getDisplayValue(value, now),
@@ -23,6 +28,8 @@ export function useTimezoneList(value: string) {
     const timezone = timezones.find((tz) => tz.id === value);
     const now = Temporal.Now.plainDateISO();
 
+    console.log(timezone);
+    console.log(getDisplayValue(value, now));
     return {
       timezones,
       displayValue: timezone ?? getDisplayValue(value, now),

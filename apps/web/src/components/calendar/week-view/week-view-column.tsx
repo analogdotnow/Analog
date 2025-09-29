@@ -105,12 +105,12 @@ function WeekViewDayTimeSlots({ date }: WeekViewDayTimeSlotsProps) {
       onDoubleClick={onDoubleClick}
     >
       <div>
-      {HOURS.map((hour) => (
-        <div
-          key={hour.toString()}
-          className="pointer-events-none min-h-(--week-cells-height) border-b border-border/70 last:border-b-0"
-        />
-      ))}
+        {HOURS.map((hour) => (
+          <div
+            key={hour.toString()}
+            className="pointer-events-none min-h-(--week-cells-height) border-b border-border/70 last:border-b-0"
+          />
+        ))}
       </div>
       <DragPreview style={{ top, height, opacity }} />
       <div className="pointer-events-none h-(--week-view-bottom-padding)" />

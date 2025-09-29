@@ -34,8 +34,8 @@ function SelectTrigger({
     <SelectPrimitive.Trigger
       data-slot="select-trigger"
       className={cn(
-        "flex h-8 w-full items-center justify-between gap-2 rounded-md px-3 py-2 text-sm text-foreground transition-colors outline-none focus:bg-input-focus focus-visible:bg-input-focus disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive data-[placeholder]:text-muted-foreground *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 data-[state=open]:bg-input-focus [&_svg]:pointer-events-none [&_svg]:shrink-0 [&>span]:line-clamp-1",
-        "hover:bg-input-focus/50 focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0 aria-expanded:bg-input-focus",
+        "flex h-8 w-full items-center justify-between gap-2 rounded-md px-3 py-2 text-sm text-foreground transition-colors outline-none focus:bg-accent focus-visible:bg-accent disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive data-[placeholder]:text-muted-foreground *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 data-[state=open]:bg-accent [&_svg]:pointer-events-none [&_svg]:shrink-0 [&>span]:line-clamp-1",
+        "hover:bg-accent/50 focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0 aria-expanded:bg-accent",
         className,
       )}
       {...props}
@@ -61,7 +61,7 @@ function SelectContent({
       <SelectPrimitive.Content
         data-slot="select-content"
         className={cn(
-          "relative z-50 max-h-[min(24rem,var(--radix-select-content-available-height))] min-w-32 overflow-hidden rounded-md border border-input bg-popover text-popover-foreground shadow-lg outline-hidden data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:bg-input-focus data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 [&_[role=group]]:py-1",
+          "relative z-50 max-h-[min(24rem,var(--radix-select-content-available-height))] min-w-32 overflow-hidden rounded-md border border-input bg-popover text-popover-foreground shadow-lg outline-hidden data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:bg-accent data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 [&_[role=group]]:py-1",
           "focus:ring-0 focus:ring-offset-0",
           position === "popper" &&
             "w-full min-w-[var(--radix-select-trigger-width)] data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
@@ -110,7 +110,7 @@ function SelectItem({
     <SelectPrimitive.Item
       data-slot="select-item"
       className={cn(
-        "relative flex w-full cursor-default items-center rounded py-1.5 ps-8 pe-2 text-sm outline-hidden select-none focus:bg-input-focus focus:text-foreground data-disabled:pointer-events-none data-disabled:opacity-50 data-[state=checked]:bg-input-focus data-[state=checked]:text-foreground",
+        "relative flex w-full cursor-default items-center rounded py-1.5 ps-8 pe-2 text-sm outline-hidden select-none focus:bg-accent focus:text-foreground data-disabled:pointer-events-none data-disabled:opacity-50 data-[state=checked]:bg-accent data-[state=checked]:text-foreground",
         className,
       )}
       {...props}

@@ -33,8 +33,8 @@ import { RecurrenceField } from "./recurrences/recurrence-field";
 import { SendUpdateButton } from "./send-update-button";
 import { TitleField } from "./title-field";
 import { useEventForm } from "./utils/use-event-form";
-import { VisibilityField } from "./visibility-field";
 import { useSubmitOnClickOutside } from "./utils/use-submit-on-click-outside";
+import { VisibilityField } from "./visibility-field";
 
 interface EventFormProps {
   className?: string;
@@ -66,22 +66,22 @@ export function EventForm({ className }: EventFormProps) {
       onSubmit={onSubmit}
     >
       <form.Field name="title">
-          {(field) => (
-            <>
-              <label htmlFor={field.name} className="sr-only">
-                Title
-              </label>
-              <TitleField
-                id={field.name}
-                name={field.name}
-                value={field.state.value}
-                onBlur={field.handleBlur}
-                onChange={field.handleChange}
-                disabled={disabled}
-              />
-            </>
-          )}
-        </form.Field>
+        {(field) => (
+          <>
+            <label htmlFor={field.name} className="sr-only">
+              Title
+            </label>
+            <TitleField
+              id={field.name}
+              name={field.name}
+              value={field.state.value}
+              onBlur={field.handleBlur}
+              onChange={field.handleChange}
+              disabled={disabled}
+            />
+          </>
+        )}
+      </form.Field>
       <FormContainer>
         <div className="flex">
           <DateInputSection form={form} disabled={disabled} />

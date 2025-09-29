@@ -19,8 +19,8 @@ import {
 import { cn } from "@/lib/utils";
 import { RecurrenceDialog } from "./recurrence-dialog";
 import { generateRecurrenceSuggestions } from "./recurrence-suggestions";
-import { useRecurringEvent } from "./use-recurring-event";
 import { useRecurrence } from "./use-recurrence";
+import { useRecurringEvent } from "./use-recurring-event";
 
 interface RecurrenceFieldProps {
   className?: string;
@@ -78,7 +78,7 @@ export function RecurrenceField({
             variant="ghost"
             disabled={disabled || !!recurringEventId}
             className={cn(
-              "flex h-8 w-full justify-start focus:bg-input-focus focus-visible:bg-input-focus data-[state=open]:bg-input-focus data-[state=open]:dark:bg-input-focus",
+              "flex h-8 w-full justify-start focus:bg-accent focus-visible:bg-accent data-[state=open]:bg-accent data-[state=open]:dark:bg-accent",
               className,
             )}
             onBlur={onBlur}

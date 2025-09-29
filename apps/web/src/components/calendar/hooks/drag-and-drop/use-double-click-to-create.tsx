@@ -3,10 +3,10 @@ import { useAtomValue } from "jotai";
 import { Temporal } from "temporal-polyfill";
 
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
+import { columnHeightAtom } from "@/atoms/cell-height";
 import { createDraftEvent } from "@/lib/utils/calendar";
 import { TIME_INTERVALS, TOTAL_MINUTES_IN_DAY } from "../../constants";
 import { useCreateDraftAction } from "../use-optimistic-mutations";
-import { columnHeightAtom } from "@/atoms/cell-height";
 
 interface UseDoubleClickToCreateOptions {
   date: Temporal.PlainDate;
@@ -51,7 +51,7 @@ export function useDoubleClickToCreate({
       // Day or week view
       const rect = columnRef.current.getBoundingClientRect();
       const relativeY = e.clientY - rect.top;
-      
+
       const minutes = (relativeY / columnHeight) * TOTAL_MINUTES_IN_DAY;
       const snapped =
         Math.floor(
@@ -68,6 +68,14 @@ export function useDoubleClickToCreate({
 
       createDraftAction(createDraftEvent({ start, end, allDay: false }));
     },
-    [columnHeight, columnRef, createDraftAction, date, defaultEventDuration, defaultStartTime, defaultTimeZone],
+    [
+      columnHeight,
+      columnRef,
+      createDraftAction,
+      date,
+      defaultEventDuration,
+      defaultStartTime,
+      defaultTimeZone,
+    ],
   );
 }

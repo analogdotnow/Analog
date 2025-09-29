@@ -72,7 +72,7 @@ export function CalendarField({
       >
         <Button
           variant="ghost"
-          className="grow justify-start text-sm hover:bg-input-focus focus:bg-input-focus focus:ring-0 focus:ring-offset-0 focus-visible:bg-input-focus focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=open]:bg-input-focus dark:hover:bg-input-focus dark:focus:bg-input-focus dark:focus-visible:bg-input-focus data-[state=open]:dark:bg-input-focus"
+          className="grow justify-start text-sm hover:bg-accent focus:bg-accent focus:ring-0 focus:ring-offset-0 focus-visible:bg-accent focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=open]:bg-accent dark:hover:bg-accent dark:focus:bg-accent dark:focus-visible:bg-accent data-[state=open]:dark:bg-accent"
         >
           <CalendarColorIndicator
             primary={selected?.primary ?? false}

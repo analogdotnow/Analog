@@ -47,7 +47,9 @@ export function TimeIndicatorBackground() {
       <div className="relative flex items-center">
         <div className="absolute flex h-4 w-(--timeline-container-width) items-center justify-end">
           <div className="pe-1 text-[10px] font-medium text-red-500/80 tabular-nums sm:pe-4 sm:text-xs">
-            <div className="bg-background/20 backdrop-blur-md rounded-sm px-1">{label}</div>
+            <div className="rounded-sm bg-background/20 px-1 backdrop-blur-md">
+              {label}
+            </div>
           </div>
         </div>
         <div className="h-0.5 w-(--timeline-container-width)"></div>

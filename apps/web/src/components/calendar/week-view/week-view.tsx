@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useAtomValue } from "jotai";
+import { Temporal } from "temporal-polyfill";
 
 import { isWeekend } from "@repo/temporal";
 
@@ -19,7 +20,6 @@ import { useScrollToCurrentTime } from "./use-scroll-to-current-time";
 import { WeekViewAllDaySection } from "./week-view-all-day-section";
 import { WeekViewDayColumn } from "./week-view-column";
 import { WeekViewHeader } from "./week-view-header";
-import { Temporal } from "temporal-polyfill";
 
 interface WeekViewProps extends React.ComponentProps<"div"> {
   events: EventCollectionItem[];
@@ -98,7 +98,10 @@ interface useWeekViewScrollProps {
   headerRef: React.RefObject<HTMLDivElement | null>;
 }
 
-function useWeekViewScroll({ scrollContainerRef, headerRef }: useWeekViewScrollProps) {
+function useWeekViewScroll({
+  scrollContainerRef,
+  headerRef,
+}: useWeekViewScrollProps) {
   useEdgeAutoScroll(scrollContainerRef, { headerRef });
 
   const scrollToCurrentTime = useScrollToCurrentTime({ scrollContainerRef });
@@ -134,7 +137,7 @@ export function WeekViewContainer({
   return (
     <div
       data-slot="week-view"
-      className="isolate flex flex-col [--week-view-bottom-padding:16rem] [--time-column-width:3rem] [--timeline-container-width:calc(var(--time-columns)*2.5rem+0.5rem)] sm:[--time-column-width:5rem] sm:[--timeline-container-width:calc(var(--time-columns)*3rem+1rem)]"
+      className="isolate flex flex-col [--time-column-width:3rem] [--timeline-container-width:calc(var(--time-columns)*2.5rem+0.5rem)] [--week-view-bottom-padding:16rem] sm:[--time-column-width:5rem] sm:[--timeline-container-width:calc(var(--time-columns)*3rem+1rem)]"
       style={style}
       {...props}
     >

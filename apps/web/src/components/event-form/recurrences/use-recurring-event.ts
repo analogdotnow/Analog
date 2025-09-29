@@ -1,4 +1,5 @@
 import * as React from "react";
+
 import { useLiveEventById } from "@/lib/db";
 import { CalendarEvent } from "@/lib/interfaces";
 
@@ -16,4 +17,3 @@ export function useRecurringEvent(recurringEventId?: string) {
     return event as BaseEvent | undefined;
   }, [event, recurringEventId]);
 }
-

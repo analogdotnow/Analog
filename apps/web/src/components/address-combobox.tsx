@@ -109,7 +109,7 @@ export function AddressCombobox({
         }}
         className={cn(
           "flex h-8 w-full appearance-none rounded-md border-0 bg-transparent px-3 py-0.5 text-sm outline-none file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground/70 disabled:cursor-not-allowed disabled:opacity-50",
-          "focus:bg-input-focus focus:ring-0 focus:ring-offset-0 focus-visible:bg-input-focus focus-visible:ring-0 focus-visible:ring-offset-0 dark:focus:bg-input-focus dark:focus-visible:bg-input-focus",
+          "focus:bg-accent focus:ring-0 focus:ring-offset-0 focus-visible:bg-accent focus-visible:ring-0 focus-visible:ring-offset-0 dark:focus:bg-accent dark:focus-visible:bg-accent",
           // "placeholder:font-light",
           className,
         )}

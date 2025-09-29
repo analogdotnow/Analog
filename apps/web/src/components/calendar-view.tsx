@@ -119,24 +119,25 @@ export function CalendarView({ className }: CalendarViewProps) {
 
   const calendarViewRef = React.useRef<HTMLDivElement>(null);
 
-  const onClickInside = React.useCallback(
-    (e: MouseEvent) => {
-      if (!calendarViewRef.current?.contains(e.target as Node)) {
-        return;
-      }
-
-      setActiveLayout("calendar");
-    },
-    [setActiveLayout],
-  );
-
   React.useEffect(() => {
-    document.addEventListener("mousedown", onClickInside);
+    const controller = new AbortController();
+
+    document.addEventListener(
+      "mousedown",
+      (e) => {
+        if (!calendarViewRef.current?.contains(e.target as Node)) {
+          return;
+        }
+
+        setActiveLayout("calendar");
+      },
+      { signal: controller.signal },
+    );
 
     return () => {
-      document.removeEventListener("mousedown", onClickInside);
+      controller.abort();
     };
-  }, [onClickInside]);
+  }, [setActiveLayout]);
 
   return (
     <div

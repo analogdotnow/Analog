@@ -10,7 +10,7 @@ export function ActionButton({ children, ...props }: ActionButtonProps) {
       variant="outline"
       size="sm"
       className={cn(
-        "h-7 gap-2 rounded-md ps-2 pe-1 text-xs shadow-none dark:bg-neutral-700/40 hover:bg-neutral-700/80",
+        "h-7 gap-2 rounded-md ps-2 pe-1 text-xs shadow-none hover:bg-neutral-700/80 dark:bg-neutral-700/40",
       )}
       {...props}
     >
