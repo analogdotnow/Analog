@@ -1,7 +1,15 @@
-export type Format = 'RFC1738' | 'RFC3986';
+export type Format = "RFC1738" | "RFC3986";
 
-export type DefaultEncoder = (str: any, defaultEncoder?: any, charset?: string) => string;
-export type DefaultDecoder = (str: string, decoder?: any, charset?: string) => string;
+export type DefaultEncoder = (
+  str: any,
+  defaultEncoder?: any,
+  charset?: string,
+) => string;
+export type DefaultDecoder = (
+  str: string,
+  decoder?: any,
+  charset?: string,
+) => string;
 
 export type BooleanOptional = boolean | undefined;
 
@@ -16,19 +24,19 @@ export type StringifyBaseOptions = {
     str: any,
     defaultEncoder: DefaultEncoder,
     charset: string,
-    type: 'key' | 'value',
+    type: "key" | "value",
     format?: Format,
   ) => string;
   filter?: Array<PropertyKey> | ((prefix: PropertyKey, value: any) => any);
-  arrayFormat?: 'indices' | 'brackets' | 'repeat' | 'comma';
+  arrayFormat?: "indices" | "brackets" | "repeat" | "comma";
   indices?: boolean;
   sort?: ((a: PropertyKey, b: PropertyKey) => number) | null;
   serializeDate?: (d: Date) => string;
-  format?: 'RFC1738' | 'RFC3986';
+  format?: "RFC1738" | "RFC3986";
   formatter?: (str: PropertyKey) => string;
   encodeValuesOnly?: boolean;
   addQueryPrefix?: boolean;
-  charset?: 'utf-8' | 'iso-8859-1';
+  charset?: "utf-8" | "iso-8859-1";
   charsetSentinel?: boolean;
   allowEmptyArrays?: boolean;
   commaRoundTrip?: boolean;
@@ -40,7 +48,12 @@ export type ParseBaseOptions = {
   comma?: boolean;
   delimiter?: string | RegExp;
   depth?: number | false;
-  decoder?: (str: string, defaultDecoder: DefaultDecoder, charset: string, type: 'key' | 'value') => any;
+  decoder?: (
+    str: string,
+    defaultDecoder: DefaultDecoder,
+    charset: string,
+    type: "key" | "value",
+  ) => any;
   arrayLimit?: number;
   parseArrays?: boolean;
   plainObjects?: boolean;
@@ -50,11 +63,11 @@ export type ParseBaseOptions = {
   strictDepth?: boolean;
   strictNullHandling?: boolean;
   ignoreQueryPrefix?: boolean;
-  charset?: 'utf-8' | 'iso-8859-1';
+  charset?: "utf-8" | "iso-8859-1";
   charsetSentinel?: boolean;
   interpretNumericEntities?: boolean;
   allowEmptyArrays?: boolean;
-  duplicates?: 'combine' | 'first' | 'last';
+  duplicates?: "combine" | "first" | "last";
   allowDots?: boolean;
   decodeDotInKeys?: boolean;
 };

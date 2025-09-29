@@ -1,22 +1,26 @@
-import { RFC1738 } from './formats';
-import type { DefaultEncoder, Format } from './types';
-import { isArray } from '../utils/values';
+import { isArray } from "../utils/values";
+import { RFC1738 } from "./formats";
+import type { DefaultEncoder, Format } from "./types";
 
 export let has = (obj: object, key: PropertyKey): boolean => (
-  (has = (Object as any).hasOwn ?? Function.prototype.call.bind(Object.prototype.hasOwnProperty)),
+  (has =
+    (Object as any).hasOwn ??
+    Function.prototype.call.bind(Object.prototype.hasOwnProperty)),
   has(obj, key)
 );
 
 const hex_table = /* @__PURE__ */ (() => {
   const array = [];
   for (let i = 0; i < 256; ++i) {
-    array.push('%' + ((i < 16 ? '0' : '') + i.toString(16)).toUpperCase());
+    array.push("%" + ((i < 16 ? "0" : "") + i.toString(16)).toUpperCase());
   }
 
   return array;
 })();
 
-function compact_queue<T extends Record<string, any>>(queue: Array<{ obj: T; prop: string }>) {
+function compact_queue<T extends Record<string, any>>(
+  queue: Array<{ obj: T; prop: string }>,
+) {
   while (queue.length > 1) {
     const item = queue.pop();
     if (!item) continue;
@@ -27,7 +31,7 @@ function compact_queue<T extends Record<string, any>>(queue: Array<{ obj: T; pro
       const compacted: unknown[] = [];
 
       for (let j = 0; j < obj.length; ++j) {
-        if (typeof obj[j] !== 'undefined') {
+        if (typeof obj[j] !== "undefined") {
           compacted.push(obj[j]);
         }
       }
@@ -41,7 +45,7 @@ function compact_queue<T extends Record<string, any>>(queue: Array<{ obj: T; pro
 function array_to_object(source: any[], options: { plainObjects: boolean }) {
   const obj = options && options.plainObjects ? Object.create(null) : {};
   for (let i = 0; i < source.length; ++i) {
-    if (typeof source[i] !== 'undefined') {
+    if (typeof source[i] !== "undefined") {
       obj[i] = source[i];
     }
   }
@@ -58,11 +62,14 @@ export function merge(
     return target;
   }
 
-  if (typeof source !== 'object') {
+  if (typeof source !== "object") {
     if (isArray(target)) {
       target.push(source);
-    } else if (target && typeof target === 'object') {
-      if ((options && (options.plainObjects || options.allowPrototypes)) || !has(Object.prototype, source)) {
+    } else if (target && typeof target === "object") {
+      if (
+        (options && (options.plainObjects || options.allowPrototypes)) ||
+        !has(Object.prototype, source)
+      ) {
         target[source] = true;
       }
     } else {
@@ -72,7 +79,7 @@ export function merge(
     return target;
   }
 
-  if (!target || typeof target !== 'object') {
+  if (!target || typeof target !== "object") {
     return [target].concat(source);
   }
 
@@ -86,7 +93,12 @@ export function merge(
     source.forEach(function (item, i) {
       if (has(target, i)) {
         const targetItem = target[i];
-        if (targetItem && typeof targetItem === 'object' && item && typeof item === 'object') {
+        if (
+          targetItem &&
+          typeof targetItem === "object" &&
+          item &&
+          typeof item === "object"
+        ) {
           target[i] = merge(targetItem, item, options);
         } else {
           target.push(item);
@@ -118,8 +130,8 @@ export function assign_single_source(target: any, source: any) {
 }
 
 export function decode(str: string, _: any, charset: string) {
-  const strWithoutPlus = str.replace(/\+/g, ' ');
-  if (charset === 'iso-8859-1') {
+  const strWithoutPlus = str.replace(/\+/g, " ");
+  if (charset === "iso-8859-1") {
     // unescape never throws, no try...catch needed:
     return strWithoutPlus.replace(/%[0-9a-f]{2}/gi, unescape);
   }
@@ -137,7 +149,7 @@ export const encode: (
   str: any,
   defaultEncoder: DefaultEncoder,
   charset: string,
-  type: 'key' | 'value',
+  type: "key" | "value",
   format: Format,
 ) => string = (str, _defaultEncoder, charset, _kind, format: Format) => {
   // This code was originally written by Brian White for the io.js core querystring library.
@@ -147,21 +159,22 @@ export const encode: (
   }
 
   let string = str;
-  if (typeof str === 'symbol') {
+  if (typeof str === "symbol") {
     string = Symbol.prototype.toString.call(str);
-  } else if (typeof str !== 'string') {
+  } else if (typeof str !== "string") {
     string = String(str);
   }
 
-  if (charset === 'iso-8859-1') {
+  if (charset === "iso-8859-1") {
     return escape(string).replace(/%u[0-9a-f]{4}/gi, function ($0) {
-      return '%26%23' + parseInt($0.slice(2), 16) + '%3B';
+      return "%26%23" + parseInt($0.slice(2), 16) + "%3B";
     });
   }
 
-  let out = '';
+  let out = "";
   for (let j = 0; j < string.length; j += limit) {
-    const segment = string.length >= limit ? string.slice(j, j + limit) : string;
+    const segment =
+      string.length >= limit ? string.slice(j, j + limit) : string;
     const arr = [];
 
     for (let i = 0; i < segment.length; ++i) {
@@ -186,13 +199,16 @@ export const encode: (
       }
 
       if (c < 0x800) {
-        arr[arr.length] = hex_table[0xc0 | (c >> 6)]! + hex_table[0x80 | (c & 0x3f)];
+        arr[arr.length] =
+          hex_table[0xc0 | (c >> 6)]! + hex_table[0x80 | (c & 0x3f)];
         continue;
       }
 
       if (c < 0xd800 || c >= 0xe000) {
         arr[arr.length] =
-          hex_table[0xe0 | (c >> 12)]! + hex_table[0x80 | ((c >> 6) & 0x3f)] + hex_table[0x80 | (c & 0x3f)];
+          hex_table[0xe0 | (c >> 12)]! +
+          hex_table[0x80 | ((c >> 6) & 0x3f)] +
+          hex_table[0x80 | (c & 0x3f)];
         continue;
       }
 
@@ -206,14 +222,14 @@ export const encode: (
         hex_table[0x80 | (c & 0x3f)];
     }
 
-    out += arr.join('');
+    out += arr.join("");
   }
 
   return out;
 };
 
 export function compact(value: any) {
-  const queue = [{ obj: { o: value }, prop: 'o' }];
+  const queue = [{ obj: { o: value }, prop: "o" }];
   const refs = [];
 
   for (let i = 0; i < queue.length; ++i) {
@@ -225,7 +241,7 @@ export function compact(value: any) {
     for (let j = 0; j < keys.length; ++j) {
       const key = keys[j]!;
       const val = obj[key];
-      if (typeof val === 'object' && val !== null && refs.indexOf(val) === -1) {
+      if (typeof val === "object" && val !== null && refs.indexOf(val) === -1) {
         queue.push({ obj: obj, prop: key });
         refs.push(val);
       }
@@ -238,15 +254,19 @@ export function compact(value: any) {
 }
 
 export function is_regexp(obj: any) {
-  return Object.prototype.toString.call(obj) === '[object RegExp]';
+  return Object.prototype.toString.call(obj) === "[object RegExp]";
 }
 
 export function is_buffer(obj: any) {
-  if (!obj || typeof obj !== 'object') {
+  if (!obj || typeof obj !== "object") {
     return false;
   }
 
-  return !!(obj.constructor && obj.constructor.isBuffer && obj.constructor.isBuffer(obj));
+  return !!(
+    obj.constructor &&
+    obj.constructor.isBuffer &&
+    obj.constructor.isBuffer(obj)
+  );
 }
 
 export function combine(a: any, b: any) {

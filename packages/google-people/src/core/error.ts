@@ -1,6 +1,6 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import { castToError } from '../internal/errors';
+import { castToError } from "../internal/errors";
 
 export class GooglePeopleError extends Error {}
 
@@ -16,21 +16,30 @@ export class APIError<
   /** JSON body of the response that caused the error */
   readonly error: TError;
 
-  constructor(status: TStatus, error: TError, message: string | undefined, headers: THeaders) {
+  constructor(
+    status: TStatus,
+    error: TError,
+    message: string | undefined,
+    headers: THeaders,
+  ) {
     super(`${APIError.makeMessage(status, error, message)}`);
     this.status = status;
     this.headers = headers;
     this.error = error;
   }
 
-  private static makeMessage(status: number | undefined, error: any, message: string | undefined) {
-    const msg =
-      error?.message ?
-        typeof error.message === 'string' ?
-          error.message
+  private static makeMessage(
+    status: number | undefined,
+    error: any,
+    message: string | undefined,
+  ) {
+    const msg = error?.message
+      ? typeof error.message === "string"
+        ? error.message
         : JSON.stringify(error.message)
-      : error ? JSON.stringify(error)
-      : message;
+      : error
+        ? JSON.stringify(error)
+        : message;
 
     if (status && msg) {
       return `${status} ${msg}`;
@@ -41,7 +50,7 @@ export class APIError<
     if (msg) {
       return msg;
     }
-    return '(no status code or body)';
+    return "(no status code or body)";
   }
 
   static generate(
@@ -51,7 +60,10 @@ export class APIError<
     headers: Headers | undefined,
   ): APIError {
     if (!status || !headers) {
-      return new APIConnectionError({ message, cause: castToError(errorResponse) });
+      return new APIConnectionError({
+        message,
+        cause: castToError(errorResponse),
+      });
     }
 
     const error = errorResponse as Record<string, any>;
@@ -92,15 +104,29 @@ export class APIError<
   }
 }
 
-export class APIUserAbortError extends APIError<undefined, undefined, undefined> {
+export class APIUserAbortError extends APIError<
+  undefined,
+  undefined,
+  undefined
+> {
   constructor({ message }: { message?: string } = {}) {
-    super(undefined, undefined, message || 'Request was aborted.', undefined);
+    super(undefined, undefined, message || "Request was aborted.", undefined);
   }
 }
 
-export class APIConnectionError extends APIError<undefined, undefined, undefined> {
-  constructor({ message, cause }: { message?: string | undefined; cause?: Error | undefined }) {
-    super(undefined, undefined, message || 'Connection error.', undefined);
+export class APIConnectionError extends APIError<
+  undefined,
+  undefined,
+  undefined
+> {
+  constructor({
+    message,
+    cause,
+  }: {
+    message?: string | undefined;
+    cause?: Error | undefined;
+  }) {
+    super(undefined, undefined, message || "Connection error.", undefined);
     // in some environments the 'cause' property is already declared
     // @ts-ignore
     if (cause) this.cause = cause;
@@ -109,7 +135,7 @@ export class APIConnectionError extends APIError<undefined, undefined, undefined
 
 export class APIConnectionTimeoutError extends APIConnectionError {
   constructor({ message }: { message?: string } = {}) {
-    super({ message: message ?? 'Request timed out.' });
+    super({ message: message ?? "Request timed out." });
   }
 }
 

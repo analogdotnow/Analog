@@ -1,10 +1,10 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import { APIResource } from '../core/resource';
-import * as PeopleCreateContactAPI from './people-create-contact';
-import { APIPromise } from '../core/api-promise';
-import { RequestOptions } from '../internal/request-options';
-import { path } from '../internal/utils/path';
+import { APIPromise } from "../core/api-promise";
+import { APIResource } from "../core/resource";
+import { RequestOptions } from "../internal/request-options";
+import { path } from "../internal/utils/path";
+import * as PeopleCreateContactAPI from "./people-create-contact";
 
 export class UpdateContact extends APIResource {
   /**
@@ -82,7 +82,7 @@ export interface UpdateContactUpdateParams {
   /**
    * Query param: Data format for response.
    */
-  alt?: 'json' | 'media' | 'proto';
+  alt?: "json" | "media" | "proto";
 
   /**
    * Query param: JSONP
@@ -134,10 +134,10 @@ export interface UpdateContactUpdateParams {
    * READ_SOURCE_TYPE_CONTACT and READ_SOURCE_TYPE_PROFILE if not set.
    */
   sources?: Array<
-    | 'READ_SOURCE_TYPE_UNSPECIFIED'
-    | 'READ_SOURCE_TYPE_PROFILE'
-    | 'READ_SOURCE_TYPE_CONTACT'
-    | 'READ_SOURCE_TYPE_DOMAIN_CONTACT'
+    | "READ_SOURCE_TYPE_UNSPECIFIED"
+    | "READ_SOURCE_TYPE_PROFILE"
+    | "READ_SOURCE_TYPE_CONTACT"
+    | "READ_SOURCE_TYPE_DOMAIN_CONTACT"
   >;
 
   /**
@@ -328,7 +328,7 @@ export namespace UpdateContactUpdateParams {
     /**
      * V1 error format.
      */
-    xgafv?: '1' | '2';
+    xgafv?: "1" | "2";
   }
 
   /**
@@ -402,7 +402,7 @@ export namespace UpdateContactUpdateParams {
     /**
      * The content type of the biography.
      */
-    contentType?: 'CONTENT_TYPE_UNSPECIFIED' | 'TEXT_PLAIN' | 'TEXT_HTML';
+    contentType?: "CONTENT_TYPE_UNSPECIFIED" | "TEXT_PLAIN" | "TEXT_HTML";
 
     /**
      * Metadata about the biography.
@@ -752,18 +752,18 @@ export namespace UpdateContactUpdateParams {
      * The miscellaneous keyword type.
      */
     type?:
-      | 'TYPE_UNSPECIFIED'
-      | 'OUTLOOK_BILLING_INFORMATION'
-      | 'OUTLOOK_DIRECTORY_SERVER'
-      | 'OUTLOOK_KEYWORD'
-      | 'OUTLOOK_MILEAGE'
-      | 'OUTLOOK_PRIORITY'
-      | 'OUTLOOK_SENSITIVITY'
-      | 'OUTLOOK_SUBJECT'
-      | 'OUTLOOK_USER'
-      | 'HOME'
-      | 'WORK'
-      | 'OTHER';
+      | "TYPE_UNSPECIFIED"
+      | "OUTLOOK_BILLING_INFORMATION"
+      | "OUTLOOK_DIRECTORY_SERVER"
+      | "OUTLOOK_KEYWORD"
+      | "OUTLOOK_MILEAGE"
+      | "OUTLOOK_PRIORITY"
+      | "OUTLOOK_SENSITIVITY"
+      | "OUTLOOK_SUBJECT"
+      | "OUTLOOK_USER"
+      | "HOME"
+      | "WORK"
+      | "OTHER";
 
     /**
      * The value of the miscellaneous keyword.
@@ -853,7 +853,14 @@ export namespace UpdateContactUpdateParams {
     /**
      * The type of the nickname.
      */
-    type?: 'DEFAULT' | 'MAIDEN_NAME' | 'INITIALS' | 'GPLUS' | 'OTHER_NAME' | 'ALTERNATE_NAME' | 'SHORT_NAME';
+    type?:
+      | "DEFAULT"
+      | "MAIDEN_NAME"
+      | "INITIALS"
+      | "GPLUS"
+      | "OTHER_NAME"
+      | "ALTERNATE_NAME"
+      | "SHORT_NAME";
 
     /**
      * The nickname.

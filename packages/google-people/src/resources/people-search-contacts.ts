@@ -1,9 +1,9 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import { APIResource } from '../core/resource';
-import * as OtherContactsSearchAPI from './other-contacts-search';
-import { APIPromise } from '../core/api-promise';
-import { RequestOptions } from '../internal/request-options';
+import { APIPromise } from "../core/api-promise";
+import { APIResource } from "../core/resource";
+import { RequestOptions } from "../internal/request-options";
+import * as OtherContactsSearchAPI from "./other-contacts-search";
 
 export class PeopleSearchContacts extends APIResource {
   /**
@@ -18,7 +18,7 @@ export class PeopleSearchContacts extends APIResource {
     query: PeopleSearchContactSearchParams | null | undefined = {},
     options?: RequestOptions,
   ): APIPromise<OtherContactsSearchAPI.SearchResponse> {
-    return this._client.get('/v1/people:searchContacts', { query, ...options });
+    return this._client.get("/v1/people:searchContacts", { query, ...options });
   }
 }
 
@@ -33,7 +33,7 @@ export interface PeopleSearchContactSearchParams {
   /**
    * Data format for response.
    */
-  alt?: 'json' | 'media' | 'proto';
+  alt?: "json" | "media" | "proto";
 
   /**
    * JSONP
@@ -97,10 +97,10 @@ export interface PeopleSearchContactSearchParams {
    * READ_SOURCE_TYPE_CONTACT if not set.
    */
   sources?: Array<
-    | 'READ_SOURCE_TYPE_UNSPECIFIED'
-    | 'READ_SOURCE_TYPE_PROFILE'
-    | 'READ_SOURCE_TYPE_CONTACT'
-    | 'READ_SOURCE_TYPE_DOMAIN_CONTACT'
+    | "READ_SOURCE_TYPE_UNSPECIFIED"
+    | "READ_SOURCE_TYPE_PROFILE"
+    | "READ_SOURCE_TYPE_CONTACT"
+    | "READ_SOURCE_TYPE_DOMAIN_CONTACT"
   >;
 
   /**
@@ -119,7 +119,7 @@ export namespace PeopleSearchContactSearchParams {
     /**
      * V1 error format.
      */
-    xgafv?: '1' | '2';
+    xgafv?: "1" | "2";
   }
 }
 

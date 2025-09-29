@@ -1,8 +1,8 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import type { FinalRequestOptions } from './request-options';
-import { type GooglePeople } from '../client';
-import { formatRequestDetails, loggerFor } from './utils/log';
+import { type GooglePeople } from "../client";
+import type { FinalRequestOptions } from "./request-options";
+import { formatRequestDetails, loggerFor } from "./utils/log";
 
 export type APIResponseProps = {
   response: Response;
@@ -13,7 +13,10 @@ export type APIResponseProps = {
   startTime: number;
 };
 
-export async function defaultParseResponse<T>(client: GooglePeople, props: APIResponseProps): Promise<T> {
+export async function defaultParseResponse<T>(
+  client: GooglePeople,
+  props: APIResponseProps,
+): Promise<T> {
   const { response, requestLogID, retryOfRequestLogID, startTime } = props;
   const body = await (async () => {
     // fetch refuses to read the body when the status code is 204.
@@ -25,9 +28,10 @@ export async function defaultParseResponse<T>(client: GooglePeople, props: APIRe
       return response as unknown as T;
     }
 
-    const contentType = response.headers.get('content-type');
-    const mediaType = contentType?.split(';')[0]?.trim();
-    const isJSON = mediaType?.includes('application/json') || mediaType?.endsWith('+json');
+    const contentType = response.headers.get("content-type");
+    const mediaType = contentType?.split(";")[0]?.trim();
+    const isJSON =
+      mediaType?.includes("application/json") || mediaType?.endsWith("+json");
     if (isJSON) {
       const json = await response.json();
       return json as T;

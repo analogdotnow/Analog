@@ -1,6 +1,6 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import { isReadonlyArray } from './utils/values';
+import { isReadonlyArray } from "./utils/values";
 
 type HeaderValue = string | undefined | null;
 export type HeadersLike =
@@ -11,7 +11,9 @@ export type HeadersLike =
   | null
   | NullableHeaders;
 
-const brand_privateNullableHeaders = /* @__PURE__ */ Symbol('brand.privateNullableHeaders');
+const brand_privateNullableHeaders = /* @__PURE__ */ Symbol(
+  "brand.privateNullableHeaders",
+);
 
 /**
  * @internal
@@ -27,7 +29,9 @@ export type NullableHeaders = {
   nulls: Set<string>;
 };
 
-function* iterateHeaders(headers: HeadersLike): IterableIterator<readonly [string, string | null]> {
+function* iterateHeaders(
+  headers: HeadersLike,
+): IterableIterator<readonly [string, string | null]> {
   if (!headers) return;
 
   if (brand_privateNullableHeaders in headers) {
@@ -51,7 +55,8 @@ function* iterateHeaders(headers: HeadersLike): IterableIterator<readonly [strin
   }
   for (let row of iter) {
     const name = row[0];
-    if (typeof name !== 'string') throw new TypeError('expected header name to be a string');
+    if (typeof name !== "string")
+      throw new TypeError("expected header name to be a string");
     const values = isReadonlyArray(row[1]) ? row[1] : [row[1]];
     let didClear = false;
     for (const value of values) {
@@ -88,7 +93,11 @@ export const buildHeaders = (newHeaders: HeadersLike[]): NullableHeaders => {
       }
     }
   }
-  return { [brand_privateNullableHeaders]: true, values: targetHeaders, nulls: nullHeaders };
+  return {
+    [brand_privateNullableHeaders]: true,
+    values: targetHeaders,
+    nulls: nullHeaders,
+  };
 };
 
 export const isEmptyHeaders = (headers: HeadersLike) => {

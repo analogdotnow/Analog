@@ -1,10 +1,10 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import { APIResource } from '../core/resource';
-import * as ContactGroupsBatchGetAPI from './contact-groups-batch-get';
-import * as PeopleCreateContactAPI from './people-create-contact';
-import { APIPromise } from '../core/api-promise';
-import { RequestOptions } from '../internal/request-options';
+import { APIPromise } from "../core/api-promise";
+import { APIResource } from "../core/resource";
+import { RequestOptions } from "../internal/request-options";
+import * as ContactGroupsBatchGetAPI from "./contact-groups-batch-get";
+import * as PeopleCreateContactAPI from "./people-create-contact";
 
 export class PeopleBatchCreateContacts extends APIResource {
   /**
@@ -30,7 +30,7 @@ export class PeopleBatchCreateContacts extends APIResource {
       uploadType,
       ...body
     } = params ?? {};
-    return this._client.post('/v1/people:batchCreateContacts', {
+    return this._client.post("/v1/people:batchCreateContacts", {
       query: {
         $,
         access_token,
@@ -105,7 +105,7 @@ export interface PeopleBatchCreateContactCreateParams {
   /**
    * Query param: Data format for response.
    */
-  alt?: 'json' | 'media' | 'proto';
+  alt?: "json" | "media" | "proto";
 
   /**
    * Query param: JSONP
@@ -175,10 +175,10 @@ export interface PeopleBatchCreateContactCreateParams {
    * set.
    */
   sources?: Array<
-    | 'READ_SOURCE_TYPE_UNSPECIFIED'
-    | 'READ_SOURCE_TYPE_PROFILE'
-    | 'READ_SOURCE_TYPE_CONTACT'
-    | 'READ_SOURCE_TYPE_DOMAIN_CONTACT'
+    | "READ_SOURCE_TYPE_UNSPECIFIED"
+    | "READ_SOURCE_TYPE_PROFILE"
+    | "READ_SOURCE_TYPE_CONTACT"
+    | "READ_SOURCE_TYPE_DOMAIN_CONTACT"
   >;
 }
 
@@ -187,7 +187,7 @@ export namespace PeopleBatchCreateContactCreateParams {
     /**
      * V1 error format.
      */
-    xgafv?: '1' | '2';
+    xgafv?: "1" | "2";
   }
 
   /**

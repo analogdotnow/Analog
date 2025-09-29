@@ -1,9 +1,9 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import { APIResource } from '../core/resource';
-import * as PeopleCreateContactAPI from './people-create-contact';
-import { APIPromise } from '../core/api-promise';
-import { RequestOptions } from '../internal/request-options';
+import { APIPromise } from "../core/api-promise";
+import { APIResource } from "../core/resource";
+import { RequestOptions } from "../internal/request-options";
+import * as PeopleCreateContactAPI from "./people-create-contact";
 
 export class OtherContactsSearch extends APIResource {
   /**
@@ -18,7 +18,7 @@ export class OtherContactsSearch extends APIResource {
     query: OtherContactsSearchSearchParams | null | undefined = {},
     options?: RequestOptions,
   ): APIPromise<SearchResponse> {
-    return this._client.get('/v1/otherContacts:search', { query, ...options });
+    return this._client.get("/v1/otherContacts:search", { query, ...options });
   }
 }
 
@@ -55,7 +55,7 @@ export interface OtherContactsSearchSearchParams {
   /**
    * Data format for response.
    */
-  alt?: 'json' | 'media' | 'proto';
+  alt?: "json" | "media" | "proto";
 
   /**
    * JSONP
@@ -126,7 +126,7 @@ export namespace OtherContactsSearchSearchParams {
     /**
      * V1 error format.
      */
-    xgafv?: '1' | '2';
+    xgafv?: "1" | "2";
   }
 }
 

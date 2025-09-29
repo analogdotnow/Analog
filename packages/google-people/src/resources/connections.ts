@@ -1,10 +1,10 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import { APIResource } from '../core/resource';
-import * as PeopleCreateContactAPI from './people-create-contact';
-import { APIPromise } from '../core/api-promise';
-import { RequestOptions } from '../internal/request-options';
-import { path } from '../internal/utils/path';
+import { APIPromise } from "../core/api-promise";
+import { APIResource } from "../core/resource";
+import { RequestOptions } from "../internal/request-options";
+import { path } from "../internal/utils/path";
+import * as PeopleCreateContactAPI from "./people-create-contact";
 
 export class Connections extends APIResource {
   /**
@@ -28,7 +28,10 @@ export class Connections extends APIResource {
     query: ConnectionListParams | null | undefined = {},
     options?: RequestOptions,
   ): APIPromise<ConnectionListResponse> {
-    return this._client.get(path`/v1/${resourceName}/connections`, { query, ...options });
+    return this._client.get(path`/v1/${resourceName}/connections`, {
+      query,
+      ...options,
+    });
   }
 }
 
@@ -77,7 +80,7 @@ export interface ConnectionListParams {
   /**
    * Data format for response.
    */
-  alt?: 'json' | 'media' | 'proto';
+  alt?: "json" | "media" | "proto";
 
   /**
    * JSONP
@@ -151,20 +154,20 @@ export interface ConnectionListParams {
    * `LAST_MODIFIED_ASCENDING`.
    */
   sortOrder?:
-    | 'LAST_MODIFIED_ASCENDING'
-    | 'LAST_MODIFIED_DESCENDING'
-    | 'FIRST_NAME_ASCENDING'
-    | 'LAST_NAME_ASCENDING';
+    | "LAST_MODIFIED_ASCENDING"
+    | "LAST_MODIFIED_DESCENDING"
+    | "FIRST_NAME_ASCENDING"
+    | "LAST_NAME_ASCENDING";
 
   /**
    * Optional. A mask of what source types to return. Defaults to
    * READ_SOURCE_TYPE_CONTACT and READ_SOURCE_TYPE_PROFILE if not set.
    */
   sources?: Array<
-    | 'READ_SOURCE_TYPE_UNSPECIFIED'
-    | 'READ_SOURCE_TYPE_PROFILE'
-    | 'READ_SOURCE_TYPE_CONTACT'
-    | 'READ_SOURCE_TYPE_DOMAIN_CONTACT'
+    | "READ_SOURCE_TYPE_UNSPECIFIED"
+    | "READ_SOURCE_TYPE_PROFILE"
+    | "READ_SOURCE_TYPE_CONTACT"
+    | "READ_SOURCE_TYPE_DOMAIN_CONTACT"
   >;
 
   /**
@@ -192,7 +195,7 @@ export namespace ConnectionListParams {
     /**
      * V1 error format.
      */
-    xgafv?: '1' | '2';
+    xgafv?: "1" | "2";
   }
 
   export interface RequestMask {

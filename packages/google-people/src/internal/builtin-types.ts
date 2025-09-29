@@ -1,6 +1,9 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-export type Fetch = (input: string | URL | Request, init?: RequestInit) => Promise<Response>;
+export type Fetch = (
+  input: string | URL | Request,
+  init?: RequestInit,
+) => Promise<Response>;
 
 /**
  * An alias to the builtin `RequestInit` type so we can
@@ -30,14 +33,14 @@ type _RequestInfo = Request | URL | string;
  *
  * https://developer.mozilla.org/docs/Web/API/RequestInit#setting_headers
  */
-type _HeadersInit = RequestInit['headers'];
+type _HeadersInit = RequestInit["headers"];
 
 /**
  * The type for constructing `RequestInit` body.
  *
  * https://developer.mozilla.org/docs/Web/API/RequestInit#body
  */
-type _BodyInit = RequestInit['body'];
+type _BodyInit = RequestInit["body"];
 
 /**
  * An alias to the builtin `Array<T>` type so we can
@@ -67,7 +70,7 @@ export type {
  *
  * https://github.com/microsoft/TypeScript/blob/49ad1a3917a0ea57f5ff248159256e12bb1cb705/src/lib/dom.generated.d.ts#L27941
  */
-type EndingType = 'native' | 'transparent';
+type EndingType = "native" | "transparent";
 
 /**
  * A copy of the builtin `BlobPropertyBag` type as it isn't fully supported in certain

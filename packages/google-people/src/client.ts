@@ -1,30 +1,118 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import type { RequestInit, RequestInfo, BodyInit } from './internal/builtin-types';
-import type { HTTPMethod, PromiseOrValue, MergedRequestInit, FinalizedRequestInit } from './internal/types';
-import { uuid4 } from './internal/utils/uuid';
-import { validatePositiveInteger, isAbsoluteURL, safeJSON } from './internal/utils/values';
-import { sleep } from './internal/utils/sleep';
-export type { Logger, LogLevel } from './internal/utils/log';
-import { castToError, isAbortError } from './internal/errors';
-import type { APIResponseProps } from './internal/parse';
-import { getPlatformHeaders } from './internal/detect-platform';
-import * as Shims from './internal/shims';
-import * as Opts from './internal/request-options';
-import * as qs from './internal/qs';
-import { VERSION } from './version';
-import * as Errors from './core/error';
-import * as Uploads from './core/uploads';
-import * as ContactGroupsAPI from './resources/contact-groups';
+import { APIPromise } from "./core/api-promise";
+import * as Errors from "./core/error";
+import * as Uploads from "./core/uploads";
+import type {
+  BodyInit,
+  RequestInfo,
+  RequestInit,
+} from "./internal/builtin-types";
+import { type Fetch } from "./internal/builtin-types";
+import { getPlatformHeaders } from "./internal/detect-platform";
+import { castToError, isAbortError } from "./internal/errors";
+import { HeadersLike, NullableHeaders, buildHeaders } from "./internal/headers";
+import type { APIResponseProps } from "./internal/parse";
+import * as qs from "./internal/qs";
+import * as Opts from "./internal/request-options";
+import {
+  FinalRequestOptions,
+  RequestOptions,
+} from "./internal/request-options";
+import * as Shims from "./internal/shims";
+import type {
+  FinalizedRequestInit,
+  HTTPMethod,
+  MergedRequestInit,
+  PromiseOrValue,
+} from "./internal/types";
+import { readEnv } from "./internal/utils/env";
+import {
+  formatRequestDetails,
+  loggerFor,
+  parseLogLevel,
+  type LogLevel,
+  type Logger,
+} from "./internal/utils/log";
+import { path } from "./internal/utils/path";
+import { sleep } from "./internal/utils/sleep";
+import { uuid4 } from "./internal/utils/uuid";
+import {
+  isAbsoluteURL,
+  isEmptyObj,
+  safeJSON,
+  validatePositiveInteger,
+} from "./internal/utils/values";
+import {
+  ConnectionListParams,
+  ConnectionListResponse,
+  Connections,
+} from "./resources/connections";
+import * as ContactGroupsAPI from "./resources/contact-groups";
 import {
   ContactGroup,
   ContactGroupCreateParams,
   ContactGroupListParams,
   ContactGroupListResponse,
   ContactGroups,
-} from './resources/contact-groups';
-import * as API from './resources/index';
-import * as PeopleCreateContactAPI from './resources/people-create-contact';
+} from "./resources/contact-groups";
+import {
+  ContactGroupsBatchGet,
+  ContactGroupsBatchGetListParams,
+  ContactGroupsBatchGetListResponse,
+  Status,
+} from "./resources/contact-groups-batch-get";
+import {
+  ContactDeletePhotoParams,
+  ContactDeletePhotoResponse,
+  Contacts,
+} from "./resources/contacts";
+import {
+  CopyOtherContactToMyContactsGroup,
+  CopyOtherContactToMyContactsGroupCopyParams,
+} from "./resources/copy-other-contact-to-my-contacts-group";
+import {
+  DeleteContact,
+  DeleteContactDeleteParams,
+} from "./resources/delete-contact";
+import * as API from "./resources/index";
+import {
+  MembersModify,
+  MembersModifyModifyParams,
+  MembersModifyModifyResponse,
+} from "./resources/members-modify";
+import {
+  OtherContactListParams,
+  OtherContactListResponse,
+  OtherContacts,
+} from "./resources/other-contacts";
+import {
+  OtherContactsSearch,
+  OtherContactsSearchSearchParams,
+  SearchResponse,
+} from "./resources/other-contacts-search";
+import {
+  PeopleBatchCreateContactCreateParams,
+  PeopleBatchCreateContactCreateResponse,
+  PeopleBatchCreateContacts,
+  PersonResponse,
+} from "./resources/people-batch-create-contacts";
+import {
+  Empty,
+  PeopleBatchDeleteContactDeleteBatchParams,
+  PeopleBatchDeleteContacts,
+} from "./resources/people-batch-delete-contacts";
+import {
+  PeopleBatchGet,
+  PeopleBatchGetRetrieveParams,
+  PeopleBatchGetRetrieveResponse,
+} from "./resources/people-batch-get";
+import {
+  PeopleBatchUpdateContactUpdateBatchParams,
+  PeopleBatchUpdateContactUpdateBatchResponse,
+  PeopleBatchUpdateContacts,
+} from "./resources/people-batch-update-contacts";
+import * as PeopleCreateContactAPI from "./resources/people-create-contact";
 import {
   Date,
   FieldMetadata,
@@ -32,85 +120,39 @@ import {
   PeopleCreateContactCreateParams,
   PersonMerged,
   Source,
-} from './resources/people-create-contact';
-import * as TopLevelAPI from './resources/top-level';
-import { DeleteResourceParams, RetrieveResourceParams, UpdateResourceParams } from './resources/top-level';
-import { APIPromise } from './core/api-promise';
-import { ConnectionListParams, ConnectionListResponse, Connections } from './resources/connections';
-import {
-  ContactGroupsBatchGet,
-  ContactGroupsBatchGetListParams,
-  ContactGroupsBatchGetListResponse,
-  Status,
-} from './resources/contact-groups-batch-get';
-import { ContactDeletePhotoParams, ContactDeletePhotoResponse, Contacts } from './resources/contacts';
-import {
-  CopyOtherContactToMyContactsGroup,
-  CopyOtherContactToMyContactsGroupCopyParams,
-} from './resources/copy-other-contact-to-my-contacts-group';
-import { DeleteContact, DeleteContactDeleteParams } from './resources/delete-contact';
-import {
-  MembersModify,
-  MembersModifyModifyParams,
-  MembersModifyModifyResponse,
-} from './resources/members-modify';
-import { OtherContactListParams, OtherContactListResponse, OtherContacts } from './resources/other-contacts';
-import {
-  OtherContactsSearch,
-  OtherContactsSearchSearchParams,
-  SearchResponse,
-} from './resources/other-contacts-search';
-import {
-  PeopleBatchCreateContactCreateParams,
-  PeopleBatchCreateContactCreateResponse,
-  PeopleBatchCreateContacts,
-  PersonResponse,
-} from './resources/people-batch-create-contacts';
-import {
-  Empty,
-  PeopleBatchDeleteContactDeleteBatchParams,
-  PeopleBatchDeleteContacts,
-} from './resources/people-batch-delete-contacts';
-import {
-  PeopleBatchGet,
-  PeopleBatchGetRetrieveParams,
-  PeopleBatchGetRetrieveResponse,
-} from './resources/people-batch-get';
-import {
-  PeopleBatchUpdateContactUpdateBatchParams,
-  PeopleBatchUpdateContactUpdateBatchResponse,
-  PeopleBatchUpdateContacts,
-} from './resources/people-batch-update-contacts';
+} from "./resources/people-create-contact";
 import {
   PeopleListDirectoryPeople,
   PeopleListDirectoryPersonListParams,
   PeopleListDirectoryPersonListResponse,
-} from './resources/people-list-directory-people';
-import { PeopleSearchContactSearchParams, PeopleSearchContacts } from './resources/people-search-contacts';
+} from "./resources/people-list-directory-people";
+import {
+  PeopleSearchContactSearchParams,
+  PeopleSearchContacts,
+} from "./resources/people-search-contacts";
 import {
   PeopleSearchDirectoryPeople,
   PeopleSearchDirectoryPersonSearchParams,
   PeopleSearchDirectoryPersonSearchResponse,
-} from './resources/people-search-directory-people';
-import { UpdateContact, UpdateContactUpdateParams } from './resources/update-contact';
+} from "./resources/people-search-directory-people";
+import * as TopLevelAPI from "./resources/top-level";
+import {
+  DeleteResourceParams,
+  RetrieveResourceParams,
+  UpdateResourceParams,
+} from "./resources/top-level";
+import {
+  UpdateContact,
+  UpdateContactUpdateParams,
+} from "./resources/update-contact";
 import {
   UpdateContactPhoto,
   UpdateContactPhotoUpdateParams,
   UpdateContactPhotoUpdateResponse,
-} from './resources/update-contact-photo';
-import { type Fetch } from './internal/builtin-types';
-import { HeadersLike, NullableHeaders, buildHeaders } from './internal/headers';
-import { FinalRequestOptions, RequestOptions } from './internal/request-options';
-import { readEnv } from './internal/utils/env';
-import {
-  type LogLevel,
-  type Logger,
-  formatRequestDetails,
-  loggerFor,
-  parseLogLevel,
-} from './internal/utils/log';
-import { path } from './internal/utils/path';
-import { isEmptyObj } from './internal/utils/values';
+} from "./resources/update-contact-photo";
+import { VERSION } from "./version";
+
+export type { Logger, LogLevel } from "./internal/utils/log";
 
 export interface ClientOptions {
   accessToken: string;
@@ -214,7 +256,11 @@ export class GooglePeople {
    * @param {HeadersLike} opts.defaultHeaders - Default headers to include with every request to the API.
    * @param {Record<string, string | undefined>} opts.defaultQuery - Default query parameters to include with every request to the API.
    */
-  constructor({ baseURL = readEnv('GOOGLE_PEOPLE_BASE_URL'), accessToken, ...opts }: ClientOptions) {
+  constructor({
+    baseURL = readEnv("GOOGLE_PEOPLE_BASE_URL"),
+    accessToken,
+    ...opts
+  }: ClientOptions) {
     if (accessToken === undefined) {
       throw new Errors.GooglePeopleError(
         "Missing required client option accessToken; you need to instantiate the GooglePeople client with an accessToken option, like new GooglePeople({ accessToken: 'My Access Token' }).",
@@ -228,14 +274,19 @@ export class GooglePeople {
     };
 
     this.baseURL = options.baseURL!;
-    this.timeout = options.timeout ?? GooglePeople.DEFAULT_TIMEOUT /* 1 minute */;
+    this.timeout =
+      options.timeout ?? GooglePeople.DEFAULT_TIMEOUT /* 1 minute */;
     this.logger = options.logger ?? console;
-    const defaultLogLevel = 'warn';
+    const defaultLogLevel = "warn";
     // Set default logLevel early so that we can log a warning in parseLogLevel.
     this.logLevel = defaultLogLevel;
     this.logLevel =
-      parseLogLevel(options.logLevel, 'ClientOptions.logLevel', this) ??
-      parseLogLevel(readEnv('GOOGLE_PEOPLE_LOG'), "process.env['GOOGLE_PEOPLE_LOG']", this) ??
+      parseLogLevel(options.logLevel, "ClientOptions.logLevel", this) ??
+      parseLogLevel(
+        readEnv("GOOGLE_PEOPLE_LOG"),
+        "process.env['GOOGLE_PEOPLE_LOG']",
+        this,
+      ) ??
       defaultLogLevel;
     this.fetchOptions = options.fetchOptions;
     this.maxRetries = options.maxRetries ?? 2;
@@ -251,7 +302,9 @@ export class GooglePeople {
    * Create a new client instance re-using the same options given to the current client with optional overriding.
    */
   withOptions(options: Partial<ClientOptions>): this {
-    const client = new (this.constructor as any as new (props: ClientOptions) => typeof this)({
+    const client = new (this.constructor as any as new (
+      props: ClientOptions,
+    ) => typeof this)({
       ...this._options,
       baseURL: this.baseURL,
       maxRetries: this.maxRetries,
@@ -270,7 +323,7 @@ export class GooglePeople {
    * Check whether the base URL is set to its default.
    */
   #baseURLOverridden(): boolean {
-    return this.baseURL !== 'https://people.googleapis.com/';
+    return this.baseURL !== "https://people.googleapis.com/";
   }
 
   /**
@@ -382,12 +435,14 @@ export class GooglePeople {
     return;
   }
 
-  protected async authHeaders(opts: FinalRequestOptions): Promise<NullableHeaders | undefined> {
+  protected async authHeaders(
+    opts: FinalRequestOptions,
+  ): Promise<NullableHeaders | undefined> {
     return buildHeaders([{ Authorization: `Bearer ${this.accessToken}` }]);
   }
 
   protected stringifyQuery(query: Record<string, unknown>): string {
-    return qs.stringify(query, { arrayFormat: 'comma' });
+    return qs.stringify(query, { arrayFormat: "comma" });
   }
 
   private getUserAgent(): string {
@@ -412,18 +467,23 @@ export class GooglePeople {
     query: Record<string, unknown> | null | undefined,
     defaultBaseURL?: string | undefined,
   ): string {
-    const baseURL = (!this.#baseURLOverridden() && defaultBaseURL) || this.baseURL;
-    const url =
-      isAbsoluteURL(path) ?
-        new URL(path)
-      : new URL(baseURL + (baseURL.endsWith('/') && path.startsWith('/') ? path.slice(1) : path));
+    const baseURL =
+      (!this.#baseURLOverridden() && defaultBaseURL) || this.baseURL;
+    const url = isAbsoluteURL(path)
+      ? new URL(path)
+      : new URL(
+          baseURL +
+            (baseURL.endsWith("/") && path.startsWith("/")
+              ? path.slice(1)
+              : path),
+        );
 
     const defaultQuery = this.defaultQuery();
     if (!isEmptyObj(defaultQuery)) {
       query = { ...defaultQuery, ...query };
     }
 
-    if (typeof query === 'object' && query && !Array.isArray(query)) {
+    if (typeof query === "object" && query && !Array.isArray(query)) {
       url.search = this.stringifyQuery(query as Record<string, unknown>);
     }
 
@@ -446,24 +506,39 @@ export class GooglePeople {
     { url, options }: { url: string; options: FinalRequestOptions },
   ): Promise<void> {}
 
-  get<Rsp>(path: string, opts?: PromiseOrValue<RequestOptions>): APIPromise<Rsp> {
-    return this.methodRequest('get', path, opts);
+  get<Rsp>(
+    path: string,
+    opts?: PromiseOrValue<RequestOptions>,
+  ): APIPromise<Rsp> {
+    return this.methodRequest("get", path, opts);
   }
 
-  post<Rsp>(path: string, opts?: PromiseOrValue<RequestOptions>): APIPromise<Rsp> {
-    return this.methodRequest('post', path, opts);
+  post<Rsp>(
+    path: string,
+    opts?: PromiseOrValue<RequestOptions>,
+  ): APIPromise<Rsp> {
+    return this.methodRequest("post", path, opts);
   }
 
-  patch<Rsp>(path: string, opts?: PromiseOrValue<RequestOptions>): APIPromise<Rsp> {
-    return this.methodRequest('patch', path, opts);
+  patch<Rsp>(
+    path: string,
+    opts?: PromiseOrValue<RequestOptions>,
+  ): APIPromise<Rsp> {
+    return this.methodRequest("patch", path, opts);
   }
 
-  put<Rsp>(path: string, opts?: PromiseOrValue<RequestOptions>): APIPromise<Rsp> {
-    return this.methodRequest('put', path, opts);
+  put<Rsp>(
+    path: string,
+    opts?: PromiseOrValue<RequestOptions>,
+  ): APIPromise<Rsp> {
+    return this.methodRequest("put", path, opts);
   }
 
-  delete<Rsp>(path: string, opts?: PromiseOrValue<RequestOptions>): APIPromise<Rsp> {
-    return this.methodRequest('delete', path, opts);
+  delete<Rsp>(
+    path: string,
+    opts?: PromiseOrValue<RequestOptions>,
+  ): APIPromise<Rsp> {
+    return this.methodRequest("delete", path, opts);
   }
 
   private methodRequest<Rsp>(
@@ -482,7 +557,10 @@ export class GooglePeople {
     options: PromiseOrValue<FinalRequestOptions>,
     remainingRetries: number | null = null,
   ): APIPromise<Rsp> {
-    return new APIPromise(this, this.makeRequest(options, remainingRetries, undefined));
+    return new APIPromise(
+      this,
+      this.makeRequest(options, remainingRetries, undefined),
+    );
   }
 
   private async makeRequest(
@@ -505,8 +583,12 @@ export class GooglePeople {
     await this.prepareRequest(req, { url, options });
 
     /** Not an API request ID, just for correlating local log entries. */
-    const requestLogID = 'log_' + ((Math.random() * (1 << 24)) | 0).toString(16).padStart(6, '0');
-    const retryLogStr = retryOfRequestLogID === undefined ? '' : `, retryOf: ${retryOfRequestLogID}`;
+    const requestLogID =
+      "log_" + ((Math.random() * (1 << 24)) | 0).toString(16).padStart(6, "0");
+    const retryLogStr =
+      retryOfRequestLogID === undefined
+        ? ""
+        : `, retryOf: ${retryOfRequestLogID}`;
     const startTime = Date.now();
 
     loggerFor(this).debug(
@@ -525,7 +607,12 @@ export class GooglePeople {
     }
 
     const controller = new AbortController();
-    const response = await this.fetchWithTimeout(url, req, timeout, controller).catch(castToError);
+    const response = await this.fetchWithTimeout(
+      url,
+      req,
+      timeout,
+      controller,
+    ).catch(castToError);
     const headersTime = Date.now();
 
     if (response instanceof globalThis.Error) {
@@ -539,13 +626,16 @@ export class GooglePeople {
       // others do not provide enough information to distinguish timeouts from other connection errors
       const isTimeout =
         isAbortError(response) ||
-        /timed? ?out/i.test(String(response) + ('cause' in response ? String(response.cause) : ''));
+        /timed? ?out/i.test(
+          String(response) +
+            ("cause" in response ? String(response.cause) : ""),
+        );
       if (retriesRemaining) {
         loggerFor(this).info(
-          `[${requestLogID}] connection ${isTimeout ? 'timed out' : 'failed'} - ${retryMessage}`,
+          `[${requestLogID}] connection ${isTimeout ? "timed out" : "failed"} - ${retryMessage}`,
         );
         loggerFor(this).debug(
-          `[${requestLogID}] connection ${isTimeout ? 'timed out' : 'failed'} (${retryMessage})`,
+          `[${requestLogID}] connection ${isTimeout ? "timed out" : "failed"} (${retryMessage})`,
           formatRequestDetails({
             retryOfRequestLogID,
             url,
@@ -553,13 +643,17 @@ export class GooglePeople {
             message: response.message,
           }),
         );
-        return this.retryRequest(options, retriesRemaining, retryOfRequestLogID ?? requestLogID);
+        return this.retryRequest(
+          options,
+          retriesRemaining,
+          retryOfRequestLogID ?? requestLogID,
+        );
       }
       loggerFor(this).info(
-        `[${requestLogID}] connection ${isTimeout ? 'timed out' : 'failed'} - error; no more retries left`,
+        `[${requestLogID}] connection ${isTimeout ? "timed out" : "failed"} - error; no more retries left`,
       );
       loggerFor(this).debug(
-        `[${requestLogID}] connection ${isTimeout ? 'timed out' : 'failed'} (error; no more retries left)`,
+        `[${requestLogID}] connection ${isTimeout ? "timed out" : "failed"} (error; no more retries left)`,
         formatRequestDetails({
           retryOfRequestLogID,
           url,
@@ -574,7 +668,7 @@ export class GooglePeople {
     }
 
     const responseInfo = `[${requestLogID}${retryLogStr}] ${req.method} ${url} ${
-      response.ok ? 'succeeded' : 'failed'
+      response.ok ? "succeeded" : "failed"
     } with status ${response.status} in ${headersTime - startTime}ms`;
 
     if (!response.ok) {
@@ -603,11 +697,15 @@ export class GooglePeople {
         );
       }
 
-      const retryMessage = shouldRetry ? `error; no more retries left` : `error; not retryable`;
+      const retryMessage = shouldRetry
+        ? `error; no more retries left`
+        : `error; not retryable`;
 
       loggerFor(this).info(`${responseInfo} - ${retryMessage}`);
 
-      const errText = await response.text().catch((err: any) => castToError(err).message);
+      const errText = await response
+        .text()
+        .catch((err: any) => castToError(err).message);
       const errJSON = safeJSON(errText);
       const errMessage = errJSON ? undefined : errText;
 
@@ -623,7 +721,12 @@ export class GooglePeople {
         }),
       );
 
-      const err = this.makeStatusError(response.status, errJSON, errMessage, response.headers);
+      const err = this.makeStatusError(
+        response.status,
+        errJSON,
+        errMessage,
+        response.headers,
+      );
       throw err;
     }
 
@@ -639,7 +742,14 @@ export class GooglePeople {
       }),
     );
 
-    return { response, options, controller, requestLogID, retryOfRequestLogID, startTime };
+    return {
+      response,
+      options,
+      controller,
+      requestLogID,
+      retryOfRequestLogID,
+      startTime,
+    };
   }
 
   async fetchWithTimeout(
@@ -649,18 +759,21 @@ export class GooglePeople {
     controller: AbortController,
   ): Promise<Response> {
     const { signal, method, ...options } = init || {};
-    if (signal) signal.addEventListener('abort', () => controller.abort());
+    if (signal) signal.addEventListener("abort", () => controller.abort());
 
     const timeout = setTimeout(() => controller.abort(), ms);
 
     const isReadableBody =
-      ((globalThis as any).ReadableStream && options.body instanceof (globalThis as any).ReadableStream) ||
-      (typeof options.body === 'object' && options.body !== null && Symbol.asyncIterator in options.body);
+      ((globalThis as any).ReadableStream &&
+        options.body instanceof (globalThis as any).ReadableStream) ||
+      (typeof options.body === "object" &&
+        options.body !== null &&
+        Symbol.asyncIterator in options.body);
 
     const fetchOptions: RequestInit = {
       signal: controller.signal as any,
-      ...(isReadableBody ? { duplex: 'half' } : {}),
-      method: 'GET',
+      ...(isReadableBody ? { duplex: "half" } : {}),
+      method: "GET",
       ...options,
     };
     if (method) {
@@ -679,11 +792,11 @@ export class GooglePeople {
 
   private async shouldRetry(response: Response): Promise<boolean> {
     // Note this is not a standard header.
-    const shouldRetryHeader = response.headers.get('x-should-retry');
+    const shouldRetryHeader = response.headers.get("x-should-retry");
 
     // If the server explicitly says whether or not to retry, obey.
-    if (shouldRetryHeader === 'true') return true;
-    if (shouldRetryHeader === 'false') return false;
+    if (shouldRetryHeader === "true") return true;
+    if (shouldRetryHeader === "false") return false;
 
     // Retry on request timeouts.
     if (response.status === 408) return true;
@@ -709,7 +822,7 @@ export class GooglePeople {
     let timeoutMillis: number | undefined;
 
     // Note the `retry-after-ms` header may not be standard, but is a good idea and we'd like proactive support for it.
-    const retryAfterMillisHeader = responseHeaders?.get('retry-after-ms');
+    const retryAfterMillisHeader = responseHeaders?.get("retry-after-ms");
     if (retryAfterMillisHeader) {
       const timeoutMs = parseFloat(retryAfterMillisHeader);
       if (!Number.isNaN(timeoutMs)) {
@@ -718,7 +831,7 @@ export class GooglePeople {
     }
 
     // About the Retry-After header: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Retry-After
-    const retryAfterHeader = responseHeaders?.get('retry-after');
+    const retryAfterHeader = responseHeaders?.get("retry-after");
     if (retryAfterHeader && !timeoutMillis) {
       const timeoutSeconds = parseFloat(retryAfterHeader);
       if (!Number.isNaN(timeoutSeconds)) {
@@ -732,21 +845,30 @@ export class GooglePeople {
     // just do what it says, but otherwise calculate a default
     if (!(timeoutMillis && 0 <= timeoutMillis && timeoutMillis < 60 * 1000)) {
       const maxRetries = options.maxRetries ?? this.maxRetries;
-      timeoutMillis = this.calculateDefaultRetryTimeoutMillis(retriesRemaining, maxRetries);
+      timeoutMillis = this.calculateDefaultRetryTimeoutMillis(
+        retriesRemaining,
+        maxRetries,
+      );
     }
     await sleep(timeoutMillis);
 
     return this.makeRequest(options, retriesRemaining - 1, requestLogID);
   }
 
-  private calculateDefaultRetryTimeoutMillis(retriesRemaining: number, maxRetries: number): number {
+  private calculateDefaultRetryTimeoutMillis(
+    retriesRemaining: number,
+    maxRetries: number,
+  ): number {
     const initialRetryDelay = 0.5;
     const maxRetryDelay = 8.0;
 
     const numRetries = maxRetries - retriesRemaining;
 
     // Apply exponential backoff, but not more than the max.
-    const sleepSeconds = Math.min(initialRetryDelay * Math.pow(2, numRetries), maxRetryDelay);
+    const sleepSeconds = Math.min(
+      initialRetryDelay * Math.pow(2, numRetries),
+      maxRetryDelay,
+    );
 
     // Apply some jitter, take up to at most 25 percent of the retry time.
     const jitter = 1 - Math.random() * 0.25;
@@ -761,18 +883,30 @@ export class GooglePeople {
     const options = { ...inputOptions };
     const { method, path, query, defaultBaseURL } = options;
 
-    const url = this.buildURL(path!, query as Record<string, unknown>, defaultBaseURL);
-    if ('timeout' in options) validatePositiveInteger('timeout', options.timeout);
+    const url = this.buildURL(
+      path!,
+      query as Record<string, unknown>,
+      defaultBaseURL,
+    );
+    if ("timeout" in options)
+      validatePositiveInteger("timeout", options.timeout);
     options.timeout = options.timeout ?? this.timeout;
     const { bodyHeaders, body } = this.buildBody({ options });
-    const reqHeaders = await this.buildHeaders({ options: inputOptions, method, bodyHeaders, retryCount });
+    const reqHeaders = await this.buildHeaders({
+      options: inputOptions,
+      method,
+      bodyHeaders,
+      retryCount,
+    });
 
     const req: FinalizedRequestInit = {
       method,
       headers: reqHeaders,
       ...(options.signal && { signal: options.signal }),
       ...((globalThis as any).ReadableStream &&
-        body instanceof (globalThis as any).ReadableStream && { duplex: 'half' }),
+        body instanceof (globalThis as any).ReadableStream && {
+          duplex: "half",
+        }),
       ...(body && { body }),
       ...((this.fetchOptions as any) ?? {}),
       ...((options.fetchOptions as any) ?? {}),
@@ -793,18 +927,23 @@ export class GooglePeople {
     retryCount: number;
   }): Promise<Headers> {
     let idempotencyHeaders: HeadersLike = {};
-    if (this.idempotencyHeader && method !== 'get') {
-      if (!options.idempotencyKey) options.idempotencyKey = this.defaultIdempotencyKey();
+    if (this.idempotencyHeader && method !== "get") {
+      if (!options.idempotencyKey)
+        options.idempotencyKey = this.defaultIdempotencyKey();
       idempotencyHeaders[this.idempotencyHeader] = options.idempotencyKey;
     }
 
     const headers = buildHeaders([
       idempotencyHeaders,
       {
-        Accept: 'application/json',
-        'User-Agent': this.getUserAgent(),
-        'X-Stainless-Retry-Count': String(retryCount),
-        ...(options.timeout ? { 'X-Stainless-Timeout': String(Math.trunc(options.timeout / 1000)) } : {}),
+        Accept: "application/json",
+        "User-Agent": this.getUserAgent(),
+        "X-Stainless-Retry-Count": String(retryCount),
+        ...(options.timeout
+          ? {
+              "X-Stainless-Timeout": String(Math.trunc(options.timeout / 1000)),
+            }
+          : {}),
         ...getPlatformHeaders(),
       },
       await this.authHeaders(options),
@@ -818,7 +957,11 @@ export class GooglePeople {
     return headers.values;
   }
 
-  private buildBody({ options: { body, headers: rawHeaders } }: { options: FinalRequestOptions }): {
+  private buildBody({
+    options: { body, headers: rawHeaders },
+  }: {
+    options: FinalRequestOptions;
+  }): {
     bodyHeaders: HeadersLike;
     body: BodyInit | undefined;
   } {
@@ -831,9 +974,9 @@ export class GooglePeople {
       ArrayBuffer.isView(body) ||
       body instanceof ArrayBuffer ||
       body instanceof DataView ||
-      (typeof body === 'string' &&
+      (typeof body === "string" &&
         // Preserve legacy string encoding behavior for now
-        headers.values.has('content-type')) ||
+        headers.values.has("content-type")) ||
       // `Blob` is superset of `File`
       ((globalThis as any).Blob && body instanceof (globalThis as any).Blob) ||
       // `FormData` -> `multipart/form-data`
@@ -841,15 +984,21 @@ export class GooglePeople {
       // `URLSearchParams` -> `application/x-www-form-urlencoded`
       body instanceof URLSearchParams ||
       // Send chunked stream (each chunk has own `length`)
-      ((globalThis as any).ReadableStream && body instanceof (globalThis as any).ReadableStream)
+      ((globalThis as any).ReadableStream &&
+        body instanceof (globalThis as any).ReadableStream)
     ) {
       return { bodyHeaders: undefined, body: body as BodyInit };
     } else if (
-      typeof body === 'object' &&
+      typeof body === "object" &&
       (Symbol.asyncIterator in body ||
-        (Symbol.iterator in body && 'next' in body && typeof body.next === 'function'))
+        (Symbol.iterator in body &&
+          "next" in body &&
+          typeof body.next === "function"))
     ) {
-      return { bodyHeaders: undefined, body: Shims.ReadableStreamFrom(body as AsyncIterable<Uint8Array>) };
+      return {
+        bodyHeaders: undefined,
+        body: Shims.ReadableStreamFrom(body as AsyncIterable<Uint8Array>),
+      };
     } else {
       return this.#encoder({ body, headers });
     }
@@ -875,17 +1024,29 @@ export class GooglePeople {
   static toFile = Uploads.toFile;
 
   contactGroups: API.ContactGroups = new API.ContactGroups(this);
-  contactGroupsBatchGet: API.ContactGroupsBatchGet = new API.ContactGroupsBatchGet(this);
+  contactGroupsBatchGet: API.ContactGroupsBatchGet =
+    new API.ContactGroupsBatchGet(this);
   otherContacts: API.OtherContacts = new API.OtherContacts(this);
-  otherContactsSearch: API.OtherContactsSearch = new API.OtherContactsSearch(this);
-  peopleBatchCreateContacts: API.PeopleBatchCreateContacts = new API.PeopleBatchCreateContacts(this);
-  peopleBatchDeleteContacts: API.PeopleBatchDeleteContacts = new API.PeopleBatchDeleteContacts(this);
+  otherContactsSearch: API.OtherContactsSearch = new API.OtherContactsSearch(
+    this,
+  );
+  peopleBatchCreateContacts: API.PeopleBatchCreateContacts =
+    new API.PeopleBatchCreateContacts(this);
+  peopleBatchDeleteContacts: API.PeopleBatchDeleteContacts =
+    new API.PeopleBatchDeleteContacts(this);
   peopleBatchGet: API.PeopleBatchGet = new API.PeopleBatchGet(this);
-  peopleBatchUpdateContacts: API.PeopleBatchUpdateContacts = new API.PeopleBatchUpdateContacts(this);
-  peopleCreateContact: API.PeopleCreateContact = new API.PeopleCreateContact(this);
-  peopleListDirectoryPeople: API.PeopleListDirectoryPeople = new API.PeopleListDirectoryPeople(this);
-  peopleSearchContacts: API.PeopleSearchContacts = new API.PeopleSearchContacts(this);
-  peopleSearchDirectoryPeople: API.PeopleSearchDirectoryPeople = new API.PeopleSearchDirectoryPeople(this);
+  peopleBatchUpdateContacts: API.PeopleBatchUpdateContacts =
+    new API.PeopleBatchUpdateContacts(this);
+  peopleCreateContact: API.PeopleCreateContact = new API.PeopleCreateContact(
+    this,
+  );
+  peopleListDirectoryPeople: API.PeopleListDirectoryPeople =
+    new API.PeopleListDirectoryPeople(this);
+  peopleSearchContacts: API.PeopleSearchContacts = new API.PeopleSearchContacts(
+    this,
+  );
+  peopleSearchDirectoryPeople: API.PeopleSearchDirectoryPeople =
+    new API.PeopleSearchDirectoryPeople(this);
   connections: API.Connections = new API.Connections(this);
   membersModify: API.MembersModify = new API.MembersModify(this);
   copyOtherContactToMyContactsGroup: API.CopyOtherContactToMyContactsGroup =
@@ -910,7 +1071,8 @@ GooglePeople.PeopleSearchContacts = PeopleSearchContacts;
 GooglePeople.PeopleSearchDirectoryPeople = PeopleSearchDirectoryPeople;
 GooglePeople.Connections = Connections;
 GooglePeople.MembersModify = MembersModify;
-GooglePeople.CopyOtherContactToMyContactsGroup = CopyOtherContactToMyContactsGroup;
+GooglePeople.CopyOtherContactToMyContactsGroup =
+  CopyOtherContactToMyContactsGroup;
 GooglePeople.DeleteContact = DeleteContact;
 GooglePeople.Contacts = Contacts;
 GooglePeople.UpdateContact = UpdateContact;
@@ -1020,7 +1182,10 @@ export declare namespace GooglePeople {
     type CopyOtherContactToMyContactsGroupCopyParams as CopyOtherContactToMyContactsGroupCopyParams,
   };
 
-  export { DeleteContact as DeleteContact, type DeleteContactDeleteParams as DeleteContactDeleteParams };
+  export {
+    DeleteContact as DeleteContact,
+    type DeleteContactDeleteParams as DeleteContactDeleteParams,
+  };
 
   export {
     Contacts as Contacts,
@@ -1028,7 +1193,10 @@ export declare namespace GooglePeople {
     type ContactDeletePhotoParams as ContactDeletePhotoParams,
   };
 
-  export { UpdateContact as UpdateContact, type UpdateContactUpdateParams as UpdateContactUpdateParams };
+  export {
+    UpdateContact as UpdateContact,
+    type UpdateContactUpdateParams as UpdateContactUpdateParams,
+  };
 
   export {
     UpdateContactPhoto as UpdateContactPhoto,

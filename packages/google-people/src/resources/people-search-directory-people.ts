@@ -1,9 +1,9 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import { APIResource } from '../core/resource';
-import * as PeopleCreateContactAPI from './people-create-contact';
-import { APIPromise } from '../core/api-promise';
-import { RequestOptions } from '../internal/request-options';
+import { APIPromise } from "../core/api-promise";
+import { APIResource } from "../core/resource";
+import { RequestOptions } from "../internal/request-options";
+import * as PeopleCreateContactAPI from "./people-create-contact";
 
 export class PeopleSearchDirectoryPeople extends APIResource {
   /**
@@ -14,7 +14,10 @@ export class PeopleSearchDirectoryPeople extends APIResource {
     query: PeopleSearchDirectoryPersonSearchParams | null | undefined = {},
     options?: RequestOptions,
   ): APIPromise<PeopleSearchDirectoryPersonSearchResponse> {
-    return this._client.get('/v1/people:searchDirectoryPeople', { query, ...options });
+    return this._client.get("/v1/people:searchDirectoryPeople", {
+      query,
+      ...options,
+    });
   }
 }
 
@@ -51,7 +54,7 @@ export interface PeopleSearchDirectoryPersonSearchParams {
   /**
    * Data format for response.
    */
-  alt?: 'json' | 'media' | 'proto';
+  alt?: "json" | "media" | "proto";
 
   /**
    * JSONP
@@ -73,7 +76,10 @@ export interface PeopleSearchDirectoryPersonSearchParams {
    * Optional. Additional data to merge into the directory sources if they are
    * connected through verified join keys such as email addresses or phone numbers.
    */
-  mergeSources?: Array<'DIRECTORY_MERGE_SOURCE_TYPE_UNSPECIFIED' | 'DIRECTORY_MERGE_SOURCE_TYPE_CONTACT'>;
+  mergeSources?: Array<
+    | "DIRECTORY_MERGE_SOURCE_TYPE_UNSPECIFIED"
+    | "DIRECTORY_MERGE_SOURCE_TYPE_CONTACT"
+  >;
 
   /**
    * OAuth 2.0 token for the current user.
@@ -126,9 +132,9 @@ export interface PeopleSearchDirectoryPersonSearchParams {
    * Required. Directory sources to return.
    */
   sources?: Array<
-    | 'DIRECTORY_SOURCE_TYPE_UNSPECIFIED'
-    | 'DIRECTORY_SOURCE_TYPE_DOMAIN_CONTACT'
-    | 'DIRECTORY_SOURCE_TYPE_DOMAIN_PROFILE'
+    | "DIRECTORY_SOURCE_TYPE_UNSPECIFIED"
+    | "DIRECTORY_SOURCE_TYPE_DOMAIN_CONTACT"
+    | "DIRECTORY_SOURCE_TYPE_DOMAIN_PROFILE"
   >;
 
   /**
@@ -147,7 +153,7 @@ export namespace PeopleSearchDirectoryPersonSearchParams {
     /**
      * V1 error format.
      */
-    xgafv?: '1' | '2';
+    xgafv?: "1" | "2";
   }
 }
 

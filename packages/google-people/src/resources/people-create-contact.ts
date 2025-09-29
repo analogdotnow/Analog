@@ -1,9 +1,9 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import { APIResource } from '../core/resource';
-import * as PeopleCreateContactAPI from './people-create-contact';
-import { APIPromise } from '../core/api-promise';
-import { RequestOptions } from '../internal/request-options';
+import { APIPromise } from "../core/api-promise";
+import { APIResource } from "../core/resource";
+import { RequestOptions } from "../internal/request-options";
+import * as PeopleCreateContactAPI from "./people-create-contact";
 
 export class PeopleCreateContact extends APIResource {
   /**
@@ -33,7 +33,7 @@ export class PeopleCreateContact extends APIResource {
       uploadType,
       ...body
     } = params ?? {};
-    return this._client.post('/v1/people:createContact', {
+    return this._client.post("/v1/people:createContact", {
       query: {
         $,
         access_token,
@@ -129,7 +129,11 @@ export interface PersonMerged {
    * @deprecated Output only. **DEPRECATED** (Please use `person.ageRanges` instead)
    * The person's age range.
    */
-  ageRange?: 'AGE_RANGE_UNSPECIFIED' | 'LESS_THAN_EIGHTEEN' | 'EIGHTEEN_TO_TWENTY' | 'TWENTY_ONE_OR_OLDER';
+  ageRange?:
+    | "AGE_RANGE_UNSPECIFIED"
+    | "LESS_THAN_EIGHTEEN"
+    | "EIGHTEEN_TO_TWENTY"
+    | "TWENTY_ONE_OR_OLDER";
 
   /**
    * Output only. The person's age ranges.
@@ -402,7 +406,11 @@ export namespace PersonMerged {
     /**
      * The age range.
      */
-    ageRange?: 'AGE_RANGE_UNSPECIFIED' | 'LESS_THAN_EIGHTEEN' | 'EIGHTEEN_TO_TWENTY' | 'TWENTY_ONE_OR_OLDER';
+    ageRange?:
+      | "AGE_RANGE_UNSPECIFIED"
+      | "LESS_THAN_EIGHTEEN"
+      | "EIGHTEEN_TO_TWENTY"
+      | "TWENTY_ONE_OR_OLDER";
 
     /**
      * Metadata about the age range.
@@ -417,7 +425,7 @@ export namespace PersonMerged {
     /**
      * The content type of the biography.
      */
-    contentType?: 'CONTENT_TYPE_UNSPECIFIED' | 'TEXT_PLAIN' | 'TEXT_HTML';
+    contentType?: "CONTENT_TYPE_UNSPECIFIED" | "TEXT_PLAIN" | "TEXT_HTML";
 
     /**
      * Metadata about the biography.
@@ -853,7 +861,7 @@ export namespace PersonMerged {
      * `person.metadata.sources.profileMetadata.objectType` instead) The type of the
      * person object.
      */
-    objectType?: 'OBJECT_TYPE_UNSPECIFIED' | 'PERSON' | 'PAGE';
+    objectType?: "OBJECT_TYPE_UNSPECIFIED" | "PERSON" | "PAGE";
 
     /**
      * Output only. Any former resource names this person has had. Populated only for
@@ -888,18 +896,18 @@ export namespace PersonMerged {
      * The miscellaneous keyword type.
      */
     type?:
-      | 'TYPE_UNSPECIFIED'
-      | 'OUTLOOK_BILLING_INFORMATION'
-      | 'OUTLOOK_DIRECTORY_SERVER'
-      | 'OUTLOOK_KEYWORD'
-      | 'OUTLOOK_MILEAGE'
-      | 'OUTLOOK_PRIORITY'
-      | 'OUTLOOK_SENSITIVITY'
-      | 'OUTLOOK_SUBJECT'
-      | 'OUTLOOK_USER'
-      | 'HOME'
-      | 'WORK'
-      | 'OTHER';
+      | "TYPE_UNSPECIFIED"
+      | "OUTLOOK_BILLING_INFORMATION"
+      | "OUTLOOK_DIRECTORY_SERVER"
+      | "OUTLOOK_KEYWORD"
+      | "OUTLOOK_MILEAGE"
+      | "OUTLOOK_PRIORITY"
+      | "OUTLOOK_SENSITIVITY"
+      | "OUTLOOK_SUBJECT"
+      | "OUTLOOK_USER"
+      | "HOME"
+      | "WORK"
+      | "OTHER";
 
     /**
      * The value of the miscellaneous keyword.
@@ -1002,7 +1010,14 @@ export namespace PersonMerged {
     /**
      * The type of the nickname.
      */
-    type?: 'DEFAULT' | 'MAIDEN_NAME' | 'INITIALS' | 'GPLUS' | 'OTHER_NAME' | 'ALTERNATE_NAME' | 'SHORT_NAME';
+    type?:
+      | "DEFAULT"
+      | "MAIDEN_NAME"
+      | "INITIALS"
+      | "GPLUS"
+      | "OTHER_NAME"
+      | "ALTERNATE_NAME"
+      | "SHORT_NAME";
 
     /**
      * The nickname.
@@ -1406,13 +1421,13 @@ export interface Source {
    * The source type.
    */
   type?:
-    | 'SOURCE_TYPE_UNSPECIFIED'
-    | 'ACCOUNT'
-    | 'PROFILE'
-    | 'DOMAIN_PROFILE'
-    | 'CONTACT'
-    | 'OTHER_CONTACT'
-    | 'DOMAIN_CONTACT';
+    | "SOURCE_TYPE_UNSPECIFIED"
+    | "ACCOUNT"
+    | "PROFILE"
+    | "DOMAIN_PROFILE"
+    | "CONTACT"
+    | "OTHER_CONTACT"
+    | "DOMAIN_CONTACT";
 
   /**
    * Output only. **Only populated in `person.metadata.sources`.** Last update
@@ -1430,12 +1445,14 @@ export namespace Source {
     /**
      * Output only. The profile object type.
      */
-    objectType?: 'OBJECT_TYPE_UNSPECIFIED' | 'PERSON' | 'PAGE';
+    objectType?: "OBJECT_TYPE_UNSPECIFIED" | "PERSON" | "PAGE";
 
     /**
      * Output only. The user types.
      */
-    userTypes?: Array<'USER_TYPE_UNKNOWN' | 'GOOGLE_USER' | 'GPLUS_USER' | 'GOOGLE_APPS_USER'>;
+    userTypes?: Array<
+      "USER_TYPE_UNKNOWN" | "GOOGLE_USER" | "GPLUS_USER" | "GOOGLE_APPS_USER"
+    >;
   }
 }
 
@@ -1453,7 +1470,7 @@ export interface PeopleCreateContactCreateParams {
   /**
    * Query param: Data format for response.
    */
-  alt?: 'json' | 'media' | 'proto';
+  alt?: "json" | "media" | "proto";
 
   /**
    * Query param: JSONP
@@ -1505,10 +1522,10 @@ export interface PeopleCreateContactCreateParams {
    * READ_SOURCE_TYPE_CONTACT and READ_SOURCE_TYPE_PROFILE if not set.
    */
   sources?: Array<
-    | 'READ_SOURCE_TYPE_UNSPECIFIED'
-    | 'READ_SOURCE_TYPE_PROFILE'
-    | 'READ_SOURCE_TYPE_CONTACT'
-    | 'READ_SOURCE_TYPE_DOMAIN_CONTACT'
+    | "READ_SOURCE_TYPE_UNSPECIFIED"
+    | "READ_SOURCE_TYPE_PROFILE"
+    | "READ_SOURCE_TYPE_CONTACT"
+    | "READ_SOURCE_TYPE_DOMAIN_CONTACT"
   >;
 
   /**
@@ -1688,7 +1705,7 @@ export namespace PeopleCreateContactCreateParams {
     /**
      * V1 error format.
      */
-    xgafv?: '1' | '2';
+    xgafv?: "1" | "2";
   }
 
   /**
@@ -1762,7 +1779,7 @@ export namespace PeopleCreateContactCreateParams {
     /**
      * The content type of the biography.
      */
-    contentType?: 'CONTENT_TYPE_UNSPECIFIED' | 'TEXT_PLAIN' | 'TEXT_HTML';
+    contentType?: "CONTENT_TYPE_UNSPECIFIED" | "TEXT_PLAIN" | "TEXT_HTML";
 
     /**
      * Metadata about the biography.
@@ -2112,18 +2129,18 @@ export namespace PeopleCreateContactCreateParams {
      * The miscellaneous keyword type.
      */
     type?:
-      | 'TYPE_UNSPECIFIED'
-      | 'OUTLOOK_BILLING_INFORMATION'
-      | 'OUTLOOK_DIRECTORY_SERVER'
-      | 'OUTLOOK_KEYWORD'
-      | 'OUTLOOK_MILEAGE'
-      | 'OUTLOOK_PRIORITY'
-      | 'OUTLOOK_SENSITIVITY'
-      | 'OUTLOOK_SUBJECT'
-      | 'OUTLOOK_USER'
-      | 'HOME'
-      | 'WORK'
-      | 'OTHER';
+      | "TYPE_UNSPECIFIED"
+      | "OUTLOOK_BILLING_INFORMATION"
+      | "OUTLOOK_DIRECTORY_SERVER"
+      | "OUTLOOK_KEYWORD"
+      | "OUTLOOK_MILEAGE"
+      | "OUTLOOK_PRIORITY"
+      | "OUTLOOK_SENSITIVITY"
+      | "OUTLOOK_SUBJECT"
+      | "OUTLOOK_USER"
+      | "HOME"
+      | "WORK"
+      | "OTHER";
 
     /**
      * The value of the miscellaneous keyword.
@@ -2213,7 +2230,14 @@ export namespace PeopleCreateContactCreateParams {
     /**
      * The type of the nickname.
      */
-    type?: 'DEFAULT' | 'MAIDEN_NAME' | 'INITIALS' | 'GPLUS' | 'OTHER_NAME' | 'ALTERNATE_NAME' | 'SHORT_NAME';
+    type?:
+      | "DEFAULT"
+      | "MAIDEN_NAME"
+      | "INITIALS"
+      | "GPLUS"
+      | "OTHER_NAME"
+      | "ALTERNATE_NAME"
+      | "SHORT_NAME";
 
     /**
      * The nickname.

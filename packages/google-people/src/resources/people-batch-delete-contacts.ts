@@ -1,8 +1,8 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import { APIResource } from '../core/resource';
-import { APIPromise } from '../core/api-promise';
-import { RequestOptions } from '../internal/request-options';
+import { APIPromise } from "../core/api-promise";
+import { APIResource } from "../core/resource";
+import { RequestOptions } from "../internal/request-options";
 
 export class PeopleBatchDeleteContacts extends APIResource {
   /**
@@ -28,7 +28,7 @@ export class PeopleBatchDeleteContacts extends APIResource {
       uploadType,
       ...body
     } = params ?? {};
-    return this._client.post('/v1/people:batchDeleteContacts', {
+    return this._client.post("/v1/people:batchDeleteContacts", {
       query: {
         $,
         access_token,
@@ -70,7 +70,7 @@ export interface PeopleBatchDeleteContactDeleteBatchParams {
   /**
    * Query param: Data format for response.
    */
-  alt?: 'json' | 'media' | 'proto';
+  alt?: "json" | "media" | "proto";
 
   /**
    * Query param: JSONP
@@ -127,7 +127,7 @@ export namespace PeopleBatchDeleteContactDeleteBatchParams {
     /**
      * V1 error format.
      */
-    xgafv?: '1' | '2';
+    xgafv?: "1" | "2";
   }
 }
 

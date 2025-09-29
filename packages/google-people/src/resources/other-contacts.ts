@@ -1,9 +1,9 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import { APIResource } from '../core/resource';
-import * as PeopleCreateContactAPI from './people-create-contact';
-import { APIPromise } from '../core/api-promise';
-import { RequestOptions } from '../internal/request-options';
+import { APIPromise } from "../core/api-promise";
+import { APIResource } from "../core/resource";
+import { RequestOptions } from "../internal/request-options";
+import * as PeopleCreateContactAPI from "./people-create-contact";
 
 export class OtherContacts extends APIResource {
   /**
@@ -27,7 +27,7 @@ export class OtherContacts extends APIResource {
     query: OtherContactListParams | null | undefined = {},
     options?: RequestOptions,
   ): APIPromise<OtherContactListResponse> {
-    return this._client.get('/v1/otherContacts', { query, ...options });
+    return this._client.get("/v1/otherContacts", { query, ...options });
   }
 }
 
@@ -71,7 +71,7 @@ export interface OtherContactListParams {
   /**
    * Data format for response.
    */
-  alt?: 'json' | 'media' | 'proto';
+  alt?: "json" | "media" | "proto";
 
   /**
    * JSONP
@@ -150,10 +150,10 @@ export interface OtherContactListParams {
    * is not permitted.
    */
   sources?: Array<
-    | 'READ_SOURCE_TYPE_UNSPECIFIED'
-    | 'READ_SOURCE_TYPE_PROFILE'
-    | 'READ_SOURCE_TYPE_CONTACT'
-    | 'READ_SOURCE_TYPE_DOMAIN_CONTACT'
+    | "READ_SOURCE_TYPE_UNSPECIFIED"
+    | "READ_SOURCE_TYPE_PROFILE"
+    | "READ_SOURCE_TYPE_CONTACT"
+    | "READ_SOURCE_TYPE_DOMAIN_CONTACT"
   >;
 
   /**
@@ -181,7 +181,7 @@ export namespace OtherContactListParams {
     /**
      * V1 error format.
      */
-    xgafv?: '1' | '2';
+    xgafv?: "1" | "2";
   }
 }
 

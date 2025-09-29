@@ -1,9 +1,9 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import { APIResource } from '../core/resource';
-import { APIPromise } from '../core/api-promise';
-import { RequestOptions } from '../internal/request-options';
-import { path } from '../internal/utils/path';
+import { APIPromise } from "../core/api-promise";
+import { APIResource } from "../core/resource";
+import { RequestOptions } from "../internal/request-options";
+import { path } from "../internal/utils/path";
 
 export class DeleteContact extends APIResource {
   /**
@@ -59,7 +59,7 @@ export interface DeleteContactDeleteParams {
   /**
    * Data format for response.
    */
-  alt?: 'json' | 'media' | 'proto';
+  alt?: "json" | "media" | "proto";
 
   /**
    * JSONP
@@ -109,7 +109,7 @@ export namespace DeleteContactDeleteParams {
     /**
      * V1 error format.
      */
-    xgafv?: '1' | '2';
+    xgafv?: "1" | "2";
   }
 }
 

@@ -1,10 +1,10 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import { APIResource } from '../core/resource';
-import * as ContactGroupsBatchGetAPI from './contact-groups-batch-get';
-import * as ContactGroupsAPI from './contact-groups';
-import { APIPromise } from '../core/api-promise';
-import { RequestOptions } from '../internal/request-options';
+import { APIPromise } from "../core/api-promise";
+import { APIResource } from "../core/resource";
+import { RequestOptions } from "../internal/request-options";
+import * as ContactGroupsAPI from "./contact-groups";
+import * as ContactGroupsBatchGetAPI from "./contact-groups-batch-get";
 
 export class ContactGroupsBatchGet extends APIResource {
   /**
@@ -15,7 +15,10 @@ export class ContactGroupsBatchGet extends APIResource {
     query: ContactGroupsBatchGetListParams | null | undefined = {},
     options?: RequestOptions,
   ): APIPromise<ContactGroupsBatchGetListResponse> {
-    return this._client.get('/v1/contactGroups:batchGet', { query, ...options });
+    return this._client.get("/v1/contactGroups:batchGet", {
+      query,
+      ...options,
+    });
   }
 }
 
@@ -90,7 +93,7 @@ export interface ContactGroupsBatchGetListParams {
   /**
    * Data format for response.
    */
-  alt?: 'json' | 'media' | 'proto';
+  alt?: "json" | "media" | "proto";
 
   /**
    * JSONP
@@ -160,7 +163,7 @@ export namespace ContactGroupsBatchGetListParams {
     /**
      * V1 error format.
      */
-    xgafv?: '1' | '2';
+    xgafv?: "1" | "2";
   }
 }
 

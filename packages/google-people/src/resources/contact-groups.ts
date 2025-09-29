@@ -1,8 +1,8 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import { APIResource } from '../core/resource';
-import { APIPromise } from '../core/api-promise';
-import { RequestOptions } from '../internal/request-options';
+import { APIPromise } from "../core/api-promise";
+import { APIResource } from "../core/resource";
+import { RequestOptions } from "../internal/request-options";
 
 export class ContactGroups extends APIResource {
   /**
@@ -30,7 +30,7 @@ export class ContactGroups extends APIResource {
       uploadType,
       ...body
     } = params ?? {};
-    return this._client.post('/v1/contactGroups', {
+    return this._client.post("/v1/contactGroups", {
       query: {
         $,
         access_token,
@@ -57,7 +57,7 @@ export class ContactGroups extends APIResource {
     query: ContactGroupListParams | null | undefined = {},
     options?: RequestOptions,
   ): APIPromise<ContactGroupListResponse> {
-    return this._client.get('/v1/contactGroups', { query, ...options });
+    return this._client.get("/v1/contactGroups", { query, ...options });
   }
 }
 
@@ -86,7 +86,10 @@ export interface ContactGroup {
   /**
    * Output only. The contact group type.
    */
-  groupType?: 'GROUP_TYPE_UNSPECIFIED' | 'USER_CONTACT_GROUP' | 'SYSTEM_CONTACT_GROUP';
+  groupType?:
+    | "GROUP_TYPE_UNSPECIFIED"
+    | "USER_CONTACT_GROUP"
+    | "SYSTEM_CONTACT_GROUP";
 
   /**
    * Output only. The total number of contacts in the group irrespective of max
@@ -197,7 +200,7 @@ export interface ContactGroupCreateParams {
   /**
    * Query param: Data format for response.
    */
-  alt?: 'json' | 'media' | 'proto';
+  alt?: "json" | "media" | "proto";
 
   /**
    * Query param: JSONP
@@ -260,7 +263,7 @@ export namespace ContactGroupCreateParams {
     /**
      * V1 error format.
      */
-    xgafv?: '1' | '2';
+    xgafv?: "1" | "2";
   }
 }
 
@@ -275,7 +278,7 @@ export interface ContactGroupListParams {
   /**
    * Data format for response.
    */
-  alt?: 'json' | 'media' | 'proto';
+  alt?: "json" | "media" | "proto";
 
   /**
    * JSONP
@@ -352,7 +355,7 @@ export namespace ContactGroupListParams {
     /**
      * V1 error format.
      */
-    xgafv?: '1' | '2';
+    xgafv?: "1" | "2";
   }
 }
 

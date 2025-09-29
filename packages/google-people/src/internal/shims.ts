@@ -7,37 +7,43 @@
  * messages in cases where an environment isn't fully supported.
  */
 
-import type { Fetch } from './builtin-types';
-import type { ReadableStream } from './shim-types';
+import type { Fetch } from "./builtin-types";
+import type { ReadableStream } from "./shim-types";
 
 export function getDefaultFetch(): Fetch {
-  if (typeof fetch !== 'undefined') {
+  if (typeof fetch !== "undefined") {
     return fetch as any;
   }
 
   throw new Error(
-    '`fetch` is not defined as a global; Either pass `fetch` to the client, `new GooglePeople({ fetch })` or polyfill the global, `globalThis.fetch = fetch`',
+    "`fetch` is not defined as a global; Either pass `fetch` to the client, `new GooglePeople({ fetch })` or polyfill the global, `globalThis.fetch = fetch`",
   );
 }
 
 type ReadableStreamArgs = ConstructorParameters<typeof ReadableStream>;
 
-export function makeReadableStream(...args: ReadableStreamArgs): ReadableStream {
+export function makeReadableStream(
+  ...args: ReadableStreamArgs
+): ReadableStream {
   const ReadableStream = (globalThis as any).ReadableStream;
-  if (typeof ReadableStream === 'undefined') {
+  if (typeof ReadableStream === "undefined") {
     // Note: All of the platforms / runtimes we officially support already define
     // `ReadableStream` as a global, so this should only ever be hit on unsupported runtimes.
     throw new Error(
-      '`ReadableStream` is not defined as a global; You will need to polyfill it, `globalThis.ReadableStream = ReadableStream`',
+      "`ReadableStream` is not defined as a global; You will need to polyfill it, `globalThis.ReadableStream = ReadableStream`",
     );
   }
 
   return new ReadableStream(...args);
 }
 
-export function ReadableStreamFrom<T>(iterable: Iterable<T> | AsyncIterable<T>): ReadableStream<T> {
+export function ReadableStreamFrom<T>(
+  iterable: Iterable<T> | AsyncIterable<T>,
+): ReadableStream<T> {
   let iter: AsyncIterator<T> | Iterator<T> =
-    Symbol.asyncIterator in iterable ? iterable[Symbol.asyncIterator]() : iterable[Symbol.iterator]();
+    Symbol.asyncIterator in iterable
+      ? iterable[Symbol.asyncIterator]()
+      : iterable[Symbol.iterator]();
 
   return makeReadableStream({
     start() {},
@@ -61,7 +67,9 @@ export function ReadableStreamFrom<T>(iterable: Iterable<T> | AsyncIterable<T>):
  *
  * This polyfill was pulled from https://github.com/MattiasBuelens/web-streams-polyfill/pull/122#issuecomment-1627354490
  */
-export function ReadableStreamToAsyncIterable<T>(stream: any): AsyncIterableIterator<T> {
+export function ReadableStreamToAsyncIterable<T>(
+  stream: any,
+): AsyncIterableIterator<T> {
   if (stream[Symbol.asyncIterator]) return stream;
 
   const reader = stream.getReader();
@@ -93,7 +101,7 @@ export function ReadableStreamToAsyncIterable<T>(stream: any): AsyncIterableIter
  * See https://undici.nodejs.org/#/?id=garbage-collection
  */
 export async function CancelReadableStream(stream: any): Promise<void> {
-  if (stream === null || typeof stream !== 'object') return;
+  if (stream === null || typeof stream !== "object") return;
 
   if (stream[Symbol.asyncIterator]) {
     await stream[Symbol.asyncIterator]().return?.();
