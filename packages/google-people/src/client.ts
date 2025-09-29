@@ -23,7 +23,7 @@ import {
   ContactGroupListResponse,
   ContactGroups,
 } from './resources/contact-groups';
-import * as API from './resources';
+import * as API from './resources/index';
 import * as PeopleCreateContactAPI from './resources/people-create-contact';
 import {
   Date,
@@ -113,10 +113,7 @@ import { path } from './internal/utils/path';
 import { isEmptyObj } from './internal/utils/values';
 
 export interface ClientOptions {
-  /**
-   * Defaults to process.env['GOOGLE_PEOPLE_API_KEY'].
-   */
-  apiKey?: string | null | undefined;
+  accessToken: string;
 
   /**
    * Override the default base URL for the API, e.g., "https://api.example.com/v2/"
@@ -191,7 +188,7 @@ export interface ClientOptions {
  * API Client for interfacing with the Google People API.
  */
 export class GooglePeople {
-  apiKey: string | null;
+  accessToken: string;
 
   baseURL: string;
   maxRetries: number;
@@ -208,7 +205,7 @@ export class GooglePeople {
   /**
    * API Client for interfacing with the Google People API.
    *
-   * @param {string | null | undefined} [opts.apiKey=process.env['GOOGLE_PEOPLE_API_KEY'] ?? null]
+   * @param {string} opts.accessToken
    * @param {string} [opts.baseURL=process.env['GOOGLE_PEOPLE_BASE_URL'] ?? https://people.googleapis.com/] - Override the default base URL for the API.
    * @param {number} [opts.timeout=1 minute] - The maximum amount of time (in milliseconds) the client will wait for a response before timing out.
    * @param {MergedRequestInit} [opts.fetchOptions] - Additional `RequestInit` options to be passed to `fetch` calls.
@@ -217,13 +214,15 @@ export class GooglePeople {
    * @param {HeadersLike} opts.defaultHeaders - Default headers to include with every request to the API.
    * @param {Record<string, string | undefined>} opts.defaultQuery - Default query parameters to include with every request to the API.
    */
-  constructor({
-    baseURL = readEnv('GOOGLE_PEOPLE_BASE_URL'),
-    apiKey = readEnv('GOOGLE_PEOPLE_API_KEY') ?? null,
-    ...opts
-  }: ClientOptions = {}) {
+  constructor({ baseURL = readEnv('GOOGLE_PEOPLE_BASE_URL'), accessToken, ...opts }: ClientOptions) {
+    if (accessToken === undefined) {
+      throw new Errors.GooglePeopleError(
+        "Missing required client option accessToken; you need to instantiate the GooglePeople client with an accessToken option, like new GooglePeople({ accessToken: 'My Access Token' }).",
+      );
+    }
+
     const options: ClientOptions = {
-      apiKey,
+      accessToken,
       ...opts,
       baseURL: baseURL || `https://people.googleapis.com/`,
     };
@@ -245,7 +244,7 @@ export class GooglePeople {
 
     this._options = options;
 
-    this.apiKey = apiKey;
+    this.accessToken = accessToken;
   }
 
   /**
@@ -261,7 +260,7 @@ export class GooglePeople {
       logLevel: this.logLevel,
       fetch: this.fetch,
       fetchOptions: this.fetchOptions,
-      apiKey: this.apiKey,
+      accessToken: this.accessToken,
       ...options,
     });
     return client;
@@ -380,23 +379,11 @@ export class GooglePeople {
   }
 
   protected validateHeaders({ values, nulls }: NullableHeaders) {
-    if (this.apiKey && values.get('authorization')) {
-      return;
-    }
-    if (nulls.has('authorization')) {
-      return;
-    }
-
-    throw new Error(
-      'Could not resolve authentication method. Expected the apiKey to be set. Or for the "Authorization" headers to be explicitly omitted',
-    );
+    return;
   }
 
   protected async authHeaders(opts: FinalRequestOptions): Promise<NullableHeaders | undefined> {
-    if (this.apiKey == null) {
-      return undefined;
-    }
-    return buildHeaders([{ Authorization: `Bearer ${this.apiKey}` }]);
+    return buildHeaders([{ Authorization: `Bearer ${this.accessToken}` }]);
   }
 
   protected stringifyQuery(query: Record<string, unknown>): string {
