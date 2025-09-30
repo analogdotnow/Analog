@@ -4,7 +4,6 @@ import { accountsRouter } from "./routers/accounts";
 import { apiKeysRouter } from "./routers/api-keys";
 import { calendarsRouter } from "./routers/calendars";
 import { conferencingRouter } from "./routers/conferencing";
-import { earlyAccessRouter } from "./routers/early-access";
 import { eventsRouter } from "./routers/events";
 import { freeBusyRouter } from "./routers/free-busy";
 import { placesRouter } from "./routers/places";
@@ -25,7 +24,6 @@ export const appRouter = createTRPCRouter({
   events: eventsRouter,
   freeBusy: freeBusyRouter,
   conferencing: conferencingRouter,
-  earlyAccess: earlyAccessRouter,
   places: placesRouter,
 });
 
