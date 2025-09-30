@@ -62,10 +62,6 @@ export function Hero() {
             </p> */}
             </div>
           </div>
-
-          {/* <HydrateClient>
-            <WaitlistForm />
-          </HydrateClient> */}
         </div>
       </AnimatedGroup>
 
