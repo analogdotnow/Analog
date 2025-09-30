@@ -4,6 +4,7 @@
     "build": {
       "dependsOn": ["^build"],
       "env": [
+        "CI",
         "NODE_ENV",
         "DATABASE_URL",
         "BETTER_AUTH_SECRET",
