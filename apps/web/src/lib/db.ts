@@ -1,19 +1,16 @@
 import * as React from "react";
-import { eq } from "@tanstack/db";
-import { useLiveQuery } from "@tanstack/react-db";
-import type { SuperJSONResult } from "superjson";
+import { eq, like, useLiveQuery } from "@tanstack/react-db";
 import { Temporal } from "temporal-polyfill";
 
-import { startOfDay } from "@repo/temporal";
+import { startOfDay, toDate } from "@repo/temporal";
 
+import { events } from "./drizzle/schema";
 import type { CalendarEvent } from "./interfaces";
-import {
-  calendarsCollection,
-  ensurePgliteReady,
-  eventsCollection,
-  type EventRow,
-} from "./pglite";
-import { superjson } from "./trpc/superjson";
+import { client } from "./pglite/client";
+import { calendarCollection } from "./pglite/collections/calendars";
+import { eventsCollection } from "./pglite/collections/events";
+
+type EventRow = typeof events.$inferSelect;
 
 function temporalToEpochMs(
   value: Temporal.PlainDate | Temporal.ZonedDateTime | Temporal.Instant,
@@ -29,48 +26,68 @@ function temporalToEpochMs(
   return startOfDay(value, { timeZone: "UTC" }).epochMilliseconds;
 }
 
-function serializeTemporal(value?: Temporal.Instant) {
-  return value ? superjson.serialize(value) : null;
-}
-
 export function serializeEvent(event: CalendarEvent): EventRow {
-  const start = superjson.serialize(event.start);
-  const end = superjson.serialize(event.end);
-  const raw = superjson.serialize(event);
-
   return {
     id: event.id,
-    start,
-    end,
-    raw,
+    start: event.start,
+    end: event.end,
     calendarId: event.calendarId,
-    accountId: event.accountId,
     providerId: event.providerId,
     providerAccountId: event.accountId,
     recurringEventId: event.recurringEventId ?? null,
     readOnly: event.readOnly,
     visibility: event.visibility ?? null,
     availability: event.availability ?? null,
-    status: event.status ?? null,
+    status:
+      (event.status as "confirmed" | "tentative" | "cancelled" | undefined) ??
+      null,
     etag: event.etag ?? null,
     title: event.title ?? null,
+    description: event.description ?? null,
     location: event.location ?? null,
     url: event.url ?? null,
     color: event.color ?? null,
-    createdAt: serializeTemporal(event.createdAt),
-    updatedAt: serializeTemporal(event.updatedAt),
-    startUnix: temporalToEpochMs(event.start),
-    endUnix: temporalToEpochMs(event.end),
+    allDay: event.allDay ?? null,
+    createdAt: event.createdAt ?? null,
+    updatedAt: event.updatedAt ?? null,
+    startInstant: toDate(event.start, { timeZone: "UTC" }),
+    endInstant: toDate(event.end, { timeZone: "UTC" }),
     responseStatus: event.response?.status ?? null,
+    attendees: event.attendees ?? null,
+    metadata: event.metadata ?? null,
+    conference: event.conference ?? null,
+    recurrence: event.recurrence ?? null,
   };
 }
 
 function deserializeEvent(row: EventRow): CalendarEvent {
-  const event = superjson.deserialize(
-    row.raw as SuperJSONResult,
-  ) as CalendarEvent;
-
-  return event;
+  return {
+    id: row.id,
+    start: row.start,
+    end: row.end,
+    calendarId: row.calendarId,
+    accountId: row.providerAccountId,
+    providerId: row.providerId,
+    recurringEventId: row.recurringEventId ?? undefined,
+    readOnly: row.readOnly,
+    visibility: row.visibility ?? undefined,
+    availability: row.availability ?? undefined,
+    status: row.status ?? undefined,
+    etag: row.etag ?? undefined,
+    title: row.title ?? undefined,
+    description: row.description ?? undefined,
+    location: row.location ?? undefined,
+    url: row.url ?? undefined,
+    color: row.color ?? undefined,
+    allDay: row.allDay ?? undefined,
+    createdAt: row.createdAt ?? undefined,
+    updatedAt: row.updatedAt ?? undefined,
+    response: row.responseStatus ? { status: row.responseStatus } : undefined,
+    attendees: row.attendees ?? undefined,
+    metadata: row.metadata ?? undefined,
+    conference: row.conference ?? undefined,
+    recurrence: row.recurrence ?? undefined,
+  };
 }
 
 export {
@@ -84,8 +101,7 @@ export async function upsertEvents(events: CalendarEvent[]): Promise<void> {
     return;
   }
 
-  await ensurePgliteReady();
-  await calendarsCollection.stateWhenReady();
+  await calendarCollection.stateWhenReady();
   await eventsCollection.stateWhenReady();
 
   for (const event of events) {
@@ -112,16 +128,15 @@ export async function getEventById(
     return undefined;
   }
 
-  await ensurePgliteReady();
+  await client.waitReady;
 
-  const state = await eventsCollection.stateWhenReady();
-  const cached = state.get(id);
+  const cached = eventsCollection.get(id);
 
   if (!cached) {
     return undefined;
   }
 
-  return deserializeEvent(cached);
+  return deserializeEvent(cached as EventRow);
 }
 
 export function useLiveEventById(id: string) {

@@ -83,60 +83,54 @@ export const eventsRouter = createTRPCRouter({
   sync: calendarProcedure
     .input(
       z.object({
-        timeMin: zZonedDateTimeInstance,
-        timeMax: zZonedDateTimeInstance,
-        state: z.record(z.string(), z.string().optional()).default({}),
-        timeZone: z.string().optional(),
+        timeMin: zZonedDateTimeInstance.optional(),
+        timeMax: zZonedDateTimeInstance.optional(),
+        calendar: z.object({
+          providerId: z.enum(["google", "microsoft"]),
+          providerAccountId: z.string(),
+          calendarId: z.string(),
+          syncToken: z.string().optional(),
+        }),
+        timeZone: z.string().default("UTC"),
       }),
     )
     .query(async ({ ctx, input }) => {
-      const results = await Promise.all(
-        ctx.providers.map(async ({ client, account }) => {
-          const calendars = await client.calendars();
-
-          const promises = calendars.map(async (calendar) => {
-            const { events, syncToken } = await client.sync(
-              calendar,
-              input.timeMin,
-              input.timeMax,
-              input.state[calendar.id],
-              input.timeZone,
-            );
-
-            const mapped = events.map((event) => ({
-              ...event,
-              calendarId: calendar.id,
-              providerId: account.providerId,
-              accountId: account.accountId,
-              providerAccountId: account.accountId,
-            }));
-
-            return {
-              events: mapped,
-              syncToken,
-              calendarId: calendar.id,
-            };
-          });
-
-          return Promise.all(promises);
-        }),
+      const provider = await ctx.providers.find(
+        ({ account }) => account.accountId === input.calendar.providerAccountId,
       );
 
-      const events = results
-        .flat()
-        .map((result) => result.events)
-        .flat();
-      const syncTokens = results.flat().reduce(
-        (acc, result) => {
-          acc[result.calendarId] = result.syncToken;
-          return acc;
-        },
-        {} as Record<string, string | undefined>,
+      if (!provider?.client) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: `Calendar client not found for accountId: ${input.calendar.providerAccountId}`,
+        });
+      }
+
+      const calendars = await provider.client.calendars();
+
+      const calendar = calendars.find(
+        (c) => c.id === input.calendar.calendarId,
       );
+
+      if (!calendar) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: `Calendar not found for accountId: ${input.calendar.providerAccountId}`,
+        });
+      }
+
+      const { changes, syncToken, status } = await provider.client.sync({
+        calendar,
+        initialSyncToken: input.calendar.syncToken,
+        timeMin: input.timeMin,
+        timeMax: input.timeMax,
+        timeZone: input.timeZone,
+      });
 
       return {
-        events,
-        syncTokens,
+        status,
+        changes,
+        syncToken,
       };
     }),
   get: calendarProcedure

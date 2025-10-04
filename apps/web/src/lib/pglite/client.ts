@@ -8,11 +8,10 @@ import { runMigrations } from "./migrations";
 
 type Schema = typeof schema;
 
-type ClientContext = {
+interface ClientContext {
   client: PGlite;
   db: PgliteDatabase<Schema>;
-  ready: Promise<void>;
-};
+}
 
 declare global {
   var __ANALOG_PGLITE_CONTEXT__: ClientContext | undefined;
@@ -23,12 +22,8 @@ const DATA_DIR = "idb://analog-local2";
 function createContext(): ClientContext {
   const client = new PGlite(DATA_DIR);
   const db = drizzle(client, { schema });
-  const ready = (async () => {
-    await client.waitReady;
-    await runMigrations(client);
-  })();
 
-  return { client, db, ready };
+  return { client, db };
 }
 
 function getContext(): ClientContext {
@@ -51,6 +46,5 @@ export function getDrizzleDb(): PgliteDatabase<Schema> {
   return getContext().db;
 }
 
-export function ensurePgliteReady(): Promise<void> {
-  return getContext().ready;
-}
+export const db = getDrizzleDb();
+export const client = getPgliteClient();

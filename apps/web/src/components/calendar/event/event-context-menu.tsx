@@ -5,8 +5,6 @@ import * as ContextMenuPrimitive from "@radix-ui/react-context-menu";
 import { useQuery } from "@tanstack/react-query";
 import { CheckIcon } from "lucide-react";
 
-import type { AttendeeStatus } from "@repo/api/interfaces";
-
 import { canMoveBetweenCalendars } from "@/components/calendar/utils/move";
 import {
   ContextMenu,
@@ -22,7 +20,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type { CalendarEvent } from "@/lib/interfaces";
+import type { AttendeeStatus, CalendarEvent } from "@/lib/interfaces";
 import { useTRPC } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
 import { useDeleteAction } from "../flows/delete-event/use-delete-action";

@@ -28,8 +28,6 @@ export function useTimezoneList(value: string) {
     const timezone = timezones.find((tz) => tz.id === value);
     const now = Temporal.Now.plainDateISO();
 
-    console.log(timezone);
-    console.log(getDisplayValue(value, now));
     return {
       timezones,
       displayValue: timezone ?? getDisplayValue(value, now),

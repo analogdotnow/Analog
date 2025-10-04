@@ -8,8 +8,6 @@ import {
   XCircleIcon,
 } from "@heroicons/react/16/solid";
 
-import type { AttendeeStatus } from "@repo/api/interfaces";
-
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,6 +24,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import type { AttendeeStatus } from "@/lib/interfaces";
 import { cn } from "@/lib/utils";
 import { CopyButton } from "../copy-button";
 

@@ -1,11 +1,12 @@
 import { Temporal } from "temporal-polyfill";
 
-import { ConflictError, GoogleCalendar } from "@repo/google-calendar";
+import { APIError, ConflictError, GoogleCalendar } from "@repo/google-calendar";
 
 import { CALENDAR_DEFAULTS } from "../../constants/calendar";
 import type {
   Calendar,
   CalendarEvent,
+  CalendarEventSyncItem,
   CalendarFreeBusy,
 } from "../../interfaces";
 import type { CreateEventInput, UpdateEventInput } from "../../schemas/events";
@@ -17,8 +18,11 @@ import {
   toGoogleCalendarEvent,
 } from "./google-calendar/events";
 import { parseGoogleCalendarFreeBusy } from "./google-calendar/freebusy";
-import { GoogleCalendarEvent } from "./google-calendar/interfaces";
-import type { CalendarProvider, ResponseToEventInput } from "./interfaces";
+import type {
+  CalendarProvider,
+  CalendarProviderSyncOptions,
+  ResponseToEventInput,
+} from "./interfaces";
 
 interface GoogleCalendarProviderOptions {
   accessToken: string;
@@ -138,57 +142,139 @@ export class GoogleCalendarProvider implements CalendarProvider {
     });
   }
 
-  async sync(
+  async recurringEvents(
     calendar: Calendar,
-    timeMin: Temporal.ZonedDateTime,
-    timeMax: Temporal.ZonedDateTime,
-    initialSyncToken: string | undefined,
+    recurringEventIds: string[],
     timeZone?: string,
-  ): Promise<{
-    events: CalendarEvent[];
-    syncToken: string | undefined;
-  }> {
-    return this.withErrorHandler("sync", async () => {
-      const events: CalendarEvent[] = [];
+  ): Promise<CalendarEvent[]> {
+    return this.withErrorHandler("recurringEvents", async () => {
+      const map = new Set<string>(recurringEventIds);
 
-      let syncToken: string | undefined = initialSyncToken;
-      let pageToken: string | undefined = undefined;
+      if (map.size === 0) {
+        return [];
+      }
+
+      return Promise.all(
+        Array.from(map).map((id) => this.event(calendar, id, timeZone)),
+      );
+    });
+  }
+
+  async sync({
+    calendar,
+    initialSyncToken,
+    timeMin,
+    timeMax,
+    timeZone,
+  }: CalendarProviderSyncOptions): Promise<{
+    changes: CalendarEventSyncItem[];
+    syncToken: string | undefined;
+    status: "incremental" | "full";
+  }> {
+    const runSync = async (token: string | undefined) => {
+      let currentSyncToken = token;
+      let pageToken: string | undefined;
+      const changes: CalendarEventSyncItem[] = [];
 
       do {
         const { items, nextSyncToken, nextPageToken } =
           await this.client.calendars.events.list(calendar.id, {
-            timeMin: timeMin.withTimeZone("UTC").toInstant().toString(),
-            timeMax: timeMax.withTimeZone("UTC").toInstant().toString(),
             singleEvents: true,
-            orderBy: "startTime",
-            maxResults: 2500,
-            syncToken: initialSyncToken,
+            showDeleted: true,
+            // orderBy: "startTime",
+            maxResults: CALENDAR_DEFAULTS.MAX_EVENTS_PER_CALENDAR,
             pageToken,
+            syncToken: currentSyncToken,
+            // timeMin: timeMin?.withTimeZone("UTC").toInstant().toString(),
+            // timeMax: timeMax?.withTimeZone("UTC").toInstant().toString(),
           });
 
-        syncToken = nextSyncToken;
+        if (nextSyncToken) {
+          currentSyncToken = nextSyncToken;
+        }
+
         pageToken = nextPageToken;
 
         if (!items) {
-          break;
+          continue;
         }
 
-        events.push(
-          ...items.map((event) =>
-            parseGoogleCalendarEvent({
-              calendar,
-              accountId: this.accountId,
-              event,
-              defaultTimeZone: timeZone ?? "UTC",
-            }),
-          ),
-        );
+        for (const item of items) {
+          if (item.status === "cancelled") {
+            changes.push({
+              status: "deleted",
+              event: {
+                id: item.id!,
+                calendarId: calendar.id,
+                accountId: this.accountId,
+                providerId: this.providerId,
+                providerAccountId: this.accountId,
+              },
+            });
+            continue;
+          }
+
+          const parsedEvent = parseGoogleCalendarEvent({
+            calendar,
+            accountId: this.accountId,
+            event: item,
+            defaultTimeZone: timeZone,
+          });
+
+          changes.push({
+            status: "updated",
+            event: parsedEvent,
+          });
+        }
       } while (pageToken);
 
+      const instances = changes
+        .filter((e) => e.status !== "deleted" && e.event.recurringEventId)
+        .map(({ event }) => (event as CalendarEvent).recurringEventId!);
+
+      const recurringEvents = await this.recurringEvents(
+        calendar,
+        instances,
+        timeZone,
+      );
+
+      changes.push(
+        ...recurringEvents.map((event) => ({
+          status: "updated" as const,
+          event,
+        })),
+      );
+
       return {
-        events,
-        syncToken,
+        changes,
+        syncToken: currentSyncToken,
       };
+    };
+
+    return this.withErrorHandler("sync", async () => {
+      try {
+        const result = await runSync(initialSyncToken);
+
+        return { ...result, status: "incremental" };
+      } catch (error) {
+        if (!this.isFullSyncRequiredError(error)) {
+          throw error;
+        }
+
+        const result = await runSync(undefined);
+
+        // KNOWN ISSUE: holiday calendars always return a 410 error, https://issuetracker.google.com/issues/372283558
+        // Assume if the new sync token is equal to the initial sync token, content hasn't changed
+        if (initialSyncToken === result.syncToken) {
+          return {
+            changes: [],
+            syncToken: initialSyncToken,
+            status: "incremental",
+          };
+        }
+
+        return { ...result, status: "full" };
+      }
     });
   }
 
@@ -428,5 +514,20 @@ export class GoogleCalendarProvider implements CalendarProvider {
 
       throw new ProviderError(error as Error, operation, context);
     }
+  }
+
+  private isFullSyncRequiredError(error: unknown): boolean {
+    if (!(error instanceof APIError)) {
+      return false;
+    }
+
+    if (error.status === 410) {
+      return true;
+    }
+
+    const details =
+      (error.error as { errors?: Array<{ reason?: string }> })?.errors ?? [];
+
+    return details.some(({ reason }) => reason === "fullSyncRequired");
   }
 }

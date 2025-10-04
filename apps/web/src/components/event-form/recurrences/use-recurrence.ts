@@ -3,8 +3,9 @@ import { RRuleTemporal } from "rrule-temporal";
 import { toText } from "rrule-temporal/totext";
 import { Temporal } from "temporal-polyfill";
 
-import { Recurrence } from "@repo/api/interfaces";
 import { toZonedDateTime } from "@repo/temporal";
+
+import { Recurrence } from "@/lib/interfaces";
 
 interface UseRecurrenceOptions {
   recurrence: Recurrence | undefined;

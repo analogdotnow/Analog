@@ -1,10 +1,6 @@
 import * as React from "react";
 
-import type {
-  ConferenceData,
-  ConferenceEntryPoint,
-} from "@repo/api/interfaces";
-
+import type { ConferenceData, ConferenceEntryPoint } from "@/lib/interfaces";
 import { cn } from "@/lib/utils";
 import { CopyButton } from "../copy-button";
 

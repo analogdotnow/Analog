@@ -2,8 +2,6 @@ import * as React from "react";
 import { useAtomValue } from "jotai";
 import { Temporal } from "temporal-polyfill";
 
-import { Recurrence } from "@repo/api/interfaces";
-
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { Button } from "@/components/ui/button";
 import { DialogTrigger } from "@/components/ui/dialog";
@@ -16,6 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Recurrence } from "@/lib/interfaces";
 import { cn } from "@/lib/utils";
 import { RecurrenceDialog } from "./recurrence-dialog";
 import { generateRecurrenceSuggestions } from "./recurrence-suggestions";

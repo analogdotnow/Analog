@@ -11,7 +11,7 @@ export const calendars = pgTable(
     description: text("description"),
     etag: text("etag"),
     timeZone: text("time_zone"),
-    primary: boolean("primary").default(false).notNull(),
+    primary: boolean("primary"),
     accountId: text("account_id").notNull(),
     providerAccountId: text("provider_account_id").notNull(),
     color: text("color"),

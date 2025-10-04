@@ -6,7 +6,6 @@ import { format } from "date-fns";
 import { Temporal } from "temporal-polyfill";
 import * as z from "zod";
 
-import { Frequency, Recurrence, Weekday } from "@repo/api/interfaces";
 import { toDate } from "@repo/temporal";
 
 import { Button } from "@/components/ui/button";
@@ -34,6 +33,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Frequency, Recurrence, Weekday } from "@/lib/interfaces";
 import { cn } from "@/lib/utils";
 
 const daysOfWeek = [

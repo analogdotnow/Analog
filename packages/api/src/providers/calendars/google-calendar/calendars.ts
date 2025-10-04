@@ -10,12 +10,8 @@ export function parseGoogleCalendarCalendarListEntry({
   accountId,
   entry,
 }: ParsedGoogleCalendarCalendarListEntryOptions): Calendar {
-  if (!entry.id) {
-    throw new Error("Calendar ID is missing");
-  }
-
   return {
-    id: entry.id,
+    id: entry.id!,
     name: entry.summaryOverride ?? entry.summary!,
     description: entry.description,
     etag: entry.etag,

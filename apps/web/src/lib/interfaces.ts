@@ -1,4 +1,12 @@
-import type { Attendee, Calendar } from "@repo/api/interfaces";
+import type {
+  Attendee,
+  AttendeeStatus,
+  Calendar,
+  Conference,
+  Frequency,
+  Recurrence,
+  Weekday,
+} from "@repo/api/interfaces";
 
 import type { RouterOutputs } from "./trpc";
 
@@ -12,4 +20,12 @@ export type DraftEvent = Partial<CalendarEvent> &
     type: "draft";
   };
 
-export type { Calendar, Attendee };
+export type {
+  Calendar,
+  Attendee,
+  Conference,
+  Recurrence,
+  Frequency,
+  Weekday,
+  AttendeeStatus,
+};

@@ -3,6 +3,7 @@ import { Temporal } from "temporal-polyfill";
 import type {
   Calendar,
   CalendarEvent,
+  CalendarEventSyncItem,
   CalendarFreeBusy,
 } from "../../interfaces";
 import type { CreateEventInput, UpdateEventInput } from "../../schemas/events";
@@ -11,6 +12,20 @@ export interface ResponseToEventInput {
   status: "accepted" | "tentative" | "declined" | "unknown";
   comment?: string;
   sendUpdate: boolean;
+}
+
+export interface CalendarProviderSyncOptions {
+  calendar: Calendar;
+  initialSyncToken?: string | undefined;
+  timeMin?: Temporal.ZonedDateTime;
+  timeMax?: Temporal.ZonedDateTime;
+  timeZone: string;
+}
+
+export interface CalendarProviderSyncResult {
+  changes: CalendarEventSyncItem[];
+  syncToken: string | undefined;
+  status: "incremental" | "full";
 }
 
 export interface CalendarProvider {
@@ -34,15 +49,8 @@ export interface CalendarProvider {
     recurringMasterEvents: CalendarEvent[];
   }>;
   sync(
-    calendar: Calendar,
-    timeMin: Temporal.ZonedDateTime,
-    timeMax: Temporal.ZonedDateTime,
-    initialSyncToken: string | undefined,
-    timeZone?: string,
-  ): Promise<{
-    events: CalendarEvent[];
-    syncToken: string | undefined;
-  }>;
+    options: CalendarProviderSyncOptions,
+  ): Promise<CalendarProviderSyncResult>;
   event(
     calendar: Calendar,
     eventId: string,

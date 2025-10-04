@@ -6,8 +6,8 @@ import { URLS } from "./src/lib/urls";
 
 const nextConfig: NextConfig = {
   transpilePackages: [
-    '@electric-sql/pglite-react', // Optional
-    '@electric-sql/pglite',
+    "@electric-sql/pglite-react", // Optional
+    "@electric-sql/pglite",
   ],
   async redirects() {
     return [

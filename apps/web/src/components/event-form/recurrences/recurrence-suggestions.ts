@@ -1,6 +1,6 @@
 import { Temporal } from "temporal-polyfill";
 
-import { Recurrence, Weekday } from "@repo/api/interfaces";
+import { Recurrence, Weekday } from "@/lib/interfaces";
 
 const WEEKDAYS = ["MO", "TU", "WE", "TH", "FR", "SA", "SU"];
 
