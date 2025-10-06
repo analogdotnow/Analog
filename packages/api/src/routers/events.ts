@@ -351,10 +351,6 @@ export const eventsRouter = createTRPCRouter({
       z.object({
         accountId: z.string(),
         calendarId: z.string(),
-        type: z
-          .enum(["single", "instance", "series"])
-          .optional()
-          .default("single"),
         eventId: z.string(),
         sendUpdate: z.boolean().optional().default(true),
       }),

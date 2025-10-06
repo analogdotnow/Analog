@@ -87,8 +87,39 @@ const calendarCollectionConfig = drizzleCollectionOptions({
   },
   getKey: (calendar) => `${calendar.providerAccountId}-${calendar.id}`,
   // onInsert: async ({ transaction }) => {},
-  // onUpdate: async ({ transaction }) => {},
-  // onDelete: async ({ transaction }) => {},
+  onInsert: async ({ transaction }) => {
+    const m = transaction.mutations[0];
+    const row = m.modified as CalendarRow;
+
+    await trpc.calendars.create.mutate({
+      name: row.name,
+      description: row.description ?? undefined,
+      timeZone: row.timeZone ?? undefined,
+      accountId: row.providerAccountId,
+    });
+  },
+  onUpdate: async ({ transaction }) => {
+    const m = transaction.mutations[0];
+    const row = m.modified as CalendarRow;
+
+    await trpc.calendars.update.mutate({
+      id: row.id,
+      accountId: row.providerAccountId,
+      name: row.name,
+      timeZone: row.timeZone ?? undefined,
+    });
+  },
+  onDelete: async ({ transaction }) => {
+    const m = transaction.mutations[0];
+    const row = m.original as CalendarRow | undefined;
+
+    if (!row) return;
+
+    await trpc.calendars.delete.mutate({
+      accountId: row.providerAccountId,
+      calendarId: row.id,
+    });
+  },
 });
 
 export const calendarCollection = createCollection(calendarCollectionConfig);

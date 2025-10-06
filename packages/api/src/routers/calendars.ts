@@ -4,6 +4,7 @@ import * as z from "zod";
 import { auth } from "@repo/auth/server";
 
 import { assignColor } from "../providers/calendars/colors";
+import { createCalendarInputSchema } from "../schemas/calendars";
 import {
   calendarProcedure,
   createTRPCRouter,
@@ -85,6 +86,35 @@ export const calendarsRouter = createTRPCRouter({
       accounts: sortedAccounts,
     };
   }),
+  create: calendarProcedure
+    .input(createCalendarInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const provider = ctx.providers.find(
+        ({ account }) => account.accountId === input.accountId,
+      );
+
+      if (!provider?.client) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: `Calendar client not found for accountId: ${input.accountId}`,
+        });
+      }
+
+      const calendar = await provider.client.createCalendar({
+        name: input.name,
+        description: input.description,
+        timeZone: input.timeZone,
+        primary: false,
+        accountId: provider.account.id,
+        providerAccountId: provider.account.accountId,
+        color: undefined,
+        readOnly: false,
+        syncToken: null,
+        etag: undefined,
+      });
+
+      return { calendar };
+    }),
   update: calendarProcedure
     .input(
       z.object({

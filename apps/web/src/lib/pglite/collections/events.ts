@@ -4,31 +4,69 @@ import { and, eq } from "drizzle-orm";
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { jotaiStore } from "@/atoms/store";
 import { getDifferences } from "@/components/calendar/flows/event-form/merge-changes";
-import { serializeEvent } from "@/lib/db";
+import type { CalendarEvent } from "@/lib/interfaces";
 import { trpc } from "@/lib/trpc/client";
 import { calendars, events } from "../../drizzle/schema";
 import { client, db } from "../client";
 import { drizzleCollectionOptions } from "../drizzle";
 import { runMigrations } from "../migrations";
 import { calendarCollection } from "./calendars";
+import { deserializeEvent, serializeEvent } from "./events/utils";
 
-type EventRow = typeof events.$inferSelect;
-
-function changed(existing: EventRow, incoming: EventRow): boolean {
-  return getDifferences(existing, incoming).length > 0;
+function changed(existing: CalendarEvent, incoming: CalendarEvent): boolean {
+  return (
+    getDifferences(serializeEvent(existing), serializeEvent(incoming)).length >
+    0
+  );
 }
 
-const eventCollectionConfig = drizzleCollectionOptions({
+const eventCollectionConfig = drizzleCollectionOptions<
+  typeof events,
+  typeof events.$inferSelect,
+  CalendarEvent
+>({
   db,
   table: events,
   primaryColumn: events.id,
   getKey: (event) =>
-    `${event.providerAccountId}-${event.calendarId}-${event.id}`,
+    `${event.providerAccountId ?? event.accountId}-${event.calendarId}-${event.id}`,
+  parse: deserializeEvent,
+  serialize: serializeEvent,
   startSync: true,
   prepare: async () => {
     await client.waitReady;
 
     await runMigrations(client);
+  },
+  onInsert: async ({ transaction }) => {
+    for (const mutation of transaction.mutations) {
+      const event = mutation.modified;
+
+      await trpc.events.create.mutate(event);
+    }
+  },
+  onUpdate: async ({ transaction }) => {
+    for (const mutation of transaction.mutations) {
+      const event = mutation.modified;
+
+      await trpc.events.update.mutate({
+        data: event,
+      });
+    }
+  },
+  onDelete: async ({ transaction }) => {
+    for (const mutation of transaction.mutations) {
+      const original = mutation.original;
+
+      if (!original) return;
+
+      await trpc.events.delete.mutate({
+        accountId: original.accountId,
+        calendarId: original.calendarId,
+        eventId: original.id,
+        sendUpdate: true,
+      });
+    }
   },
   sync: async ({ collection, write }) => {
     await calendarCollection.stateWhenReady();
@@ -65,7 +103,8 @@ const eventCollectionConfig = drizzleCollectionOptions({
           const keysToDelete = existingEvents
             .filter(
               (event) =>
-                event.providerAccountId === calendar.providerAccountId &&
+                (event.providerAccountId ?? event.accountId) ===
+                  calendar.providerAccountId &&
                 event.calendarId === calendar.calendarId,
             )
             .map((event) => collection.getKeyFromItem(event));
@@ -78,7 +117,7 @@ const eventCollectionConfig = drizzleCollectionOptions({
         }
 
         for (const change of changes) {
-          const eventKey = `${change.event.accountId}-${change.event.calendarId}-${change.event.id}`;
+          const eventKey = `${change.event.providerAccountId ?? change.event.accountId}-${change.event.calendarId}-${change.event.id}`;
           const existing = localEvents.get(eventKey);
 
           if (change.status === "deleted") {
@@ -91,7 +130,7 @@ const eventCollectionConfig = drizzleCollectionOptions({
             continue;
           }
 
-          const value = serializeEvent(change.event);
+          const value = change.event;
 
           if (!existing) {
             write({ type: "insert", value });

@@ -10,73 +10,84 @@ import { eq, inArray } from "drizzle-orm";
 import type { IndexColumn, PgTable } from "drizzle-orm/pg-core";
 import type { PgliteDatabase } from "drizzle-orm/pglite";
 
+type ParseFn<TRecord, TItem> = (record: TRecord) => TItem;
+type SerializeFn<TItem, TRecord> = (item: TItem) => TRecord;
+
 export function drizzleCollectionOptions<
   Table extends PgTable,
-  TItem extends Table["$inferSelect"],
+  TRecord extends Table["$inferSelect"],
+  TItem extends object = TRecord,
 >({
   startSync = true,
   ...config
 }: {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-
   id?: string;
   // schema?: StandardSchemaV1
   getKey: (item: TItem) => string | number;
-  sync?: SyncConfig<Table["$inferSelect"], string>["sync"];
+  sync?: SyncConfig<TItem, string>["sync"];
   rowUpdateMode?: "partial" | "full";
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  db: PgliteDatabase<any>;
+  db: PgliteDatabase<Record<string, unknown>>;
   table: Table;
   primaryColumn: IndexColumn;
 
-  onInsert?: (
-    params: InsertMutationFnParams<Table["$inferSelect"], string>,
-  ) => Promise<void>;
-  onUpdate?: (
-    params: UpdateMutationFnParams<Table["$inferSelect"], string>,
-  ) => Promise<void>;
-  onDelete?: (
-    params: DeleteMutationFnParams<Table["$inferSelect"], string>,
-  ) => Promise<void>;
+  onInsert?: (params: InsertMutationFnParams<TItem, string>) => Promise<void>;
+  onUpdate?: (params: UpdateMutationFnParams<TItem, string>) => Promise<void>;
+  onDelete?: (params: DeleteMutationFnParams<TItem, string>) => Promise<void>;
   startSync?: boolean;
   prepare?: () => Promise<void> | void;
-}): CollectionConfig<Table["$inferSelect"], string> & {
+  parse?: ParseFn<TRecord, TItem>;
+  serialize?: SerializeFn<TItem, TRecord>;
+}): CollectionConfig<TItem, string> & {
   utils: {
     runSync: () => Promise<void>;
   };
 } {
-  type SyncParams = Parameters<
-    SyncConfig<Table["$inferSelect"], string>["sync"]
-  >[0];
+  type SyncParams = Parameters<SyncConfig<TItem, string>["sync"]>[0];
 
   // Sync params can be null while running PGLite migrations
   const { promise: syncParams, resolve: resolveSyncParams } =
     Promise.withResolvers<SyncParams>();
 
-  async function runMutations(mutations: PendingMutation[]): Promise<void> {
+  const parse: ParseFn<TRecord, TItem> =
+    config.parse ?? ((value) => value as unknown as TItem);
+
+  const serialize: SerializeFn<TItem, TRecord> =
+    config.serialize ?? ((value) => value as unknown as TRecord);
+
+  const normalizeForCollection = (
+    value: TItem,
+  ): {
+    serialized: TRecord;
+    parsed: TItem;
+  } => {
+    const serialized = serialize(value);
+
+    return {
+      serialized,
+      parsed: parse(serialized),
+    };
+  };
+
+  async function runMutations(
+    mutations: PendingMutation<TItem>[],
+  ): Promise<void> {
     const { begin, write, commit } = await syncParams;
     begin();
     mutations.forEach((m) => {
-      write({ type: m.type, value: m.modified });
+      write({ type: m.type, value: normalizeForCollection(m.modified).parsed });
     });
     commit();
   }
 
-  async function onDrizzleInsert(
-    data: (typeof config.table.$inferInsert)[],
-  ): Promise<void> {
-    // @ts-expect-error drizzle types
+  async function onDrizzleInsert(data: Array<TRecord>): Promise<void> {
     await config.db.insert(config.table).values(data).onConflictDoNothing();
   }
 
-  async function onDrizzleUpdate(
-    id: string,
-    changes: Partial<typeof config.table.$inferSelect>,
-  ): Promise<void> {
+  async function onDrizzleUpdate(id: string, record: TRecord): Promise<void> {
     await config.db
       .update(config.table)
-      .set(changes)
+      .set(record)
       .where(eq(config.primaryColumn, id));
   }
 
@@ -95,20 +106,33 @@ export function drizzleCollectionOptions<
       write: async (p) => {
         params.begin();
         try {
+          const normalized = normalizeForCollection(p.value as TItem);
+          const previousNormalized = p.previousValue
+            ? normalizeForCollection(p.previousValue as TItem)
+            : undefined;
+
           if (p.type === "insert") {
-            await onDrizzleInsert([p.value]);
+            await onDrizzleInsert([normalized.serialized]);
           } else if (p.type === "update") {
             await onDrizzleUpdate(
-              params.collection.getKeyFromItem(p.value),
-              p.value,
+              params.collection.getKeyFromItem(normalized.parsed),
+              normalized.serialized,
             );
           } else if (p.type === "delete") {
-            await onDrizzleDelete([params.collection.getKeyFromItem(p.value)]);
+            await onDrizzleDelete([
+              params.collection.getKeyFromItem(normalized.parsed),
+            ]);
           }
 
           try {
-            params.write(p);
-          } catch (error) {}
+            params.write({
+              ...p,
+              value: normalized.parsed,
+              previousValue: previousNormalized?.parsed,
+            });
+          } catch {
+            // ignore
+          }
         } finally {
           params.commit();
         }
@@ -128,7 +152,10 @@ export function drizzleCollectionOptions<
           // @ts-expect-error drizzle types
           const dbs = await config.db.select().from(config.table);
           dbs.forEach((db) => {
-            params.write({ type: "insert", value: db });
+            params.write({
+              type: "insert",
+              value: parse(db as TRecord),
+            });
           });
           params.commit();
           if (config.sync && startSync) {
@@ -142,7 +169,7 @@ export function drizzleCollectionOptions<
     },
     gcTime: 0,
     // schema: createSelectSchema(config.table) as StandardSchemaV1,
-    getKey: (t) => t[config.primaryColumn.name] as string,
+    getKey: (t) => String(config.getKey(t)),
     onDelete: async (params) => {
       await onDrizzleDelete(params.transaction.mutations.map((m) => m.key));
       const result = await config.onDelete?.(params);
@@ -151,7 +178,7 @@ export function drizzleCollectionOptions<
     },
     onInsert: async (params) => {
       await onDrizzleInsert(
-        params.transaction.mutations.map((m) => m.modified),
+        params.transaction.mutations.map((m) => serialize(m.modified)),
       );
       const result = await config.onInsert?.(params);
       await runMutations(params.transaction.mutations);
@@ -160,7 +187,7 @@ export function drizzleCollectionOptions<
     onUpdate: async (params) => {
       await Promise.all(
         params.transaction.mutations.map((m) =>
-          onDrizzleUpdate(m.key, m.changes),
+          onDrizzleUpdate(m.key, serialize(m.modified)),
         ),
       );
       const result = await config.onUpdate?.(params);

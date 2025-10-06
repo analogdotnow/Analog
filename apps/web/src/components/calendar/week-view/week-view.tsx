@@ -60,10 +60,7 @@ export function WeekView({
 
   return (
     <WeekViewContainer days={week.days} {...props}>
-      <div
-        ref={headerRef}
-        className="sticky top-0 z-30 bg-background mac:bg-background/0"
-      >
+      <div ref={headerRef} className="sticky top-0 z-30 bg-column">
         <WeekViewHeader allDays={week.days} />
         <WeekViewAllDaySection
           allDays={week.days}
