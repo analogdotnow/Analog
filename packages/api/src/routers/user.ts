@@ -1,5 +1,6 @@
-import * as z from "zod";
+import "server-only";
 
+import { locationSchema } from "../schemas/users";
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
 
 export const userRouter = createTRPCRouter({
@@ -13,10 +14,16 @@ export const userRouter = createTRPCRouter({
       },
     };
   }),
-  geolocation: publicProcedure.query(({ ctx }) => {
-    const result = coordinatesSchema.safeParse({
+  approximateLocation: publicProcedure.query(({ ctx }) => {
+    const result = locationSchema.safeParse({
       latitude: ctx.headers.get("x-vercel-ip-latitude"),
       longitude: ctx.headers.get("x-vercel-ip-longitude"),
+      continent: ctx.headers.get("x-vercel-ip-continent"),
+      country: ctx.headers.get("x-vercel-ip-country"),
+      region: ctx.headers.get("x-vercel-ip-country-region"),
+      city: ctx.headers.get("x-vercel-ip-city"),
+      postalCode: ctx.headers.get("x-vercel-ip-postal-code"),
+      timezone: ctx.headers.get("x-vercel-ip-timezone"),
     });
 
     if (!result.success) {
@@ -25,9 +32,4 @@ export const userRouter = createTRPCRouter({
 
     return result.data;
   }),
-});
-
-const coordinatesSchema = z.object({
-  latitude: z.coerce.number(),
-  longitude: z.coerce.number(),
 });

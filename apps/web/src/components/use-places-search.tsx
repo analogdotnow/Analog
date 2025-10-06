@@ -18,7 +18,7 @@ export function usePlacesSearch(request: AutocompleteRequest) {
 
   const sessionToken = sessionTokenRef.current;
   const trpc = useTRPC();
-  const query = useQuery(trpc.user.geolocation.queryOptions());
+  const query = useQuery(trpc.user.approximateLocation.queryOptions());
 
   return useQuery({
     queryKey: [request.input],
