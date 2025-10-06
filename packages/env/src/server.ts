@@ -19,6 +19,7 @@ export const env = createEnv({
     UPSTASH_REDIS_REST_TOKEN: z.string().min(1),
     MARBLE_WORKSPACE_KEY: z.string().min(1).optional(),
     MARBLE_API_URL: z.string().url().optional(),
+    COMPOSIO_API_KEY: z.string().optional(),
   },
   experimental__runtimeEnv: process.env,
   skipValidation: process.env.NODE_ENV !== "production",

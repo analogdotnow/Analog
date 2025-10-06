@@ -1,5 +1,7 @@
-import { useState } from "react";
-import { Cog6ToothIcon, UsersIcon } from "@heroicons/react/16/solid";
+"use client";
+
+import * as React from "react";
+import { Cog6ToothIcon, LinkIcon, UsersIcon } from "@heroicons/react/16/solid";
 
 import {
   Dialog,
@@ -9,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accounts } from "./tabs/accounts";
+import { ConnectedAccounts } from "./tabs/connected-accounts";
 import { General } from "./tabs/general";
 
 interface SettingsDialogProps {
@@ -16,7 +19,7 @@ interface SettingsDialogProps {
 }
 
 export function SettingsDialog({ children }: SettingsDialogProps) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = React.useState(false);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -46,7 +49,14 @@ export function SettingsDialog({ children }: SettingsDialogProps) {
                   className="w-full justify-start gap-3 border-none py-1.5 hover:bg-muted hover:text-accent-foreground data-[state=active]:bg-muted data-[state=active]:shadow-none data-[state=active]:hover:bg-muted data-[state=active]:hover:text-foreground"
                 >
                   <UsersIcon className="size-4 text-muted-foreground" />{" "}
-                  Accounts
+                  Calendars
+                </TabsTrigger>
+                <TabsTrigger
+                  value="connected-accounts"
+                  className="w-full justify-start gap-3 border-none py-1.5 hover:bg-muted hover:text-accent-foreground data-[state=active]:bg-muted data-[state=active]:shadow-none data-[state=active]:hover:bg-muted data-[state=active]:hover:text-foreground"
+                >
+                  <LinkIcon className="size-4 text-muted-foreground" />{" "}
+                  Connected Accounts
                 </TabsTrigger>
               </TabsList>
             </div>
@@ -55,6 +65,9 @@ export function SettingsDialog({ children }: SettingsDialogProps) {
               <div className="h-full w-full overflow-auto">
                 <TabsContent value="accounts" className="mt-0 h-full">
                   <Accounts />
+                </TabsContent>
+                <TabsContent value="connected-accounts" className="mt-0 h-full">
+                  <ConnectedAccounts />
                 </TabsContent>
                 <TabsContent value="general" className="mt-0 h-full">
                   <General />

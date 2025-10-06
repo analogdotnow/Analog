@@ -33,7 +33,8 @@
         "MARBLE_WORKSPACE_KEY",
         "MARBLE_API_URL",
         "UNKEY_ROOT_KEY",
-        "NEXT_RUNTIME"
+        "NEXT_RUNTIME",
+        "COMPOSIO_API_KEY"
       ],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
@@ -70,7 +71,8 @@
         "MARBLE_WORKSPACE_KEY",
         "MARBLE_API_URL",
         "UNKEY_ROOT_KEY",
-        "NEXT_RUNTIME"
+        "NEXT_RUNTIME",
+        "COMPOSIO_API_KEY"
       ]
     },
     "lint": {

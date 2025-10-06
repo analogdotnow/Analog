@@ -1,0 +1,30 @@
+{
+  "name": "@repo/ai",
+  "version": "0.1.0",
+  "private": true,
+  "exports": {
+    "./composio": "./src/tools/composio/index.ts",
+    "./arcade": "./src/tools/arcade/index.ts",
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "type-check": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "ai": "^5.0.60",
+    "zod": "^4.0.5"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "^22.9.0",
+    "eslint": "^9.31.0",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@arcadeai/arcadejs": "^1.10.0",
+    "@composio/core": "^0.1.52",
+    "@composio/vercel": "^0.2.8",
+    "@repo/env": "workspace:*"
+  }
+}
