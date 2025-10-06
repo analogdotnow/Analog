@@ -221,6 +221,43 @@ function toGoogleCalendarAttendees(
   return attendees.map(toGoogleCalendarAttendee);
 }
 
+function recurrences(event: CreateEventInput | UpdateEventInput) {
+  // TODO: how to handle recurrence when the time zone is changed (i.e. until, rDate, exDate).
+  if (event.recurrence === null) {
+    return [];
+  }
+
+  if (!event.recurrence) {
+    return undefined;
+  }
+
+  return toRecurrenceProperties(event.recurrence);
+}
+
+function attendees(event: CreateEventInput | UpdateEventInput) {
+  if (event.attendees === null) {
+    return [];
+  }
+
+  if (!event.attendees) {
+    return undefined;
+  }
+
+  return toGoogleCalendarAttendees(event.attendees);
+}
+
+function conference(event: CreateEventInput | UpdateEventInput) {
+  if (event.conference === null) {
+    return null;
+  }
+
+  if (!event.conference) {
+    return undefined;
+  }
+
+  return toGoogleCalendarConferenceData(event.conference);
+}
+
 export function toGoogleCalendarEvent(
   event: CreateEventInput | UpdateEventInput,
 ): GoogleCalendarEventCreateParams {
@@ -238,18 +275,14 @@ export function toGoogleCalendarEvent(
             event.availability === "free" ? "transparent" : "opaque",
         }
       : {}),
-    ...(event.attendees
-      ? { attendees: toGoogleCalendarAttendees(event.attendees) }
-      : {}),
+    attendees: attendees(event),
     ...(event.conference
       ? { conferenceData: toGoogleCalendarConferenceData(event.conference) }
       : {}),
     // Should always be 1 to ensure conference data is retained for all event modification requests.
     conferenceDataVersion: 1,
     // TODO: how to handle recurrence when the time zone is changed (i.e. until, rDate, exDate).
-    ...(event.recurrence
-      ? { recurrence: toRecurrenceProperties(event.recurrence) }
-      : {}),
+    recurrence: recurrences(event),
     recurringEventId: event.recurringEventId,
   };
 }
