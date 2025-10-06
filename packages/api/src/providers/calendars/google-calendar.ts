@@ -163,8 +163,6 @@ export class GoogleCalendarProvider implements CalendarProvider {
   async sync({
     calendar,
     initialSyncToken,
-    timeMin,
-    timeMax,
     timeZone,
   }: CalendarProviderSyncOptions): Promise<{
     changes: CalendarEventSyncItem[];
@@ -174,6 +172,7 @@ export class GoogleCalendarProvider implements CalendarProvider {
     const runSync = async (token: string | undefined) => {
       let currentSyncToken = token;
       let pageToken: string | undefined;
+
       const changes: CalendarEventSyncItem[] = [];
 
       do {
@@ -181,12 +180,9 @@ export class GoogleCalendarProvider implements CalendarProvider {
           await this.client.calendars.events.list(calendar.id, {
             singleEvents: true,
             showDeleted: true,
-            // orderBy: "startTime",
-            maxResults: CALENDAR_DEFAULTS.MAX_EVENTS_PER_CALENDAR,
+            maxResults: 2500,
             pageToken,
             syncToken: currentSyncToken,
-            // timeMin: timeMin?.withTimeZone("UTC").toInstant().toString(),
-            // timeMax: timeMax?.withTimeZone("UTC").toInstant().toString(),
           });
 
         if (nextSyncToken) {
@@ -199,12 +195,12 @@ export class GoogleCalendarProvider implements CalendarProvider {
           continue;
         }
 
-        for (const item of items) {
-          if (item.status === "cancelled") {
+        for (const event of items) {
+          if (event.status === "cancelled") {
             changes.push({
               status: "deleted",
               event: {
-                id: item.id!,
+                id: event.id!,
                 calendarId: calendar.id,
                 accountId: this.accountId,
                 providerId: this.providerId,
@@ -217,7 +213,7 @@ export class GoogleCalendarProvider implements CalendarProvider {
           const parsedEvent = parseGoogleCalendarEvent({
             calendar,
             accountId: this.accountId,
-            event: item,
+            event,
             defaultTimeZone: timeZone,
           });
 
