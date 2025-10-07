@@ -1,7 +1,6 @@
 import { Client } from "@microsoft/microsoft-graph-client";
 import type {
   Calendar as MicrosoftCalendar,
-  Event as MicrosoftEvent,
   ScheduleInformation,
 } from "@microsoft/microsoft-graph-types";
 import { Temporal } from "temporal-polyfill";
@@ -10,6 +9,7 @@ import { CALENDAR_DEFAULTS } from "../../constants/calendar";
 import type {
   Calendar,
   CalendarEvent,
+  CalendarEventSyncItem,
   CalendarFreeBusy,
 } from "../../interfaces";
 import type {
@@ -18,7 +18,11 @@ import type {
 } from "../../schemas/calendars";
 import type { CreateEventInput, UpdateEventInput } from "../../schemas/events";
 import { ProviderError } from "../lib/provider-error";
-import type { CalendarProvider, ResponseToEventInput } from "./interfaces";
+import type {
+  CalendarProvider,
+  CalendarProviderSyncOptions,
+  ResponseToEventInput,
+} from "./interfaces";
 import {
   calendarPath,
   parseMicrosoftCalendar,
@@ -30,6 +34,7 @@ import {
   toMicrosoftEvent,
 } from "./microsoft-calendar/events";
 import { parseScheduleItem } from "./microsoft-calendar/freebusy";
+import type { MicrosoftEvent } from "./microsoft-calendar/interfaces";
 
 interface MicrosoftCalendarProviderOptions {
   accessToken: string;
@@ -132,21 +137,106 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
     });
   }
 
+  async sync({
+    calendar,
+    initialSyncToken,
+    timeMin,
+    timeMax,
+    timeZone,
+  }: CalendarProviderSyncOptions): Promise<{
+    changes: CalendarEventSyncItem[];
+    syncToken: string | undefined;
+    status: "incremental" | "full";
+  }> {
+    return this.withErrorHandler("sync", async () => {
+      const startTime = timeMin?.withTimeZone("UTC").toInstant().toString();
+      const endTime = timeMax?.withTimeZone("UTC").toInstant().toString();
+
+      let syncToken: string | undefined;
+      let pageToken: string | undefined = undefined;
+
+      const baseUrl = new URL(
+        `${calendarPath(calendar.id)}/calendarView/delta`,
+      );
+
+      if (startTime) {
+        baseUrl.searchParams.set("startDateTime", startTime);
+      }
+
+      if (endTime) {
+        baseUrl.searchParams.set("endDateTime", endTime);
+      }
+
+      const changes: CalendarEventSyncItem[] = [];
+
+      do {
+        const url: string = pageToken ?? initialSyncToken ?? baseUrl.toString();
+
+        const response = await this.graphClient
+          .api(url)
+          .header("Prefer", `outlook.timezone="${timeZone}"`)
+          .orderby("start/dateTime")
+          .top(CALENDAR_DEFAULTS.MAX_EVENTS_PER_CALENDAR)
+          .get();
+
+        // if (!initialSyncToken && !pageToken && startTime && endTime) {
+        //   request.filter(
+        //     `start/dateTime ge '${startTime}' and end/dateTime le '${endTime}'`,
+        //   );
+        // }
+
+        for (const item of response.value as MicrosoftEvent[]) {
+          if (!item?.id) {
+            continue;
+          }
+
+          if (item["@removed"]) {
+            changes.push({
+              status: "deleted",
+              event: {
+                id: item.id,
+                calendarId: calendar.id,
+                accountId: this.accountId,
+                providerId: this.providerId,
+                providerAccountId: this.accountId,
+              },
+            });
+
+            continue;
+          }
+
+          changes.push({
+            status: "updated",
+            event: parseMicrosoftEvent({
+              event: item,
+              accountId: this.accountId,
+              calendar,
+            }),
+          });
+        }
+
+        pageToken = response["@odata.nextLink"];
+        syncToken = response["@odata.deltaLink"];
+      } while (pageToken);
+
+      return {
+        changes,
+        syncToken,
+        status: "incremental",
+      };
+    });
+  }
+
   async event(
     calendar: Calendar,
     eventId: string,
-    timeZone?: string,
+    timeZone: string,
   ): Promise<CalendarEvent> {
     return this.withErrorHandler("event", async () => {
-      const request = this.graphClient.api(
-        `${calendarPath(calendar.id)}/events/${eventId}`,
-      );
-
-      if (timeZone) {
-        request.header("Prefer", `outlook.timezone="${timeZone}"`);
-      }
-
-      const event: MicrosoftEvent = await request.get();
+      const event: MicrosoftEvent = await this.graphClient
+        .api(`${calendarPath(calendar.id)}/events/${eventId}`)
+        .header("Prefer", `outlook.timezone="${timeZone}"`)
+        .get();
 
       return parseMicrosoftEvent({
         event,
@@ -246,7 +336,8 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
       // Placeholder: Microsoft Graph does not have a direct move endpoint.
       // This could be implemented by creating a new event in destination and deleting the original,
       // preserving fields as needed.
-      const event = await this.event(sourceCalendar, eventId);
+      const event = await this.event(sourceCalendar, eventId, "UTC");
+
       return {
         ...event,
         calendarId: destinationCalendar.id,

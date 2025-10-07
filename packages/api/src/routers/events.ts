@@ -80,6 +80,59 @@ export const eventsRouter = createTRPCRouter({
 
       return { events, recurringMasterEvents };
     }),
+  sync: calendarProcedure
+    .input(
+      z.object({
+        timeMin: zZonedDateTimeInstance.optional(),
+        timeMax: zZonedDateTimeInstance.optional(),
+        calendar: z.object({
+          providerId: z.enum(["google", "microsoft"]),
+          providerAccountId: z.string(),
+          calendarId: z.string(),
+          syncToken: z.string().optional(),
+        }),
+        timeZone: z.string().default("UTC"),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const provider = ctx.providers.find(
+        ({ account }) => account.accountId === input.calendar.providerAccountId,
+      );
+
+      if (!provider?.client) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: `Calendar client not found for accountId: ${input.calendar.providerAccountId}`,
+        });
+      }
+
+      const calendars = await provider.client.calendars();
+
+      const calendar = calendars.find(
+        (c) => c.id === input.calendar.calendarId,
+      );
+
+      if (!calendar) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: `Calendar not found for accountId: ${input.calendar.providerAccountId}`,
+        });
+      }
+
+      const { changes, syncToken, status } = await provider.client.sync({
+        calendar,
+        initialSyncToken: input.calendar.syncToken,
+        timeMin: input.timeMin,
+        timeMax: input.timeMax,
+        timeZone: input.timeZone,
+      });
+
+      return {
+        status,
+        changes,
+        syncToken,
+      };
+    }),
   get: calendarProcedure
     .input(
       z.object({
@@ -298,10 +351,6 @@ export const eventsRouter = createTRPCRouter({
       z.object({
         accountId: z.string(),
         calendarId: z.string(),
-        type: z
-          .enum(["single", "instance", "series"])
-          .optional()
-          .default("single"),
         eventId: z.string(),
         sendUpdate: z.boolean().optional().default(true),
       }),

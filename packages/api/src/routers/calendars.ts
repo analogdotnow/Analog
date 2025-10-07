@@ -11,6 +11,15 @@ import {
 } from "../trpc";
 
 export const calendarsRouter = createTRPCRouter({
+  sync: calendarProcedure.query(async ({ ctx }) => {
+    const promises = ctx.providers.map(async ({ client }) => {
+      return client.calendars();
+    });
+
+    const results = await Promise.all(promises);
+
+    return results.flat();
+  }),
   list: calendarProcedure.query(async ({ ctx }) => {
     const promises = ctx.providers.map(async ({ client, account }) => {
       const calendars = await client.calendars();

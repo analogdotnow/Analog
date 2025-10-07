@@ -32,6 +32,22 @@ export interface CalendarEvent {
   recurringEventId?: string;
 }
 
+export type CalendarEventSyncItem =
+  | {
+      status: "updated";
+      event: CalendarEvent;
+    }
+  | {
+      status: "deleted";
+      event: {
+        id: string;
+        calendarId: string;
+        accountId: string;
+        providerId: "google" | "microsoft";
+        providerAccountId?: string;
+      };
+    };
+
 export interface ConferenceEntryPoint {
   joinUrl: {
     label?: string;
