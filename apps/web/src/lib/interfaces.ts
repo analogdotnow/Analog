@@ -1,4 +1,4 @@
-import type { Attendee, Calendar } from "@repo/api/interfaces";
+import type { Attendee, Calendar } from "@repo/providers/interfaces";
 
 import type { RouterOutputs } from "./trpc";
 

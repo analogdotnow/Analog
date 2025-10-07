@@ -2,8 +2,8 @@ import { TRPCError } from "@trpc/server";
 import * as z from "zod";
 
 import { auth } from "@repo/auth/server";
+import { assignColor } from "@repo/providers/calendars/colors";
 
-import { assignColor } from "../providers/calendars/colors";
 import {
   calendarProcedure,
   createTRPCRouter,

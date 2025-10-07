@@ -8,7 +8,7 @@ import {
   XCircleIcon,
 } from "@heroicons/react/16/solid";
 
-import type { AttendeeStatus } from "@repo/api/interfaces";
+import type { AttendeeStatus } from "@repo/providers/interfaces";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";

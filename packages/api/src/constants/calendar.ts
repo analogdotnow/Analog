@@ -1,7 +1,0 @@
-export const CALENDAR_DEFAULTS = {
-  TIME_RANGE_DAYS_PAST: 30,
-  TIME_RANGE_DAYS_FUTURE: 60,
-  MAX_EVENTS_PER_CALENDAR: 250,
-  SINGLE_EVENTS: true,
-  ORDER_BY: "startTime" as const,
-} as const;
