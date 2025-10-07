@@ -1,8 +1,8 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import { hasOwn } from './values';
-import { type GoogleRoutes } from '../../client';
-import { RequestOptions } from '../request-options';
+import { type GoogleRoutes } from "../../client";
+import { RequestOptions } from "../request-options";
+import { hasOwn } from "./values";
 
 type LogFn = (message: string, ...rest: unknown[]) => void;
 export type Logger = {
@@ -11,7 +11,7 @@ export type Logger = {
   info: LogFn;
   debug: LogFn;
 };
-export type LogLevel = 'off' | 'error' | 'warn' | 'info' | 'debug';
+export type LogLevel = "off" | "error" | "warn" | "info" | "debug";
 
 const levelNumbers = {
   off: 0,
@@ -42,7 +42,11 @@ export const parseLogLevel = (
 
 function noop() {}
 
-function makeLogFn(fnLevel: keyof Logger, logger: Logger | undefined, logLevel: LogLevel) {
+function makeLogFn(
+  fnLevel: keyof Logger,
+  logger: Logger | undefined,
+  logLevel: LogLevel,
+) {
   if (!logger || levelNumbers[fnLevel] > levelNumbers[logLevel]) {
     return noop;
   } else {
@@ -62,7 +66,7 @@ let cachedLoggers = /* @__PURE__ */ new WeakMap<Logger, [LogLevel, Logger]>();
 
 export function loggerFor(client: GoogleRoutes): Logger {
   const logger = client.logger;
-  const logLevel = client.logLevel ?? 'off';
+  const logLevel = client.logLevel ?? "off";
   if (!logger) {
     return noopLogger;
   }
@@ -73,10 +77,10 @@ export function loggerFor(client: GoogleRoutes): Logger {
   }
 
   const levelLogger = {
-    error: makeLogFn('error', logger, logLevel),
-    warn: makeLogFn('warn', logger, logLevel),
-    info: makeLogFn('info', logger, logLevel),
-    debug: makeLogFn('debug', logger, logLevel),
+    error: makeLogFn("error", logger, logLevel),
+    warn: makeLogFn("warn", logger, logLevel),
+    info: makeLogFn("info", logger, logLevel),
+    debug: makeLogFn("debug", logger, logLevel),
   };
 
   cachedLoggers.set(logger, [logLevel, levelLogger]);
@@ -98,25 +102,25 @@ export const formatRequestDetails = (details: {
 }) => {
   if (details.options) {
     details.options = { ...details.options };
-    delete details.options['headers']; // redundant + leaks internals
+    delete details.options["headers"]; // redundant + leaks internals
   }
   if (details.headers) {
     details.headers = Object.fromEntries(
-      (details.headers instanceof Headers ? [...details.headers] : Object.entries(details.headers)).map(
-        ([name, value]) => [
-          name,
-          (
-            name.toLowerCase() === 'authorization' ||
-            name.toLowerCase() === 'cookie' ||
-            name.toLowerCase() === 'set-cookie'
-          ) ?
-            '***'
+      (details.headers instanceof Headers
+        ? [...details.headers]
+        : Object.entries(details.headers)
+      ).map(([name, value]) => [
+        name,
+        name.toLowerCase() === "x-goog-api-key" ||
+        name.toLowerCase() === "authorization" ||
+        name.toLowerCase() === "cookie" ||
+        name.toLowerCase() === "set-cookie"
+          ? "***"
           : value,
-        ],
-      ),
+      ]),
     );
   }
-  if ('retryOfRequestLogID' in details) {
+  if ("retryOfRequestLogID" in details) {
     if (details.retryOfRequestLogID) {
       details.retryOf = details.retryOfRequestLogID;
     }

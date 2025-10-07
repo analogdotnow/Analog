@@ -1,4 +1,4 @@
-import { GoogleRoutesError } from '../../core/error';
+import { GoogleRoutesError } from "../../core/error";
 
 /**
  * Percent-encode everything that isn't safe to have in a path without encoding safe chars.
@@ -12,10 +12,15 @@ export function encodeURIPath(str: string) {
   return str.replace(/[^A-Za-z0-9\-._~!$&'()*+,;=:@]+/g, encodeURIComponent);
 }
 
-const EMPTY = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.create(null));
+const EMPTY = /* @__PURE__ */ Object.freeze(
+  /* @__PURE__ */ Object.create(null),
+);
 
 export const createPathTagFunction = (pathEncoder = encodeURIPath) =>
-  function path(statics: readonly string[], ...params: readonly unknown[]): string {
+  function path(
+    statics: readonly string[],
+    ...params: readonly unknown[]
+  ): string {
     // If there are no params, no processing is needed.
     if (statics.length === 1) return statics[0]!;
 
@@ -26,17 +31,19 @@ export const createPathTagFunction = (pathEncoder = encodeURIPath) =>
         postPath = true;
       }
       const value = params[index];
-      let encoded = (postPath ? encodeURIComponent : pathEncoder)('' + value);
+      let encoded = (postPath ? encodeURIComponent : pathEncoder)("" + value);
       if (
         index !== params.length &&
         (value == null ||
-          (typeof value === 'object' &&
+          (typeof value === "object" &&
             // handle values from other realms
             value.toString ===
-              Object.getPrototypeOf(Object.getPrototypeOf((value as any).hasOwnProperty ?? EMPTY) ?? EMPTY)
-                ?.toString))
+              Object.getPrototypeOf(
+                Object.getPrototypeOf((value as any).hasOwnProperty ?? EMPTY) ??
+                  EMPTY,
+              )?.toString))
       ) {
-        encoded = value + '';
+        encoded = value + "";
         invalidSegments.push({
           start: previousValue.length + currentValue.length,
           length: encoded.length,
@@ -45,8 +52,10 @@ export const createPathTagFunction = (pathEncoder = encodeURIPath) =>
             .slice(8, -1)} is not a valid path parameter`,
         });
       }
-      return previousValue + currentValue + (index === params.length ? '' : encoded);
-    }, '');
+      return (
+        previousValue + currentValue + (index === params.length ? "" : encoded)
+      );
+    }, "");
 
     const pathOnly = path.split(/[?#]/, 1)[0]!;
     const invalidSegmentPattern = /(?<=^|\/)(?:\.|%2e){1,2}(?=\/|$)/gi;
@@ -66,16 +75,16 @@ export const createPathTagFunction = (pathEncoder = encodeURIPath) =>
     if (invalidSegments.length > 0) {
       let lastEnd = 0;
       const underline = invalidSegments.reduce((acc, segment) => {
-        const spaces = ' '.repeat(segment.start - lastEnd);
-        const arrows = '^'.repeat(segment.length);
+        const spaces = " ".repeat(segment.start - lastEnd);
+        const arrows = "^".repeat(segment.length);
         lastEnd = segment.start + segment.length;
         return acc + spaces + arrows;
-      }, '');
+      }, "");
 
       throw new GoogleRoutesError(
         `Path parameters result in path with invalid segments:\n${invalidSegments
           .map((e) => e.error)
-          .join('\n')}\n${path}\n${underline}`,
+          .join("\n")}\n${path}\n${underline}`,
       );
     }
 

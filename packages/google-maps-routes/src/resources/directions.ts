@@ -1,10 +1,10 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import { APIResource } from '../core/resource';
-import * as DirectionsAPI from './directions';
-import * as DistanceMatrixAPI from './distance-matrix';
-import { APIPromise } from '../core/api-promise';
-import { RequestOptions } from '../internal/request-options';
+import { APIPromise } from "../core/api-promise";
+import { APIResource } from "../core/resource";
+import { RequestOptions } from "../internal/request-options";
+import * as DirectionsAPI from "./directions";
+import * as DistanceMatrixAPI from "./distance-matrix";
 
 export class Directions extends APIResource {
   /**
@@ -45,7 +45,10 @@ export class Directions extends APIResource {
     body: DirectionComputeRoutesParams,
     options?: RequestOptions,
   ): APIPromise<DirectionComputeRoutesResponse> {
-    return this._client.post('/directions/v2:computeRoutes', { body, ...options });
+    return this._client.post("/directions/v2:computeRoutes", {
+      body,
+      ...options,
+    });
   }
 }
 
@@ -60,13 +63,16 @@ export interface FallbackInfo {
    * field is only populated when the fallback mode is triggered and the fallback
    * response is returned.
    */
-  reason?: number;
+  reason?: "FALLBACK_REASON_UNSPECIFIED" | "SERVER_ERROR" | "LATENCY_EXCEEDED";
 
   /**
    * Routing mode used for the response. If fallback was triggered, the mode may be
    * different from routing preference set in the original client request.
    */
-  routingMode?: number;
+  routingMode?:
+    | "FALLBACK_ROUTING_MODE_UNSPECIFIED"
+    | "FALLBACK_TRAFFIC_UNAWARE"
+    | "FALLBACK_TRAFFIC_AWARE";
 }
 
 /**
@@ -184,7 +190,28 @@ export interface NavigationInstruction {
    * Encapsulates the navigation instructions for the current step (for example, turn
    * left, merge, or straight). This field determines which icon to display.
    */
-  maneuver?: number;
+  maneuver?:
+    | "MANEUVER_UNSPECIFIED"
+    | "TURN_SLIGHT_LEFT"
+    | "TURN_SHARP_LEFT"
+    | "UTURN_LEFT"
+    | "TURN_LEFT"
+    | "TURN_SLIGHT_RIGHT"
+    | "TURN_SHARP_RIGHT"
+    | "UTURN_RIGHT"
+    | "TURN_RIGHT"
+    | "STRAIGHT"
+    | "RAMP_LEFT"
+    | "RAMP_RIGHT"
+    | "MERGE"
+    | "FORK_LEFT"
+    | "FORK_RIGHT"
+    | "FERRY"
+    | "FERRY_TRAIN"
+    | "ROUNDABOUT_LEFT"
+    | "ROUNDABOUT_RIGHT"
+    | "DEPART"
+    | "NAME_CHANGE";
 }
 
 /**
@@ -261,7 +288,107 @@ export interface RouteModifiers {
    * `DRIVE` and `TWO_WHEELER`
    * [`RouteTravelMode`][google.maps.routing.v2.RouteTravelMode].
    */
-  tollPasses?: Array<number>;
+  tollPasses?: Array<
+    | "TOLL_PASS_UNSPECIFIED"
+    | "AU_ETOLL_TAG"
+    | "AU_EWAY_TAG"
+    | "AU_LINKT"
+    | "AR_TELEPASE"
+    | "BR_AUTO_EXPRESO"
+    | "BR_CONECTCAR"
+    | "BR_MOVE_MAIS"
+    | "BR_PASSA_RAPIDO"
+    | "BR_SEM_PARAR"
+    | "BR_TAGGY"
+    | "BR_VELOE"
+    | "CA_US_AKWASASNE_SEAWAY_CORPORATE_CARD"
+    | "CA_US_AKWASASNE_SEAWAY_TRANSIT_CARD"
+    | "CA_US_BLUE_WATER_EDGE_PASS"
+    | "CA_US_CONNEXION"
+    | "CA_US_NEXUS_CARD"
+    | "ID_E_TOLL"
+    | "IN_FASTAG"
+    | "IN_LOCAL_HP_PLATE_EXEMPT"
+    | "JP_ETC"
+    | "JP_ETC2"
+    | "MX_IAVE"
+    | "MX_PASE"
+    | "MX_QUICKPASS"
+    | "MX_SISTEMA_TELEPEAJE_CHIHUAHUA"
+    | "MX_TAG_IAVE"
+    | "MX_TAG_TELEVIA"
+    | "MX_TELEVIA"
+    | "MX_VIAPASS"
+    | "US_AL_FREEDOM_PASS"
+    | "US_AK_ANTON_ANDERSON_TUNNEL_BOOK_OF_10_TICKETS"
+    | "US_CA_FASTRAK"
+    | "US_CA_FASTRAK_CAV_STICKER"
+    | "US_CO_EXPRESSTOLL"
+    | "US_CO_GO_PASS"
+    | "US_DE_EZPASSDE"
+    | "US_FL_BOB_SIKES_TOLL_BRIDGE_PASS"
+    | "US_FL_DUNES_COMMUNITY_DEVELOPMENT_DISTRICT_EXPRESSCARD"
+    | "US_FL_EPASS"
+    | "US_FL_GIBA_TOLL_PASS"
+    | "US_FL_LEEWAY"
+    | "US_FL_SUNPASS"
+    | "US_FL_SUNPASS_PRO"
+    | "US_IL_EZPASSIL"
+    | "US_IL_IPASS"
+    | "US_IN_EZPASSIN"
+    | "US_KS_BESTPASS_HORIZON"
+    | "US_KS_KTAG"
+    | "US_KS_NATIONALPASS"
+    | "US_KS_PREPASS_ELITEPASS"
+    | "US_KY_RIVERLINK"
+    | "US_LA_GEAUXPASS"
+    | "US_LA_TOLL_TAG"
+    | "US_MA_EZPASSMA"
+    | "US_MD_EZPASSMD"
+    | "US_ME_EZPASSME"
+    | "US_MI_AMBASSADOR_BRIDGE_PREMIER_COMMUTER_CARD"
+    | "US_MI_BCPASS"
+    | "US_MI_GROSSE_ILE_TOLL_BRIDGE_PASS_TAG"
+    | "US_MI_IQ_PROX_CARD"
+    | "US_MI_IQ_TAG"
+    | "US_MI_MACKINAC_BRIDGE_MAC_PASS"
+    | "US_MI_NEXPRESS_TOLL"
+    | "US_MN_EZPASSMN"
+    | "US_NC_EZPASSNC"
+    | "US_NC_PEACH_PASS"
+    | "US_NC_QUICK_PASS"
+    | "US_NH_EZPASSNH"
+    | "US_NJ_DOWNBEACH_EXPRESS_PASS"
+    | "US_NJ_EZPASSNJ"
+    | "US_NY_EXPRESSPASS"
+    | "US_NY_EZPASSNY"
+    | "US_OH_EZPASSOH"
+    | "US_PA_EZPASSPA"
+    | "US_RI_EZPASSRI"
+    | "US_SC_PALPASS"
+    | "US_TX_AVI_TAG"
+    | "US_TX_BANCPASS"
+    | "US_TX_DEL_RIO_PASS"
+    | "US_TX_EFAST_PASS"
+    | "US_TX_EAGLE_PASS_EXPRESS_CARD"
+    | "US_TX_EPTOLL"
+    | "US_TX_EZ_CROSS"
+    | "US_TX_EZTAG"
+    | "US_TX_FUEGO_TAG"
+    | "US_TX_LAREDO_TRADE_TAG"
+    | "US_TX_PLUSPASS"
+    | "US_TX_TOLLTAG"
+    | "US_TX_TXTAG"
+    | "US_TX_XPRESS_CARD"
+    | "US_UT_ADAMS_AVE_PARKWAY_EXPRESSCARD"
+    | "US_VA_EZPASSVA"
+    | "US_WA_BREEZEBY"
+    | "US_WA_GOOD_TO_GO"
+    | "US_WV_EZPASSWV"
+    | "US_WV_MEMORIAL_BRIDGE_TICKETS"
+    | "US_WV_MOV_PASS"
+    | "US_WV_NEWELL_TOLL_BRIDGE_TICKET"
+  >;
 
   /**
    * Contains the vehicle information, such as the vehicle emission type.
@@ -278,7 +405,12 @@ export namespace RouteModifiers {
      * Describes the vehicle's emission type. Applies only to the `DRIVE`
      * [`RouteTravelMode`][google.maps.routing.v2.RouteTravelMode].
      */
-    emissionType?: number;
+    emissionType?:
+      | "VEHICLE_EMISSION_TYPE_UNSPECIFIED"
+      | "GASOLINE"
+      | "ELECTRIC"
+      | "HYBRID"
+      | "DIESEL";
   }
 }
 
@@ -291,13 +423,23 @@ export interface TransitPreferences {
    * A set of travel modes to use when getting a `TRANSIT` route. Defaults to all
    * supported modes of travel.
    */
-  allowedTravelModes?: Array<number>;
+  allowedTravelModes?: Array<
+    | "TRANSIT_TRAVEL_MODE_UNSPECIFIED"
+    | "BUS"
+    | "SUBWAY"
+    | "TRAIN"
+    | "LIGHT_RAIL"
+    | "RAIL"
+  >;
 
   /**
    * A routing preference that, when specified, influences the `TRANSIT` route
    * returned.
    */
-  routingPreference?: number;
+  routingPreference?:
+    | "TRANSIT_ROUTING_PREFERENCE_UNSPECIFIED"
+    | "LESS_WALKING"
+    | "FEWER_TRANSFERS";
 }
 
 /**
@@ -494,7 +636,13 @@ export namespace DirectionComputeRoutesResponse {
      * Labels for the `Route` that are useful to identify specific properties of the
      * route to compare against others.
      */
-    routeLabels?: Array<number>;
+    routeLabels?: Array<
+      | "ROUTE_LABEL_UNSPECIFIED"
+      | "DEFAULT_ROUTE"
+      | "DEFAULT_ROUTE_ALTERNATE"
+      | "FUEL_EFFICIENT"
+      | "SHORTER_DISTANCE"
+    >;
 
     /**
      * An opaque token that can be passed to
@@ -700,7 +848,13 @@ export namespace DirectionComputeRoutesResponse {
         /**
          * The travel mode used for this step.
          */
-        travelMode?: number;
+        travelMode?:
+          | "TRAVEL_MODE_UNSPECIFIED"
+          | "DRIVE"
+          | "BICYCLE"
+          | "WALK"
+          | "TWO_WHEELER"
+          | "TRANSIT";
       }
 
       export namespace Step {
@@ -900,7 +1054,26 @@ export namespace DirectionComputeRoutesResponse {
               /**
                * The type of vehicle used.
                */
-              type?: number;
+              type?:
+                | "TRANSIT_VEHICLE_TYPE_UNSPECIFIED"
+                | "BUS"
+                | "CABLE_CAR"
+                | "COMMUTER_TRAIN"
+                | "FERRY"
+                | "FUNICULAR"
+                | "GONDOLA_LIFT"
+                | "HEAVY_RAIL"
+                | "HIGH_SPEED_TRAIN"
+                | "INTERCITY_BUS"
+                | "LONG_DISTANCE_TRAIN"
+                | "METRO_RAIL"
+                | "MONORAIL"
+                | "OTHER"
+                | "RAIL"
+                | "SHARE_TAXI"
+                | "SUBWAY"
+                | "TRAM"
+                | "TROLLEYBUS";
             }
           }
         }
@@ -957,7 +1130,13 @@ export namespace DirectionComputeRoutesResponse {
           /**
            * The travel mode of the multi-modal segment.
            */
-          travelMode?: number;
+          travelMode?:
+            | "TRAVEL_MODE_UNSPECIFIED"
+            | "DRIVE"
+            | "BICYCLE"
+            | "WALK"
+            | "TWO_WHEELER"
+            | "TRANSIT";
         }
       }
 
@@ -1038,7 +1217,10 @@ export namespace DirectionComputeRoutesResponse {
          * Output only. Denotes whether a flyover exists for a given stretch of the
          * polyline.
          */
-        flyoverPresence?: number;
+        flyoverPresence?:
+          | "ROAD_FEATURE_STATE_UNSPECIFIED"
+          | "EXISTS"
+          | "DOES_NOT_EXIST";
 
         /**
          * Encapsulates the start and end indexes for a polyline detail. For instances
@@ -1056,7 +1238,10 @@ export namespace DirectionComputeRoutesResponse {
          * Output only. Denotes whether a narrow road exists for a given stretch of the
          * polyline.
          */
-        narrowRoadPresence?: number;
+        narrowRoadPresence?:
+          | "ROAD_FEATURE_STATE_UNSPECIFIED"
+          | "EXISTS"
+          | "DOES_NOT_EXIST";
 
         /**
          * Encapsulates the start and end indexes for a polyline detail. For instances
@@ -1162,7 +1347,15 @@ export interface DirectionComputeRoutesParams {
    * These extra fields must also be specified in the field mask to be returned in
    * the response.
    */
-  extraComputations?: Array<number>;
+  extraComputations?: Array<
+    | "EXTRA_COMPUTATION_UNSPECIFIED"
+    | "TOLLS"
+    | "FUEL_CONSUMPTION"
+    | "TRAFFIC_ON_POLYLINE"
+    | "HTML_FORMATTED_NAVIGATION_INSTRUCTIONS"
+    | "FLYOVER_INFO_ON_POLYLINE"
+    | "NARROW_ROAD_INFO_ON_POLYLINE"
+  >;
 
   /**
    * Optional. A set of waypoints along the route (excluding terminal points), for
@@ -1196,12 +1389,18 @@ export interface DirectionComputeRoutesParams {
   /**
    * Optional. Specifies the preferred encoding for the polyline.
    */
-  polylineEncoding?: number;
+  polylineEncoding?:
+    | "POLYLINE_ENCODING_UNSPECIFIED"
+    | "ENCODED_POLYLINE"
+    | "GEO_JSON_LINESTRING";
 
   /**
    * Optional. Specifies your preference for the quality of the polyline.
    */
-  polylineQuality?: number;
+  polylineQuality?:
+    | "POLYLINE_QUALITY_UNSPECIFIED"
+    | "HIGH_QUALITY"
+    | "OVERVIEW";
 
   /**
    * Optional. The region code, specified as a ccTLD ("top-level domain")
@@ -1219,7 +1418,9 @@ export interface DirectionComputeRoutesParams {
    * feature, look for [`route_labels`][google.maps.routing.v2.Route.route_labels] on
    * the resulting routes.
    */
-  requestedReferenceRoutes?: Array<number>;
+  requestedReferenceRoutes?: Array<
+    "REFERENCE_ROUTE_UNSPECIFIED" | "FUEL_EFFICIENT" | "SHORTER_DISTANCE"
+  >;
 
   /**
    * Encapsulates a set of optional conditions to satisfy when calculating the
@@ -1234,7 +1435,11 @@ export interface DirectionComputeRoutesParams {
    * specify this option only when the `travel_mode` is `DRIVE` or `TWO_WHEELER`,
    * otherwise the request fails.
    */
-  routingPreference?: number;
+  routingPreference?:
+    | "ROUTING_PREFERENCE_UNSPECIFIED"
+    | "TRAFFIC_UNAWARE"
+    | "TRAFFIC_AWARE"
+    | "TRAFFIC_AWARE_OPTIMAL";
 
   /**
    * Optional. Specifies the assumptions to use when calculating time in traffic.
@@ -1248,7 +1453,11 @@ export interface DirectionComputeRoutesParams {
    * [`RouteTravelMode`][google.maps.routing.v2.RouteTravelMode] to `DRIVE`. Defaults
    * to `BEST_GUESS` if traffic is requested and `TrafficModel` is not specified.
    */
-  trafficModel?: number;
+  trafficModel?:
+    | "TRAFFIC_MODEL_UNSPECIFIED"
+    | "BEST_GUESS"
+    | "PESSIMISTIC"
+    | "OPTIMISTIC";
 
   /**
    * Preferences for `TRANSIT` based routes that influence the route that is
@@ -1259,7 +1468,13 @@ export interface DirectionComputeRoutesParams {
   /**
    * Optional. Specifies the mode of transportation.
    */
-  travelMode?: number;
+  travelMode?:
+    | "TRAVEL_MODE_UNSPECIFIED"
+    | "DRIVE"
+    | "BICYCLE"
+    | "WALK"
+    | "TWO_WHEELER"
+    | "TRANSIT";
 
   /**
    * Optional. Specifies the units of measure for the display fields. These fields
@@ -1269,7 +1484,7 @@ export interface DirectionComputeRoutesParams {
    * affected by this value. If you don't provide this value, then the display units
    * are inferred from the location of the first origin.
    */
-  units?: number;
+  units?: "UNITS_UNSPECIFIED" | "METRIC" | "IMPERIAL";
 }
 
 export declare namespace Directions {

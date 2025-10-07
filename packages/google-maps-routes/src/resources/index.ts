@@ -16,7 +16,7 @@ export {
   type Waypoint,
   type DirectionComputeRoutesResponse,
   type DirectionComputeRoutesParams,
-} from './directions';
+} from "./directions";
 export {
   DistanceMatrix,
   type LocalizedText,
@@ -27,4 +27,4 @@ export {
   type TollInfo,
   type DistanceMatrixComputeRouteMatrixResponse,
   type DistanceMatrixComputeRouteMatrixParams,
-} from './distance-matrix';
+} from "./distance-matrix";

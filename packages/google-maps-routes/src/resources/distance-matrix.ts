@@ -1,10 +1,10 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import { APIResource } from '../core/resource';
-import * as DistanceMatrixAPI from './distance-matrix';
-import * as DirectionsAPI from './directions';
-import { APIPromise } from '../core/api-promise';
-import { RequestOptions } from '../internal/request-options';
+import { APIPromise } from "../core/api-promise";
+import { APIResource } from "../core/resource";
+import { RequestOptions } from "../internal/request-options";
+import * as DirectionsAPI from "./directions";
+import * as DistanceMatrixAPI from "./distance-matrix";
 
 export class DistanceMatrix extends APIResource {
   /**
@@ -47,7 +47,10 @@ export class DistanceMatrix extends APIResource {
     body: DistanceMatrixComputeRouteMatrixParams,
     options?: RequestOptions,
   ): APIPromise<DistanceMatrixComputeRouteMatrixResponse> {
-    return this._client.post('/distanceMatrix/v2:computeRouteMatrix', { body, ...options });
+    return this._client.post("/distanceMatrix/v2:computeRouteMatrix", {
+      body,
+      ...options,
+    });
   }
 }
 
@@ -150,7 +153,7 @@ export interface SpeedReadingInterval {
   /**
    * Traffic speed in this interval.
    */
-  speed?: number;
+  speed?: "SPEED_UNSPECIFIED" | "NORMAL" | "SLOW" | "TRAFFIC_JAM";
 
   /**
    * The starting index of this interval in the polyline.
@@ -197,7 +200,7 @@ export namespace Status {
     /**
      * The type of the serialized message.
      */
-    '@type'?: string;
+    "@type"?: string;
 
     [k: string]: unknown;
   }
@@ -228,7 +231,10 @@ export interface DistanceMatrixComputeRouteMatrixResponse {
   /**
    * Indicates whether the route was found or not. Independent of status.
    */
-  condition?: number;
+  condition?:
+    | "ROUTE_MATRIX_ELEMENT_CONDITION_UNSPECIFIED"
+    | "ROUTE_EXISTS"
+    | "ROUTE_NOT_FOUND";
 
   /**
    * Zero-based index of the destination in the request.
@@ -360,7 +366,7 @@ export interface DistanceMatrixComputeRouteMatrixParams {
    * These extra fields must also be specified in the field mask to be returned in
    * the response.
    */
-  extraComputations?: Array<number>;
+  extraComputations?: Array<"EXTRA_COMPUTATION_UNSPECIFIED" | "TOLLS">;
 
   /**
    * Optional. The BCP-47 language code, such as "en-US" or "sr-Latn". For more
@@ -386,7 +392,11 @@ export interface DistanceMatrixComputeRouteMatrixParams {
    * specify this option only when the `travel_mode` is `DRIVE` or `TWO_WHEELER`,
    * otherwise the request fails.
    */
-  routingPreference?: number;
+  routingPreference?:
+    | "ROUTING_PREFERENCE_UNSPECIFIED"
+    | "TRAFFIC_UNAWARE"
+    | "TRAFFIC_AWARE"
+    | "TRAFFIC_AWARE_OPTIMAL";
 
   /**
    * Optional. Specifies the assumptions to use when calculating time in traffic.
@@ -398,7 +408,11 @@ export interface DistanceMatrixComputeRouteMatrixParams {
    * [RouteTravelMode][google.maps.routing.v2.RouteTravelMode] to `DRIVE`. Defaults
    * to `BEST_GUESS` if traffic is requested and `TrafficModel` is not specified.
    */
-  trafficModel?: number;
+  trafficModel?:
+    | "TRAFFIC_MODEL_UNSPECIFIED"
+    | "BEST_GUESS"
+    | "PESSIMISTIC"
+    | "OPTIMISTIC";
 
   /**
    * Preferences for `TRANSIT` based routes that influence the route that is
@@ -409,12 +423,18 @@ export interface DistanceMatrixComputeRouteMatrixParams {
   /**
    * Optional. Specifies the mode of transportation.
    */
-  travelMode?: number;
+  travelMode?:
+    | "TRAVEL_MODE_UNSPECIFIED"
+    | "DRIVE"
+    | "BICYCLE"
+    | "WALK"
+    | "TWO_WHEELER"
+    | "TRANSIT";
 
   /**
    * Optional. Specifies the units of measure for the display fields.
    */
-  units?: number;
+  units?: "UNITS_UNSPECIFIED" | "METRIC" | "IMPERIAL";
 }
 
 export namespace DistanceMatrixComputeRouteMatrixParams {

@@ -18,7 +18,8 @@ export function encodeUTF8(str: string) {
   let encoder;
   return (
     encodeUTF8_ ??
-    ((encoder = new (globalThis as any).TextEncoder()), (encodeUTF8_ = encoder.encode.bind(encoder)))
+    ((encoder = new (globalThis as any).TextEncoder()),
+    (encodeUTF8_ = encoder.encode.bind(encoder)))
   )(str);
 }
 
@@ -27,6 +28,7 @@ export function decodeUTF8(bytes: Uint8Array) {
   let decoder;
   return (
     decodeUTF8_ ??
-    ((decoder = new (globalThis as any).TextDecoder()), (decodeUTF8_ = decoder.decode.bind(decoder)))
+    ((decoder = new (globalThis as any).TextDecoder()),
+    (decodeUTF8_ = decoder.decode.bind(decoder)))
   )(bytes);
 }

@@ -1,10 +1,12 @@
-import { type RequestOptions } from './request-options';
-import type { FilePropertyBag, Fetch } from './builtin-types';
-import type { GoogleRoutes } from '../client';
-import { ReadableStreamFrom } from './shims';
+import type { GoogleRoutes } from "../client";
+import type { Fetch, FilePropertyBag } from "./builtin-types";
+import { type RequestOptions } from "./request-options";
+import { ReadableStreamFrom } from "./shims";
 
 export type BlobPart = string | ArrayBuffer | ArrayBufferView | Blob | DataView;
-type FsReadStream = AsyncIterable<Uint8Array> & { path: string | { toString(): string } };
+type FsReadStream = AsyncIterable<Uint8Array> & {
+  path: string | { toString(): string };
+};
 
 // https://github.com/oven-sh/bun/issues/5980
 interface BunFile extends Blob {
@@ -12,15 +14,16 @@ interface BunFile extends Blob {
 }
 
 export const checkFileSupport = () => {
-  if (typeof File === 'undefined') {
+  if (typeof File === "undefined") {
     const { process } = globalThis as any;
     const isOldNode =
-      typeof process?.versions?.node === 'string' && parseInt(process.versions.node.split('.')) < 20;
+      typeof process?.versions?.node === "string" &&
+      parseInt(process.versions.node.split(".")) < 20;
     throw new Error(
-      '`File` is not defined as a global, which is required for file uploads.' +
-        (isOldNode ?
-          " Update to Node 20 LTS or newer, or set `globalThis.File` to `import('node:buffer').File`."
-        : ''),
+      "`File` is not defined as a global, which is required for file uploads." +
+        (isOldNode
+          ? " Update to Node 20 LTS or newer, or set `globalThis.File` to `import('node:buffer').File`."
+          : ""),
     );
   }
 };
@@ -46,19 +49,19 @@ export function makeFile(
   options?: FilePropertyBag,
 ): File {
   checkFileSupport();
-  return new File(fileBits as any, fileName ?? 'unknown_file', options);
+  return new File(fileBits as any, fileName ?? "unknown_file", options);
 }
 
 export function getName(value: any): string | undefined {
   return (
     (
-      (typeof value === 'object' &&
+      (typeof value === "object" &&
         value !== null &&
-        (('name' in value && value.name && String(value.name)) ||
-          ('url' in value && value.url && String(value.url)) ||
-          ('filename' in value && value.filename && String(value.filename)) ||
-          ('path' in value && value.path && String(value.path)))) ||
-      ''
+        (("name" in value && value.name && String(value.name)) ||
+          ("url" in value && value.url && String(value.url)) ||
+          ("filename" in value && value.filename && String(value.filename)) ||
+          ("path" in value && value.path && String(value.path)))) ||
+      ""
     )
       .split(/[\\/]/)
       .pop() || undefined
@@ -66,7 +69,9 @@ export function getName(value: any): string | undefined {
 }
 
 export const isAsyncIterable = (value: any): value is AsyncIterable<any> =>
-  value != null && typeof value === 'object' && typeof value[Symbol.asyncIterator] === 'function';
+  value != null &&
+  typeof value === "object" &&
+  typeof value[Symbol.asyncIterator] === "function";
 
 /**
  * Returns a multipart/form-data request if any part of the given request body contains a File / Blob value.
@@ -81,7 +86,9 @@ export const maybeMultipartFormRequestOptions = async (
   return { ...opts, body: await createForm(opts.body, fetch) };
 };
 
-type MultipartFormRequestOptions = Omit<RequestOptions, 'body'> & { body: unknown };
+type MultipartFormRequestOptions = Omit<RequestOptions, "body"> & {
+  body: unknown;
+};
 
 export const multipartFormRequestOptions = async (
   opts: MultipartFormRequestOptions,
@@ -90,7 +97,10 @@ export const multipartFormRequestOptions = async (
   return { ...opts, body: await createForm(opts.body, fetch) };
 };
 
-const supportsFormDataMap = /* @__PURE__ */ new WeakMap<Fetch, Promise<boolean>>();
+const supportsFormDataMap = /* @__PURE__ */ new WeakMap<
+  Fetch,
+  Promise<boolean>
+>();
 
 /**
  * node-fetch doesn't support the global FormData object in recent node versions. Instead of sending
@@ -99,15 +109,19 @@ const supportsFormDataMap = /* @__PURE__ */ new WeakMap<Fetch, Promise<boolean>>
  * confusing error messages later on.
  */
 function supportsFormData(fetchObject: GoogleRoutes | Fetch): Promise<boolean> {
-  const fetch: Fetch = typeof fetchObject === 'function' ? fetchObject : (fetchObject as any).fetch;
+  const fetch: Fetch =
+    typeof fetchObject === "function"
+      ? fetchObject
+      : (fetchObject as any).fetch;
   const cached = supportsFormDataMap.get(fetch);
   if (cached) return cached;
   const promise = (async () => {
     try {
       const FetchResponse = (
-        'Response' in fetch ?
-          fetch.Response
-        : (await fetch('data:,')).constructor) as typeof Response;
+        "Response" in fetch
+          ? fetch.Response
+          : (await fetch("data:,")).constructor
+      ) as typeof Response;
       const data = new FormData();
       if (data.toString() === (await new FetchResponse(data).text())) {
         return false;
@@ -128,27 +142,32 @@ export const createForm = async <T = Record<string, unknown>>(
 ): Promise<FormData> => {
   if (!(await supportsFormData(fetch))) {
     throw new TypeError(
-      'The provided fetch function does not support file uploads with the current global FormData class.',
+      "The provided fetch function does not support file uploads with the current global FormData class.",
     );
   }
   const form = new FormData();
-  await Promise.all(Object.entries(body || {}).map(([key, value]) => addFormValue(form, key, value)));
+  await Promise.all(
+    Object.entries(body || {}).map(([key, value]) =>
+      addFormValue(form, key, value),
+    ),
+  );
   return form;
 };
 
 // We check for Blob not File because Bun.File doesn't inherit from File,
 // but they both inherit from Blob and have a `name` property at runtime.
-const isNamedBlob = (value: unknown) => value instanceof Blob && 'name' in value;
+const isNamedBlob = (value: unknown) =>
+  value instanceof Blob && "name" in value;
 
 const isUploadable = (value: unknown) =>
-  typeof value === 'object' &&
+  typeof value === "object" &&
   value !== null &&
   (value instanceof Response || isAsyncIterable(value) || isNamedBlob(value));
 
 const hasUploadableValue = (value: unknown): boolean => {
   if (isUploadable(value)) return true;
   if (Array.isArray(value)) return value.some(hasUploadableValue);
-  if (value && typeof value === 'object') {
+  if (value && typeof value === "object") {
     for (const k in value) {
       if (hasUploadableValue((value as any)[k])) return true;
     }
@@ -156,7 +175,11 @@ const hasUploadableValue = (value: unknown): boolean => {
   return false;
 };
 
-const addFormValue = async (form: FormData, key: string, value: unknown): Promise<void> => {
+const addFormValue = async (
+  form: FormData,
+  key: string,
+  value: unknown,
+): Promise<void> => {
   if (value === undefined) return;
   if (value == null) {
     throw new TypeError(
@@ -165,19 +188,33 @@ const addFormValue = async (form: FormData, key: string, value: unknown): Promis
   }
 
   // TODO: make nested formats configurable
-  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+  if (
+    typeof value === "string" ||
+    typeof value === "number" ||
+    typeof value === "boolean"
+  ) {
     form.append(key, String(value));
   } else if (value instanceof Response) {
     form.append(key, makeFile([await value.blob()], getName(value)));
   } else if (isAsyncIterable(value)) {
-    form.append(key, makeFile([await new Response(ReadableStreamFrom(value)).blob()], getName(value)));
+    form.append(
+      key,
+      makeFile(
+        [await new Response(ReadableStreamFrom(value)).blob()],
+        getName(value),
+      ),
+    );
   } else if (isNamedBlob(value)) {
     form.append(key, value, getName(value));
   } else if (Array.isArray(value)) {
-    await Promise.all(value.map((entry) => addFormValue(form, key + '[]', entry)));
-  } else if (typeof value === 'object') {
     await Promise.all(
-      Object.entries(value).map(([name, prop]) => addFormValue(form, `${key}[${name}]`, prop)),
+      value.map((entry) => addFormValue(form, key + "[]", entry)),
+    );
+  } else if (typeof value === "object") {
+    await Promise.all(
+      Object.entries(value).map(([name, prop]) =>
+        addFormValue(form, `${key}[${name}]`, prop),
+      ),
     );
   } else {
     throw new TypeError(
