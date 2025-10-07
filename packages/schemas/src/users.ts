@@ -7,6 +7,6 @@ export const locationSchema = z.object({
   country: z.string(),
   region: z.string(),
   city: z.string(),
-  postalCode: z.string(),
+  postalCode: z.string().nullable(),
   timezone: z.string(),
 });
