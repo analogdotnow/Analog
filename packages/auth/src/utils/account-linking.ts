@@ -5,9 +5,9 @@ import {
 import { APIError, createAuthMiddleware } from "better-auth/api";
 import { eq } from "drizzle-orm";
 
-import { getCalendarProvider } from "@repo/api/providers";
 import { db } from "@repo/db";
 import { account as accountTable } from "@repo/db/schema";
+import { getCalendarProvider } from "@repo/providers";
 
 export const createProviderHandler = async (
   account: HookAccountRecord,

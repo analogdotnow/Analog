@@ -1,4 +1,3 @@
-import { Temporal } from "temporal-polyfill";
 import { zZonedDateTimeInstance } from "temporal-zod";
 import * as z from "zod";
 
@@ -19,11 +18,7 @@ export const freeBusyRouter = createTRPCRouter({
           return [];
         }
 
-        return await client.freeBusy(
-          input.schedules,
-          input.timeMin,
-          input.timeMax,
-        );
+        return client.freeBusy(input.schedules, input.timeMin, input.timeMax);
       });
 
       const freeBusy = await Promise.all(promises);

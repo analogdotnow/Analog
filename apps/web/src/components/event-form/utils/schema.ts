@@ -2,7 +2,7 @@ import { Temporal } from "temporal-polyfill";
 import { zZonedDateTimeInstance } from "temporal-zod";
 import * as z from "zod";
 
-import { recurrenceSchema } from "@repo/api/schemas";
+import { recurrenceSchema } from "@repo/schemas";
 
 import { createEventId } from "@/lib/utils/calendar";
 

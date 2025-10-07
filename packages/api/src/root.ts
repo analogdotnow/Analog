@@ -31,6 +31,3 @@ export type AppRouter = typeof appRouter;
 
 export const createCaller = createCallerFactory(appRouter);
 export const createContext = createTRPCContext;
-
-export type { PlaceResult } from "./providers/google-places/interfaces";
-export type { AutocompleteInput } from "./schemas/places";
