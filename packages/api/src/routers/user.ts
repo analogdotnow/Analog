@@ -1,6 +1,7 @@
 import "server-only";
 
-import { locationSchema } from "../schemas/users";
+import { locationSchema } from "@repo/schemas";
+
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
 
 export const userRouter = createTRPCRouter({
