@@ -243,6 +243,15 @@
         "typescript": "^5.9.2",
       },
     },
+    "packages/google-maps-places": {
+      "name": "@repo/google-maps-places",
+      "version": "0.0.1",
+      "devDependencies": {
+        "@repo/typescript-config": "workspace:*",
+        "@types/node": "^22.9.0",
+        "typescript": "^5.9.2",
+      },
+    },
     "packages/google-maps-routes": {
       "name": "@repo/google-maps-routes",
       "version": "0.0.1",
@@ -1373,6 +1382,8 @@
     "@repo/eslint-config": ["@repo/eslint-config@workspace:tooling/eslint-config"],
 
     "@repo/google-calendar": ["@repo/google-calendar@workspace:packages/google-calendar"],
+
+    "@repo/google-maps-places": ["@repo/google-maps-places@workspace:packages/google-maps-places"],
 
     "@repo/google-maps-routes": ["@repo/google-maps-routes@workspace:packages/google-maps-routes"],
 

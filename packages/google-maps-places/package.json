@@ -1,0 +1,14 @@
+{
+  "name": "@repo/google-maps-places",
+  "version": "0.0.1",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "^22.9.0",
+    "typescript": "^5.9.2"
+  }
+}
