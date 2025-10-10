@@ -331,7 +331,7 @@ export const TIMEZONE_LOCATIONS: Record<string, [number, number]> = {
   "Asia/Omsk": [54.99, 73.32], // Omsk, Omsk Oblast, Russia
   "Asia/Qyzylorda": [44.85, 65.48], // Kyzylorda, Kazakhstan
   "Asia/Thimphu": [27.47, 89.64], // Thimphu, Bhutan
-  "Asia/Urumqi": [22.52, 113.39], // Zhongshan, Guangdong, China
+  "Asia/Urumqi": [43.825, 87.6168], // Ürümqi, Xinjiang, China
   "Indian/Chagos": [-6.34, 71.86], // Chagos Archipelago, British Indian Ocean Territory
   "Asia/Rangoon": [16.87, 96.2], // Yangon, Myanmar (Burma)
   "Indian/Cocos": [-12.15, 96.82], // West Island, 6799, Cocos (Keeling) Islands
