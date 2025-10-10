@@ -1,0 +1,19 @@
+{
+  "name": "@repo/timezone-coordinates",
+  "version": "0.1.0",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "type-check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "^22.9.0",
+    "eslint": "^9.31.0",
+    "typescript": "^5.8.3"
+  }
+}

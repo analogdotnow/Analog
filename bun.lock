@@ -349,6 +349,17 @@
         "temporal-polyfill": "^0.3.0",
       },
     },
+    "packages/timezone-coordinates": {
+      "name": "@repo/timezone-coordinates",
+      "version": "0.1.0",
+      "devDependencies": {
+        "@repo/eslint-config": "workspace:*",
+        "@repo/typescript-config": "workspace:*",
+        "@types/node": "^22.9.0",
+        "eslint": "^9.31.0",
+        "typescript": "^5.8.3",
+      },
+    },
     "tooling/eslint-config": {
       "name": "@repo/eslint-config",
       "version": "0.0.0",
@@ -1441,6 +1452,8 @@
     "@repo/schemas": ["@repo/schemas@workspace:packages/schemas"],
 
     "@repo/temporal": ["@repo/temporal@workspace:packages/temporal"],
+
+    "@repo/timezone-coordinates": ["@repo/timezone-coordinates@workspace:packages/timezone-coordinates"],
 
     "@repo/typescript-config": ["@repo/typescript-config@workspace:tooling/typescript-config"],
 
