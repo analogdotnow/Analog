@@ -49,7 +49,7 @@ export const TIMEZONE_LOCATIONS: Record<string, [number, number]> = {
   "America/Menominee": [45.11, -87.61], // Menominee, MI 49858, USA
   "America/Merida": [20.97, -89.59], // Mérida, Yucatan, Mexico
   "America/Mexico_City": [19.43, -99.13], // Mexico City, CDMX, Mexico
-  "America/Monterrey": [19.49, -99.12], // Gustavo A. Madero, Mexico City, CDMX, Mexico
+  "America/Monterrey": [25.6866, -100.3161], // Monterrey, Nuevo León, Mexico
   "America/North_Dakota/Beulah": [44.63, -86.09], // Beulah, MI, USA
   "America/North_Dakota/Center": [47.115, -101.301], // Center, ND, USA
   "America/North_Dakota/New_Salem": [46.83, -100.89], // Mandan, ND 58554, USA
