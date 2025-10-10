@@ -370,7 +370,7 @@ export const TIMEZONE_LOCATIONS: Record<string, [number, number]> = {
   "Asia/Khandyga": [62.66, 135.55], // Khandyga, Sakha Republic, Russia, 678720
   "Asia/Seoul": [37.57, 126.98], // Seoul, South Korea
   "Asia/Tokyo": [35.69, 139.69], // Tokyo, Japan
-  "Asia/Yakutsk": [52.05, 113.47], // Chita, Zabaykalsky Krai, Russia
+  "Asia/Yakutsk": [62.0339, 129.7333], // Yakutsk, Sakha Republic, Russia
   "Pacific/Palau": [7.34, 134.49], // Koror, Palau
   "Australia/Adelaide": [-34.93, 138.6], // Adelaide SA, Australia
   "Australia/Broken_Hill": [-31.95, 141.45], // Broken Hill NSW 2880, Australia
