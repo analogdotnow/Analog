@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accounts } from "./tabs/accounts";
-import { ConnectedAccounts } from "./tabs/connected-accounts";
 import { General } from "./tabs/general";
 
 interface SettingsDialogProps {
@@ -51,27 +50,27 @@ export function SettingsDialog({ children }: SettingsDialogProps) {
                   <UsersIcon className="size-4 text-muted-foreground" />{" "}
                   Calendars
                 </TabsTrigger>
-                <TabsTrigger
+                {/* <TabsTrigger
                   value="connected-accounts"
                   className="w-full justify-start gap-3 border-none py-1.5 hover:bg-muted hover:text-accent-foreground data-[state=active]:bg-muted data-[state=active]:shadow-none data-[state=active]:hover:bg-muted data-[state=active]:hover:text-foreground"
                 >
                   <LinkIcon className="size-4 text-muted-foreground" />{" "}
                   Connected Accounts
-                </TabsTrigger>
+                </TabsTrigger> */}
               </TabsList>
             </div>
 
             <div className="flex-1 p-3 text-start">
               <div className="h-full w-full overflow-auto">
-                <TabsContent value="accounts" className="mt-0 h-full">
-                  <Accounts />
-                </TabsContent>
-                <TabsContent value="connected-accounts" className="mt-0 h-full">
-                  <ConnectedAccounts />
-                </TabsContent>
                 <TabsContent value="general" className="mt-0 h-full">
                   <General />
                 </TabsContent>
+                <TabsContent value="accounts" className="mt-0 h-full">
+                  <Accounts />
+                </TabsContent>
+                {/* <TabsContent value="connected-accounts" className="mt-0 h-full">
+                  <ConnectedAccounts />
+                </TabsContent> */}
               </div>
             </div>
           </Tabs>

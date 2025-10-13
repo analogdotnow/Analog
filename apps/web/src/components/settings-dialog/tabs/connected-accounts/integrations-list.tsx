@@ -1,46 +1,38 @@
 "use client";
 
 import * as React from "react";
-import {
-  useQuery,
-} from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { RouterInputs, RouterOutputs } from "@/lib/trpc";
 import { useTRPC } from "@/lib/trpc/client";
-import type { RouterOutputs } from "@/lib/trpc";
 import { LinkIntegrationButton } from "./link-integration-button";
 import { UnlinkIntegrationButton } from "./unlink-integration-button";
 
-// const STATUS: Record<ConnectedAccount["status"], { label: string; variant: BadgeVariant }>
-//   = {
-//     ACTIVE: { label: "Active", variant: "secondary" },
-//     INITIALIZING: { label: "Initializing", variant: "outline" },
-//     INITIATED: { label: "Pending", variant: "outline" },
-//     FAILED: { label: "Failed", variant: "destructive" },
-//     EXPIRED: { label: "Expired", variant: "destructive" },
-//     INACTIVE: { label: "Inactive", variant: "outline" },
-//   };
+type ConnectedAccount =
+  RouterOutputs["integrations"]["list"]["connectedAccounts"][number];
 
-type ConnectedAccount = RouterOutputs["integrations"]["list"]["connectedAccounts"][number];
+type ProviderId = RouterInputs["integrations"]["link"]["providerId"];
 
 export interface Provider {
-  id: "mail0" | "github" | "linear" | "notion";
+  id: ProviderId;
   name: string;
   description: string;
   account?: ConnectedAccount;
 }
 
 const PROVIDERS = [
-  {
-    id: "mail0",
-    name: "Mail0",
-    description: "Connect Mail0 to allow Analog to draft and send emails",
-  },
+  // {
+  //   id: "mail0",
+  //   name: "Mail0",
+  //   description: "Connect Mail0 to allow Analog to draft and send emails",
+  // },
   {
     id: "github",
     name: "GitHub",
-    description: "Connect GitHub to allow Analog to search or manage issues and pull requests",
+    description:
+      "Connect GitHub to allow Analog to search or manage issues and pull requests",
   },
   {
     id: "linear",
@@ -51,7 +43,7 @@ const PROVIDERS = [
     id: "notion",
     name: "Notion",
     description: "Connect Notion to allow Analog to search pages and databases",
-  }
+  },
 ] as const satisfies Provider[];
 
 export function IntegrationsList() {
@@ -65,7 +57,9 @@ export function IntegrationsList() {
 
     return PROVIDERS.map((provider) => ({
       ...provider,
-      account: query.data.connectedAccounts.find((account) => account.slug === provider.id),
+      account: query.data.connectedAccounts.find(
+        (account) => account.slug === provider.id,
+      ),
     }));
   }, [query.data]);
 
@@ -84,13 +78,12 @@ export function IntegrationsList() {
 
   return (
     <ul className="flex flex-col gap-y-2">
-      <IntegrationsListItem provider={providers[0]!} />
-      <Separator/>
-      <IntegrationsListItem provider={providers[1]!} />
-      <Separator/>
-      <IntegrationsListItem provider={providers[2]!} />
-      <Separator/>
-      <IntegrationsListItem provider={providers[3]!} />
+      {providers.map((provider) => (
+        <React.Fragment key={provider.id}>
+          <IntegrationsListItem provider={provider} />
+          <Separator className="last:hidden" />
+        </React.Fragment>
+      ))}
     </ul>
   );
 }
@@ -108,16 +101,21 @@ function IntegrationsListItem({ provider }: IntegrationsListItemProps) {
       <div className="flex flex-1 flex-col">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-col gap-1">
-            <p className="text-sm font-medium leading-tight">{provider.name}</p>
-            <p className="text-sm text-muted-foreground">{provider.description}</p>
+            <p className="text-sm leading-tight font-medium">{provider.name}</p>
+            <p className="text-sm text-muted-foreground">
+              {provider.description}
+            </p>
           </div>
           <div className="flex items-center gap-3">
             {/* <Badge variant={statusMeta.variant}>{statusMeta.label}</Badge> */}
             {provider.account ? (
               <UnlinkIntegrationButton accountId={provider.account.id} />
             ) : (
-              <LinkIntegrationButton providerId={provider.id} name={provider.name} />
-            ) }
+              <LinkIntegrationButton
+                providerId={provider.id}
+                name={provider.name}
+              />
+            )}
           </div>
         </div>
       </div>

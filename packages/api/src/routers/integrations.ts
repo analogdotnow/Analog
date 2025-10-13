@@ -1,12 +1,9 @@
 import { TRPCError } from "@trpc/server";
 import * as z from "zod";
 
-import { composio } from "@repo/ai/composio";
+import { composio } from "@repo/ai/lib/composio";
 
-import {
-  createTRPCRouter,
-  protectedProcedure,
-} from "../trpc";
+import { createTRPCRouter, protectedProcedure } from "../trpc";
 
 export const integrationsRouter = createTRPCRouter({
   list: protectedProcedure.query(async ({ ctx }) => {
@@ -15,7 +12,6 @@ export const integrationsRouter = createTRPCRouter({
     });
 
     return {
-      providerId: "composio",
       connectedAccounts: connectedAccounts.items.map((account) => ({
         id: account.id,
         status: account.status,
@@ -29,7 +25,7 @@ export const integrationsRouter = createTRPCRouter({
   link: protectedProcedure
     .input(
       z.object({
-        providerId: z.enum(["mail0", "github", "linear", "notion", "attio", "calcom"]),
+        providerId: z.enum(["github", "linear", "notion", "attio"]),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -45,21 +41,27 @@ export const integrationsRouter = createTRPCRouter({
       };
     }),
   unlink: protectedProcedure
-    .input(z.object({
-      accountId: z.string(),
-    }))
+    .input(
+      z.object({
+        accountId: z.string(),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       const connectedAccounts = await composio.connectedAccounts.list({
         userIds: [ctx.user.id],
       });
 
-      const account = connectedAccounts.items.find((account) => account.id === input.accountId);
+      const account = connectedAccounts.items.find(
+        (account) => account.id === input.accountId,
+      );
 
       if (!account) {
-        return { success: false } as const;
+        return;
       }
 
-      const deletedAccount = await composio.connectedAccounts.delete(account.id);
+      const deletedAccount = await composio.connectedAccounts.delete(
+        account.id,
+      );
 
       if (!deletedAccount.success) {
         throw new TRPCError({
@@ -67,7 +69,5 @@ export const integrationsRouter = createTRPCRouter({
           message: "Failed to delete account",
         });
       }
-
-      return { success: true } as const;
     }),
 });

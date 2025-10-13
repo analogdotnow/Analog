@@ -3,8 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "exports": {
-    "./composio": "./src/tools/composio/index.ts",
-    "./arcade": "./src/tools/arcade/index.ts",
+    "./lib/composio": "./src/lib/composio.ts"
   },
   "scripts": {
     "lint": "eslint .",
@@ -22,9 +21,8 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "@arcadeai/arcadejs": "^1.10.0",
-    "@composio/core": "^0.1.52",
-    "@composio/vercel": "^0.2.8",
+    "@composio/core": "^0.1.55",
+    "@composio/vercel": "^0.2.11",
     "@repo/env": "workspace:*"
   }
 }
