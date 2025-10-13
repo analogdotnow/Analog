@@ -10,19 +10,19 @@
     "type-check": "tsc --noEmit"
   },
   "peerDependencies": {
-    "ai": "^5.0.60",
+    "ai": "^5.0.28",
     "zod": "^4.0.5"
-  },
-  "devDependencies": {
-    "@repo/eslint-config": "workspace:*",
-    "@repo/typescript-config": "workspace:*",
-    "@types/node": "^22.9.0",
-    "eslint": "^9.31.0",
-    "typescript": "^5.8.3"
   },
   "dependencies": {
     "@composio/core": "^0.1.55",
     "@composio/vercel": "^0.2.11",
     "@repo/env": "workspace:*"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "^22.9.0",
+    "eslint": "^9.34.0",
+    "typescript": "^5.9.2"
   }
 }
