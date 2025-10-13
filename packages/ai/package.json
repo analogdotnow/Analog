@@ -11,7 +11,7 @@
   },
   "peerDependencies": {
     "ai": "^5.0.28",
-    "zod": "^4.0.5",
+    "zod": "^4.0.5"
   },
   "dependencies": {
     "@composio/core": "^0.1.55",
