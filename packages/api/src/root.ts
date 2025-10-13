@@ -6,6 +6,7 @@ import { calendarsRouter } from "./routers/calendars";
 import { conferencingRouter } from "./routers/conferencing";
 import { eventsRouter } from "./routers/events";
 import { freeBusyRouter } from "./routers/free-busy";
+import { integrationsRouter } from "./routers/integrations";
 import { placesRouter } from "./routers/places";
 import { tasksRouter } from "./routers/tasks";
 import { userRouter } from "./routers/user";
@@ -16,6 +17,7 @@ import {
 } from "./trpc";
 
 export const appRouter = createTRPCRouter({
+  integrations: integrationsRouter,
   user: userRouter,
   accounts: accountsRouter,
   apiKeys: apiKeysRouter,
