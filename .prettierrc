@@ -13,7 +13,9 @@
   ],
   "importOrderParserPlugins": ["typescript", "jsx", "decorators-legacy"],
   "importOrderCaseSensitive": true,
+  "tailwindStylesheet": "./apps/web/src/app/globals.css",
   "plugins": [
-    "@ianvs/prettier-plugin-sort-imports"
+    "@ianvs/prettier-plugin-sort-imports",
+    "prettier-plugin-tailwindcss"
   ]
 }
