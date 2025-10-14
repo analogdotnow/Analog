@@ -10,10 +10,9 @@
     "type-check": "tsc --noEmit"
   },
   "peerDependencies": {
+    "temporal-polyfill": "^0.3.0",
     "temporal-zod": "https://pkg.pr.new/analogdotnow/temporal-utils/temporal-zod@395939e",
     "zod": "^4.1.5"
-  },
-  "dependencies": {
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",

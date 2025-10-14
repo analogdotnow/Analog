@@ -3,15 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "exports": {
-    ".": "./src/index.ts",
-    "./v2": "./src/v2.ts"
+    ".": "./src/index.ts"
   },
   "scripts": {
     "lint": "eslint .",
     "type-check": "tsc --noEmit"
   },
   "peerDependencies": {
-    "temporal-polyfill": "^0.3.0"
+    "@formkit/tempo": "^0.1.2",
+    "temporal-polyfill": "^0.3.0",
+    "zod": "^4.1.5"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",

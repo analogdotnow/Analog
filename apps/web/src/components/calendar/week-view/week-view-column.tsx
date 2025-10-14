@@ -1,6 +1,6 @@
 import * as React from "react";
-import { motion } from "framer-motion";
 import { useAtomValue } from "jotai";
+import { motion } from "motion/react";
 import { Temporal } from "temporal-polyfill";
 
 import { isToday, isWeekend } from "@repo/temporal";
