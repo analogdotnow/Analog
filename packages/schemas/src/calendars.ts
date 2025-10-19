@@ -12,5 +12,11 @@ export const updateCalendarInputSchema = createCalendarInputSchema.extend({
   etag: z.string().optional(),
 });
 
-export type CreateCalendarInput = z.infer<typeof createCalendarInputSchema>;
-export type UpdateCalendarInput = z.infer<typeof updateCalendarInputSchema>;
+export type CreateCalendarInput = Omit<
+  z.infer<typeof createCalendarInputSchema>,
+  "accountId"
+>;
+export type UpdateCalendarInput = Omit<
+  z.infer<typeof updateCalendarInputSchema>,
+  "accountId"
+>;
