@@ -28,7 +28,7 @@ export const userRouter = createTRPCRouter({
     });
 
     if (!result.success) {
-      return undefined;
+      return null;
     }
 
     return result.data;
