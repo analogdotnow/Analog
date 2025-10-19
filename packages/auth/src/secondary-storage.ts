@@ -1,5 +1,5 @@
 import { Redis } from "@upstash/redis";
-import type { SecondaryStorage } from "better-auth";
+import { SecondaryStorage } from "better-auth/db";
 
 import { env } from "@repo/env/server";
 

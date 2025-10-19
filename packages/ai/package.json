@@ -10,7 +10,7 @@
     "type-check": "tsc --noEmit"
   },
   "peerDependencies": {
-    "ai": "^5.0.28",
+    "ai": "^5.0.76",
     "zod": "^4.0.5"
   },
   "dependencies": {
@@ -21,8 +21,8 @@
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
-    "@types/node": "^22.9.0",
-    "eslint": "^9.34.0",
+    "@types/node": "^24.8.1",
+    "eslint": "^9.38.0",
     "typescript": "^5.9.2"
   }
 }
