@@ -1,6 +1,7 @@
 import { TRPCError } from "@trpc/server";
 
-import { createTaskInputSchema } from "../schemas/tasks";
+import { createTaskInputSchema } from "@repo/schemas";
+
 import { createTRPCRouter, taskProcedure } from "../trpc";
 
 export const tasksRouter = createTRPCRouter({

@@ -4,13 +4,10 @@ import { Temporal } from "temporal-polyfill";
 import { zZonedDateTimeInstance } from "temporal-zod";
 import * as z from "zod";
 
+import { CalendarEvent } from "@repo/providers/interfaces";
+import { createEventInputSchema, updateEventInputSchema } from "@repo/schemas";
 import { toInstant } from "@repo/temporal";
 
-import { CalendarEvent } from "../interfaces";
-import {
-  createEventInputSchema,
-  updateEventInputSchema,
-} from "../schemas/events";
 import { calendarProcedure, createTRPCRouter } from "../trpc";
 import { findCalendarOrThrow, findProviderOrThrow } from "../utils";
 

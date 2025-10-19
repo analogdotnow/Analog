@@ -1,10 +1,10 @@
 import { auth } from "@repo/auth/server";
-
 import {
   createApiKeySchema,
   deleteApiKeySchema,
   updateApiKeySchema,
-} from "../schemas/api-keys";
+} from "@repo/schemas";
+
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 
 export const apiKeysRouter = createTRPCRouter({

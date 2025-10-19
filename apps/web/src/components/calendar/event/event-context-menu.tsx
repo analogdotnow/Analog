@@ -5,7 +5,7 @@ import * as ContextMenuPrimitive from "@radix-ui/react-context-menu";
 import { useQuery } from "@tanstack/react-query";
 import { CheckIcon } from "lucide-react";
 
-import type { AttendeeStatus } from "@repo/api/interfaces";
+import type { AttendeeStatus } from "@repo/providers/interfaces";
 
 import { canMoveBetweenCalendars } from "@/components/calendar/utils/move";
 import {

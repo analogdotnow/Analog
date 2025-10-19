@@ -1,9 +1,7 @@
 import { TRPCError } from "@trpc/server";
 
 import { Account } from "@repo/auth/server";
-
-import { Calendar } from "../interfaces";
-import { CalendarProvider } from "../providers/interfaces";
+import type { Calendar, CalendarProvider } from "@repo/providers/interfaces";
 
 interface Provider {
   account: Account;

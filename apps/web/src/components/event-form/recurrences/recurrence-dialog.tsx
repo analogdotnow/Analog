@@ -6,7 +6,7 @@ import { format } from "date-fns";
 import { Temporal } from "temporal-polyfill";
 import * as z from "zod";
 
-import { Frequency, Recurrence, Weekday } from "@repo/api/interfaces";
+import { Frequency, Recurrence, Weekday } from "@repo/providers/interfaces";
 import { toDate } from "@repo/temporal";
 
 import { Button } from "@/components/ui/button";

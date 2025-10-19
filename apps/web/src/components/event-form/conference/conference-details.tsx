@@ -3,7 +3,7 @@ import * as React from "react";
 import type {
   ConferenceData,
   ConferenceEntryPoint,
-} from "@repo/api/interfaces";
+} from "@repo/providers/interfaces";
 
 import { cn } from "@/lib/utils";
 import { CopyButton } from "../copy-button";

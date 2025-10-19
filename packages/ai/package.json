@@ -1,0 +1,28 @@
+{
+  "name": "@repo/ai",
+  "version": "0.1.0",
+  "private": true,
+  "exports": {
+    "./lib/composio": "./src/lib/composio.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "type-check": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "ai": "^5.0.28",
+    "zod": "^4.0.5"
+  },
+  "dependencies": {
+    "@composio/core": "^0.1.55",
+    "@composio/vercel": "^0.2.11",
+    "@repo/env": "workspace:*"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "^22.9.0",
+    "eslint": "^9.34.0",
+    "typescript": "^5.9.2"
+  }
+}

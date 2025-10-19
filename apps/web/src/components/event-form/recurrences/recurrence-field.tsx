@@ -4,7 +4,7 @@ import { RRuleTemporal } from "rrule-temporal";
 import { toText } from "rrule-temporal/totext";
 import { Temporal } from "temporal-polyfill";
 
-import { Recurrence } from "@repo/api/interfaces";
+import { Recurrence } from "@repo/providers/interfaces";
 import { toZonedDateTime } from "@repo/temporal";
 
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";

@@ -9,13 +9,13 @@ import * as z from "zod";
 
 import { auth, type Session } from "@repo/auth/server";
 import { db } from "@repo/db";
-
 import {
   getCalendarProvider,
   getTaskProvider,
   isCalendarProvider,
   isTaskProvider,
-} from "./providers";
+} from "@repo/providers";
+
 import { getAccounts } from "./utils/accounts";
 import { getIp } from "./utils/ip";
 import { getRedis } from "./utils/redis";

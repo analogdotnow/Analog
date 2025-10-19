@@ -13,11 +13,13 @@
   },
   "peerDependencies": {
     "better-auth": "^1.3.7",
+    "drizzle-orm": "^0.44.6",
     "server-only": "^0.0.1"
   },
   "dependencies": {
     "@repo/db": "workspace:*",
     "@repo/env": "workspace:*",
+    "@repo/providers": "workspace:*",
     "@upstash/redis": "^1.35.1"
   },
   "devDependencies": {
