@@ -1,7 +1,11 @@
 import { Temporal } from "temporal-polyfill";
 
 import { APIError, ConflictError, GoogleCalendar } from "@repo/google-calendar";
-import type { CreateEventInput, UpdateEventInput } from "@repo/schemas";
+import type {
+  CreateCalendarInput,
+  CreateEventInput,
+  UpdateEventInput,
+} from "@repo/schemas";
 
 import type {
   Calendar,
@@ -59,12 +63,12 @@ export class GoogleCalendarProvider implements CalendarProvider {
     });
   }
 
-  async createCalendar(
-    calendar: Omit<Calendar, "id" | "providerId">,
-  ): Promise<Calendar> {
+  async createCalendar(calendar: CreateCalendarInput): Promise<Calendar> {
     return this.withErrorHandler("createCalendar", async () => {
       const createdCalendar = await this.client.calendars.create({
         summary: calendar.name,
+        description: calendar.description,
+        timeZone: calendar.timeZone,
       });
 
       return parseGoogleCalendarCalendarListEntry({

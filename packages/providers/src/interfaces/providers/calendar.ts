@@ -1,6 +1,10 @@
 import { Temporal } from "temporal-polyfill";
 
-import type { CreateEventInput, UpdateEventInput } from "@repo/schemas";
+import type {
+  CreateCalendarInput,
+  CreateEventInput,
+  UpdateEventInput,
+} from "@repo/schemas";
 
 import type {
   Calendar,
@@ -32,9 +36,7 @@ export interface CalendarProviderSyncResult {
 export interface CalendarProvider {
   providerId: "google" | "microsoft";
   calendars(): Promise<Calendar[]>;
-  createCalendar(
-    calendar: Omit<Calendar, "id" | "providerId">,
-  ): Promise<Calendar>;
+  createCalendar(calendar: CreateCalendarInput): Promise<Calendar>;
   updateCalendar(
     calendarId: string,
     calendar: Partial<Calendar>,
