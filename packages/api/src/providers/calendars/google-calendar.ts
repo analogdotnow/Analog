@@ -9,6 +9,7 @@ import type {
   CalendarEventSyncItem,
   CalendarFreeBusy,
 } from "../../interfaces";
+import type { CreateCalendarInput } from "../../schemas/calendars";
 import type { CreateEventInput, UpdateEventInput } from "../../schemas/events";
 import { ProviderError } from "../lib/provider-error";
 import { parseGoogleCalendarCalendarListEntry } from "./google-calendar/calendars";
@@ -58,17 +59,20 @@ export class GoogleCalendarProvider implements CalendarProvider {
     });
   }
 
-  async createCalendar(
-    calendar: Omit<Calendar, "id" | "providerId">,
-  ): Promise<Calendar> {
+  async createCalendar(calendar: CreateCalendarInput): Promise<Calendar> {
     return this.withErrorHandler("createCalendar", async () => {
       const createdCalendar = await this.client.calendars.create({
         summary: calendar.name,
+        description: calendar.description,
+        timeZone: calendar.timeZone,
       });
+
+      const calendarListEntry =
+        await this.client.users.me.calendarList.retrieve(createdCalendar.id!);
 
       return parseGoogleCalendarCalendarListEntry({
         accountId: this.accountId,
-        entry: createdCalendar,
+        entry: calendarListEntry,
       });
     });
   }

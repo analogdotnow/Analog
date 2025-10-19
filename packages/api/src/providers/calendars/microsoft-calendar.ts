@@ -70,11 +70,13 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
     });
   }
 
-  async createCalendar(calendarData: CreateCalendarInput): Promise<Calendar> {
+  async createCalendar(calendar: CreateCalendarInput): Promise<Calendar> {
     return this.withErrorHandler("createCalendar", async () => {
       const createdCalendar: MicrosoftCalendar = await this.graphClient
         .api("/me/calendars")
-        .post(calendarData);
+        .post({
+          name: calendar.name,
+        });
 
       return parseMicrosoftCalendar({
         calendar: createdCalendar,

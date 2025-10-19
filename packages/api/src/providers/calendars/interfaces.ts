@@ -6,6 +6,7 @@ import type {
   CalendarEventSyncItem,
   CalendarFreeBusy,
 } from "../../interfaces";
+import type { CreateCalendarInput } from "../../schemas/calendars";
 import type { CreateEventInput, UpdateEventInput } from "../../schemas/events";
 
 export interface ResponseToEventInput {
@@ -31,9 +32,7 @@ export interface CalendarProviderSyncResult {
 export interface CalendarProvider {
   providerId: "google" | "microsoft";
   calendars(): Promise<Calendar[]>;
-  createCalendar(
-    calendar: Omit<Calendar, "id" | "providerId">,
-  ): Promise<Calendar>;
+  createCalendar(calendar: CreateCalendarInput): Promise<Calendar>;
   updateCalendar(
     calendarId: string,
     calendar: Partial<Calendar>,
