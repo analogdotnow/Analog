@@ -36,6 +36,7 @@ export interface CalendarProviderSyncResult {
 export interface CalendarProvider {
   providerId: "google" | "microsoft";
   calendars(): Promise<Calendar[]>;
+  calendar(calendarId: string): Promise<Calendar>;
   createCalendar(calendar: CreateCalendarInput): Promise<Calendar>;
   updateCalendar(
     calendarId: string,
