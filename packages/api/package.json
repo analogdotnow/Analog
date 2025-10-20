@@ -30,7 +30,6 @@
   "dependencies": {
     "@analog/meeting-links": "workspace:*",
     "@composio/core": "^0.1.52",
-    "@googlemaps/places": "^2.1.0",
     "@microsoft/microsoft-graph-client": "^3.0.7",
     "@repo/ai": "workspace:*",
     "@repo/auth": "workspace:*",
