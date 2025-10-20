@@ -57,7 +57,14 @@ Thank you for your interest in contributing to Analog! We aim to make the contri
   4. Go to API permissions, click + Add a permission, choose Microsoft Graph → Delegated permissions, and add:
      - `Calendars.Read`, `Calendars.ReadWrite`, `User.Read`, `offline_access`
 
-6. **Initialize the application**
+6. **Set up Google Maps API** (optional):
+
+- `GOOGLE_MAPS_API_KEY`:
+  1. In your existing Google Cloud project (or create a new one), enable the Places API (New) by visiting [Google Cloud API Library](https://console.cloud.google.com/apis/library/places.googleapis.com).
+  2. Create an API key in [Google Cloud Maps Platform Credentials](https://console.cloud.google.com/google/maps-apis/credentials).
+  3. Set the API key as `GOOGLE_MAPS_API_KEY` in your `.env` file.
+
+7. **Initialize the application**
 
 ```bash
 # Initialize the database

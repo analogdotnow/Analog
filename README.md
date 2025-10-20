@@ -71,7 +71,7 @@ Ensure you have the following installed:
   4. Go to API permissions, click + Add a permission, choose Microsoft Graph → Delegated permissions, and add:
      - `Calendars.Read`, `Calendars.ReadWrite`, `User.Read`, `offline_access`
 
-6. **Set up Google Places API**:
+6. **Set up Google Maps API** (optional):
 
 - `GOOGLE_MAPS_API_KEY`:
   1. In your existing Google Cloud project (or create a new one), enable the Places API (New) by visiting [Google Cloud API Library](https://console.cloud.google.com/apis/library/places.googleapis.com).
@@ -108,13 +108,9 @@ The application should now be accessible in your browser at [http://localhost:30
 
 ## Tech Stack
 
-- **Web**: Next.js, TypeScript, Tailwind v4, Bun, tRPC, TanStack Query, shadcn/ui
+- **Web**: Next.js, TypeScript, Tailwind v4, Bun, tRPC, TanStack Query, shadcn/ui, Vercel API SDK
 - **Database**: Drizzle with PostgreSQL
-- **Authentication**: Better Auth for Google OAuth
-
-## Roadmap
-
-WIP.
+- **Authentication**: Better Auth
 
 ## Contributing
 
