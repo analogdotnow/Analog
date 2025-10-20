@@ -34,7 +34,8 @@
         "MARBLE_API_URL",
         "UNKEY_ROOT_KEY",
         "NEXT_RUNTIME",
-        "COMPOSIO_API_KEY"
+        "COMPOSIO_API_KEY",
+        "FIRECRAWL_API_KEY"
       ],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
@@ -72,7 +73,8 @@
         "MARBLE_API_URL",
         "UNKEY_ROOT_KEY",
         "NEXT_RUNTIME",
-        "COMPOSIO_API_KEY"
+        "COMPOSIO_API_KEY",
+        "FIRECRAWL_API_KEY"
       ]
     },
     "lint": {

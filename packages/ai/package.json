@@ -16,6 +16,7 @@
   "dependencies": {
     "@composio/core": "^0.1.55",
     "@composio/vercel": "^0.2.11",
+    "@mendable/firecrawl-js": "^4.4.1",
     "@repo/env": "workspace:*"
   },
   "devDependencies": {
