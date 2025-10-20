@@ -5,6 +5,11 @@ import withSimpleAnalytics from "@simpleanalytics/next/plugin";
 import { URLS } from "./src/lib/urls";
 
 const nextConfig: NextConfig = {
+  experimental: {
+    reactCompiler: {
+      compilationMode: 'annotation',
+    },
+  },
   async redirects() {
     return [
       {
