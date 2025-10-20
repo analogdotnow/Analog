@@ -106,6 +106,29 @@ export const calendarsRouter = createTRPCRouter({
       accounts: sortedAccounts,
     };
   }),
+  get: calendarProcedure
+    .input(
+      z.object({
+        accountId: z.string(),
+        calendarId: z.string(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const provider = ctx.providers.find(
+        ({ account }) => account.accountId === input.accountId,
+      );
+
+      if (!provider?.client) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: `Calendar client not found for accountId: ${input.accountId}`,
+        });
+      }
+
+      const calendar = await provider.client.calendar(input.calendarId);
+
+      return { calendar };
+    }),
   update: calendarProcedure
     .input(
       z.object({
