@@ -35,7 +35,8 @@
         "UNKEY_ROOT_KEY",
         "NEXT_RUNTIME",
         "COMPOSIO_API_KEY",
-        "FIRECRAWL_API_KEY"
+        "FIRECRAWL_API_KEY",
+        "BROWSERBASE_API_KEY"
       ],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
@@ -74,7 +75,8 @@
         "UNKEY_ROOT_KEY",
         "NEXT_RUNTIME",
         "COMPOSIO_API_KEY",
-        "FIRECRAWL_API_KEY"
+        "FIRECRAWL_API_KEY",
+        "BROWSERBASE_API_KEY"
       ]
     },
     "lint": {
