@@ -301,7 +301,8 @@ export async function directions(input: DirectionsInput) {
           : undefined),
         parts: leg.stepsOverview?.multiModalSegments?.map((segment) => ({
           steps:
-            segment.stepStartIndex && segment.stepEndIndex
+            segment.stepStartIndex !== undefined &&
+            segment.stepEndIndex !== undefined
               ? steps?.slice(segment.stepStartIndex, segment.stepEndIndex + 1)
               : steps,
           ...(segment.navigationInstruction &&
