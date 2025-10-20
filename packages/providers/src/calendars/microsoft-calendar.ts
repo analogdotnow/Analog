@@ -75,6 +75,22 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
     });
   }
 
+  async calendar(calendarId: string): Promise<Calendar> {
+    return this.withErrorHandler("calendar", async () => {
+      const calendar = (await this.graphClient
+        .api(calendarPath(calendarId))
+        .select(
+          "id,name,isDefaultCalendar,canEdit,hexColor,owner,calendarPermissions",
+        )
+        .get()) as MicrosoftCalendar;
+
+      return parseMicrosoftCalendar({
+        calendar,
+        accountId: this.accountId,
+      });
+    });
+  }
+
   async createCalendar(calendar: CreateCalendarInput): Promise<Calendar> {
     return this.withErrorHandler("createCalendar", async () => {
       const createdCalendar: MicrosoftCalendar = await this.graphClient

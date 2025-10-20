@@ -63,6 +63,18 @@ export class GoogleCalendarProvider implements CalendarProvider {
     });
   }
 
+  async calendar(calendarId: string): Promise<Calendar> {
+    return this.withErrorHandler("calendar", async () => {
+      const calendar =
+        await this.client.users.me.calendarList.retrieve(calendarId);
+
+      return parseGoogleCalendarCalendarListEntry({
+        accountId: this.accountId,
+        entry: calendar,
+      });
+    });
+  }
+
   async createCalendar(calendar: CreateCalendarInput): Promise<Calendar> {
     return this.withErrorHandler("createCalendar", async () => {
       const createdCalendar = await this.client.calendars.create({
