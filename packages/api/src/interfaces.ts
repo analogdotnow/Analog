@@ -1,1 +1,1 @@
-export * from "./utils/maps/directions/interfaces";
+export * from "./utils/maps/routes/interfaces";

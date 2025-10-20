@@ -2,7 +2,7 @@ import { directionsInputSchema } from "@repo/schemas";
 
 import { createTRPCRouter, publicProcedure } from "../trpc";
 import { defaultLanguageCode } from "../utils/headers";
-import { directions } from "../utils/maps/directions/routes";
+import { directions } from "../utils/maps/routes/directions";
 
 export const mapsRouter = createTRPCRouter({
   directions: publicProcedure
