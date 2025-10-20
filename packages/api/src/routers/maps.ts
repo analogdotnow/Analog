@@ -8,9 +8,11 @@ export const mapsRouter = createTRPCRouter({
   directions: publicProcedure
     .input(directionsInputSchema)
     .mutation(async ({ input, ctx }) => {
-      return directions({
-        ...input,
-        language: input.language ?? defaultLanguageCode(ctx.headers),
-      }) ?? null;
+      return (
+        directions({
+          ...input,
+          language: input.language ?? defaultLanguageCode(ctx.headers),
+        }) ?? null
+      );
     }),
 });

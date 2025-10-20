@@ -75,9 +75,7 @@ export const maps = new GoogleRoutes({
   apiKey: env.GOOGLE_MAPS_API_KEY,
 });
 
-export async function directions(
-  input: DirectionsInput,
-) {
+export async function directions(input: DirectionsInput) {
   const response = await maps.directions.computeRoutes(
     {
       origin: {
