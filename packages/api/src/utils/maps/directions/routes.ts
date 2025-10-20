@@ -77,7 +77,7 @@ export const maps = new GoogleRoutes({
 
 export async function directions(
   input: DirectionsInput,
-): Promise<DirectionsRoute[] | undefined> {
+) {
   const response = await maps.directions.computeRoutes(
     {
       origin: {

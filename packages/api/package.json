@@ -5,6 +5,7 @@
   "exports": {
     ".": "./src/root.ts",
     "./trpc": "./src/trpc.ts",
+    "./interfaces": "./src/interfaces.ts",
     "./openapi": "./src/openapi.ts"
   },
   "scripts": {

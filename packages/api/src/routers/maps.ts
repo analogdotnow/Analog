@@ -11,6 +11,6 @@ export const mapsRouter = createTRPCRouter({
       return directions({
         ...input,
         language: input.language ?? defaultLanguageCode(ctx.headers),
-      });
+      }) ?? null;
     }),
 });
