@@ -7,7 +7,7 @@ import { URLS } from "./src/lib/urls";
 const nextConfig: NextConfig = {
   experimental: {
     reactCompiler: {
-      compilationMode: 'annotation',
+      compilationMode: "annotation",
     },
   },
   async redirects() {
