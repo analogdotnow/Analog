@@ -25,7 +25,7 @@ export const integrationsRouter = createTRPCRouter({
   link: protectedProcedure
     .input(
       z.object({
-        providerId: z.enum(["github", "linear", "notion", "attio"]),
+        providerId: z.enum(["github", "linear", "notion", "attio", "gmail"]),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -34,11 +34,47 @@ export const integrationsRouter = createTRPCRouter({
         input.providerId,
       );
 
+      await ctx.redis.set(`composio:connection:${request.id}`, ctx.user.id, { ex: 3600 }); // 1 hour
+
       return {
         id: request.id,
         status: request.status,
         redirectUrl: request.redirectUrl ?? null,
       };
+    }),
+
+  finalize: protectedProcedure
+    .input(
+      z.object({
+        connectionId: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const userId = await ctx.redis.get(`composio:connection:${input.connectionId}`);
+
+      if (!userId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Invalid connection ID",
+        });
+      }
+
+      if (userId !== ctx.user.id) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You are not authorized to finalize this connection",
+        });
+      }
+
+      const connection = await composio.connectedAccounts.waitForConnection(input.connectionId);
+
+      if (!connection) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Connection not found",
+        });
+      }
+      
     }),
   unlink: protectedProcedure
     .input(

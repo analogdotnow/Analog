@@ -40,6 +40,12 @@ const PROVIDERS = [
     description: "Connect Linear to allow Analog to search or manage issues",
   },
   {
+    id: "gmail",
+    name: "Gmail",
+    description:
+      "Connect Gmail to allow Analog to watch for new emails and keep your inbox in sync",
+  },
+  {
     id: "notion",
     name: "Notion",
     description: "Connect Notion to allow Analog to search pages and databases",
