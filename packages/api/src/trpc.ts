@@ -37,10 +37,13 @@ export const createTRPCContext = async (opts: {
   headers: Headers;
   session?: Session;
 }) => {
+  const redis = getRedis();
+
   if (opts.session) {
     return {
       ...opts,
       db,
+      redis,
       session: opts.session?.session,
       user: opts.session?.user,
       rateLimit: {
@@ -56,6 +59,7 @@ export const createTRPCContext = async (opts: {
   return {
     ...opts,
     db,
+    redis,
     session: session?.session,
     user: session?.user,
     rateLimit: {
@@ -93,7 +97,7 @@ export const rateLimitMiddleware = t.middleware(async ({ ctx, meta, next }) => {
   }
 
   const limiter = new Ratelimit({
-    redis: getRedis(),
+    redis: ctx.redis,
     limiter: Ratelimit.slidingWindow(
       meta.ratelimit.limit,
       meta.ratelimit.duration,
