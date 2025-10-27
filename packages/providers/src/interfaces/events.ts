@@ -112,6 +112,7 @@ export interface Attendee {
 export type AttendeeStatus = Attendee["status"];
 
 export type Weekday = "MO" | "TU" | "WE" | "TH" | "FR" | "SA" | "SU";
+
 export type Frequency =
   | "SECONDLY"
   | "MINUTELY"
@@ -121,11 +122,31 @@ export type Frequency =
   | "MONTHLY"
   | "YEARLY";
 
+export type RScale =
+  | "GREGORIAN"
+  | "BUDDHIST"
+  | "CHINESE"
+  | "COPTIC"
+  | "DANGI"
+  | "ETHIOPIC"
+  | "ETHIOAA"
+  | "HEBREW"
+  | "INDIAN"
+  | "ISLAMIC"
+  | "ISLAMIC-CIVIL"
+  | "ISLAMIC-TBLA"
+  | "ISLAMIC-UMALQURA"
+  | "ISLAMIC-RGSA"
+  | "ISO8601"
+  | "JAPANESE"
+  | "PERSIAN"
+  | "ROC";
+
 export interface Recurrence {
-  freq: Frequency;
+  freq?: Frequency;
   interval?: number;
   count?: number;
-  until?: Temporal.PlainDate | Temporal.ZonedDateTime | Temporal.Instant;
+  until?: Temporal.PlainDate | Temporal.Instant | Temporal.ZonedDateTime;
   byDay?: Weekday[];
   byMonth?: number[];
   byMonthDay?: number[];
@@ -136,11 +157,10 @@ export interface Recurrence {
   bySecond?: number[];
 
   bySetPos?: number[];
-  exDate?: (Temporal.PlainDate | Temporal.ZonedDateTime | Temporal.Instant)[];
-  rDate?: (Temporal.PlainDate | Temporal.ZonedDateTime | Temporal.Instant)[];
-  // tzid?: string;
+  exDate?: (Temporal.PlainDate | Temporal.Instant | Temporal.ZonedDateTime)[];
+  rDate?: (Temporal.PlainDate | Temporal.Instant | Temporal.ZonedDateTime)[];
+  dtstart?: Temporal.PlainDate | Temporal.Instant | Temporal.ZonedDateTime;
   wkst?: Weekday;
-  // maxIterations?: number;
-  // includeDtstart?: boolean;
-  // dtstart?: Temporal.PlainDate | Temporal.ZonedDateTime | Temporal.Instant;
+  rscale?: RScale;
+  skip?: "OMIT" | "BACKWARD" | "FORWARD";
 }

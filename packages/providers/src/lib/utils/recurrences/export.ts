@@ -4,25 +4,79 @@ import type { Recurrence } from "../../../interfaces";
 
 function formatTemporal(
   value: Temporal.PlainDate | Temporal.ZonedDateTime | Temporal.Instant,
+) {
+  if (value instanceof Temporal.PlainDate) {
+    const date = value.toString().replace(/-/g, "");
+
+    return `;VALUE=DATE:${date}`;
+  }
+
+  if (value instanceof Temporal.ZonedDateTime) {
+    const dateTime = value
+      .toString({
+        smallestUnit: "second",
+        fractionalSecondDigits: 0,
+        timeZoneName: "never",
+        offset: "never",
+      })
+      .replace(/[-:]/g, "");
+    return `;TZID=${value.timeZoneId}:${dateTime}`;
+  }
+
+  const dateTime = value
+    .toZonedDateTimeISO("UTC")
+    .toString({
+      smallestUnit: "second",
+      fractionalSecondDigits: 0,
+      timeZoneName: "never",
+      offset: "never",
+    })
+    .replace(/[-:]/g, "");
+
+  return `:${dateTime}Z`;
+}
+
+function formatUntil(
+  value: Temporal.PlainDate | Temporal.ZonedDateTime | Temporal.Instant,
 ): string {
   if (value instanceof Temporal.PlainDate) {
     return value.toString().replace(/-/g, "");
-  } else if (value instanceof Temporal.ZonedDateTime) {
-    return value.toInstant().toString().replace(/[-:]/g, "").slice(0, 15) + "Z";
   }
 
-  return value.toString().replace(/[-:]/g, "").slice(0, 15) + "Z";
+  if (value instanceof Temporal.ZonedDateTime) {
+    const dateTime = value
+      .withTimeZone("UTC")
+      .toString({
+        smallestUnit: "second",
+        fractionalSecondDigits: 0,
+        timeZoneName: "never",
+        offset: "never",
+      })
+      .replace(/[-:]/g, "");
+    return `${dateTime}Z`;
+  }
+
+  const dateTime = value
+    .toZonedDateTimeISO("UTC")
+    .toString({
+      smallestUnit: "second",
+      fractionalSecondDigits: 0,
+      timeZoneName: "never",
+      offset: "never",
+    })
+    .replace(/[-:]/g, "");
+  return `${dateTime}Z`;
 }
 
 export function toRRule(recurrence: Recurrence): string {
   const parts = [
+    recurrence.rscale ? `RSCALE=${recurrence.rscale}` : "",
+    recurrence.skip ? `SKIP=${recurrence.skip}` : "",
     `FREQ=${recurrence.freq}`,
     recurrence.interval ? `INTERVAL=${recurrence.interval}` : "",
     recurrence.count ? `COUNT=${recurrence.count}` : "",
-    recurrence.until ? `UNTIL=${formatTemporal(recurrence.until)}` : "",
-    recurrence.byDay
-      ? `BYDAY=${recurrence.byDay.map((day) => day).join(",")}`
-      : "",
+    recurrence.until ? `UNTIL=${formatUntil(recurrence.until)}` : "",
+    recurrence.byDay ? `BYDAY=${recurrence.byDay.join(",")}` : "",
     recurrence.byMonth ? `BYMONTH=${recurrence.byMonth.join(",")}` : "",
     recurrence.byMonthDay
       ? `BYMONTHDAY=${recurrence.byMonthDay.join(",")}`
@@ -36,60 +90,50 @@ export function toRRule(recurrence: Recurrence): string {
     recurrence.wkst ? `WKST=${recurrence.wkst}` : "",
   ].filter(Boolean);
 
-  return "RRULE:" + parts.join(";");
+  return `RRULE:${parts.join(";")}`;
 }
 
-/**
- * Exports RDATE (Recurrence Date) values as an RDATE property string
- * @param rDates - Array of dates to include in the recurrence
- * @returns RDATE property string (e.g., "RDATE:20231225T120000Z,20231226T120000Z")
- */
-export function toRDate(
-  rDates: (Temporal.PlainDate | Temporal.ZonedDateTime | Temporal.Instant)[],
-): string {
-  if (!rDates || rDates.length === 0) {
-    return "";
-  }
-
-  const formattedDates = rDates.map(formatTemporal).join(",");
-  return `RDATE:${formattedDates}`;
+interface ToRDateOptions {
+  rDates: (Temporal.PlainDate | Temporal.ZonedDateTime | Temporal.Instant)[];
 }
 
-/**
- * Exports EXDATE (Exception Date) values as an EXDATE property string
- * @param exDates - Array of dates to exclude from the recurrence
- * @returns EXDATE property string (e.g., "EXDATE:20231225T120000Z,20231226T120000Z")
- */
-export function toExDate(
-  exDates: (Temporal.PlainDate | Temporal.ZonedDateTime | Temporal.Instant)[],
-): string {
-  if (!exDates || exDates.length === 0) {
-    return "";
-  }
-
-  const formattedDates = exDates.map(formatTemporal).join(",");
-  return `EXDATE:${formattedDates}`;
+export function toRDate({ rDates }: ToRDateOptions) {
+  return rDates.map((value) => `RDATE${formatTemporal(value)}`);
 }
 
-/**
- * Exports a complete recurrence specification as an array of iCalendar properties
- * @param recurrence - Recurrence object to export
- * @returns Array of iCalendar property strings (RRULE, RDATE, EXDATE)
- */
-export function toRecurrenceProperties(recurrence: Recurrence): string[] {
+interface ToExDateOptions {
+  exDates: (Temporal.PlainDate | Temporal.ZonedDateTime | Temporal.Instant)[];
+}
+
+function toExDate({ exDates }: ToExDateOptions) {
+  return exDates.map((value) => `EXDATE${formatTemporal(value)}`);
+}
+
+interface ToDtStartOptions {
+  dtstart: Temporal.PlainDate | Temporal.ZonedDateTime | Temporal.Instant;
+}
+
+function toDtstart({ dtstart }: ToDtStartOptions) {
+  return `DTSTART${formatTemporal(dtstart)}`;
+}
+
+export function toRecurrenceProperties(recurrence: Recurrence) {
   const properties: string[] = [];
 
-  // Always include RRULE if we have a frequency
-  properties.push(toRRule(recurrence));
-
-  // Add RDATE if present
-  if (recurrence.rDate && recurrence.rDate.length > 0) {
-    properties.push(toRDate(recurrence.rDate));
+  if (recurrence.dtstart) {
+    properties.push(toDtstart({ dtstart: recurrence.dtstart }));
   }
 
-  // Add EXDATE if present
+  if (recurrence.freq) {
+    properties.push(toRRule(recurrence));
+  }
+
+  if (recurrence.rDate && recurrence.rDate.length > 0) {
+    properties.push(...toRDate({ rDates: recurrence.rDate }));
+  }
+
   if (recurrence.exDate && recurrence.exDate.length > 0) {
-    properties.push(toExDate(recurrence.exDate));
+    properties.push(...toExDate({ exDates: recurrence.exDate }));
   }
 
   return properties;

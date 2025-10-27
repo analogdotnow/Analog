@@ -10,7 +10,7 @@ import type {
   Recurrence,
 } from "../../interfaces";
 import { toRecurrenceProperties } from "../../lib/utils/recurrences/export";
-import { fromRecurrenceProperties } from "../../lib/utils/recurrences/parse";
+import { parseTextRecurrence } from "../../lib/utils/recurrences/parse";
 import {
   parseGoogleCalendarConferenceData,
   toGoogleCalendarConferenceData,
@@ -112,10 +112,10 @@ function parseRecurrence(
     return undefined;
   }
 
-  return fromRecurrenceProperties(
-    event.recurrence,
-    normalizeGoogleTimeZone(timeZone),
-  );
+  return parseTextRecurrence({
+    lines: event.recurrence,
+    defaultTimeZone: normalizeGoogleTimeZone(timeZone),
+  });
 }
 
 interface ParsedGoogleCalendarEventOptions {
