@@ -132,91 +132,78 @@ const attendeeSchema = z.object({
   additionalGuests: z.number().int().optional(),
 });
 
-// export const rruleSchema = z
-//   .object({
-//     /* Required */
-//     freq: z.enum([
-//       "YEARLY",
-//       "MONTHLY",
-//       "WEEKLY",
-//       "DAILY",
-//       "HOURLY",
-//       "MINUTELY",
-//       "SECONDLY",
-//     ]),
-
-//     /* Core modifiers */
-//     interval: z.number().int().gte(1).lte(Number.MAX_SAFE_INTEGER).optional(),
-//     count:    z.number().int().gte(1).lte(Number.MAX_SAFE_INTEGER).optional(),
-//     until:    z.instanceof(Temporal.ZonedDateTime).optional(),
-
-//     /* BY* filters */
-//     byHour:   z.array(z.number().int().gte(0).lte(23)).optional(),
-//     byMinute: z.array(z.number().int().gte(0).lte(59)).optional(),
-//     bySecond: z.array(z.number().int().gte(0).lte(59)).optional(),
-//     byDay:    z.array(weekdayEnum).optional(),
-//     byMonth:  z.array(z.number().int().gte(1).lte(12)).optional(),
-//     byMonthDay: signedList(1, 31).optional(),
-//     byYearDay:  signedList(1, 366).optional(),
-//     byWeekNo:   signedList(1, 53).optional(),
-//     bySetPos:   signedList(1, 366).optional(),
-
-//     /* Week-start */
-//     wkst: weekdayEnum.optional(),
-
-//     /* Inclusions / exclusions */
-//     rDate: z.array(z.instanceof(Temporal.ZonedDateTime)).optional(),
-//     exDate: z.array(z.instanceof(Temporal.ZonedDateTime)).optional(),
-
-//     /* Time-zone context */
-//     tzid: tzidSchema.optional(),
-
-//     /* Generation options */
-//     maxIterations: z.number().int().gte(1).lte(Number.MAX_SAFE_INTEGER).optional(),
-//     includeDtstart: z.boolean().optional(),
-
-//     /* DTSTART (often stored alongside RRULE) */
-//     dtstart: z.instanceof(Temporal.ZonedDateTime).optional(),
-//   })
-//   .strict();
-
-export const recurrenceSchema = z.object({
-  freq: z.enum([
-    "SECONDLY",
-    "MINUTELY",
-    "HOURLY",
-    "DAILY",
-    "WEEKLY",
-    "MONTHLY",
-    "YEARLY",
-  ]),
-  interval: z.number().int().min(1).optional(),
-  count: z.number().int().min(1).optional(),
-  until: dateInputSchema.optional(),
-  byDay: z.array(z.enum(["MO", "TU", "WE", "TH", "FR", "SA", "SU"])).optional(),
-  byMonth: z.array(z.number().int().min(1).max(12)).optional(),
-  byMonthDay: z.array(z.number().int().min(1).max(31)).optional(),
-  byYearDay: z.array(z.number().int().min(1).max(366)).optional(),
-  byWeekNo: z.array(z.number().int().min(1).max(53)).optional(),
-  byHour: z.array(z.number().int().min(0).max(23)).optional(),
-  byMinute: z.array(z.number().int().min(0).max(59)).optional(),
-  bySecond: z.array(z.number().int().min(0).max(59)).optional(),
-  bySetPos: z
-    .array(
-      z
-        .number()
-        .int()
-        .min(-366)
-        .max(366)
-        .refine((val) => val !== 0, {
-          message: "bySetPos values cannot be zero",
-        }),
-    )
-    .optional(),
-  wkst: z.enum(["MO", "TU", "WE", "TH", "FR", "SA", "SU"]).optional(),
-  rDate: z.array(dateInputSchema).optional(),
-  exDate: z.array(dateInputSchema).optional(),
-});
+export const recurrenceSchema = z
+  .object({
+    freq: z
+      .enum([
+        "SECONDLY",
+        "MINUTELY",
+        "HOURLY",
+        "DAILY",
+        "WEEKLY",
+        "MONTHLY",
+        "YEARLY",
+      ])
+      .optional(),
+    interval: z.number().int().min(1).optional(),
+    count: z.number().int().min(1).optional(),
+    until: dateInputSchema.optional(),
+    byDay: z
+      .array(z.enum(["MO", "TU", "WE", "TH", "FR", "SA", "SU"]))
+      .optional(),
+    byMonth: z.array(z.number().int().min(1).max(12)).optional(),
+    byMonthDay: z.array(z.number().int().min(1).max(31)).optional(),
+    byYearDay: z.array(z.number().int().min(1).max(366)).optional(),
+    byWeekNo: z.array(z.number().int().min(1).max(53)).optional(),
+    byHour: z.array(z.number().int().min(0).max(23)).optional(),
+    byMinute: z.array(z.number().int().min(0).max(59)).optional(),
+    bySecond: z.array(z.number().int().min(0).max(59)).optional(),
+    bySetPos: z
+      .array(
+        z
+          .number()
+          .int()
+          .min(-366)
+          .max(366)
+          .refine((val) => val !== 0, {
+            message: "bySetPos values cannot be zero",
+          }),
+      )
+      .optional(),
+    wkst: z.enum(["MO", "TU", "WE", "TH", "FR", "SA", "SU"]).optional(),
+    rDate: z.array(dateInputSchema).optional(),
+    exDate: z.array(dateInputSchema).optional(),
+    rscale: z
+      .enum([
+        "GREGORIAN",
+        "BUDDHIST",
+        "CHINESE",
+        "COPTIC",
+        "DANGI",
+        "ETHIOPIC",
+        "ETHIOAA",
+        "HEBREW",
+        "INDIAN",
+        "ISLAMIC",
+        "ISLAMIC-CIVIL",
+        "ISLAMIC-TBLA",
+        "ISLAMIC-UMALQURA",
+        "ISLAMIC-RGSA",
+        "ISO8601",
+        "JAPANESE",
+        "PERSIAN",
+        "ROC",
+      ])
+      .optional(),
+    skip: z.enum(["OMIT", "BACKWARD", "FORWARD"]).optional(),
+  })
+  .refine(
+    (data) =>
+      data.freq !== undefined || (data.exDate && data.exDate.length > 0),
+    {
+      message: "Recurrence must include freq or exDate",
+    },
+  );
 
 export const createEventInputSchema = z.object({
   id: z.string(),

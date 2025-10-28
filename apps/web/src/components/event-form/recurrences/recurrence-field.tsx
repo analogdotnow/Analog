@@ -50,14 +50,15 @@ export function RecurrenceField({
   const options = generateRecurrenceSuggestions({ date, locale });
 
   const { description, rrule } = React.useMemo(() => {
-    if (!value) {
+    if (!value || !value.freq) {
       return { description: undefined, rrule: undefined, rule: undefined };
     }
 
-    const { until, rDate, exDate, ...params } = value;
+    const { freq, until, rDate, exDate, ...params } = value;
 
     const rule = new RRuleTemporal({
       ...params,
+      freq,
       rDate: rDate?.map((date) => toZonedDateTime(date, { timeZone })),
       exDate: exDate?.map((date) => toZonedDateTime(date, { timeZone })),
       until: until ? toZonedDateTime(until, { timeZone }) : undefined,

@@ -1,416 +1,346 @@
 import { Temporal } from "temporal-polyfill";
 
-import type { Frequency, Recurrence, Weekday } from "../../../interfaces";
+import { Frequency, Recurrence, Weekday } from "../../../interfaces";
 
-function parseUTCDateTime(
-  dateString: string,
-): Temporal.Instant | Temporal.PlainDate {
-  // Expect formats like 20231225Z (date) or 20231225T120000Z (datetime)
-  const formatted = dateString.slice(0, -1);
-  const year = parseInt(formatted.slice(0, 4));
-  const month = parseInt(formatted.slice(4, 6));
-  const day = parseInt(formatted.slice(6, 8));
-
-  if (formatted.length === 8) {
-    return Temporal.PlainDate.from({ year, month, day });
-  }
-
-  const hour = parseInt(formatted.slice(9, 11));
-  const minute = parseInt(formatted.slice(11, 13));
-  const second = parseInt(formatted.slice(13, 15)) || 0;
-
-  // Create a ZonedDateTime in UTC for consistency with the local-date branch,
-  // then convert it to an Instant.
-  return Temporal.ZonedDateTime.from({
-    year,
-    month,
-    day,
-    hour,
-    minute,
-    second,
-    timeZone: "UTC",
-  }).toInstant();
+interface ParseIcsDateTimeOptions {
+  value: string;
+  timeZone?: string;
+  defaultTimeZone: string;
+  valueType?: string;
 }
 
-function parseFloatingDateTime(
-  value: string,
-  timeZone: string,
-): Temporal.PlainDate | Temporal.ZonedDateTime {
-  // Expect formats like 20231225 (date) or 20231225T120000 (datetime)
-  const year = parseInt(value.slice(0, 4));
-  const month = parseInt(value.slice(4, 6));
-  const day = parseInt(value.slice(6, 8));
+function parseDateTime({
+  value,
+  timeZone,
+  defaultTimeZone,
+  valueType,
+}: ParseIcsDateTimeOptions) {
+  const isoDate = `${value.slice(0, 4)}-${value.slice(4, 6)}-${value.slice(6, 8)}`;
 
-  if (value.length === 8) {
-    return Temporal.PlainDate.from({ year, month, day });
+  if (valueType === "DATE" || !value.includes("T")) {
+    return Temporal.PlainDate.from(isoDate);
   }
 
-  const hour = parseInt(value.slice(9, 11));
-  const minute = parseInt(value.slice(11, 13));
-  const second = parseInt(value.slice(13, 15)) || 0;
+  if (value.endsWith("Z")) {
+    const isoDateTime = `${isoDate}T${value.slice(9, 15)}Z`;
 
-  return Temporal.ZonedDateTime.from({
-    year,
-    month,
-    day,
-    hour,
-    minute,
-    second,
-    timeZone,
+    const instant = Temporal.Instant.from(isoDateTime);
+
+    return timeZone ? instant.toZonedDateTimeISO(timeZone) : instant;
+  }
+
+  const isoDateTime = `${isoDate}T${value.slice(9)}`;
+
+  return Temporal.PlainDateTime.from(isoDateTime).toZonedDateTime(
+    timeZone ?? defaultTimeZone,
+  );
+}
+
+const EXDATE_LINE_REGEX = /^EXDATE(?:;VALUE=([^;]+))?(?:;TZID=([^:]+))?:(.+)/i;
+const DATE_LINE_REGEX = /^RDATE(?:;VALUE=([^;]+))?(?:;TZID=([^:]+))?:(.+)/i;
+
+interface ParseDateLinesOptions {
+  lines: string[];
+  linePrefix: "EXDATE" | "RDATE";
+  defaultTimeZone: string;
+}
+
+function parseDateLines({
+  lines,
+  linePrefix,
+  defaultTimeZone,
+}: ParseDateLinesOptions) {
+  const dates: (
+    | Temporal.ZonedDateTime
+    | Temporal.PlainDate
+    | Temporal.Instant
+  )[] = [];
+
+  const regex = linePrefix === "EXDATE" ? EXDATE_LINE_REGEX : DATE_LINE_REGEX;
+
+  for (const line of lines) {
+    const match = line.match(regex);
+
+    if (match) {
+      const [, valueType, timeZone, dateValuesStr] = match;
+      const dateValues = dateValuesStr!.split(",");
+
+      dates.push(
+        ...dateValues.map((value) =>
+          parseDateTime({ value, timeZone, defaultTimeZone, valueType }),
+        ),
+      );
+    }
+  }
+
+  return dates;
+}
+
+function parseNumberArray(input: string, sort = false): number[] {
+  const values = input.split(",").map((n) => parseInt(n, 10));
+
+  if (!sort) {
+    return values;
+  }
+
+  return values.sort((a, b) => a - b);
+}
+
+const BYMONTH_REGEX = /^\d+L$/i;
+
+function parseByMonthArray(input: string): Array<number | string> {
+  return input.split(",").map((value) => {
+    const token = value.trim();
+
+    if (BYMONTH_REGEX.test(token)) {
+      return token.toUpperCase();
+    }
+
+    const n = parseInt(token, 10);
+
+    return Number.isFinite(n) ? n : token;
   });
 }
 
-function parseTemporal(
-  value: string,
-  timeZone: string,
-): Temporal.PlainDate | Temporal.ZonedDateTime | Temporal.Instant {
-  if (value.endsWith("Z")) {
-    return parseUTCDateTime(value);
-  }
+const EXDATE_REGEX = /^EXDATE/i;
 
-  return parseFloatingDateTime(value, timeZone);
+interface ParseExDateOptions {
+  lines: string[];
+  defaultTimeZone: string;
 }
 
-const WEEKDAY_MAP: Record<string, Weekday> = {
-  MO: "MO",
-  TU: "TU",
-  WE: "WE",
-  TH: "TH",
-  FR: "FR",
-  SA: "SA",
-  SU: "SU",
-};
+function parseExDate({ lines, defaultTimeZone }: ParseExDateOptions) {
+  const exLines = lines.filter((line) => EXDATE_REGEX.test(line));
 
-const FREQUENCY_MAP: Record<string, Frequency> = {
-  DAILY: "DAILY",
-  WEEKLY: "WEEKLY",
-  MONTHLY: "MONTHLY",
-  YEARLY: "YEARLY",
-};
+  return parseDateLines({
+    lines: exLines,
+    linePrefix: "EXDATE",
+    defaultTimeZone,
+  });
+}
 
-/**
- * Parses an RRULE string into a Recurrence object
- * @param rruleString - The RRULE string to parse (e.g., "RRULE:FREQ=WEEKLY;INTERVAL=2;BYDAY=MO,WE,FR")
- * @returns Recurrence object matching the interface definition
- * @throws Error if the RRULE string is malformed or contains unsupported frequency
- */
-export function fromRRule(rrule: string, timeZone: string = "UTC"): Recurrence {
-  if (!rrule.startsWith("RRULE:")) {
-    throw new Error('Invalid RRULE: must start with "RRULE:"');
+const RDATE_REGEX = /^RDATE/i;
+
+interface ParseRDateOptions {
+  lines: string[];
+  defaultTimeZone: string;
+}
+
+function parseRDate({ lines, defaultTimeZone }: ParseRDateOptions) {
+  const rLines = lines.filter((line) => RDATE_REGEX.test(line));
+
+  return parseDateLines({
+    lines: rLines,
+    linePrefix: "RDATE",
+    defaultTimeZone,
+  });
+}
+
+interface ParseDtstartOptions {
+  lines: string[];
+  defaultTimeZone: string;
+}
+
+const DTSTART_LINE_REGEX = /DTSTART(?:;VALUE=([^;]+))?(?:;TZID=([^:]+))?:(.+)/i;
+const DTSTART_REGEX = /^DTSTART/i;
+
+function parseDtstart({ lines, defaultTimeZone }: ParseDtstartOptions) {
+  const dtLine = lines.find((line) => DTSTART_REGEX.test(line));
+
+  if (!dtLine) {
+    return undefined;
   }
 
-  // Remove "RRULE:" prefix and split by semicolon
-  const ruleBody = rrule.substring(6);
-  const parts = ruleBody.split(";");
+  const match = dtLine.match(DTSTART_LINE_REGEX);
 
-  const recurrence: Partial<Recurrence> = {};
+  if (!match) {
+    throw new Error("Invalid DTSTART format");
+  }
+
+  const [, valueType, timeZone, value] = match;
+
+  return parseDateTime({
+    value: value!,
+    timeZone,
+    defaultTimeZone,
+    valueType,
+  });
+}
+
+function parseRRuleLine(lines: string[]) {
+  const rrLine = lines.find((line) => /^RRULE:/i.test(line));
+
+  if (rrLine) {
+    return rrLine;
+  }
+
+  return undefined;
+}
+
+function parseSkip(input: string) {
+  const value = input.toUpperCase();
+
+  if (!["OMIT", "BACKWARD", "FORWARD"].includes(value)) {
+    throw new Error(`Invalid SKIP value: ${input}`);
+  }
+
+  return value as "OMIT" | "BACKWARD" | "FORWARD";
+}
+
+function parseRscale(input: string) {
+  const value = input.toUpperCase();
+
+  if (!["GREGORIAN", "ISO8601"].includes(value)) {
+    throw new Error(`Unsupported RSCALE value: ${input}`);
+  }
+
+  return value as "GREGORIAN" | "ISO8601";
+}
+
+function parseFrequency(input: string): Frequency {
+  const value = input.toUpperCase();
+
+  if (
+    !Object.values([
+      "SECONDLY",
+      "MINUTELY",
+      "HOURLY",
+      "DAILY",
+      "WEEKLY",
+      "MONTHLY",
+      "YEARLY",
+    ]).includes(value)
+  ) {
+    throw new Error(`Invalid FREQ value: ${input}`);
+  }
+
+  return value as Frequency;
+}
+
+const RRULE_REGEX = /^RRULE:/i;
+
+interface ParseRRuleOptions {
+  lines: string[];
+}
+
+function parseRRule({ lines }: ParseRRuleOptions) {
+  const rruleLine = parseRRuleLine(lines);
+
+  if (!rruleLine) {
+    return undefined;
+  }
+
+  const parts = rruleLine.replace(RRULE_REGEX, "").split(";");
+
+  const recurrence: Recurrence = {};
+
+  let pendingSkip: "OMIT" | "BACKWARD" | "FORWARD" | undefined;
 
   for (const part of parts) {
-    if (!part.includes("=")) continue;
+    const [key, value] = part.split("=");
 
-    const [key, value] = part.split("=", 2);
-    if (!key || !value) continue;
+    if (!key || !value) {
+      continue;
+    }
 
     switch (key.toUpperCase()) {
-      case "FREQ": {
-        const freq = FREQUENCY_MAP[value.toUpperCase()];
-        if (!freq) {
-          throw new Error(`Unsupported freq ${value}`);
+      case "RSCALE":
+        recurrence.rscale = parseRscale(value);
+
+        if (pendingSkip && !recurrence.skip) {
+          recurrence.skip = pendingSkip;
+          pendingSkip = undefined;
         }
-        recurrence.freq = freq;
-        break;
-      }
 
-      case "INTERVAL": {
-        const interval = parseInt(value);
-        if (isNaN(interval) || interval < 1) {
-          throw new Error(`Invalid interval: ${value}`);
+        break;
+      case "SKIP":
+        if (recurrence.rscale) {
+          recurrence.skip = parseSkip(value);
+        } else {
+          pendingSkip = parseSkip(value);
         }
-        recurrence.interval = interval;
-        break;
-      }
 
-      case "COUNT": {
-        const count = parseInt(value);
-        if (isNaN(count) || count < 1) {
-          throw new Error(`Invalid count: ${value}`);
-        }
-        recurrence.count = count;
         break;
-      }
-
-      case "UNTIL": {
-        try {
-          recurrence.until = parseTemporal(value, timeZone);
-        } catch {
-          throw new Error(`Invalid UNTIL date: ${value}`);
-        }
+      case "FREQ":
+        recurrence.freq = parseFrequency(value);
         break;
-      }
-
-      case "BYDAY": {
-        const weekdays = value.split(",").map((day) => {
-          // Handle prefixed weekdays like "1MO", "-1FR" by extracting the weekday part
-          const cleanDay = day.replace(/^[+-]?\d*/, "").toUpperCase();
-          const mappedDay = WEEKDAY_MAP[cleanDay];
-          if (!mappedDay) {
-            throw new Error(`Invalid weekday: ${day}`);
-          }
-          return mappedDay;
+      case "INTERVAL":
+        recurrence.interval = parseInt(value, 10);
+        break;
+      case "COUNT":
+        recurrence.count = parseInt(value, 10);
+        break;
+      case "UNTIL":
+        recurrence.until = parseDateTime({
+          value: value,
+          defaultTimeZone: "UTC",
         });
-        recurrence.byDay = weekdays;
         break;
-      }
-
-      case "BYMONTH": {
-        const months = value.split(",").map((month) => {
-          const num = parseInt(month);
-          if (isNaN(num) || num < 1 || num > 12) {
-            throw new Error(`Invalid month: ${month}`);
-          }
-          return num;
-        });
-        recurrence.byMonth = months;
+      case "BYHOUR":
+        recurrence.byHour = parseNumberArray(value, true);
         break;
-      }
-
-      case "BYMONTHDAY": {
-        const monthDays = value.split(",").map((day) => {
-          const num = parseInt(day);
-          if (isNaN(num) || num < 1 || num > 31) {
-            throw new Error(`Invalid month day: ${day}`);
-          }
-          return num;
-        });
-        recurrence.byMonthDay = monthDays;
+      case "BYMINUTE":
+        recurrence.byMinute = parseNumberArray(value, true);
         break;
-      }
-
-      case "BYYEARDAY": {
-        const yearDays = value.split(",").map((day) => {
-          const num = parseInt(day);
-          if (isNaN(num) || num < 1 || num > 366) {
-            throw new Error(`Invalid year day: ${day}`);
-          }
-          return num;
-        });
-        recurrence.byYearDay = yearDays;
+      case "BYSECOND":
+        recurrence.bySecond = parseNumberArray(value, true);
         break;
-      }
-
-      case "BYWEEKNO": {
-        const weekNos = value.split(",").map((week) => {
-          const num = parseInt(week);
-          if (isNaN(num) || num < 1 || num > 53) {
-            throw new Error(`Invalid week number: ${week}`);
-          }
-          return num;
-        });
-        recurrence.byWeekNo = weekNos;
+      case "BYDAY":
+        // TODO: Add proper support for RFC 7529 weekday tokens with a number prefix (e.g., "2FR", "-1SU").
+        recurrence.byDay = value.split(",") as Weekday[];
         break;
-      }
-
-      case "BYHOUR": {
-        const hours = value.split(",").map((hour) => {
-          const num = parseInt(hour);
-          if (isNaN(num) || num < 0 || num > 23) {
-            throw new Error(`Invalid hour: ${hour}`);
-          }
-          return num;
-        });
-        recurrence.byHour = hours;
+      case "BYMONTH":
+        // TODO: Add proper support for RFC 7529 leap-month tokens with an "L" suffix (e.g., "5L").
+        recurrence.byMonth = parseByMonthArray(value) as number[];
         break;
-      }
-
-      case "BYMINUTE": {
-        const minutes = value.split(",").map((minute) => {
-          const num = parseInt(minute);
-          if (isNaN(num) || num < 0 || num > 59) {
-            throw new Error(`Invalid minute: ${minute}`);
-          }
-          return num;
-        });
-        recurrence.byMinute = minutes;
+      case "BYMONTHDAY":
+        recurrence.byMonthDay = parseNumberArray(value);
         break;
-      }
-
-      case "BYSECOND": {
-        const seconds = value.split(",").map((second) => {
-          const num = parseInt(second);
-          if (isNaN(num) || num < 0 || num > 59) {
-            throw new Error(`Invalid second: ${second}`);
-          }
-          return num;
-        });
-        recurrence.bySecond = seconds;
+      case "BYYEARDAY":
+        recurrence.byYearDay = parseNumberArray(value);
         break;
-      }
-
-      case "BYSETPOS": {
-        const setPositions = value.split(",").map((pos) => {
-          const num = parseInt(pos);
-          if (isNaN(num) || num === 0 || num < -366 || num > 366) {
-            throw new Error(`Invalid set position: ${pos}`);
-          }
-          return num;
-        });
-        recurrence.bySetPos = setPositions;
+      case "BYWEEKNO":
+        recurrence.byWeekNo = parseNumberArray(value);
         break;
-      }
-
-      case "WKST": {
-        const weekStart = WEEKDAY_MAP[value.toUpperCase()];
-        if (!weekStart) {
-          throw new Error(`Invalid week start: ${value}`);
-        }
-        recurrence.wkst = weekStart;
+      case "BYSETPOS":
+        recurrence.bySetPos = parseNumberArray(value);
         break;
-      }
-
-      default:
-        // Ignore unsupported RRULE properties
+      case "WKST":
+        recurrence.wkst = value as Weekday;
         break;
     }
   }
 
-  if (!recurrence.freq) {
-    throw new Error("RRULE must include FREQ parameter");
+  if (pendingSkip && !recurrence.rscale) {
+    throw new Error("SKIP MUST NOT be present unless RSCALE is present");
   }
 
-  return recurrence as Recurrence;
-}
-
-/**
- * Parses an RDATE string into an array of dates
- * @param rDateString - The RDATE string to parse (e.g., "RDATE:20231225T120000Z,20231226T120000Z")
- * @param timeZone - Time zone for parsing floating dates
- * @returns Array of Temporal date objects
- * @throws Error if the RDATE string is malformed
- */
-export function fromRDate(
-  rDateString: string,
-  timeZone: string = "UTC",
-): (Temporal.PlainDate | Temporal.ZonedDateTime | Temporal.Instant)[] {
-  if (!rDateString.startsWith("RDATE:")) {
-    throw new Error('Invalid RDATE: must start with "RDATE:"');
-  }
-
-  // Remove "RDATE:" prefix and split by comma
-  const dateBody = rDateString.substring(6);
-  if (!dateBody.trim()) {
-    return [];
-  }
-
-  const dateStrings = dateBody.split(",");
-  const dates: (
-    | Temporal.PlainDate
-    | Temporal.ZonedDateTime
-    | Temporal.Instant
-  )[] = [];
-
-  for (const dateString of dateStrings) {
-    try {
-      const parsed = parseTemporal(dateString.trim(), timeZone);
-      dates.push(parsed);
-    } catch {
-      throw new Error(`Invalid RDATE date: ${dateString}`);
-    }
-  }
-
-  return dates;
-}
-
-/**
- * Parses an EXDATE string into an array of dates
- * @param exDateString - The EXDATE string to parse (e.g., "EXDATE:20231225T120000Z,20231226T120000Z")
- * @param timeZone - Time zone for parsing floating dates
- * @returns Array of Temporal date objects
- * @throws Error if the EXDATE string is malformed
- */
-export function fromExDate(
-  exDateString: string,
-  timeZone: string = "UTC",
-): (Temporal.PlainDate | Temporal.ZonedDateTime | Temporal.Instant)[] {
-  if (!exDateString.startsWith("EXDATE:")) {
-    throw new Error('Invalid EXDATE: must start with "EXDATE:"');
-  }
-
-  // Remove "EXDATE:" prefix and split by comma
-  const dateBody = exDateString.substring(7);
-  if (!dateBody.trim()) {
-    return [];
-  }
-
-  const dateStrings = dateBody.split(",");
-  const dates: (
-    | Temporal.PlainDate
-    | Temporal.ZonedDateTime
-    | Temporal.Instant
-  )[] = [];
-
-  for (const dateString of dateStrings) {
-    try {
-      const parsed = parseTemporal(dateString.trim(), timeZone);
-      dates.push(parsed);
-    } catch {
-      throw new Error(`Invalid EXDATE date: ${dateString}`);
-    }
-  }
-
-  return dates;
-}
-
-/**
- * Parses a complete recurrence specification from multiple iCalendar properties
- * @param properties - Array of iCalendar property strings (RRULE, RDATE, EXDATE)
- * @param timeZone - Time zone for parsing floating dates
- * @returns Complete Recurrence object
- * @throws Error if no RRULE is found or if any property is malformed
- */
-export function fromRecurrenceProperties(
-  properties: string[],
-  timeZone: string = "UTC",
-): Recurrence {
-  let recurrence: Recurrence | null = null;
-  const rDates: (
-    | Temporal.PlainDate
-    | Temporal.ZonedDateTime
-    | Temporal.Instant
-  )[] = [];
-  const exDates: (
-    | Temporal.PlainDate
-    | Temporal.ZonedDateTime
-    | Temporal.Instant
-  )[] = [];
-
-  for (const property of properties) {
-    const trimmed = property.trim();
-
-    if (trimmed.startsWith("RRULE:")) {
-      if (recurrence) {
-        throw new Error("Multiple RRULE properties are not allowed");
-      }
-      recurrence = fromRRule(trimmed, timeZone);
-    } else if (trimmed.startsWith("RDATE:")) {
-      const dates = fromRDate(trimmed, timeZone);
-      rDates.push(...dates);
-    } else if (trimmed.startsWith("EXDATE:")) {
-      const dates = fromExDate(trimmed, timeZone);
-      exDates.push(...dates);
-    }
-  }
-
-  if (!recurrence) {
-    throw new Error("RRULE property is required");
-  }
-
-  // Add RDATE and EXDATE arrays to the recurrence if they exist
-  if (rDates.length > 0) {
-    recurrence.rDate = rDates;
-  }
-  if (exDates.length > 0) {
-    recurrence.exDate = exDates;
+  if (pendingSkip && recurrence.rscale && !recurrence.skip) {
+    recurrence.skip = pendingSkip;
   }
 
   return recurrence;
+}
+
+interface ParseTextRecurrenceOptions {
+  lines: string[];
+  defaultTimeZone: string;
+}
+
+export function parseTextRecurrence({
+  lines,
+  defaultTimeZone,
+}: ParseTextRecurrenceOptions): Recurrence {
+  const dtstart = parseDtstart({ lines, defaultTimeZone });
+  const exDate = parseExDate({ lines, defaultTimeZone });
+  const rDate = parseRDate({ lines, defaultTimeZone });
+
+  const rrule = parseRRule({ lines });
+
+  return {
+    ...(rrule ? rrule : {}),
+    dtstart,
+    exDate,
+    rDate,
+  };
 }
