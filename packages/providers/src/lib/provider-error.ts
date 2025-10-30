@@ -16,3 +16,15 @@ export class ProviderError extends Error {
     this.originalError = error;
   }
 }
+
+export class ResourceDeletedError extends ProviderError {
+  constructor(
+    operation: string,
+    context?: Record<string, unknown>,
+  ) {
+    const error = new Error("The requested resource has been deleted") as Error & { code?: string };
+    error.code = "RESOURCE_DELETED";
+    super(error, operation, context);
+    this.name = "ResourceDeletedError";
+  }
+}

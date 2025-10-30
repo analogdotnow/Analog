@@ -18,7 +18,7 @@ import type {
   CalendarProviderSyncOptions,
   ResponseToEventInput,
 } from "../interfaces/providers";
-import { ProviderError } from "../lib/provider-error";
+import { ProviderError, ResourceDeletedError } from "../lib/provider-error";
 import { parseGoogleCalendarCalendarListEntry } from "./google-calendar/calendars";
 import {
   parseGoogleCalendarEvent,
@@ -151,9 +151,27 @@ export class GoogleCalendarProvider implements CalendarProvider {
         return { events, recurringMasterEvents: [] };
       }
 
-      const recurringMasterEvents = await Promise.all(
+      // Fetch master events individually and filter out deleted ones
+      const masterResults = await Promise.allSettled(
         Array.from(masters).map((id) => this.event(calendar, id, timeZone)),
       );
+
+      const recurringMasterEvents: CalendarEvent[] = [];
+
+      for (const result of masterResults) {
+        if (result.status === "fulfilled") {
+          recurringMasterEvents.push(result.value);
+        } else if (result.reason instanceof ResourceDeletedError) {
+          // Log but don't fail - the master event was deleted
+          console.info(`Recurring master event was deleted, skipping:`, {
+            calendarId: calendar.id,
+            error: result.reason.message,
+          });
+        } else {
+          // Re-throw non-deletion errors
+          throw result.reason;
+        }
+      }
 
       return { events, recurringMasterEvents };
     });
@@ -171,9 +189,29 @@ export class GoogleCalendarProvider implements CalendarProvider {
         return [];
       }
 
-      return Promise.all(
+      // Fetch events individually and filter out deleted ones
+      const results = await Promise.allSettled(
         Array.from(map).map((id) => this.event(calendar, id, timeZone)),
       );
+
+      const successfulEvents: CalendarEvent[] = [];
+
+      for (const result of results) {
+        if (result.status === "fulfilled") {
+          successfulEvents.push(result.value);
+        } else if (result.reason instanceof ResourceDeletedError) {
+          // Log but don't fail - the event was deleted
+          console.info(`Recurring event was deleted, skipping:`, {
+            calendarId: calendar.id,
+            error: result.reason.message,
+          });
+        } else {
+          // Re-throw non-deletion errors
+          throw result.reason;
+        }
+      }
+
+      return successfulEvents;
     });
   }
 
@@ -343,12 +381,24 @@ export class GoogleCalendarProvider implements CalendarProvider {
     event: UpdateEventInput,
   ): Promise<CalendarEvent> {
     return this.withErrorHandler("updateEvent", async () => {
-      const existingEvent = await this.client.calendars.events.retrieve(
-        eventId,
-        {
-          calendarId: calendar.id,
-        },
-      );
+      let existingEvent;
+      try {
+        existingEvent = await this.client.calendars.events.retrieve(
+          eventId,
+          {
+            calendarId: calendar.id,
+          },
+        );
+      } catch (error) {
+        // If the event was deleted, throw a more specific error
+        if (this.isResourceDeletedError(error)) {
+          throw new ResourceDeletedError("updateEvent", {
+            calendarId: calendar.id,
+            eventId,
+          });
+        }
+        throw error;
+      }
 
       let eventToUpdate = {
         ...existingEvent,
@@ -436,9 +486,21 @@ export class GoogleCalendarProvider implements CalendarProvider {
 
   async acceptEvent(calendarId: string, eventId: string): Promise<void> {
     return this.withErrorHandler("acceptEvent", async () => {
-      const event = await this.client.calendars.events.retrieve(eventId, {
-        calendarId,
-      });
+      let event;
+      try {
+        event = await this.client.calendars.events.retrieve(eventId, {
+          calendarId,
+        });
+      } catch (error) {
+        // If the event was deleted, throw a more specific error
+        if (this.isResourceDeletedError(error)) {
+          throw new ResourceDeletedError("acceptEvent", {
+            calendarId,
+            eventId,
+          });
+        }
+        throw error;
+      }
 
       const attendees = event.attendees ?? [];
       const selfIndex = attendees.findIndex((a) => a.self);
@@ -471,9 +533,21 @@ export class GoogleCalendarProvider implements CalendarProvider {
         return;
       }
 
-      const event = await this.client.calendars.events.retrieve(eventId, {
-        calendarId,
-      });
+      let event;
+      try {
+        event = await this.client.calendars.events.retrieve(eventId, {
+          calendarId,
+        });
+      } catch (error) {
+        // If the event was deleted, throw a more specific error
+        if (this.isResourceDeletedError(error)) {
+          throw new ResourceDeletedError("responseToEvent", {
+            calendarId,
+            eventId,
+          });
+        }
+        throw error;
+      }
 
       if (!event.attendees) {
         throw new Error("Event has no attendees");
@@ -523,10 +597,39 @@ export class GoogleCalendarProvider implements CalendarProvider {
     try {
       return await Promise.resolve(fn());
     } catch (error: unknown) {
+      // Check if this is a 410 (Gone) error indicating the resource has been deleted
+      if (this.isResourceDeletedError(error)) {
+        console.warn(`Resource deleted during ${operation}:`, {
+          operation,
+          context,
+          error: error instanceof Error ? error.message : String(error),
+        });
+        throw new ResourceDeletedError(operation, context);
+      }
+
       console.error(`Failed to ${operation}:`, error);
 
       throw new ProviderError(error as Error, operation, context);
     }
+  }
+
+  private isResourceDeletedError(error: unknown): boolean {
+    if (!(error instanceof APIError)) {
+      return false;
+    }
+
+    // Check for 410 Gone status with "deleted" reason
+    if (error.status === 410) {
+      const details =
+        (error.error as { errors?: Array<{ reason?: string }> })?.errors ?? [];
+
+      // If the error explicitly states the resource was deleted, it's a resource deletion
+      if (details.some(({ reason }) => reason === "deleted")) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   private isFullSyncRequiredError(error: unknown): boolean {
@@ -535,12 +638,21 @@ export class GoogleCalendarProvider implements CalendarProvider {
     }
 
     if (error.status === 410) {
-      return true;
+      const details =
+        (error.error as { errors?: Array<{ reason?: string }> })?.errors ?? [];
+
+      // Only treat as full sync required if not explicitly a deletion
+      // or if the reason is fullSyncRequired
+      if (details.some(({ reason }) => reason === "fullSyncRequired")) {
+        return true;
+      }
+
+      // For 410 without explicit "deleted" reason, treat as full sync required
+      if (!details.some(({ reason }) => reason === "deleted")) {
+        return true;
+      }
     }
 
-    const details =
-      (error.error as { errors?: Array<{ reason?: string }> })?.errors ?? [];
-
-    return details.some(({ reason }) => reason === "fullSyncRequired");
+    return false;
   }
 }
