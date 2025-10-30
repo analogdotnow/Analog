@@ -13,6 +13,7 @@ export {
   APIUserAbortError,
   NotFoundError,
   ConflictError,
+  ResourceDeletedError,
   RateLimitError,
   BadRequestError,
   AuthenticationError,

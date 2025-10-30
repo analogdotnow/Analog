@@ -88,6 +88,10 @@ export class APIError<
       return new ConflictError(status, error, message, headers);
     }
 
+    if (status === 410) {
+      return new ResourceDeletedError(status, error, message, headers);
+    }
+
     if (status === 422) {
       return new UnprocessableEntityError(status, error, message, headers);
     }
@@ -148,6 +152,8 @@ export class PermissionDeniedError extends APIError<403, Headers> {}
 export class NotFoundError extends APIError<404, Headers> {}
 
 export class ConflictError extends APIError<409, Headers> {}
+
+export class ResourceDeletedError extends APIError<410, Headers> {}
 
 export class UnprocessableEntityError extends APIError<422, Headers> {}
 
