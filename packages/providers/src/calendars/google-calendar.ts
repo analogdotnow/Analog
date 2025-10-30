@@ -1,6 +1,6 @@
 import { Temporal } from "temporal-polyfill";
 
-import { APIError, ConflictError, GoogleCalendar } from "@repo/google-calendar";
+import { APIError, ConflictError, GoogleCalendar, ResourceDeletedError } from "@repo/google-calendar";
 import type {
   CreateCalendarInput,
   CreateEventInput,
@@ -151,9 +151,28 @@ export class GoogleCalendarProvider implements CalendarProvider {
         return { events, recurringMasterEvents: [] };
       }
 
-      const recurringMasterEvents = await Promise.all(
+      const results = await Promise.allSettled(
         Array.from(masters).map((id) => this.event(calendar, id, timeZone)),
       );
+
+      const recurringMasterEvents = results
+        .filter((result): result is PromiseFulfilledResult<CalendarEvent> => {
+          if (result.status === "rejected") {
+            // Log deleted resource errors but don't fail the entire operation
+            if (result.reason instanceof ProviderError &&
+                result.reason.originalError instanceof ResourceDeletedError) {
+              console.info(
+                `Recurring master event has been deleted, skipping`,
+                { calendarId: calendar.id }
+              );
+              return false;
+            }
+            // Re-throw other errors
+            throw result.reason;
+          }
+          return true;
+        })
+        .map((result) => result.value);
 
       return { events, recurringMasterEvents };
     });
@@ -171,9 +190,28 @@ export class GoogleCalendarProvider implements CalendarProvider {
         return [];
       }
 
-      return Promise.all(
+      const results = await Promise.allSettled(
         Array.from(map).map((id) => this.event(calendar, id, timeZone)),
       );
+
+      return results
+        .filter((result): result is PromiseFulfilledResult<CalendarEvent> => {
+          if (result.status === "rejected") {
+            // Log deleted resource errors but don't fail the entire operation
+            if (result.reason instanceof ProviderError &&
+                result.reason.originalError instanceof ResourceDeletedError) {
+              console.info(
+                `Recurring event has been deleted, skipping`,
+                { calendarId: calendar.id }
+              );
+              return false;
+            }
+            // Re-throw other errors
+            throw result.reason;
+          }
+          return true;
+        })
+        .map((result) => result.value);
     });
   }
 
@@ -297,16 +335,27 @@ export class GoogleCalendarProvider implements CalendarProvider {
     timeZone?: string,
   ): Promise<CalendarEvent> {
     return this.withErrorHandler("event", async () => {
-      const event = await this.client.calendars.events.retrieve(eventId, {
-        calendarId: calendar.id,
-      });
+      try {
+        const event = await this.client.calendars.events.retrieve(eventId, {
+          calendarId: calendar.id,
+        });
 
-      return parseGoogleCalendarEvent({
-        calendar,
-        accountId: this.accountId,
-        event,
-        defaultTimeZone: timeZone ?? "UTC",
-      });
+        return parseGoogleCalendarEvent({
+          calendar,
+          accountId: this.accountId,
+          event,
+          defaultTimeZone: timeZone ?? "UTC",
+        });
+      } catch (error) {
+        if (error instanceof ResourceDeletedError) {
+          console.warn(
+            `Event ${eventId} in calendar ${calendar.id} has been deleted`,
+            { eventId, calendarId: calendar.id }
+          );
+          throw error;
+        }
+        throw error;
+      }
     });
   }
 
@@ -343,60 +392,71 @@ export class GoogleCalendarProvider implements CalendarProvider {
     event: UpdateEventInput,
   ): Promise<CalendarEvent> {
     return this.withErrorHandler("updateEvent", async () => {
-      const existingEvent = await this.client.calendars.events.retrieve(
-        eventId,
-        {
-          calendarId: calendar.id,
-        },
-      );
-
-      let eventToUpdate = {
-        ...existingEvent,
-        calendarId: calendar.id,
-        ...toGoogleCalendarEvent(event),
-      };
-
-      // Handle response status update within the same call for Google Calendar
-      if (event.response && event.response.status !== "unknown") {
-        if (!existingEvent.attendees) {
-          throw new Error("Event has no attendees");
-        }
-
-        const selfIndex = existingEvent.attendees.findIndex(
-          (attendee) => attendee.self,
+      try {
+        const existingEvent = await this.client.calendars.events.retrieve(
+          eventId,
+          {
+            calendarId: calendar.id,
+          },
         );
 
-        if (selfIndex === -1) {
-          throw new Error("User is not an attendee");
+        let eventToUpdate = {
+          ...existingEvent,
+          calendarId: calendar.id,
+          ...toGoogleCalendarEvent(event),
+        };
+
+        // Handle response status update within the same call for Google Calendar
+        if (event.response && event.response.status !== "unknown") {
+          if (!existingEvent.attendees) {
+            throw new Error("Event has no attendees");
+          }
+
+          const selfIndex = existingEvent.attendees.findIndex(
+            (attendee) => attendee.self,
+          );
+
+          if (selfIndex === -1) {
+            throw new Error("User is not an attendee");
+          }
+
+          const updatedAttendees = [...existingEvent.attendees];
+          updatedAttendees[selfIndex] = {
+            ...updatedAttendees[selfIndex],
+            responseStatus: toGoogleCalendarAttendeeResponseStatus(
+              event.response.status,
+            ),
+          };
+
+          eventToUpdate = {
+            ...eventToUpdate,
+            attendees: updatedAttendees,
+            sendUpdates: event.response.sendUpdate ? "all" : "none",
+          };
         }
 
-        const updatedAttendees = [...existingEvent.attendees];
-        updatedAttendees[selfIndex] = {
-          ...updatedAttendees[selfIndex],
-          responseStatus: toGoogleCalendarAttendeeResponseStatus(
-            event.response.status,
-          ),
-        };
+        const updatedEvent = await this.client.calendars.events.update(
+          eventId,
+          eventToUpdate,
+          // TODO: Handle conflicts gracefully
+          // event.etag ? { headers: { "If-Match": event.etag } } : undefined,
+        );
 
-        eventToUpdate = {
-          ...eventToUpdate,
-          attendees: updatedAttendees,
-          sendUpdates: event.response.sendUpdate ? "all" : "none",
-        };
+        return parseGoogleCalendarEvent({
+          calendar,
+          accountId: this.accountId,
+          event: updatedEvent,
+        });
+      } catch (error) {
+        if (error instanceof ResourceDeletedError) {
+          console.warn(
+            `Event ${eventId} in calendar ${calendar.id} has been deleted and cannot be updated`,
+            { eventId, calendarId: calendar.id }
+          );
+          throw error;
+        }
+        throw error;
       }
-
-      const updatedEvent = await this.client.calendars.events.update(
-        eventId,
-        eventToUpdate,
-        // TODO: Handle conflicts gracefully
-        // event.etag ? { headers: { "If-Match": event.etag } } : undefined,
-      );
-
-      return parseGoogleCalendarEvent({
-        calendar,
-        accountId: this.accountId,
-        event: updatedEvent,
-      });
     });
   }
 
@@ -406,10 +466,22 @@ export class GoogleCalendarProvider implements CalendarProvider {
     sendUpdate: boolean,
   ): Promise<void> {
     return this.withErrorHandler("deleteEvent", async () => {
-      await this.client.calendars.events.delete(eventId, {
-        calendarId,
-        sendUpdates: sendUpdate ? "all" : "none",
-      });
+      try {
+        await this.client.calendars.events.delete(eventId, {
+          calendarId,
+          sendUpdates: sendUpdate ? "all" : "none",
+        });
+      } catch (error) {
+        if (error instanceof ResourceDeletedError) {
+          // Event is already deleted, treat as success
+          console.info(
+            `Event ${eventId} in calendar ${calendarId} was already deleted`,
+            { eventId, calendarId }
+          );
+          return;
+        }
+        throw error;
+      }
     });
   }
 
@@ -436,28 +508,39 @@ export class GoogleCalendarProvider implements CalendarProvider {
 
   async acceptEvent(calendarId: string, eventId: string): Promise<void> {
     return this.withErrorHandler("acceptEvent", async () => {
-      const event = await this.client.calendars.events.retrieve(eventId, {
-        calendarId,
-      });
+      try {
+        const event = await this.client.calendars.events.retrieve(eventId, {
+          calendarId,
+        });
 
-      const attendees = event.attendees ?? [];
-      const selfIndex = attendees.findIndex((a) => a.self);
+        const attendees = event.attendees ?? [];
+        const selfIndex = attendees.findIndex((a) => a.self);
 
-      if (selfIndex >= 0) {
-        attendees[selfIndex] = {
-          ...attendees[selfIndex],
-          responseStatus: "accepted",
-        };
-      } else {
-        attendees.push({ self: true, responseStatus: "accepted" });
+        if (selfIndex >= 0) {
+          attendees[selfIndex] = {
+            ...attendees[selfIndex],
+            responseStatus: "accepted",
+          };
+        } else {
+          attendees.push({ self: true, responseStatus: "accepted" });
+        }
+
+        await this.client.calendars.events.update(eventId, {
+          ...event,
+          calendarId,
+          attendees,
+          sendUpdates: "all",
+        });
+      } catch (error) {
+        if (error instanceof ResourceDeletedError) {
+          console.warn(
+            `Event ${eventId} in calendar ${calendarId} has been deleted and cannot be accepted`,
+            { eventId, calendarId }
+          );
+          throw error;
+        }
+        throw error;
       }
-
-      await this.client.calendars.events.update(eventId, {
-        ...event,
-        calendarId,
-        attendees,
-        sendUpdates: "all",
-      });
     });
   }
 
@@ -471,30 +554,41 @@ export class GoogleCalendarProvider implements CalendarProvider {
         return;
       }
 
-      const event = await this.client.calendars.events.retrieve(eventId, {
-        calendarId,
-      });
+      try {
+        const event = await this.client.calendars.events.retrieve(eventId, {
+          calendarId,
+        });
 
-      if (!event.attendees) {
-        throw new Error("Event has no attendees");
+        if (!event.attendees) {
+          throw new Error("Event has no attendees");
+        }
+
+        const selfIndex = event.attendees.findIndex((attendee) => attendee.self);
+
+        if (selfIndex === -1) {
+          throw new Error("User is not an attendee");
+        }
+
+        event.attendees[selfIndex] = {
+          ...event.attendees[selfIndex],
+          responseStatus: toGoogleCalendarAttendeeResponseStatus(response.status),
+        };
+
+        await this.client.calendars.events.update(eventId, {
+          ...event,
+          calendarId,
+          sendUpdates: response.sendUpdate ? "all" : "none",
+        });
+      } catch (error) {
+        if (error instanceof ResourceDeletedError) {
+          console.warn(
+            `Event ${eventId} in calendar ${calendarId} has been deleted and cannot receive a response`,
+            { eventId, calendarId }
+          );
+          throw error;
+        }
+        throw error;
       }
-
-      const selfIndex = event.attendees.findIndex((attendee) => attendee.self);
-
-      if (selfIndex === -1) {
-        throw new Error("User is not an attendee");
-      }
-
-      event.attendees[selfIndex] = {
-        ...event.attendees[selfIndex],
-        responseStatus: toGoogleCalendarAttendeeResponseStatus(response.status),
-      };
-
-      await this.client.calendars.events.update(eventId, {
-        ...event,
-        calendarId,
-        sendUpdates: response.sendUpdate ? "all" : "none",
-      });
     });
   }
 
