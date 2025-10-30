@@ -14,6 +14,8 @@ import type {
 } from "./interfaces/providers";
 import { GoogleTasksProvider } from "./tasks/google-tasks";
 
+export { ProviderError, ResourceDeletedError } from "./lib/provider-error";
+
 const supportedCalendarProviders = {
   google: GoogleCalendarProvider,
   microsoft: MicrosoftCalendarProvider,
