@@ -132,6 +132,40 @@ const attendeeSchema = z.object({
   additionalGuests: z.number().int().optional(),
 });
 
+/**
+ * Helper function to compare two temporal dates
+ * Handles PlainDate, Instant, and ZonedDateTime types
+ * Returns true if start is earlier than end
+ */
+function isStartBeforeEnd(
+  start: Temporal.PlainDate | Temporal.Instant | Temporal.ZonedDateTime,
+  end: Temporal.PlainDate | Temporal.Instant | Temporal.ZonedDateTime,
+): boolean {
+  // Convert both to Instant for comparison
+  let startInstant: Temporal.Instant;
+  let endInstant: Temporal.Instant;
+
+  if (start instanceof Temporal.Instant) {
+    startInstant = start;
+  } else if (start instanceof Temporal.ZonedDateTime) {
+    startInstant = start.toInstant();
+  } else {
+    // PlainDate - convert to Instant at start of day (UTC)
+    startInstant = start.toZonedDateTime("UTC").toInstant();
+  }
+
+  if (end instanceof Temporal.Instant) {
+    endInstant = end;
+  } else if (end instanceof Temporal.ZonedDateTime) {
+    endInstant = end.toInstant();
+  } else {
+    // PlainDate - convert to Instant at start of day (UTC)
+    endInstant = end.toZonedDateTime("UTC").toInstant();
+  }
+
+  return Temporal.Instant.compare(startInstant, endInstant) < 0;
+}
+
 export const recurrenceSchema = z
   .object({
     freq: z
@@ -205,33 +239,38 @@ export const recurrenceSchema = z
     },
   );
 
-export const createEventInputSchema = z.object({
-  id: z.string(),
-  title: z.string().optional(),
-  start: dateInputSchema,
-  end: dateInputSchema,
-  allDay: z.boolean().optional(),
-  recurrence: recurrenceSchema.optional(),
-  recurringEventId: z.string().optional(),
-  description: z.string().optional(),
-  location: z.string().optional(),
-  availability: z.enum(["busy", "free"]).optional(),
-  color: z.string().optional(),
-  visibility: z
-    .enum(["default", "public", "private", "confidential"])
-    .optional(),
-  accountId: z.string(),
-  calendarId: z.string(),
-  providerId: z.enum(["google", "microsoft"]),
-  readOnly: z.boolean(),
-  metadata: z.union([microsoftMetadataSchema, googleMetadataSchema]).optional(),
-  attendees: z.array(attendeeSchema).optional(),
-  conference: conferenceSchema.optional(),
-  createdAt: z.instanceof(Temporal.Instant).optional(),
-  updatedAt: z.instanceof(Temporal.Instant).optional(),
-});
+export const createEventInputSchema = z
+  .object({
+    id: z.string(),
+    title: z.string().optional(),
+    start: dateInputSchema,
+    end: dateInputSchema,
+    allDay: z.boolean().optional(),
+    recurrence: recurrenceSchema.optional(),
+    recurringEventId: z.string().optional(),
+    description: z.string().optional(),
+    location: z.string().optional(),
+    availability: z.enum(["busy", "free"]).optional(),
+    color: z.string().optional(),
+    visibility: z
+      .enum(["default", "public", "private", "confidential"])
+      .optional(),
+    accountId: z.string(),
+    calendarId: z.string(),
+    providerId: z.enum(["google", "microsoft"]),
+    readOnly: z.boolean(),
+    metadata: z.union([microsoftMetadataSchema, googleMetadataSchema]).optional(),
+    attendees: z.array(attendeeSchema).optional(),
+    conference: conferenceSchema.optional(),
+    createdAt: z.instanceof(Temporal.Instant).optional(),
+    updatedAt: z.instanceof(Temporal.Instant).optional(),
+  })
+  .refine((data) => isStartBeforeEnd(data.start, data.end), {
+    message: "Event start time must be earlier than end time",
+    path: ["start"],
+  });
 
-export const updateEventInputSchema = createEventInputSchema.extend({
+export const updateEventInputSchema = createEventInputSchema.safeExtend({
   id: z.string(),
   etag: z.string().optional(),
   metadata: z.union([microsoftMetadataSchema, googleMetadataSchema]).optional(),
