@@ -121,10 +121,20 @@ export class GoogleCalendarProvider implements CalendarProvider {
     events: CalendarEvent[];
     recurringMasterEvents: CalendarEvent[];
   }> {
+    // Validate time range before entering error handler
+    const minInstant = timeMin.withTimeZone("UTC").toInstant();
+    const maxInstant = timeMax.withTimeZone("UTC").toInstant();
+
+    if (Temporal.Instant.compare(minInstant, maxInstant) >= 0) {
+      throw new Error(
+        `Invalid time range: timeMin (${minInstant.toString()}) must be before timeMax (${maxInstant.toString()})`
+      );
+    }
+
     return this.withErrorHandler("events", async () => {
       const { items } = await this.client.calendars.events.list(calendar.id, {
-        timeMin: timeMin.withTimeZone("UTC").toInstant().toString(),
-        timeMax: timeMax.withTimeZone("UTC").toInstant().toString(),
+        timeMin: minInstant.toString(),
+        timeMax: maxInstant.toString(),
         singleEvents: true,
         orderBy: "startTime",
         maxResults: MAX_EVENTS_PER_CALENDAR,
@@ -156,6 +166,10 @@ export class GoogleCalendarProvider implements CalendarProvider {
       );
 
       return { events, recurringMasterEvents };
+    }, {
+      calendarId: calendar.id,
+      timeMin: minInstant.toString(),
+      timeMax: maxInstant.toString(),
     });
   }
 
@@ -503,15 +517,29 @@ export class GoogleCalendarProvider implements CalendarProvider {
     timeMin: Temporal.ZonedDateTime,
     timeMax: Temporal.ZonedDateTime,
   ): Promise<CalendarFreeBusy[]> {
+    // Validate time range before entering error handler
+    const minInstant = timeMin.withTimeZone("UTC").toInstant();
+    const maxInstant = timeMax.withTimeZone("UTC").toInstant();
+
+    if (Temporal.Instant.compare(minInstant, maxInstant) >= 0) {
+      throw new Error(
+        `Invalid time range: timeMin (${minInstant.toString()}) must be before timeMax (${maxInstant.toString()})`
+      );
+    }
+
     return this.withErrorHandler("freeBusy", async () => {
       const response = await this.client.checkFreeBusy.checkFreeBusy({
-        timeMin: timeMin.withTimeZone("UTC").toInstant().toString(),
-        timeMax: timeMax.withTimeZone("UTC").toInstant().toString(),
+        timeMin: minInstant.toString(),
+        timeMax: maxInstant.toString(),
         timeZone: "UTC",
         items: schedules.map((id) => ({ id })),
       });
 
       return parseGoogleCalendarFreeBusy(response);
+    }, {
+      schedules,
+      timeMin: minInstant.toString(),
+      timeMax: maxInstant.toString(),
     });
   }
 
@@ -523,7 +551,26 @@ export class GoogleCalendarProvider implements CalendarProvider {
     try {
       return await Promise.resolve(fn());
     } catch (error: unknown) {
-      console.error(`Failed to ${operation}:`, error);
+      // Enhanced error logging for timeRangeEmpty errors
+      if (error instanceof APIError) {
+        const errorDetails = error.error as {
+          errors?: Array<{ reason?: string; message?: string; location?: string }>
+        };
+        const hasTimeRangeError = errorDetails?.errors?.some(
+          e => e.reason === "timeRangeEmpty"
+        );
+
+        if (hasTimeRangeError) {
+          console.error(
+            `Failed to ${operation}: Time range validation error.`,
+            { error, context, errorDetails: errorDetails.errors }
+          );
+        } else {
+          console.error(`Failed to ${operation}:`, error);
+        }
+      } else {
+        console.error(`Failed to ${operation}:`, error);
+      }
 
       throw new ProviderError(error as Error, operation, context);
     }
