@@ -1,3 +1,4 @@
+import { isBefore, isSameType } from "@repo/temporal";
 import { Temporal } from "temporal-polyfill";
 import {
   zInstantInstance,
@@ -132,6 +133,7 @@ const attendeeSchema = z.object({
   additionalGuests: z.number().int().optional(),
 });
 
+
 export const recurrenceSchema = z
   .object({
     freq: z
@@ -205,33 +207,38 @@ export const recurrenceSchema = z
     },
   );
 
-export const createEventInputSchema = z.object({
-  id: z.string(),
-  title: z.string().optional(),
-  start: dateInputSchema,
-  end: dateInputSchema,
-  allDay: z.boolean().optional(),
-  recurrence: recurrenceSchema.optional(),
-  recurringEventId: z.string().optional(),
-  description: z.string().optional(),
-  location: z.string().optional(),
-  availability: z.enum(["busy", "free"]).optional(),
-  color: z.string().optional(),
-  visibility: z
-    .enum(["default", "public", "private", "confidential"])
-    .optional(),
-  accountId: z.string(),
-  calendarId: z.string(),
-  providerId: z.enum(["google", "microsoft"]),
-  readOnly: z.boolean(),
-  metadata: z.union([microsoftMetadataSchema, googleMetadataSchema]).optional(),
-  attendees: z.array(attendeeSchema).optional(),
-  conference: conferenceSchema.optional(),
-  createdAt: z.instanceof(Temporal.Instant).optional(),
-  updatedAt: z.instanceof(Temporal.Instant).optional(),
-});
+export const createEventInputSchema = z
+  .object({
+    id: z.string(),
+    title: z.string().optional(),
+    start: dateInputSchema,
+    end: dateInputSchema,
+    allDay: z.boolean().optional(),
+    recurrence: recurrenceSchema.optional(),
+    recurringEventId: z.string().optional(),
+    description: z.string().optional(),
+    location: z.string().optional(),
+    availability: z.enum(["busy", "free"]).optional(),
+    color: z.string().optional(),
+    visibility: z
+      .enum(["default", "public", "private", "confidential"])
+      .optional(),
+    accountId: z.string(),
+    calendarId: z.string(),
+    providerId: z.enum(["google", "microsoft"]),
+    readOnly: z.boolean(),
+    metadata: z.union([microsoftMetadataSchema, googleMetadataSchema]).optional(),
+    attendees: z.array(attendeeSchema).optional(),
+    conference: conferenceSchema.optional(),
+    createdAt: z.instanceof(Temporal.Instant).optional(),
+    updatedAt: z.instanceof(Temporal.Instant).optional(),
+  })
+  .refine((data) => !isSameType(data.start, data.end) || isBefore(data.start, data.end), {
+    message: "Event start time must be earlier than end time",
+    path: ["start"],
+  });
 
-export const updateEventInputSchema = createEventInputSchema.extend({
+export const updateEventInputSchema = createEventInputSchema.safeExtend({
   id: z.string(),
   etag: z.string().optional(),
   metadata: z.union([microsoftMetadataSchema, googleMetadataSchema]).optional(),
