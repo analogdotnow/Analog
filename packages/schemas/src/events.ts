@@ -1,4 +1,4 @@
-import { isBefore } from "@repo/temporal";
+import { isBefore, isSameType } from "@repo/temporal";
 import { Temporal } from "temporal-polyfill";
 import {
   zInstantInstance,
@@ -233,7 +233,7 @@ export const createEventInputSchema = z
     createdAt: z.instanceof(Temporal.Instant).optional(),
     updatedAt: z.instanceof(Temporal.Instant).optional(),
   })
-  .refine((data) => isBefore(data.start, data.end), {
+  .refine((data) => !isSameType(data.start, data.end) || isBefore(data.start, data.end), {
     message: "Event start time must be earlier than end time",
     path: ["start"],
   });
