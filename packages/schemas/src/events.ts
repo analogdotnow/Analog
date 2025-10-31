@@ -1,3 +1,4 @@
+import { isBefore } from "@repo/temporal";
 import { Temporal } from "temporal-polyfill";
 import {
   zInstantInstance,
@@ -132,39 +133,6 @@ const attendeeSchema = z.object({
   additionalGuests: z.number().int().optional(),
 });
 
-/**
- * Helper function to compare two temporal dates
- * Handles PlainDate, Instant, and ZonedDateTime types
- * Returns true if start is earlier than end
- */
-function isStartBeforeEnd(
-  start: Temporal.PlainDate | Temporal.Instant | Temporal.ZonedDateTime,
-  end: Temporal.PlainDate | Temporal.Instant | Temporal.ZonedDateTime,
-): boolean {
-  // Convert both to Instant for comparison
-  let startInstant: Temporal.Instant;
-  let endInstant: Temporal.Instant;
-
-  if (start instanceof Temporal.Instant) {
-    startInstant = start;
-  } else if (start instanceof Temporal.ZonedDateTime) {
-    startInstant = start.toInstant();
-  } else {
-    // PlainDate - convert to Instant at start of day (UTC)
-    startInstant = start.toZonedDateTime("UTC").toInstant();
-  }
-
-  if (end instanceof Temporal.Instant) {
-    endInstant = end;
-  } else if (end instanceof Temporal.ZonedDateTime) {
-    endInstant = end.toInstant();
-  } else {
-    // PlainDate - convert to Instant at start of day (UTC)
-    endInstant = end.toZonedDateTime("UTC").toInstant();
-  }
-
-  return Temporal.Instant.compare(startInstant, endInstant) < 0;
-}
 
 export const recurrenceSchema = z
   .object({
@@ -265,7 +233,7 @@ export const createEventInputSchema = z
     createdAt: z.instanceof(Temporal.Instant).optional(),
     updatedAt: z.instanceof(Temporal.Instant).optional(),
   })
-  .refine((data) => isStartBeforeEnd(data.start, data.end), {
+  .refine((data) => isBefore(data.start, data.end), {
     message: "Event start time must be earlier than end time",
     path: ["start"],
   });
