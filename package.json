@@ -27,5 +27,8 @@
     "apps/*",
     "packages/*",
     "tooling/*"
-  ]
+  ],
+  "dependencies": {
+    "nuqs": "^2.7.2"
+  }
 }
