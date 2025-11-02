@@ -286,6 +286,13 @@ export function isToday(
   return today.equals(toPlainDate(value, { timeZone }));
 }
 
+export function isSameType(
+  a: TemporalConvertible,
+  b: TemporalConvertible,
+): boolean {
+  return a.constructor === b.constructor;
+}
+
 export function isBefore(a: Temporal.PlainDate, b: Temporal.PlainDate): boolean;
 export function isBefore(
   a: Temporal.ZonedDateTime,
