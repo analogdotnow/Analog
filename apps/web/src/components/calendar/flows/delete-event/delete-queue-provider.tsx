@@ -27,9 +27,8 @@ export function DeleteQueueProvider({ children }: DeleteQueueProviderProps) {
       const prevEvent = await getEventById(item.event.id);
 
       if (!prevEvent) {
-        if (item.event?.type === "draft") {
-          removeOptimisticAction(item.optimisticId);
-        }
+        // TODO: draft events are not drafts when they get here
+        removeOptimisticAction(item.optimisticId);
 
         return;
       }
@@ -48,7 +47,7 @@ export function DeleteQueueProvider({ children }: DeleteQueueProviderProps) {
         },
         {
           onSettled: () => {
-            removeOptimisticAction(item.optimisticId);
+            removeOptimisticAction(item.event.id);
           },
         },
       );
