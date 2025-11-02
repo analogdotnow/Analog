@@ -60,6 +60,7 @@ export function DraggableEvent({
 
   const dragStartRelative = React.useRef<{ x: number; y: number } | null>(null);
   const resizeStartRelativeY = React.useRef(0);
+  const justFinishedDragging = React.useRef(false);
 
   const eventInFormAtom = React.useMemo(
     () => getEventInForm(item.event.id),
@@ -198,7 +199,9 @@ export function DraggableEvent({
   );
 
   const onDragEnd = (_e: PointerEvent, info: PanInfo) => {
-    removeDraggedEventId(item.event.id);
+    // Mark that we just finished dragging - will remove drag state after optimistic update
+    justFinishedDragging.current = true;
+
     // Do not reset transform immediately to avoid flashback to original
     // position. We'll reset when the event data updates optimistically.
 
@@ -229,7 +232,13 @@ export function DraggableEvent({
     top.set(0);
     left.set(0);
     height.set(initialHeight ?? "100%");
-  }, [top, left, initialHeight, height, item.event.start, item.event.end]);
+
+    // Remove drag state only if we just finished dragging
+    if (justFinishedDragging.current) {
+      justFinishedDragging.current = false;
+      removeDraggedEventId(item.event.id);
+    }
+  }, [top, left, initialHeight, height, item.event.start, item.event.end, removeDraggedEventId, item.event.id]);
 
   const startHeight = React.useRef(0);
   const resizeInitializedRef = React.useRef(false);
