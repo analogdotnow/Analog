@@ -43,7 +43,8 @@
     "@repo/schemas": "workspace:*",
     "@repo/temporal": "workspace:*",
     "@upstash/ratelimit": "^2.0.5",
-    "@upstash/redis": "^1.35.6"
+    "@upstash/redis": "^1.35.6",
+    "web-push": "^3.6.7"
   },
   "devDependencies": {
     "@microsoft/microsoft-graph-types": "^2.40.0",

@@ -9,6 +9,7 @@ import { freeBusyRouter } from "./routers/free-busy";
 import { integrationsRouter } from "./routers/integrations";
 import { mapsRouter } from "./routers/maps";
 import { placesRouter } from "./routers/places";
+import { pushNotificationsRouter } from "./routers/push-notifications";
 import { tasksRouter } from "./routers/tasks";
 import { userRouter } from "./routers/user";
 import {
@@ -29,6 +30,7 @@ export const appRouter = createTRPCRouter({
   conferencing: conferencingRouter,
   places: placesRouter,
   maps: mapsRouter,
+  pushNotifications: pushNotificationsRouter,
 });
 
 export type AppRouter = typeof appRouter;
