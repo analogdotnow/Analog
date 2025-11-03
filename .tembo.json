@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "postClone": [
+      "bun install",
+      "cp .env.example .env",
+      "echo 'Dependencies installed and environment file created'"
+    ],
+    "prePush": [
+      "bun run lint",
+      "bun run type-check",
+      "bun run build"
+    ]
+  }
+}
