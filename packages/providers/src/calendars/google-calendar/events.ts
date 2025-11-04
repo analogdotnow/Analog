@@ -259,30 +259,56 @@ function conference(event: CreateEventInput | UpdateEventInput) {
 export function toGoogleCalendarEvent(
   event: CreateEventInput | UpdateEventInput,
 ): GoogleCalendarEventCreateParams {
-  return {
+  const result: GoogleCalendarEventCreateParams = {
     id: event.id,
-    summary: event.title,
-    description: event.description,
-    location: event.location,
-    visibility: event.visibility,
     start: toGoogleCalendarDate(event.start),
     end: toGoogleCalendarDate(event.end),
-    ...(event.availability
-      ? {
-          transparency:
-            event.availability === "free" ? "transparent" : "opaque",
-        }
-      : {}),
-    attendees: attendees(event),
-    ...(event.conference
-      ? { conferenceData: toGoogleCalendarConferenceData(event.conference) }
-      : {}),
     // Should always be 1 to ensure conference data is retained for all event modification requests.
     conferenceDataVersion: 1,
-    // TODO: how to handle recurrence when the time zone is changed (i.e. until, rDate, exDate).
-    recurrence: recurrences(event),
-    recurringEventId: event.recurringEventId,
   };
+
+  // Handle nullable fields - pass null as any to force deletion
+  if (event.title !== undefined) {
+    result.summary = event.title as any;
+  }
+  if (event.description !== undefined) {
+    result.description = event.description as any;
+  }
+  if (event.location !== undefined) {
+    result.location = event.location as any;
+  }
+  if (event.visibility !== undefined) {
+    result.visibility = event.visibility as any;
+  }
+  if (event.availability !== undefined) {
+    result.transparency = (
+      event.availability === null
+        ? null
+        : event.availability === "free"
+          ? "transparent"
+          : "opaque"
+    ) as any;
+  }
+  if (event.recurringEventId !== undefined) {
+    result.recurringEventId = event.recurringEventId as any;
+  }
+
+  const attendeesValue = attendees(event);
+  if (attendeesValue !== undefined) {
+    result.attendees = attendeesValue as any;
+  }
+
+  const conferenceValue = conference(event);
+  if (conferenceValue !== undefined) {
+    result.conferenceData = conferenceValue as any;
+  }
+
+  const recurrenceValue = recurrences(event);
+  if (recurrenceValue !== undefined) {
+    result.recurrence = recurrenceValue as any;
+  }
+
+  return result;
 }
 
 export function toGoogleCalendarAttendeeResponseStatus(
