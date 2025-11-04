@@ -74,7 +74,7 @@ export function RecurrenceField({
 
   return (
     <DropdownMenu>
-      <RecurrenceDialog start={date} recurrence={value ?? undefined} onChange={onChange}>
+      <RecurrenceDialog start={date} recurrence={value} onChange={onChange}>
         <DropdownMenuTrigger asChild>
           <Button
             id={id}

@@ -229,8 +229,6 @@ export const createEventInputSchema = z.object({
   conference: conferenceSchema.nullable().optional(),
   createdAt: z.instanceof(Temporal.Instant).optional(),
   updatedAt: z.instanceof(Temporal.Instant).optional(),
-}).refine((data) => data.start < data.end, {
-  message: "Start date must be before end date",
 });
 
 export const updateEventInputSchema = createEventInputSchema.extend({

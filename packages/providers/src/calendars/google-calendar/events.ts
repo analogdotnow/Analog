@@ -11,10 +11,7 @@ import type {
 } from "../../interfaces";
 import { toRecurrenceProperties } from "../../lib/utils/recurrences/export";
 import { parseTextRecurrence } from "../../lib/utils/recurrences/parse";
-import {
-  parseConferenceData,
-  toConferenceData,
-} from "./conferences";
+import { parseConferenceData, toConferenceData } from "./conferences";
 import type {
   GoogleCalendarDate,
   GoogleCalendarDateTime,
