@@ -13,7 +13,7 @@ export interface CalendarEvent {
   attendees?: Attendee[];
   url?: string;
   etag?: string;
-  color?: string;
+  color?: string | null;
   visibility?: "default" | "public" | "private" | "confidential";
   readOnly: boolean;
   providerId: "google" | "microsoft";
@@ -23,11 +23,11 @@ export interface CalendarEvent {
   updatedAt?: Temporal.Instant;
   response?: {
     status: AttendeeStatus;
-    comment?: string;
+    comment?: string | null;
   };
   metadata?: Record<string, unknown>;
-  conference?: Conference;
-  recurrence?: Recurrence;
+  conference?: Conference | null;
+  recurrence?: Recurrence | null;
   providerAccountId?: string;
   recurringEventId?: string;
 }

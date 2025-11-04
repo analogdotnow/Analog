@@ -3,7 +3,6 @@ import { toast } from "sonner";
 
 import { isBefore } from "@repo/temporal";
 
-import type { CalendarEvent } from "@/lib/interfaces";
 import { insertIntoSorted } from "@/lib/sorted-actions";
 import { useTRPC } from "@/lib/trpc/client";
 import { useEventQueryParams } from "./use-events";
@@ -26,16 +25,8 @@ export function useCreateEventMutation() {
             return undefined;
           }
 
-          // Filter out null values for optimistic update
-          const cleanedEvent = Object.fromEntries(
-            Object.entries(newEvent).filter(([_, v]) => v !== null),
-          ) as unknown as CalendarEvent;
-
-          const events = insertIntoSorted(
-            prev.events || [],
-            cleanedEvent,
-            (a) =>
-              isBefore(a.start, newEvent.start, { timeZone: defaultTimeZone }),
+          const events = insertIntoSorted(prev.events || [], newEvent, (a) =>
+            isBefore(a.start, newEvent.start, { timeZone: defaultTimeZone }),
           );
 
           return {
@@ -90,12 +81,7 @@ export function useUpdateEventMutation() {
               : {}),
           };
 
-          // Filter out null values for optimistic update
-          const cleanedEvent = Object.fromEntries(
-            Object.entries(updatedEvent).filter(([_, v]) => v !== null),
-          ) as unknown as CalendarEvent;
-
-          const events = insertIntoSorted(withoutEvent, cleanedEvent, (a) =>
+          const events = insertIntoSorted(withoutEvent, updatedEvent, (a) =>
             isBefore(a.start, data.start, {
               timeZone: defaultTimeZone,
             }),

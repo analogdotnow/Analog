@@ -13,8 +13,8 @@ import { ConferenceDetails } from "./conference/conference-details";
 import { FormConference } from "./utils/schema";
 
 interface ConferenceFieldProps {
-  value?: FormConference;
-  onChange: (value: FormConference) => void;
+  value?: FormConference | null;
+  onChange: (value: FormConference | null) => void;
   onBlur: () => void;
 }
 

@@ -28,8 +28,8 @@ interface RecurrenceFieldProps {
   id?: string;
   date: Temporal.ZonedDateTime;
   timeZone?: string;
-  value: Recurrence | undefined;
-  onChange: (value: Recurrence) => void;
+  value: Recurrence | null | undefined;
+  onChange: (value: Recurrence | null) => void;
   onBlur: () => void;
   disabled?: boolean;
   recurringEventId?: string;
@@ -74,7 +74,7 @@ export function RecurrenceField({
 
   return (
     <DropdownMenu>
-      <RecurrenceDialog start={date} recurrence={value} onChange={onChange}>
+      <RecurrenceDialog start={date} recurrence={value ?? undefined} onChange={onChange}>
         <DropdownMenuTrigger asChild>
           <Button
             id={id}

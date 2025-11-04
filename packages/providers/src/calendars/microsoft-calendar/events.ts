@@ -174,7 +174,13 @@ export function toMicrosoftEvent(
 ): MicrosoftEvent {
   const metadata = event.metadata as MicrosoftEventMetadata | undefined | null;
 
-  const result: MicrosoftEvent = {
+  return {
+    subject: event.title,
+    ...(event.description
+      ? {
+          body: { contentType: "text", content: event.description },
+        }
+      : {}),
     start: toMicrosoftDate({
       value: event.start,
       originalTimeZone: metadata?.originalStartTimeZone,
@@ -184,41 +190,10 @@ export function toMicrosoftEvent(
       originalTimeZone: metadata?.originalEndTimeZone,
     }),
     isAllDay: event.allDay ?? false,
+    ...(event.location ? { location: { displayName: event.location } } : {}),
+    ...(event.conference ? toMicrosoftConferenceData(event.conference) : {}),
+    showAs: event.availability,
   };
-
-  // Handle nullable fields - pass null as any to force deletion
-  if (event.title !== undefined) {
-    result.subject = event.title as any;
-  }
-  if (event.description !== undefined) {
-    result.body = (
-      event.description === null
-        ? null
-        : { contentType: "text", content: event.description }
-    ) as any;
-  }
-  if (event.location !== undefined) {
-    result.location = (
-      event.location === null ? null : { displayName: event.location }
-    ) as any;
-  }
-  if (event.allDay !== undefined) {
-    result.isAllDay = event.allDay as any;
-  }
-  if (event.availability !== undefined) {
-    result.showAs = event.availability as any;
-  }
-  if (event.conference !== undefined) {
-    if (event.conference === null) {
-      result.isOnlineMeeting = null as any;
-      result.onlineMeetingProvider = null as any;
-    } else {
-      const conferenceData = toMicrosoftConferenceData(event.conference);
-      Object.assign(result, conferenceData);
-    }
-  }
-
-  return result;
 }
 
 export function eventResponseStatusPath(

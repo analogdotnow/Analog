@@ -21,9 +21,10 @@ import type {
 import { ProviderError } from "../lib/provider-error";
 import { parseGoogleCalendarCalendarListEntry } from "./google-calendar/calendars";
 import {
+  createEventParams,
   parseGoogleCalendarEvent,
   toGoogleCalendarAttendeeResponseStatus,
-  toGoogleCalendarEvent,
+  updateEventParams,
 } from "./google-calendar/events";
 import { parseGoogleCalendarFreeBusy } from "./google-calendar/freebusy";
 
@@ -318,7 +319,7 @@ export class GoogleCalendarProvider implements CalendarProvider {
       try {
         const createdEvent = await this.client.calendars.events.create(
           calendar.id,
-          toGoogleCalendarEvent(event),
+          createEventParams(event),
         );
 
         return parseGoogleCalendarEvent({
@@ -352,8 +353,7 @@ export class GoogleCalendarProvider implements CalendarProvider {
 
       let eventToUpdate = {
         ...existingEvent,
-        calendarId: calendar.id,
-        ...toGoogleCalendarEvent(event),
+        ...updateEventParams(event),
       };
 
       // Handle response status update within the same call for Google Calendar
