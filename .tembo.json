@@ -1,0 +1,11 @@
+{
+  "hooks": {
+    "postClone": [
+      "bun install"
+    ],
+    "prePush": [
+      "bun run lint",
+      "bun run type-check"
+    ]
+  }
+}
