@@ -73,6 +73,7 @@ You need to create the following icon files and place them in the `apps/web/publ
 See `apps/web/public/PWA_ICONS_README.md` for detailed instructions on creating these icons.
 
 **Tools for generating icons:**
+
 - [RealFaviconGenerator](https://realfavicongenerator.net/)
 - [PWA Asset Generator](https://github.com/elegantapp/pwa-asset-generator)
 - [Maskable App Tool](https://maskable.app/)
@@ -109,6 +110,7 @@ Users can subscribe to push notifications through the app:
 4. Send test notifications to verify functionality
 
 **Browser Support:**
+
 - Chrome/Edge (Desktop & Android): Full support
 - Safari (iOS 16.4+ & macOS 13+): Full support
 - Firefox (Desktop & Android): Full support
@@ -118,7 +120,7 @@ Users can subscribe to push notifications through the app:
 Import and use the PWA components in your app:
 
 ```tsx
-import { PushNotificationManager, InstallPrompt } from "@/components/pwa";
+import { InstallPrompt, PushNotificationManager } from "@/components/pwa";
 
 export default function SettingsPage() {
   return (
@@ -199,6 +201,7 @@ const subscriptions = await trpc.pushNotifications.list.query();
 ```
 
 Indexes:
+
 - `push_subscription_user_id_idx` on `userId`
 - `push_subscription_endpoint_idx` on `endpoint`
 
@@ -216,11 +219,13 @@ Indexes:
 The following security headers are automatically configured:
 
 **Global Headers:**
+
 - `X-Content-Type-Options: nosniff`
 - `X-Frame-Options: DENY`
 - `Referrer-Policy: strict-origin-when-cross-origin`
 
 **Service Worker Headers:**
+
 - `Content-Type: application/javascript; charset=utf-8`
 - `Cache-Control: no-cache, no-store, must-revalidate`
 - `Content-Security-Policy: default-src 'self'; script-src 'self'`
@@ -243,6 +248,7 @@ Push notifications require explicit user permission. The browser will prompt use
 ### Local Testing
 
 1. Start the dev server with HTTPS:
+
    ```bash
    bun run dev --experimental-https
    ```
@@ -258,6 +264,7 @@ Push notifications require explicit user permission. The browser will prompt use
 ### Browser DevTools
 
 **Chrome DevTools:**
+
 1. Open DevTools (F12)
 2. Go to Application → Service Workers
 3. Verify the service worker is registered
@@ -265,6 +272,7 @@ Push notifications require explicit user permission. The browser will prompt use
 5. Verify the manifest is valid
 
 **Testing Push Notifications:**
+
 1. Open DevTools → Application → Service Workers
 2. Find your service worker
 3. Use "Push" button to simulate a push event

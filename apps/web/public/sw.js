@@ -28,7 +28,7 @@ self.addEventListener("notificationclick", function (event) {
   event.notification.close();
 
   // Open the app at the specified URL or default to home
-  const urlToOpen = event.notification.data?.url || "/";
+  const urlToOpen = new URL(event.notification.data?.url || "/", self.location.origin).href;
 
   event.waitUntil(
     clients.matchAll({ type: "window", includeUncontrolled: true }).then(function (clientList) {

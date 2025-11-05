@@ -1,5 +1,12 @@
 import { relations } from "drizzle-orm";
-import { index, jsonb, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import {
+  index,
+  jsonb,
+  pgTable,
+  text,
+  timestamp,
+  unique,
+} from "drizzle-orm/pg-core";
 
 import { user } from "./auth";
 
@@ -22,6 +29,10 @@ export const pushSubscription = pgTable(
   (table) => [
     index("push_subscription_user_id_idx").on(table.userId),
     index("push_subscription_endpoint_idx").on(table.endpoint),
+    unique("push_subscription_user_endpoint_unique").on(
+      table.userId,
+      table.endpoint,
+    ),
   ],
 );
 
