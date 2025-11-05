@@ -29,6 +29,7 @@ This is a Turborepo monorepo with the following workspace organization:
 - **tooling/typescript-config** - Shared TypeScript configurations
 
 **IMPORTANT**: When adding features, determine the correct package location based on responsibility:
+
 - UI components and pages go in `apps/web`
 - API endpoints go in `packages/api/src/routers`
 - Database schema changes go in `packages/db/src/schema`
@@ -62,12 +63,14 @@ bun run format              # Format code with Prettier
 **IMPORTANT**: Always copy `.env.example` to `.env` before development. Never commit secrets to the repository.
 
 ### Required Variables
+
 - `DATABASE_URL` - PostgreSQL connection string (default: `postgresql://postgres:postgres@localhost:5432/analog_db`)
 - `BETTER_AUTH_SECRET` - Generate with `openssl rand -hex 32`
 - `BETTER_AUTH_URL` - Application URL (default: `http://localhost:3000`)
 - `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` - Google OAuth credentials with Calendar API enabled
 
 ### Optional Variables
+
 - `MICROSOFT_CLIENT_ID` and `MICROSOFT_CLIENT_SECRET` - Microsoft OAuth credentials
 - `ZOOM_CLIENT_ID` and `ZOOM_CLIENT_SECRET` - Zoom OAuth credentials
 - `GOOGLE_MAPS_API_KEY` - Google Places API key for location features
@@ -78,6 +81,7 @@ bun run format              # Format code with Prettier
 ## Code Style Guidelines
 
 ### TypeScript
+
 - **Use strict type safety** - Avoid `any`, prefer explicit types
 - **Use Zod for runtime validation** - Define schemas in `packages/schemas`
 - **Leverage type inference** - Use `typeof` and `$inferSelect` from Drizzle
@@ -85,6 +89,7 @@ bun run format              # Format code with Prettier
 - **Use const assertions** - For literal types and readonly data
 
 ### React & Next.js
+
 - **Use Server Components by default** - Mark Client Components with `"use client"`
 - **Prefer functional components with hooks** - No class components
 - **Use server actions for mutations** - Leverage Next.js 15 server actions
@@ -93,12 +98,14 @@ bun run format              # Format code with Prettier
 - **Use Jotai atoms for client state** - Store in `apps/web/src/atoms`
 
 ### Styling
+
 - **Use Tailwind CSS v4** - Follow utility-first approach
 - **Use shadcn/ui components** - Extend existing components before creating new ones
 - **Follow responsive design patterns** - Mobile-first approach
 - **Use CSS variables for theming** - Defined in `globals.css`
 
 ### tRPC API Development
+
 - **Create routers in packages/api/src/routers** - One router per domain
 - **Use protectedProcedure for authenticated endpoints** - Ensures user session exists
 - **Validate inputs with Zod schemas** - Define in `packages/schemas`
@@ -106,6 +113,7 @@ bun run format              # Format code with Prettier
 - **Handle errors gracefully** - Use TRPCError with appropriate codes
 
 ### Database & Drizzle ORM
+
 - **Define schemas in packages/db/src/schema** - One file per domain
 - **Use Drizzle relations** - Define relationships between tables
 - **Run `bun run db:generate` after schema changes** - Generate migrations
@@ -113,7 +121,9 @@ bun run format              # Format code with Prettier
 - **Use transactions for multiple operations** - Ensure data consistency
 
 ### Import Order
+
 Follow the Prettier import sort configuration:
+
 1. Built-in Node.js modules
 2. React and Next.js imports
 3. Third-party packages
@@ -123,29 +133,23 @@ Follow the Prettier import sort configuration:
 7. Current directory imports (`./`)
 
 ### Formatting
+
 - **Use Prettier** - Run `bun run format` before committing
 - **Follow conventional commits** - Format: `type(scope): message`
   - Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
   - Examples: `feat(calendar): add recurring event support`, `fix(auth): resolve token refresh issue`
 
-## Testing Guidelines
-
-**NOTE**: Currently no formal test suite exists. When adding tests:
-- Use Vitest for unit tests (compatible with Bun)
-- Use React Testing Library for component tests
-- Test tRPC routers using `createCaller` utility
-- Target >80% coverage for business logic
-- Mock external API calls and database queries
-
 ## Architecture Principles
 
 ### Separation of Concerns
+
 - **UI layer** (apps/web) handles rendering and user interaction
 - **API layer** (packages/api) handles business logic and data fetching
 - **Data layer** (packages/db) handles database schema and queries
 - **Provider layer** (packages/providers) handles external integrations
 
 ### Authentication Flow
+
 1. Users authenticate via Google, Microsoft, or Zoom OAuth
 2. Better Auth manages sessions and account linking
 3. OAuth tokens stored in database for API access
@@ -153,12 +157,14 @@ Follow the Prettier import sort configuration:
 5. API requests use session from Better Auth
 
 ### Calendar Integration
+
 - **Multi-provider support** - Google Calendar, Microsoft Calendar, Zoom
 - **Unified API** - Provider-specific logic abstracted in `packages/providers`
 - **Event synchronization** - Fetch and display events from all connected calendars
 - **Bidirectional sync** - Create, update, delete events across providers
 
 ### State Management Strategy
+
 - **Server state** - TanStack Query with tRPC integration
 - **Client state** - Jotai atoms for UI state and preferences
 - **Local storage** - Dexie (IndexedDB) for offline-first features
@@ -177,24 +183,9 @@ Follow the Prettier import sort configuration:
 
 ## Common Pitfalls
 
-**WARNING**: OAuth tokens expire - Always implement token refresh logic when calling provider APIs. Better Auth handles this automatically for linked accounts.
-
 **IMPORTANT**: Temporal API usage - This project uses `Temporal.PlainDate`, `Temporal.ZonedDateTime` for date handling. Use `temporal-polyfill` and avoid mixing with `Date` objects.
 
 **NOTE**: Next.js 15 caching - Be aware of aggressive caching in Next.js 15. Use `revalidatePath` or `revalidateTag` after mutations.
-
-**WARNING**: tRPC context - Always check `ctx.session` is defined in protected procedures. Type narrowing is required for proper type safety.
-
-**IMPORTANT**: Drizzle relations - When querying related data, use Drizzle's `with` syntax instead of manual joins for better type safety.
-
-## Performance Considerations
-
-- **Optimize calendar queries** - Fetch only necessary date ranges
-- **Use React Suspense boundaries** - Improve perceived performance with streaming
-- **Implement virtualization** - Use `@tanstack/react-virtual` for long lists
-- **Lazy load heavy components** - Use `next/dynamic` for code splitting
-- **Cache provider API responses** - Use TanStack Query's caching effectively
-- **Optimize bundle size** - Monitor with `@next/bundle-analyzer`
 
 ## Security Guidelines
 
@@ -211,20 +202,24 @@ Follow the Prettier import sort configuration:
 ## Integration Details
 
 ### Google APIs
+
 - **Calendar API** - Primary calendar provider
 - **People API** - Contact information and attendee suggestions
 - **Maps Places API** - Location autocomplete and place details
 - **Maps Routes API** - Travel time calculations
 
 ### Microsoft Graph API
+
 - **Calendar API** - Microsoft Calendar integration
 - **User API** - Profile information
 
 ### Zoom API
+
 - **Meeting API** - Create and manage Zoom meetings
 - **Calendar API** - Zoom calendar integration
 
 ### AI Features
+
 - Uses Vercel AI SDK with OpenAI models
 - Natural language event creation
 - Smart scheduling suggestions
@@ -233,9 +228,9 @@ Follow the Prettier import sort configuration:
 ## Additional Notes
 
 - **Package Manager**: Always use Bun, not npm or yarn
-- **Node Version**: Bun includes its own JavaScript runtime
+- **Runtime**: Use Node.js runtime (not Bun's built-in runtime)
 - **Docker Required**: PostgreSQL runs in Docker for local development
-- **Redis Optional**: Local development works without Redis (uses mock implementation)
+- **Redis Optional**: Local development works without Redis (uses HTTP proxy)
 - **License**: MIT - Contributions must be compatible
 
 ## Useful Resources
