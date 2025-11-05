@@ -47,7 +47,7 @@ export function DeleteQueueProvider({ children }: DeleteQueueProviderProps) {
         },
         {
           onSettled: () => {
-            removeOptimisticAction(item.event.id);
+            removeOptimisticAction(item.optimisticId);
           },
         },
       );
