@@ -11,10 +11,7 @@ import type {
 } from "../../interfaces";
 import { toRecurrenceProperties } from "../../lib/utils/recurrences/export";
 import { parseTextRecurrence } from "../../lib/utils/recurrences/parse";
-import {
-  parseGoogleCalendarConferenceData,
-  toGoogleCalendarConferenceData,
-} from "./conferences";
+import { parseConferenceData, toConferenceData } from "./conferences";
 import type {
   GoogleCalendarDate,
   GoogleCalendarDateTime,
@@ -22,6 +19,7 @@ import type {
   GoogleCalendarEventAttendee,
   GoogleCalendarEventAttendeeResponseStatus,
   GoogleCalendarEventCreateParams,
+  GoogleCalendarEventUpdateParams,
 } from "./interfaces";
 
 export function toGoogleCalendarDate(
@@ -172,7 +170,7 @@ export function parseGoogleCalendarEvent({
       ["birthday", "focusTime", "outOfOffice", "workingLocation"].includes(
         event.eventType ?? "",
       ),
-    conference: parseGoogleCalendarConferenceData(event),
+    conference: parseConferenceData(event),
     ...(response ? { response } : {}),
     ...(recurrence ? { recurrence } : {}),
     ...(event.created
@@ -233,10 +231,6 @@ function recurrences(event: CreateEventInput | UpdateEventInput) {
 }
 
 function attendees(event: CreateEventInput | UpdateEventInput) {
-  if (event.attendees === null) {
-    return [];
-  }
-
   if (!event.attendees) {
     return undefined;
   }
@@ -253,10 +247,22 @@ function conference(event: CreateEventInput | UpdateEventInput) {
     return undefined;
   }
 
-  return toGoogleCalendarConferenceData(event.conference);
+  return toConferenceData(event.conference);
 }
 
-export function toGoogleCalendarEvent(
+function availability(event: CreateEventInput | UpdateEventInput) {
+  if (!event.availability) {
+    return undefined;
+  }
+
+  if (event.availability === "free") {
+    return "transparent";
+  }
+
+  return "opaque";
+}
+
+export function createEventParams(
   event: CreateEventInput | UpdateEventInput,
 ): GoogleCalendarEventCreateParams {
   return {
@@ -267,21 +273,37 @@ export function toGoogleCalendarEvent(
     visibility: event.visibility,
     start: toGoogleCalendarDate(event.start),
     end: toGoogleCalendarDate(event.end),
-    ...(event.availability
-      ? {
-          transparency:
-            event.availability === "free" ? "transparent" : "opaque",
-        }
-      : {}),
+    transparency: availability(event),
     attendees: attendees(event),
-    ...(event.conference
-      ? { conferenceData: toGoogleCalendarConferenceData(event.conference) }
-      : {}),
+    conferenceData: conference(event) ?? undefined,
     // Should always be 1 to ensure conference data is retained for all event modification requests.
     conferenceDataVersion: 1,
     // TODO: how to handle recurrence when the time zone is changed (i.e. until, rDate, exDate).
     recurrence: recurrences(event),
     recurringEventId: event.recurringEventId,
+  };
+}
+
+export function updateEventParams(
+  event: CreateEventInput | UpdateEventInput,
+): GoogleCalendarEventUpdateParams {
+  return {
+    id: event.id,
+    summary: event.title,
+    description: event.description,
+    location: event.location,
+    visibility: event.visibility,
+    start: toGoogleCalendarDate(event.start),
+    end: toGoogleCalendarDate(event.end),
+    transparency: availability(event),
+    attendees: attendees(event),
+    conferenceData: conference(event),
+    // Should always be 1 to ensure conference data is retained for all event modification requests.
+    conferenceDataVersion: 1,
+    // TODO: how to handle recurrence when the time zone is changed (i.e. until, rDate, exDate).
+    recurrence: recurrences(event),
+    recurringEventId: event.recurringEventId,
+    calendarId: event.calendarId,
   };
 }
 

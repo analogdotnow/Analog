@@ -211,12 +211,12 @@ export const createEventInputSchema = z.object({
   start: dateInputSchema,
   end: dateInputSchema,
   allDay: z.boolean().optional(),
-  recurrence: recurrenceSchema.optional(),
+  recurrence: recurrenceSchema.nullable().optional(),
   recurringEventId: z.string().optional(),
   description: z.string().optional(),
   location: z.string().optional(),
   availability: z.enum(["busy", "free"]).optional(),
-  color: z.string().optional(),
+  color: z.string().nullable().optional(),
   visibility: z
     .enum(["default", "public", "private", "confidential"])
     .optional(),
@@ -226,19 +226,17 @@ export const createEventInputSchema = z.object({
   readOnly: z.boolean(),
   metadata: z.union([microsoftMetadataSchema, googleMetadataSchema]).optional(),
   attendees: z.array(attendeeSchema).optional(),
-  conference: conferenceSchema.optional(),
+  conference: conferenceSchema.nullable().optional(),
   createdAt: z.instanceof(Temporal.Instant).optional(),
   updatedAt: z.instanceof(Temporal.Instant).optional(),
 });
 
 export const updateEventInputSchema = createEventInputSchema.extend({
-  id: z.string(),
   etag: z.string().optional(),
-  metadata: z.union([microsoftMetadataSchema, googleMetadataSchema]).optional(),
   response: z
     .object({
       status: z.enum(["accepted", "tentative", "declined", "unknown"]),
-      comment: z.string().optional(),
+      comment: z.string().nullable().optional(),
       sendUpdate: z.boolean().default(false),
     })
     .optional(),

@@ -2947,7 +2947,7 @@ export interface EventUpdateParams {
    * persist your changes, remember to set the conferenceDataVersion request
    * parameter to 1 for all event modification requests.
    */
-  conferenceData?: EventUpdateParams.ConferenceData;
+  conferenceData?: EventUpdateParams.ConferenceData | null;
 
   /**
    * Body param: Creation time of the event (as a RFC3339 timestamp). Read-only.

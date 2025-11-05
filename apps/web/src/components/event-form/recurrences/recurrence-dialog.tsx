@@ -49,7 +49,7 @@ const daysOfWeek = [
 interface RecurrenceDialogProps {
   children: React.ReactNode;
   start: Temporal.ZonedDateTime;
-  recurrence?: Recurrence;
+  recurrence?: Recurrence | null;
   onChange: (recurrence: Recurrence) => void;
 }
 

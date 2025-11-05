@@ -12,7 +12,7 @@ function extractUrls(text: string): string[] {
   return text.match(urlRegex) || [];
 }
 
-function checkMeetingLink(url: string): Conference | undefined {
+function parseMeetingLink(url: string): Conference | undefined {
   const service = detectMeetingLink(url);
 
   if (!service) {
@@ -32,12 +32,12 @@ function checkMeetingLink(url: string): Conference | undefined {
   };
 }
 
-function parseGoogleCalendarConferenceFallback(
+function parseConferenceFallback(
   event: GoogleCalendarEvent,
 ): Conference | undefined {
   // 1. Check hangoutLink (legacy Google Meet)
   if (event.hangoutLink) {
-    const service = checkMeetingLink(event.hangoutLink);
+    const service = parseMeetingLink(event.hangoutLink);
 
     if (service) {
       return service;
@@ -49,7 +49,7 @@ function parseGoogleCalendarConferenceFallback(
     const urls = extractUrls(event.description);
 
     for (const url of urls) {
-      const service = checkMeetingLink(url);
+      const service = parseMeetingLink(url);
 
       if (service) {
         return service;
@@ -62,7 +62,7 @@ function parseGoogleCalendarConferenceFallback(
     const urls = extractUrls(event.location);
 
     for (const url of urls) {
-      const service = checkMeetingLink(url);
+      const service = parseMeetingLink(url);
 
       if (service) {
         return service;
@@ -72,7 +72,7 @@ function parseGoogleCalendarConferenceFallback(
 
   // 4. Check source.url
   if (event.source?.url) {
-    const service = checkMeetingLink(event.source.url);
+    const service = parseMeetingLink(event.source.url);
 
     if (service) {
       return service;
@@ -83,7 +83,7 @@ function parseGoogleCalendarConferenceFallback(
   if (event.attachments) {
     for (const attachment of event.attachments) {
       if (attachment.fileUrl) {
-        const service = checkMeetingLink(attachment.fileUrl);
+        const service = parseMeetingLink(attachment.fileUrl);
 
         if (service) {
           return service;
@@ -94,7 +94,7 @@ function parseGoogleCalendarConferenceFallback(
 
   // 7. Check gadget.link (legacy)
   if (event.gadget?.link) {
-    const service = checkMeetingLink(event.gadget.link);
+    const service = parseMeetingLink(event.gadget.link);
 
     if (service) {
       return service;
@@ -104,12 +104,12 @@ function parseGoogleCalendarConferenceFallback(
   return undefined;
 }
 
-export function parseGoogleCalendarConferenceData(
+export function parseConferenceData(
   event: GoogleCalendarEvent,
 ): Conference | undefined {
   if (!event.conferenceData?.entryPoints?.length) {
     // If no conference data, fall back to searching other fields
-    return parseGoogleCalendarConferenceFallback(event);
+    return parseConferenceFallback(event);
   }
 
   // There is at most one video entry point
@@ -182,19 +182,19 @@ export function parseGoogleCalendarConferenceData(
   };
 }
 
-export function toGoogleCalendarConferenceData(
+export function toConferenceData(
   conference: Conference,
 ): GoogleCalendarEventConferenceData | undefined {
-  if (conference.type === "create") {
-    return {
-      createRequest: {
-        requestId: conference.requestId,
-        conferenceSolutionKey: {
-          type: "hangoutsMeet",
-        },
-      },
-    };
+  if (conference.type === "conference") {
+    return undefined;
   }
 
-  return undefined;
+  return {
+    createRequest: {
+      requestId: conference.requestId,
+      conferenceSolutionKey: {
+        type: "hangoutsMeet",
+      },
+    },
+  };
 }

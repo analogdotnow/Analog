@@ -1,6 +1,6 @@
 import GoogleCalendar from "@repo/google-calendar";
 
-import { parseGoogleCalendarConferenceData } from "../calendars/google-calendar/conferences";
+import { parseConferenceData } from "../calendars/google-calendar/conferences";
 import type { Conference, ConferencingProvider } from "../interfaces";
 import { ProviderError } from "../lib/provider-error";
 
@@ -59,7 +59,7 @@ export class GoogleMeetProvider implements ConferencingProvider {
         throw new Error("Failed to create conference data");
       }
 
-      return parseGoogleCalendarConferenceData(updatedEvent)!;
+      return parseConferenceData(updatedEvent)!;
     });
   }
 

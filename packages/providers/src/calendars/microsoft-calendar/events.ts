@@ -172,7 +172,7 @@ export function parseMicrosoftEvent({
 export function toMicrosoftEvent(
   event: CreateEventInput | UpdateEventInput,
 ): MicrosoftEvent {
-  const metadata = event.metadata as MicrosoftEventMetadata | undefined;
+  const metadata = event.metadata as MicrosoftEventMetadata | undefined | null;
 
   return {
     subject: event.title,
