@@ -86,3 +86,17 @@ export const removeDraftOptimisticActionsByEventIdAtom = atom(
     set(optimisticActionsAtom, filtered);
   },
 );
+
+export const removeOptimisticActionsByEventIdAtom = atom(
+  null,
+  (get, set, eventId: string) => {
+    const currentActions = get(optimisticActionsAtom);
+    const filtered = Object.fromEntries(
+      Object.entries(currentActions).filter(
+        ([, action]) => action.eventId !== eventId,
+      ),
+    );
+
+    set(optimisticActionsAtom, filtered);
+  },
+);
