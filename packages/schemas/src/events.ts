@@ -1,4 +1,3 @@
-import { isBefore, isSameType } from "@repo/temporal";
 import { Temporal } from "temporal-polyfill";
 import {
   zInstantInstance,
@@ -6,6 +5,8 @@ import {
   zZonedDateTimeInstance,
 } from "temporal-zod";
 import * as z from "zod";
+
+import { isBefore, isSameType } from "@repo/temporal";
 
 const conferenceEntryPointSchema = z.object({
   joinUrl: z.object({
@@ -133,7 +134,6 @@ const attendeeSchema = z.object({
   additionalGuests: z.number().int().optional(),
 });
 
-
 export const recurrenceSchema = z
   .object({
     freq: z
@@ -227,16 +227,44 @@ export const createEventInputSchema = z
     calendarId: z.string(),
     providerId: z.enum(["google", "microsoft"]),
     readOnly: z.boolean(),
-    metadata: z.union([microsoftMetadataSchema, googleMetadataSchema]).optional(),
+    metadata: z
+      .union([microsoftMetadataSchema, googleMetadataSchema])
+      .optional(),
     attendees: z.array(attendeeSchema).optional(),
     conference: conferenceSchema.optional(),
     createdAt: z.instanceof(Temporal.Instant).optional(),
     updatedAt: z.instanceof(Temporal.Instant).optional(),
   })
-  .refine((data) => !isSameType(data.start, data.end) || isBefore(data.start, data.end), {
-    message: "Event start time must be earlier than end time",
-    path: ["start"],
-  });
+  .refine(
+    (data) => {
+      if (!isSameType(data.start, data.end)) {
+        return false;
+      }
+      if (
+        data.start instanceof Temporal.PlainDate &&
+        data.end instanceof Temporal.PlainDate
+      ) {
+        return isBefore(data.start, data.end);
+      }
+      if (
+        data.start instanceof Temporal.Instant &&
+        data.end instanceof Temporal.Instant
+      ) {
+        return isBefore(data.start, data.end);
+      }
+      if (
+        data.start instanceof Temporal.ZonedDateTime &&
+        data.end instanceof Temporal.ZonedDateTime
+      ) {
+        return isBefore(data.start, data.end);
+      }
+      return false;
+    },
+    {
+      message: "Event start time must be earlier than end time",
+      path: ["start"],
+    },
+  );
 
 export const updateEventInputSchema = createEventInputSchema.safeExtend({
   id: z.string(),
