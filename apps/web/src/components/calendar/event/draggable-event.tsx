@@ -60,7 +60,7 @@ export function DraggableEvent({
 
   const dragStartRelative = React.useRef<{ x: number; y: number } | null>(null);
   const resizeStartRelativeY = React.useRef(0);
-  const justFinishedDragging = React.useRef(false);
+  const dragEndPending = React.useRef(false);
 
   const eventInFormAtom = React.useMemo(
     () => getEventInForm(item.event.id),
@@ -129,7 +129,7 @@ export function DraggableEvent({
 
       if (view === "month") {
         if (!rows) {
-          return;
+          return false;
         }
 
         const rowOffset = calculateRowOffset({
@@ -147,13 +147,13 @@ export function DraggableEvent({
           changes: { id: event.id, start, end: start.add(duration) },
         });
 
-        return;
+        return true;
       }
 
       if (view === "day") {
         // Can't move all day events in the day view
         if (event.start instanceof Temporal.PlainDate) {
-          return;
+          return false;
         }
 
         const minutes = calculateOffsetInMinutes(deltaY, cellHeight);
@@ -168,7 +168,7 @@ export function DraggableEvent({
           changes: { id: event.id, start, end: start.add(duration) },
         });
 
-        return;
+        return true;
       }
 
       if (event.start instanceof Temporal.PlainDate) {
@@ -178,7 +178,7 @@ export function DraggableEvent({
           changes: { id: event.id, start, end: start.add(duration) },
         });
 
-        return;
+        return true;
       }
 
       const minutes = calculateOffsetInMinutes(deltaY, cellHeight);
@@ -194,13 +194,15 @@ export function DraggableEvent({
       updateAction({
         changes: { id: event.id, start, end: start.add(duration) },
       });
+
+      return true;
     },
     [updateAction, cellHeight, view, rows, containerRef],
   );
 
   const onDragEnd = (_e: PointerEvent, info: PanInfo) => {
     // Mark that we just finished dragging - will remove drag state after optimistic update
-    justFinishedDragging.current = true;
+    dragEndPending.current = true;
 
     // Do not reset transform immediately to avoid flashback to original
     // position. We'll reset when the event data updates optimistically.
@@ -222,7 +224,13 @@ export function DraggableEvent({
 
     dragStartRelative.current = null;
 
-    moveEvent(deltaY, columnOffset);
+    // If moveEvent returned early without updating, clear drag state immediately
+    if (!moveEvent(deltaY, columnOffset)) {
+      dragEndPending.current = false;
+      removeDraggedEventId(item.event.id);
+      // Do not reset transform immediately to avoid flashback to original
+      // position. We'll reset when the event data updates optimistically.
+    }
   };
 
   // When the event time updates (optimistic or confirmed), reset the local
@@ -234,11 +242,21 @@ export function DraggableEvent({
     height.set(initialHeight ?? "100%");
 
     // Remove drag state only if we just finished dragging
-    if (justFinishedDragging.current) {
-      justFinishedDragging.current = false;
+    if (dragEndPending.current) {
+      dragEndPending.current = false;
+
       removeDraggedEventId(item.event.id);
     }
-  }, [top, left, initialHeight, height, item.event.start, item.event.end, removeDraggedEventId, item.event.id]);
+  }, [
+    top,
+    left,
+    initialHeight,
+    height,
+    item.event.start,
+    item.event.end,
+    item.event.id,
+    removeDraggedEventId,
+  ]);
 
   const startHeight = React.useRef(0);
   const resizeInitializedRef = React.useRef(false);
