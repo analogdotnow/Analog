@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useCommandState } from "cmdk";
-import { useAtom, useSetAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useTheme } from "next-themes";
 import { useHotkeys, useHotkeysContext } from "react-hotkeys-hook";
 import { Temporal } from "temporal-polyfill";
@@ -17,6 +17,9 @@ import {
   CommandItem,
   CommandList,
 } from "../ui/command";
+import { useEventsForDisplay } from "../calendar/hooks/use-events";
+import { useSelectAction } from "../calendar/hooks/use-optimistic-mutations";
+import { formatTime } from "@/lib/utils/format";
 
 export function AppCommandMenu() {
   const [open, setOpen] = React.useState(false);
@@ -38,12 +41,17 @@ export function AppCommandMenu() {
     preventDefault: true,
   });
 
-  const { setCurrentDate, setView } = useCalendarState();
+  const { setCurrentDate, setView, view } = useCalendarState();
   const { setTheme } = useTheme();
   const [preferences, setPreferences] = useAtom(viewPreferencesAtom);
   const setCalendarSettings = useSetAtom(calendarSettingsAtom);
+  const calendarSettings = useAtomValue(calendarSettingsAtom);
   const [pages, setPages] = React.useState<string[]>([]);
   const page = pages[pages.length - 1];
+  const { data } = useEventsForDisplay();
+  const selectAction = useSelectAction();
+
+  const eventsSnapshot = React.useMemo(() => data?.events ?? [], [open, data?.events]);
 
   const action = (action: () => void) => {
     action();
@@ -81,6 +89,62 @@ export function AppCommandMenu() {
               >
                 Today
               </CommandItem>
+            </CommandGroup>
+          ) : null}
+
+          {search && eventsSnapshot.length > 0 ? (
+            <CommandGroup heading="Events">
+              {eventsSnapshot
+                .filter((item) => {
+                  const searchLower = search.toLowerCase();
+                  return (
+                    item.event.title?.toLowerCase().includes(searchLower) ||
+                    item.event.description?.toLowerCase().includes(searchLower) ||
+                    item.event.location?.toLowerCase().includes(searchLower)
+                  );
+                })
+                .slice(0, 10)
+                .map((item) => {
+                  const eventDate = item.start.toPlainDate();
+                  const formattedDate = eventDate.toLocaleString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                  });
+
+                  let timeInfo = "";
+                  if (!item.event.allDay) {
+                    const startTime = formatTime({
+                      value: item.start,
+                      use12Hour: calendarSettings.use12Hour,
+                      timeZone: calendarSettings.defaultTimeZone,
+                      locale: calendarSettings.locale,
+                    });
+                    timeInfo = ` at ${startTime}`;
+                  }
+
+                  return (
+                    <CommandItem
+                      key={item.event.id}
+                      value={`event-${item.event.id}-${item.event.title}`}
+                      onSelect={() => {
+                        action(() => {
+                          if (view !== "agenda" && view !== "month") {
+                            setCurrentDate(eventDate);
+                          }
+                          selectAction(item.event);
+                        });
+                      }}
+                    >
+                      <div className="flex flex-col">
+                        <span>{item.event.title || "(No title)"}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {formattedDate}
+                          {timeInfo}
+                        </span>
+                      </div>
+                    </CommandItem>
+                  );
+                })}
             </CommandGroup>
           ) : null}
 
