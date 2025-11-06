@@ -34,7 +34,11 @@ export function isAllDayOrMultiDay(item: EventCollectionItem): boolean {
 }
 
 function isMultiDayEvent(item: EventCollectionItem): boolean {
-  return item.event.allDay || !isSameDay(item.start, item.end);
+  if (!item.event.allDay) {
+    return false;
+  }
+
+  return !isSameDay(item.start, item.end);
 }
 
 // ============================================================================
