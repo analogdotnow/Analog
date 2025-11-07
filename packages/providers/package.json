@@ -23,7 +23,6 @@
   },
   "dependencies": {
     "@analog/meeting-links": "workspace:*",
-    "@googlemaps/places": "^2.2.0",
     "@microsoft/microsoft-graph-client": "^3.0.7",
     "@repo/db": "workspace:*",
     "@repo/env": "workspace:*",
