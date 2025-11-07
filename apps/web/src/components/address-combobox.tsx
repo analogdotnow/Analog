@@ -11,8 +11,8 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { usePlacesSearch } from "@/hooks/use-places-search";
 import { cn } from "@/lib/utils";
-import { usePlacesSearch } from "./use-places-search";
 
 type AddressItem = { value: string; label: string };
 

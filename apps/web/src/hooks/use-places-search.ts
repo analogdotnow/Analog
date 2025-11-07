@@ -6,9 +6,11 @@ import { env } from "@repo/env/client";
 
 import { useTRPC } from "@/lib/trpc/client";
 
-setOptions({
-  key: env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
-});
+if (typeof window !== "undefined") {
+  setOptions({
+    key: env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
+  });
+}
 
 type AutocompleteRequest = google.maps.places.AutocompleteRequest;
 type AutocompleteSessionToken = google.maps.places.AutocompleteSessionToken;
