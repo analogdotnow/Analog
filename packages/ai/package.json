@@ -10,21 +10,21 @@
     "type-check": "tsc --noEmit"
   },
   "peerDependencies": {
-    "ai": "^5.0.76",
+    "ai": "^5.0.89",
     "zod": "^4.0.5"
   },
   "dependencies": {
     "@browserbasehq/sdk": "^2.6.0",
-    "@composio/core": "^0.1.55",
-    "@composio/vercel": "^0.2.11",
-    "@mendable/firecrawl-js": "^4.4.1",
+    "@composio/core": "^0.2.3",
+    "@composio/vercel": "^0.2.15",
+    "@mendable/firecrawl-js": "^4.5.0",
     "@repo/env": "workspace:*"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
-    "@types/node": "^24.8.1",
-    "eslint": "^9.38.0",
+    "@types/node": "^24.10.0",
+    "eslint": "^9.39.1",
     "typescript": "^5.9.2"
   }
 }
