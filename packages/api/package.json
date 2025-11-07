@@ -43,13 +43,15 @@
     "@repo/schemas": "workspace:*",
     "@repo/temporal": "workspace:*",
     "@upstash/ratelimit": "^2.0.5",
-    "@upstash/redis": "^1.35.6"
+    "@upstash/redis": "^1.35.6",
+    "web-push": "^3.6.7"
   },
   "devDependencies": {
     "@microsoft/microsoft-graph-types": "^2.40.0",
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@types/node": "^24.8.1",
+    "@types/web-push": "^3.6.4",
     "eslint": "^9.38.0",
     "typescript": "^5.9.2"
   }

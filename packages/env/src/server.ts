@@ -22,6 +22,7 @@ export const env = createEnv({
     COMPOSIO_API_KEY: z.string().optional(),
     FIRECRAWL_API_KEY: z.string().min(1),
     BROWSERBASE_API_KEY: z.string().min(1),
+    VAPID_PRIVATE_KEY: z.string().min(1),
   },
   experimental__runtimeEnv: process.env,
   skipValidation: process.env.NODE_ENV !== "production",
