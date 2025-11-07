@@ -1,6 +1,5 @@
-import { PlacesClient } from "@googlemaps/places";
-
 import { env } from "@repo/env/server";
+import { GooglePlaces } from "@repo/google-maps-places";
 
 import { ProviderError } from "../lib/provider-error";
 import type {
@@ -11,12 +10,10 @@ import type {
 } from "./interfaces";
 
 export class GooglePlacesProvider implements PlacesProvider {
-  private client: PlacesClient;
+  private client: GooglePlaces;
 
   constructor() {
-    this.client = new PlacesClient({
-      apiKey: env.GOOGLE_MAPS_API_KEY,
-    });
+    this.client = new GooglePlaces({ apiKey: env.GOOGLE_MAPS_API_KEY });
   }
 
   async autocomplete(
@@ -24,7 +21,7 @@ export class GooglePlacesProvider implements PlacesProvider {
     options: AutocompleteOptions = {},
   ): Promise<PlaceResult[]> {
     try {
-      const [response] = await this.client.autocompletePlaces({
+      const response = await this.client.placesAutocomplete.predict({
         input,
         languageCode: options.languageCode || "en",
       });
