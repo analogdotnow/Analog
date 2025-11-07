@@ -1,14 +1,16 @@
 import * as React from "react";
-import { Loader } from "@googlemaps/js-api-loader";
+import { importLibrary, setOptions } from "@googlemaps/js-api-loader";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 import { env } from "@repo/env/client";
 
 import { useTRPC } from "@/lib/trpc/client";
 
-const loader = new Loader({
-  apiKey: env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
-});
+if (typeof window !== "undefined") {
+  setOptions({
+    key: env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
+  });
+}
 
 type AutocompleteRequest = google.maps.places.AutocompleteRequest;
 type AutocompleteSessionToken = google.maps.places.AutocompleteSessionToken;
@@ -30,7 +32,7 @@ export function usePlacesSearch(request: AutocompleteRequest) {
       }
 
       const { AutocompleteSuggestion, AutocompleteSessionToken } =
-        await loader.importLibrary("places");
+        await importLibrary("places");
 
       if (!sessionTokenRef.current) {
         sessionTokenRef.current = new AutocompleteSessionToken();
