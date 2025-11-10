@@ -17,13 +17,16 @@ Analog is an open-source calendar application built with Next.js, TypeScript, an
 This is a Turborepo monorepo with the following workspace organization:
 
 - **apps/web** - Main Next.js application (runs on port 3000)
+- **packages/ai** - AI integration with Composio, Firecrawl, and Browserbase SDK
 - **packages/api** - tRPC API layer with routers for all features
 - **packages/auth** - Better Auth configuration and OAuth setup
 - **packages/db** - Drizzle ORM schema and database utilities
 - **packages/env** - Environment variable validation with type safety
+- **packages/meeting-links** - Meeting link management and parsing utilities
 - **packages/providers** - Calendar and conferencing provider integrations
 - **packages/schemas** - Shared Zod validation schemas
 - **packages/temporal** - Temporal (date/time) utilities
+- **packages/timezone-coordinates** - Timezone coordinate mapping utilities
 - **packages/google-\*** - Generated Google API clients (Calendar, Maps, Tasks, People)
 - **tooling/eslint-config** - Shared ESLint configurations
 - **tooling/typescript-config** - Shared TypeScript configurations
@@ -74,7 +77,10 @@ bun run format              # Format code with Prettier
 - `MICROSOFT_CLIENT_ID` and `MICROSOFT_CLIENT_SECRET` - Microsoft OAuth credentials
 - `ZOOM_CLIENT_ID` and `ZOOM_CLIENT_SECRET` - Zoom OAuth credentials
 - `GOOGLE_MAPS_API_KEY` - Google Places API key for location features
-- `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` - Redis for caching
+- `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` - Redis for caching (default: HTTP proxy on localhost:8079)
+- `SRH_MODE`, `SRH_TOKEN`, and `SRH_CONNECTION_STRING` - Redis HTTP proxy configuration for local development
+- `SIMPLE_ANALYTICS_HOSTNAME` and `NEXT_PUBLIC_SIMPLE_ANALYTICS_HOSTNAME` - Simple Analytics integration
+- `MARBLE_WORKSPACE_KEY` and `MARBLE_API_URL` - Marble CMS integration for blog content
 - `SENTRY_DSN` - Error tracking with Sentry
 - AI-related keys: `COMPOSIO_API_KEY`, `FIRECRAWL_API_KEY`, `BROWSERBASE_API_KEY`
 
