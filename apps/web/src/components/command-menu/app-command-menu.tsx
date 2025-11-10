@@ -106,7 +106,7 @@ export function AppCommandMenu() {
                 .slice(0, 10)
                 .map((item) => {
                   const eventDate = item.start.toPlainDate();
-                  const formattedDate = eventDate.toLocaleString("en-US", {
+                  const formattedDate = eventDate.toLocaleString(calendarSettings.locale, {
                     month: "short",
                     day: "numeric",
                   });
