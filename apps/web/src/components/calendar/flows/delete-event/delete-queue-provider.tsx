@@ -2,7 +2,7 @@ import * as React from "react";
 import { createActorContext } from "@xstate/react";
 import { useSetAtom } from "jotai";
 
-import { removeOptimisticActionAtom } from "@/components/calendar/hooks/optimistic-actions";
+import { removeOptimisticActionAtom, removeOptimisticActionsByEventIdAtom } from "@/components/calendar/hooks/optimistic-actions";
 import { useDeleteEventMutation } from "@/components/calendar/hooks/use-event-mutations";
 import { getEventById } from "@/lib/db";
 import { createDeleteQueueMachine, type DeleteQueueItem } from "./delete-queue";
@@ -21,15 +21,15 @@ interface DeleteQueueProviderProps {
 export function DeleteQueueProvider({ children }: DeleteQueueProviderProps) {
   const deleteMutation = useDeleteEventMutation();
   const removeOptimisticAction = useSetAtom(removeOptimisticActionAtom);
+  const removeOptimisticActionsByEventId = useSetAtom(removeOptimisticActionsByEventIdAtom);
 
   const deleteEvent = React.useCallback(
     async (item: DeleteQueueItem) => {
       const prevEvent = await getEventById(item.event.id);
 
       if (!prevEvent) {
-        if (item.event?.type === "draft") {
-          removeOptimisticAction(item.optimisticId);
-        }
+        // need to delete draft event
+        removeOptimisticActionsByEventId(item.event.id);
 
         return;
       }
@@ -53,7 +53,7 @@ export function DeleteQueueProvider({ children }: DeleteQueueProviderProps) {
         },
       );
     },
-    [deleteMutation, removeOptimisticAction],
+    [deleteMutation, removeOptimisticAction, removeOptimisticActionsByEventId],
   );
 
   const logic = React.useMemo(() => {
