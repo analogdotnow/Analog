@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { format, sameDay } from "@formkit/tempo";
+import { sameDay } from "@formkit/tempo";
 import { parseDate } from "chrono-node";
 import { useAtomValue } from "jotai";
 import { Temporal } from "temporal-polyfill";
@@ -18,20 +18,25 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { format } from "@/lib/utils/format";
 
 interface FormatDateOptions {
-  date?: Date | undefined;
+  value?: Temporal.ZonedDateTime | undefined;
   locale?: string;
 }
 
-function formatDate({ date, locale }: FormatDateOptions) {
-  if (!date) {
+function formatDate({ value, locale }: FormatDateOptions) {
+  if (!value) {
     return "";
   }
 
-  const isThisYear = date.getFullYear() === new Date().getFullYear();
+  const isThisYear = value.year === Temporal.Now.plainDateISO().year;
 
-  return format(date, isThisYear ? "ddd D MMM" : "ddd D MMM YYYY", locale);
+  return format({
+    value,
+    format: isThisYear ? "ddd D MMM" : "ddd D MMM YYYY",
+    locale,
+  });
 }
 
 interface DateInputProps {
@@ -55,7 +60,7 @@ export function DateInput({
   const [open, setOpen] = React.useState(false);
   const [date, setDate] = React.useState<Date | undefined>(new Date());
   const [month, setMonth] = React.useState<Date | undefined>(date);
-  const [input, setInput] = React.useState(formatDate({ date, locale }));
+  const [input, setInput] = React.useState(formatDate({ value, locale }));
 
   const minDate = React.useMemo(() => {
     if (!minValue) {
@@ -69,7 +74,7 @@ export function DateInput({
     const date = toDate(value, { timeZone: value.timeZoneId });
     setDate(date);
     setMonth(date);
-    setInput(formatDate({ date, locale }));
+    setInput(formatDate({ value, locale }));
     setOpen(false);
   }, [value, locale]);
 
@@ -90,7 +95,7 @@ export function DateInput({
 
       setDate(date);
       setMonth(date);
-      setInput(formatDate({ date, locale }));
+      setInput(formatDate({ value: zonedDateTime, locale }));
       onChange(zonedDateTime);
     },
     [value, onChange, locale, minValue],
@@ -104,7 +109,7 @@ export function DateInput({
         const date = toDate(value, { timeZone: value.timeZoneId });
         setDate(date);
         setMonth(date);
-        setInput(formatDate({ date, locale }));
+        setInput(formatDate({ value, locale }));
         return;
       }
 

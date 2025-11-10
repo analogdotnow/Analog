@@ -17,7 +17,7 @@ import {
 export function TimeFormatPicker() {
   const [calendarSettings, setCalendarSettings] = useAtom(calendarSettingsAtom);
 
-  const time = React.useRef(new Date());
+  const time = React.useMemo(() => new Date(), []);
 
   const onValueChange = React.useCallback(
     (value: string) => {
@@ -43,10 +43,10 @@ export function TimeFormatPicker() {
         </SelectTrigger>
         <SelectContent>
           <SelectItem className="tabular-nums" value="24h">
-            {format(time.current, "HH:mm")}
+            {format(time, "HH:mm")}
           </SelectItem>
           <SelectItem className="tabular-nums" value="12h">
-            {format(time.current, "h:mm a")}
+            {format(time, "h:mm a")}
           </SelectItem>
         </SelectContent>
       </Select>
