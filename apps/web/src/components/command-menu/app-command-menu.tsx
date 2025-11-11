@@ -20,6 +20,7 @@ import {
 import { useEventsForDisplay } from "../calendar/hooks/use-events";
 import { useSelectAction } from "../calendar/hooks/use-optimistic-mutations";
 import { formatTime } from "@/lib/utils/format";
+import { matchSorter } from "match-sorter";
 
 export function AppCommandMenu() {
   const [open, setOpen] = React.useState(false);
@@ -73,6 +74,56 @@ export function AppCommandMenu() {
       return () => document.removeEventListener("keydown", handleKeyDown);
     }, [search]);
 
+    const eventResults = React.useMemo(() => {
+      if (!search || eventsSnapshot.length === 0) {
+        return null;
+      }
+
+      return matchSorter(eventsSnapshot, search, {
+        keys: [(event) => event.event.title ?? "", (event) => event.event.description ?? "", (event) => event.event.location ?? ""],
+      })
+        .slice(0, 10)
+        .map((item) => {
+          const eventDate = item.start.toPlainDate();
+          const formattedDate = eventDate.toLocaleString("en-US", {
+            month: "short",
+            day: "numeric",
+          });
+
+          let timeInfo = "";
+          if (!item.event.allDay) {
+            const startTime = formatTime({
+              value: item.start,
+              use12Hour: calendarSettings.use12Hour,
+              timeZone: calendarSettings.defaultTimeZone,
+              locale: calendarSettings.locale,
+            });
+            timeInfo = ` at ${startTime}`;
+          }
+
+          return (
+            <CommandItem
+              key={`${item.event.id}-${item.start.epochMilliseconds}`}
+              value={`event-${item.event.id}-${item.event.title}`}
+              onSelect={() => {
+                action(() => {
+                  setCurrentDate(eventDate);
+                  selectAction(item.event);
+                });
+              }}
+            >
+              <div className="flex flex-col">
+                <span>{item.event.title || "(No title)"}</span>
+                <span className="text-xs text-muted-foreground">
+                  {formattedDate}
+                  {timeInfo}
+                </span>
+              </div>
+            </CommandItem>
+          );
+        });
+    }, [search, eventsSnapshot, calendarSettings]);
+
     return (
       <>
         <CommandInput placeholder="Type a command or search..." />
@@ -92,60 +143,8 @@ export function AppCommandMenu() {
             </CommandGroup>
           ) : null}
 
-          {search && eventsSnapshot.length > 0 ? (
-            <CommandGroup heading="Events">
-              {eventsSnapshot
-                .filter((item) => {
-                  const searchLower = search.toLowerCase();
-                  return (
-                    item.event.title?.toLowerCase().includes(searchLower) ||
-                    item.event.description?.toLowerCase().includes(searchLower) ||
-                    item.event.location?.toLowerCase().includes(searchLower)
-                  );
-                })
-                .slice(0, 10)
-                .map((item) => {
-                  const eventDate = item.start.toPlainDate();
-                  const formattedDate = eventDate.toLocaleString(calendarSettings.locale, {
-                    month: "short",
-                    day: "numeric",
-                  });
-
-                  let timeInfo = "";
-                  if (!item.event.allDay) {
-                    const startTime = formatTime({
-                      value: item.start,
-                      use12Hour: calendarSettings.use12Hour,
-                      timeZone: calendarSettings.defaultTimeZone,
-                      locale: calendarSettings.locale,
-                    });
-                    timeInfo = ` at ${startTime}`;
-                  }
-
-                  return (
-                    <CommandItem
-                      key={item.event.id}
-                      value={`event-${item.event.id}-${item.event.title}`}
-                      onSelect={() => {
-                        action(() => {
-                          if (view !== "agenda" && view !== "month") {
-                            setCurrentDate(eventDate);
-                          }
-                          selectAction(item.event);
-                        });
-                      }}
-                    >
-                      <div className="flex flex-col">
-                        <span>{item.event.title || "(No title)"}</span>
-                        <span className="text-xs text-muted-foreground">
-                          {formattedDate}
-                          {timeInfo}
-                        </span>
-                      </div>
-                    </CommandItem>
-                  );
-                })}
-            </CommandGroup>
+          {eventResults && eventResults.length > 0 ? (
+            <CommandGroup heading="Events">{eventResults}</CommandGroup>
           ) : null}
 
           {!page ? (

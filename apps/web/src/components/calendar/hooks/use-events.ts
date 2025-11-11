@@ -72,13 +72,13 @@ export function useEventsForDisplay() {
     [defaultTimeZone],
   );
 
-  return useQuery({
-    ...trpc.events.list.queryOptions(
+  return useQuery(
+    trpc.events.list.queryOptions(
       { timeMin, timeMax, defaultTimeZone },
       {
         select,
+        placeholderData: (previousData) => previousData,
       },
-    ),
-    placeholderData: (previousData) => previousData,
-  });
+    )
+  );
 }
