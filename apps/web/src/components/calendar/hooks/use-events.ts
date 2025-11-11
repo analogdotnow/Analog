@@ -79,6 +79,6 @@ export function useEventsForDisplay() {
         select,
         placeholderData: (previousData) => previousData,
       },
-    )
+    ),
   );
 }

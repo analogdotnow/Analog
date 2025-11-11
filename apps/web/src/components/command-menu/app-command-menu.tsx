@@ -1,6 +1,7 @@
 import * as React from "react";
 import { useCommandState } from "cmdk";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { matchSorter } from "match-sorter";
 import { useTheme } from "next-themes";
 import { useHotkeys, useHotkeysContext } from "react-hotkeys-hook";
 import { Temporal } from "temporal-polyfill";
@@ -8,6 +9,9 @@ import { Temporal } from "temporal-polyfill";
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { viewPreferencesAtom } from "@/atoms/view-preferences";
 import { useCalendarState } from "@/hooks/use-calendar-state";
+import { formatTime } from "@/lib/utils/format";
+import { useEventsForDisplay } from "../calendar/hooks/use-events";
+import { useSelectAction } from "../calendar/hooks/use-optimistic-mutations";
 import {
   Command,
   CommandDialog,
@@ -17,10 +21,6 @@ import {
   CommandItem,
   CommandList,
 } from "../ui/command";
-import { useEventsForDisplay } from "../calendar/hooks/use-events";
-import { useSelectAction } from "../calendar/hooks/use-optimistic-mutations";
-import { formatTime } from "@/lib/utils/format";
-import { matchSorter } from "match-sorter";
 
 export function AppCommandMenu() {
   const [open, setOpen] = React.useState(false);
@@ -52,7 +52,10 @@ export function AppCommandMenu() {
   const { data } = useEventsForDisplay();
   const selectAction = useSelectAction();
 
-  const eventsSnapshot = React.useMemo(() => data?.events ?? [], [open, data?.events]);
+  const eventsSnapshot = React.useMemo(
+    () => data?.events ?? [],
+    [open, data?.events],
+  );
 
   const action = (action: () => void) => {
     action();
@@ -80,15 +83,22 @@ export function AppCommandMenu() {
       }
 
       return matchSorter(eventsSnapshot, search, {
-        keys: [(event) => event.event.title ?? "", (event) => event.event.description ?? "", (event) => event.event.location ?? ""],
+        keys: [
+          (event) => event.event.title ?? "",
+          (event) => event.event.description ?? "",
+          (event) => event.event.location ?? "",
+        ],
       })
         .slice(0, 10)
         .map((item) => {
           const eventDate = item.start.toPlainDate();
-          const formattedDate = eventDate.toLocaleString("en-US", {
-            month: "short",
-            day: "numeric",
-          });
+          const formattedDate = eventDate.toLocaleString(
+            calendarSettings.locale,
+            {
+              month: "short",
+              day: "numeric",
+            },
+          );
 
           let timeInfo = "";
           if (!item.event.allDay) {
