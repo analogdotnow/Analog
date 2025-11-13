@@ -2,14 +2,11 @@
 
 import * as React from "react";
 import { useMemo, useState } from "react";
-import { format } from "@formkit/tempo";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { parseDate } from "chrono-node";
 import { useAtomValue } from "jotai";
 import { matchSorter } from "match-sorter";
 import { Temporal } from "temporal-polyfill";
-
-import { toDate } from "@repo/temporal";
 
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import {
@@ -20,32 +17,7 @@ import {
   ComboboxPopover,
 } from "@/components/ui/combobox";
 import { cn } from "@/lib/utils";
-
-interface FormatTimeOptions {
-  value: Temporal.ZonedDateTime;
-  use12Hour: boolean;
-  locale: string;
-}
-
-function formatTime({ value, use12Hour, locale }: FormatTimeOptions) {
-  const date = toDate(value, { timeZone: value.timeZoneId });
-
-  if (use12Hour) {
-    return format({
-      date,
-      format: "hh:mm a",
-      locale,
-      tz: value.timeZoneId,
-    });
-  }
-
-  return format({
-    date,
-    format: "HH:mm",
-    locale,
-    tz: value.timeZoneId,
-  });
-}
+import { formatTime } from "@/lib/utils/format";
 
 interface TimeInputValue {
   key: string;
