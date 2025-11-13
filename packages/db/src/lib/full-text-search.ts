@@ -61,7 +61,7 @@ export function toTsquery(
   const normalizedVector = typeof vector === "string" ? sql`${vector}` : vector;
 
   if (language) {
-    return sql`to_tsquery(${sql`${language}`},${normalizedVector})`;
+    return sql`to_tsquery(${sql`${language}`}::regconfig,${normalizedVector})`;
   }
   return sql`to_tsquery(${normalizedVector})`;
 }
