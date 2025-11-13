@@ -48,7 +48,7 @@ export function toTsvector(
   const normalizedText = text instanceof SQL ? text : sql`${text}`;
 
   if (language) {
-    return sql`to_tsvector(${sql`${language}`},${normalizedText})`;
+    return sql`to_tsvector(${sql`${language}`}::regconfig,${normalizedText})`;
   }
 
   return sql`to_tsvector(${normalizedText})`;
