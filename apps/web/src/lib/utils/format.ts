@@ -63,7 +63,7 @@ export function formatTime(
       date: toDate(dateTime),
       format: use12Hour ? "h:mm a" : "HH:mm",
       locale,
-      tz: "UTC",
+      tz: timeZone ?? "UTC",
     });
   }
 
