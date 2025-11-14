@@ -54,6 +54,7 @@ export type FlowEvent =
 
 export interface Ctx {
   item: UpdateQueueItem | null;
+  queue: UpdateQueueItem[];
 }
 
 export interface CreateUpdateQueueMachineOptions {
@@ -90,6 +91,13 @@ export function createUpdateQueueMachine({
       setItem: assign(({ event }) => ({
         item: (event as Start).item,
       })),
+      enqueueItem: assign(({ context, event }) => ({
+        queue: [...context.queue, (event as Start).item],
+      })),
+      processNextInQueue: assign(({ context }) => ({
+        item: context.queue[0] || null,
+        queue: context.queue.slice(1),
+      })),
       setScopeInstance: assign(({ context }) => ({
         item: context.item
           ? { ...context.item, scope: "instance" as const }
@@ -111,7 +119,15 @@ export function createUpdateQueueMachine({
         }
         removeOptimisticAction(context.item.optimisticId);
       },
-      clear: assign(() => ({ item: null })),
+      clearQueueOptimisticActions: ({ context }) => {
+        // Clean up optimistic actions for queued items that won't be processed
+        context.queue.forEach((item) => {
+          if (item.optimisticId) {
+            removeOptimisticAction(item.optimisticId);
+          }
+        });
+      },
+      clear: assign(() => ({ item: null, queue: [] })),
     },
     actors: {
       updateEventActor: fromPromise(
@@ -120,7 +136,7 @@ export function createUpdateQueueMachine({
     },
   }).createMachine({
     id: "updateEvent",
-    context: { item: null },
+    context: { item: null, queue: [] },
     initial: "idle",
     states: {
       idle: {
@@ -133,7 +149,7 @@ export function createUpdateQueueMachine({
         always: [
           {
             guard: ({ context }) => !context.item?.event,
-            target: "finalize",
+            target: "checkQueue",
           },
           { guard: "promptRecurringScope", target: "askRecurringScope" },
           { guard: "needsNotify", target: "askNotifyAttendee" },
@@ -146,6 +162,7 @@ export function createUpdateQueueMachine({
           SCOPE_INSTANCE: { target: "route", actions: "setScopeInstance" },
           SCOPE_SERIES: { target: "route", actions: "setScopeSeries" },
           CANCEL: { target: "rollback" },
+          START: { actions: "enqueueItem" },
         },
       },
 
@@ -153,25 +170,36 @@ export function createUpdateQueueMachine({
         on: {
           NOTIFY_CHOICE: { target: "route", actions: "setNotify" },
           CANCEL: { target: "rollback" },
+          START: { actions: "enqueueItem" },
         },
       },
 
       mutate: {
+        on: {
+          START: { actions: "enqueueItem" },
+        },
         invoke: {
           src: "updateEventActor",
           input: ({ context }: { context: Ctx }) => context.item!,
-          onDone: { target: "finalize" },
+          onDone: { target: "checkQueue" },
           onError: { target: "rollback" },
         },
       },
 
       rollback: {
         entry: "removeOptimisticAction",
-        always: { target: "idle", actions: "clear" },
+        always: { target: "checkQueue", actions: "clear" },
       },
 
-      finalize: {
-        always: { target: "idle", actions: "clear" },
+      checkQueue: {
+        always: [
+          {
+            guard: ({ context }) => context.queue.length > 0,
+            target: "route",
+            actions: "processNextInQueue",
+          },
+          { target: "idle" },
+        ],
       },
     },
   });
