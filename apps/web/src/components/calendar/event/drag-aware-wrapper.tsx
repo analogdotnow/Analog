@@ -4,6 +4,7 @@ import * as React from "react";
 import { useAtomValue } from "jotai";
 
 import { draggingAtom } from "@/atoms/drag-resize-state";
+import { cn } from "@/lib/utils";
 
 interface DragAwareWrapperProps extends React.ComponentProps<"div"> {
   eventId: string;
@@ -21,10 +22,8 @@ export function DragAwareWrapper({
 
   return (
     <div
-      style={{
-        ...style,
-        zIndex: isDragging ? 99999 : "auto",
-      }}
+      className={cn("z-10", isDragging && "z-99999")}
+      style={style}
       {...props}
     >
       {children}
