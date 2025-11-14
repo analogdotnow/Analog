@@ -27,9 +27,5 @@
     "apps/*",
     "packages/*",
     "tooling/*"
-  ],
-  "dependencies": {
-    "@better-upload/client": "^3.0.2",
-    "@better-upload/server": "^3.0.2"
-  }
+  ]
 }

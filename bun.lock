@@ -3,10 +3,6 @@
   "workspaces": {
     "": {
       "name": "analog",
-      "dependencies": {
-        "@better-upload/client": "^3.0.2",
-        "@better-upload/server": "^3.0.2",
-      },
       "devDependencies": {
         "@ianvs/prettier-plugin-sort-imports": "^4.7.0",
         "dotenv-cli": "^11.0.0",
@@ -22,6 +18,8 @@
         "@ai-sdk/openai": "^2.0.64",
         "@ai-sdk/react": "^2.0.89",
         "@ariakit/react": "^0.4.18",
+        "@better-upload/client": "^3.0.2",
+        "@better-upload/server": "^3.0.2",
         "@formkit/tempo": "^0.1.2",
         "@googlemaps/js-api-loader": "^2.0.0",
         "@heroicons/react": "^2.2.0",
