@@ -49,7 +49,7 @@ export function TimeIndicatorBackground() {
           </p>
         </div>
         <div className="h-0.5 w-20"></div>
-        <div className="h-0.5 grow bg-red-500/10"></div>
+        <div className="h-0.5 grow bg-red-500/10 z-20"></div>
       </div>
     </div>
   );
