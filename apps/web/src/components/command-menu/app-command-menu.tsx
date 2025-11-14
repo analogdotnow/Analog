@@ -1,4 +1,5 @@
 import * as React from "react";
+import { format } from "@formkit/tempo";
 import { useCommandState } from "cmdk";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { matchSorter } from "match-sorter";
@@ -6,10 +7,11 @@ import { useTheme } from "next-themes";
 import { useHotkeys, useHotkeysContext } from "react-hotkeys-hook";
 import { Temporal } from "temporal-polyfill";
 
+import { toDate } from "@repo/temporal";
+
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { viewPreferencesAtom } from "@/atoms/view-preferences";
 import { useCalendarState } from "@/hooks/use-calendar-state";
-import { formatTime } from "@/lib/utils/format";
 import { useEventsForDisplay } from "../calendar/hooks/use-events";
 import { useSelectAction } from "../calendar/hooks/use-optimistic-mutations";
 import {
@@ -42,20 +44,15 @@ export function AppCommandMenu() {
     preventDefault: true,
   });
 
-  const { setCurrentDate, setView, view } = useCalendarState();
+  const { setCurrentDate, setView } = useCalendarState();
   const { setTheme } = useTheme();
   const [preferences, setPreferences] = useAtom(viewPreferencesAtom);
   const setCalendarSettings = useSetAtom(calendarSettingsAtom);
-  const calendarSettings = useAtomValue(calendarSettingsAtom);
+  const { use12Hour } = useAtomValue(calendarSettingsAtom);
   const [pages, setPages] = React.useState<string[]>([]);
   const page = pages[pages.length - 1];
   const { data } = useEventsForDisplay();
   const selectAction = useSelectAction();
-
-  const eventsSnapshot = React.useMemo(
-    () => data?.events ?? [],
-    [open, data?.events],
-  );
 
   const action = (action: () => void) => {
     action();
@@ -77,62 +74,38 @@ export function AppCommandMenu() {
       return () => document.removeEventListener("keydown", handleKeyDown);
     }, [search]);
 
-    const eventResults = React.useMemo(() => {
-      if (!search || eventsSnapshot.length === 0) {
+    const searchResults = React.useMemo(() => {
+      if (!search || !data?.events || data.events.length === 0) {
         return null;
       }
 
-      return matchSorter(eventsSnapshot, search, {
+      return matchSorter(data.events, search, {
         keys: [
-          (event) => event.event.title ?? "",
-          (event) => event.event.description ?? "",
-          (event) => event.event.location ?? "",
+          (item) => item.event.title ?? "",
+          (item) => item.event.description ?? "",
+          (item) => item.event.location ?? "",
         ],
       })
         .slice(0, 10)
         .map((item) => {
-          const eventDate = item.start.toPlainDate();
-          const formattedDate = eventDate.toLocaleString(
-            calendarSettings.locale,
-            {
-              month: "short",
-              day: "numeric",
-            },
-          );
+          const date = toDate(item.start);
 
-          let timeInfo = "";
-          if (!item.event.allDay) {
-            const startTime = formatTime({
-              value: item.start,
-              use12Hour: calendarSettings.use12Hour,
-              timeZone: calendarSettings.defaultTimeZone,
-              locale: calendarSettings.locale,
-            });
-            timeInfo = ` at ${startTime}`;
+          if (item.event.allDay) {
+            return {
+              ...item,
+              label: format(date, "MMMM D, YYYY"),
+            };
           }
 
-          return (
-            <CommandItem
-              key={`${item.event.id}-${item.start.epochMilliseconds}`}
-              value={`event-${item.event.id}-${item.event.title}`}
-              onSelect={() => {
-                action(() => {
-                  setCurrentDate(eventDate);
-                  selectAction(item.event);
-                });
-              }}
-            >
-              <div className="flex flex-col">
-                <span>{item.event.title || "(No title)"}</span>
-                <span className="text-xs text-muted-foreground">
-                  {formattedDate}
-                  {timeInfo}
-                </span>
-              </div>
-            </CommandItem>
-          );
+          return {
+            ...item,
+            label: format(
+              date,
+              use12Hour ? "MMMM D, YYYY h:mm a" : "MMMM D, YYYY HH:mm",
+            ),
+          };
         });
-    }, [search, eventsSnapshot, calendarSettings]);
+    }, [search]);
 
     return (
       <>
@@ -153,8 +126,29 @@ export function AppCommandMenu() {
             </CommandGroup>
           ) : null}
 
-          {eventResults && eventResults.length > 0 ? (
-            <CommandGroup heading="Events">{eventResults}</CommandGroup>
+          {searchResults && searchResults.length > 0 ? (
+            <CommandGroup heading="Events">
+              {searchResults.map((item) => (
+                <CommandItem
+                  key={item.event.id}
+                  value={item.event.id}
+                  onSelect={() => {
+                    action(() => {
+                      setCurrentDate(item.start.toPlainDate());
+
+                      selectAction(item.event);
+                    });
+                  }}
+                >
+                  <div className="flex flex-col">
+                    <span>{item.event.title ?? "(untitled)"}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {item.label}
+                    </span>
+                  </div>
+                </CommandItem>
+              ))}
+            </CommandGroup>
           ) : null}
 
           {!page ? (
@@ -239,7 +233,7 @@ export function AppCommandMenu() {
             </CommandGroup>
           ) : null}
 
-          {page === "theme" || search ? (
+          {page === "theme" && search ? (
             <CommandGroup heading="Appearance">
               <CommandItem
                 value="system"
@@ -270,7 +264,7 @@ export function AppCommandMenu() {
             </CommandGroup>
           ) : null}
 
-          {page === "time-format" || search ? (
+          {page === "time-format" && search ? (
             <CommandGroup heading="Localization">
               <CommandItem
                 onSelect={() =>
@@ -303,7 +297,7 @@ export function AppCommandMenu() {
             </CommandGroup>
           ) : null}
 
-          {page === "start-of-week" || search ? (
+          {page === "start-of-week" && search ? (
             <CommandGroup heading="Calendar">
               <CommandItem
                 onSelect={() =>
