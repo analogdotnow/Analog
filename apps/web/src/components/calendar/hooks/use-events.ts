@@ -77,6 +77,7 @@ export function useEventsForDisplay() {
       { timeMin, timeMax, defaultTimeZone },
       {
         select,
+        placeholderData: (previousData) => previousData,
       },
     ),
   );
