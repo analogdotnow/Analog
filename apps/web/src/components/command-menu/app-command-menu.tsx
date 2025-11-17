@@ -1,393 +1,136 @@
 import * as React from "react";
-import { format } from "@formkit/tempo";
-import { useCommandState } from "cmdk";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { matchSorter } from "match-sorter";
-import { useTheme } from "next-themes";
+import { useAtom, useSetAtom } from "jotai";
+import { useQueryState } from "nuqs";
 import { useHotkeys, useHotkeysContext } from "react-hotkeys-hook";
-import { Temporal } from "temporal-polyfill";
 
-import { toDate } from "@repo/temporal";
-
-import { calendarSettingsAtom } from "@/atoms/calendar-settings";
-import { viewPreferencesAtom } from "@/atoms/view-preferences";
-import { useCalendarState } from "@/hooks/use-calendar-state";
-import { useEventsForDisplay } from "../calendar/hooks/use-events";
-import { useSelectAction } from "../calendar/hooks/use-optimistic-mutations";
+import {
+  commandMenuOpenAtom,
+  commandMenuPagesAtom,
+} from "@/atoms/command-menu";
 import {
   Command,
   CommandDialog,
   CommandEmpty,
-  CommandGroup,
   CommandInput,
-  CommandItem,
   CommandList,
-} from "../ui/command";
+} from "@/components/ui/command";
+import { AppearanceCommands } from "./appearance-commands";
+import { CalendarNavigationCommands } from "./calendar-navigation-commands";
+import { EventSearchCommands } from "./event-search-commands";
+import { LayoutCommands } from "./layout-commands";
+import { LocalizationCommands } from "./localization-commands";
+import { PreferencesCommands } from "./preferences-commands";
+import { StartOfWeekCommands } from "./start-of-week-commands";
 
 export function AppCommandMenu() {
-  const [open, setOpen] = React.useState(false);
-  const { disableScope, enableScope, activeScopes } = useHotkeysContext();
+  const [open, setOpen] = useAtom(commandMenuOpenAtom);
+  const [pages, setPages] = useAtom(commandMenuPagesAtom);
+  const { disableScope, enableScope } = useHotkeysContext();
+  const [search, setSearch] = useQueryState("search");
+
+  React.useEffect(() => {
+    if (!search) {
+      return;
+    }
+
+    setOpen(true);
+  }, [search, setOpen]);
 
   React.useEffect(() => {
     if (open) {
       enableScope("command-menu");
       disableScope("calendar");
       disableScope("event");
-    } else {
-      enableScope("calendar");
-      enableScope("event");
-      disableScope("command-menu");
+
+      return;
     }
+
+    enableScope("calendar");
+    enableScope("event");
+    disableScope("command-menu");
   }, [open, disableScope, enableScope]);
+
+  React.useEffect(() => {
+    if (open || search) {
+      return;
+    }
+
+    setPages([]);
+  }, [open, search, setPages]);
+
+  const onOpenChange = (open: boolean) => {
+    if (!open && !search && pages.length > 0) {
+      setPages((pages) => pages.slice(0, -1));
+
+      return;
+    }
+
+    setOpen(open);
+
+    if (!open) {
+      setSearch(null);
+    }
+  };
 
   useHotkeys("mod+k", () => setOpen((open) => !open), {
     preventDefault: true,
   });
 
-  const { setCurrentDate, setView } = useCalendarState();
-  const { setTheme } = useTheme();
-  const [preferences, setPreferences] = useAtom(viewPreferencesAtom);
-  const setCalendarSettings = useSetAtom(calendarSettingsAtom);
-  const { use12Hour } = useAtomValue(calendarSettingsAtom);
-  const [pages, setPages] = React.useState<string[]>([]);
-  const page = pages[pages.length - 1];
-  const { data } = useEventsForDisplay();
-  const selectAction = useSelectAction();
-
-  const action = (action: () => void) => {
-    action();
-    setOpen(false);
-  };
-
-  const CommandContent = () => {
-    const search = useCommandState((state) => state.search);
-
-    React.useEffect(() => {
-      const handleKeyDown = (e: KeyboardEvent) => {
-        if (e.key === "Backspace" && !search) {
-          e.preventDefault();
-          setPages((pages) => pages.slice(0, -1));
-        }
-      };
-
-      document.addEventListener("keydown", handleKeyDown);
-      return () => document.removeEventListener("keydown", handleKeyDown);
-    }, [search]);
-
-    const searchResults = React.useMemo(() => {
-      if (!search || !data?.events || data.events.length === 0) {
-        return null;
-      }
-
-      return matchSorter(data.events, search, {
-        keys: [
-          (item) => item.event.title ?? "",
-          (item) => item.event.description ?? "",
-          (item) => item.event.location ?? "",
-        ],
-      })
-        .slice(0, 10)
-        .map((item) => {
-          const date = toDate(item.start);
-
-          if (item.event.allDay) {
-            return {
-              ...item,
-              label: format(date, "MMMM D, YYYY"),
-            };
-          }
-
-          return {
-            ...item,
-            label: format(
-              date,
-              use12Hour ? "MMMM D, YYYY h:mm a" : "MMMM D, YYYY HH:mm",
-            ),
-          };
-        });
-    }, [search]);
-
-    return (
-      <>
-        <CommandInput placeholder="Type a command or search..." />
-        <CommandList>
-          <CommandEmpty>No results found.</CommandEmpty>
-
-          {!page ? (
-            <CommandGroup heading="Calendar">
-              <CommandItem
-                value="today"
-                onSelect={() =>
-                  action(() => setCurrentDate(Temporal.Now.plainDateISO()))
-                }
-              >
-                Today
-              </CommandItem>
-            </CommandGroup>
-          ) : null}
-
-          {searchResults && searchResults.length > 0 ? (
-            <CommandGroup heading="Events">
-              {searchResults.map((item) => (
-                <CommandItem
-                  key={item.event.id}
-                  value={item.event.id}
-                  onSelect={() => {
-                    action(() => {
-                      setCurrentDate(item.start.toPlainDate());
-
-                      selectAction(item.event);
-                    });
-                  }}
-                >
-                  <div className="flex flex-col">
-                    <span>{item.event.title ?? "(untitled)"}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {item.label}
-                    </span>
-                  </div>
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          ) : null}
-
-          {!page ? (
-            <CommandGroup heading="Layout">
-              <CommandItem
-                value="month"
-                onSelect={() => action(() => setView("month"))}
-              >
-                Switch to month view
-              </CommandItem>
-              <CommandItem
-                value="week"
-                onSelect={() => action(() => setView("week"))}
-              >
-                Switch to week view
-              </CommandItem>
-              <CommandItem
-                value="day"
-                onSelect={() => action(() => setView("day"))}
-              >
-                Switch to day view
-              </CommandItem>
-              <CommandItem
-                value="agenda"
-                onSelect={() => action(() => setView("agenda"))}
-              >
-                Switch to agenda view
-              </CommandItem>
-            </CommandGroup>
-          ) : null}
-
-          {!page ? (
-            <CommandGroup heading="Preferences">
-              <CommandItem
-                onSelect={() =>
-                  action(() =>
-                    setPreferences((p) => ({
-                      ...p,
-                      showWeekends: !p.showWeekends,
-                    })),
-                  )
-                }
-              >
-                {preferences.showWeekends ? "Hide weekends" : "Show weekends"}
-              </CommandItem>
-              <CommandItem
-                onSelect={() =>
-                  action(() =>
-                    setPreferences((p) => ({
-                      ...p,
-                      showWeekNumbers: !p.showWeekNumbers,
-                    })),
-                  )
-                }
-              >
-                {preferences.showWeekNumbers
-                  ? "Hide week numbers"
-                  : "Show week numbers"}
-              </CommandItem>
-              <CommandItem
-                onSelect={() =>
-                  action(() =>
-                    setPreferences((p) => ({
-                      ...p,
-                      showDeclinedEvents: !p.showDeclinedEvents,
-                    })),
-                  )
-                }
-              >
-                {preferences.showDeclinedEvents
-                  ? "Hide declined events"
-                  : "Show declined events"}
-              </CommandItem>
-            </CommandGroup>
-          ) : null}
-
-          {!page ? (
-            <CommandGroup heading="Appearance">
-              <CommandItem onSelect={() => setPages([...pages, "theme"])}>
-                Change theme
-              </CommandItem>
-            </CommandGroup>
-          ) : null}
-
-          {page === "theme" && search ? (
-            <CommandGroup heading="Appearance">
-              <CommandItem
-                value="system"
-                onSelect={() => action(() => setTheme("system"))}
-              >
-                Automatic (system)
-              </CommandItem>
-              <CommandItem
-                value="light"
-                onSelect={() => action(() => setTheme("light"))}
-              >
-                Light
-              </CommandItem>
-              <CommandItem
-                value="dark"
-                onSelect={() => action(() => setTheme("dark"))}
-              >
-                Dark
-              </CommandItem>
-            </CommandGroup>
-          ) : null}
-
-          {!page ? (
-            <CommandGroup heading="Localization">
-              <CommandItem onSelect={() => setPages([...pages, "time-format"])}>
-                Change time format
-              </CommandItem>
-            </CommandGroup>
-          ) : null}
-
-          {page === "time-format" && search ? (
-            <CommandGroup heading="Localization">
-              <CommandItem
-                onSelect={() =>
-                  action(() =>
-                    setCalendarSettings((p) => ({ ...p, use12Hour: false })),
-                  )
-                }
-              >
-                Use 24-hour clock
-              </CommandItem>
-              <CommandItem
-                onSelect={() =>
-                  action(() =>
-                    setCalendarSettings((p) => ({ ...p, use12Hour: true })),
-                  )
-                }
-              >
-                Use 12-hour clock
-              </CommandItem>
-            </CommandGroup>
-          ) : null}
-
-          {!page ? (
-            <CommandGroup heading="Calendar">
-              <CommandItem
-                onSelect={() => setPages([...pages, "start-of-week"])}
-              >
-                Change start of week
-              </CommandItem>
-            </CommandGroup>
-          ) : null}
-
-          {page === "start-of-week" && search ? (
-            <CommandGroup heading="Calendar">
-              <CommandItem
-                onSelect={() =>
-                  action(() =>
-                    setCalendarSettings((p) => ({ ...p, weekStartsOn: 1 })),
-                  )
-                }
-              >
-                Monday
-              </CommandItem>
-              <CommandItem
-                onSelect={() =>
-                  action(() =>
-                    setCalendarSettings((p) => ({ ...p, weekStartsOn: 2 })),
-                  )
-                }
-              >
-                Tuesday
-              </CommandItem>
-              <CommandItem
-                onSelect={() =>
-                  action(() =>
-                    setCalendarSettings((p) => ({ ...p, weekStartsOn: 3 })),
-                  )
-                }
-              >
-                Wednesday
-              </CommandItem>
-              <CommandItem
-                onSelect={() =>
-                  action(() =>
-                    setCalendarSettings((p) => ({ ...p, weekStartsOn: 4 })),
-                  )
-                }
-              >
-                Thursday
-              </CommandItem>
-              <CommandItem
-                onSelect={() =>
-                  action(() =>
-                    setCalendarSettings((p) => ({ ...p, weekStartsOn: 5 })),
-                  )
-                }
-              >
-                Friday
-              </CommandItem>
-              <CommandItem
-                onSelect={() =>
-                  action(() =>
-                    setCalendarSettings((p) => ({ ...p, weekStartsOn: 6 })),
-                  )
-                }
-              >
-                Saturday
-              </CommandItem>
-              <CommandItem
-                onSelect={() =>
-                  action(() =>
-                    setCalendarSettings((p) => ({ ...p, weekStartsOn: 7 })),
-                  )
-                }
-              >
-                Sunday
-              </CommandItem>
-            </CommandGroup>
-          ) : null}
-        </CommandList>
-      </>
-    );
-  };
-
   return (
     <CommandDialog
       open={open}
-      onOpenChange={setOpen}
+      onOpenChange={onOpenChange}
       className="max-w-xl"
       showCloseButton={false}
     >
-      <Command
-        className="h-80 max-h-svh"
-        onKeyDown={(e) => {
-          // We'll handle this inside CommandContent where we have access to search state
-          if (e.key === "Escape") {
-            e.preventDefault();
-            setPages((pages) => pages.slice(0, -1));
-          }
-        }}
-      >
+      <Command className="h-80 max-h-svh">
         <CommandContent />
       </Command>
     </CommandDialog>
+  );
+}
+
+function CommandContent() {
+  const [search, setSearch] = useQueryState("search");
+  const setPages = useSetAtom(commandMenuPagesAtom);
+
+  useHotkeys(
+    "backspace",
+    () => {
+      setPages((pages) => pages.slice(0, -1));
+    },
+    {
+      preventDefault: true,
+      scopes: ["command-menu"],
+      enabled: !search,
+    },
+  );
+
+  const onSearchChange = (value: string) => {
+    if (value.trim().length === 0) {
+      setSearch(null);
+    }
+
+    setSearch(value);
+  };
+
+  return (
+    <>
+      <CommandInput
+        placeholder="Type a command or search..."
+        value={search ?? undefined}
+        onValueChange={onSearchChange}
+      />
+      <CommandList>
+        <CommandEmpty>No results found.</CommandEmpty>
+        <CalendarNavigationCommands />
+        <EventSearchCommands />
+        <LayoutCommands />
+        <PreferencesCommands />
+        <AppearanceCommands />
+        <LocalizationCommands />
+        <StartOfWeekCommands />
+      </CommandList>
+    </>
   );
 }
