@@ -11,6 +11,7 @@ import { useTRPC } from "@/lib/trpc/client";
 import { EventFormStateContext } from "../flows/event-form/event-form-state-provider";
 import {
   addOptimisticActionAtom,
+  generateOptimisticId,
   removeDraftOptimisticActionsByEventIdAtom,
 } from "./optimistic-actions";
 
@@ -33,9 +34,12 @@ export function useCreateDraftAction() {
 
       unselectAllAction();
 
+      const optimisticId = generateOptimisticId();
+
       addOptimisticAction({
         type: "draft",
         eventId: event.id,
+        id: optimisticId,
         event: {
           ...event,
           type: "draft",

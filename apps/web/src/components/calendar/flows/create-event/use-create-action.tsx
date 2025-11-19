@@ -4,15 +4,15 @@ import { useSetAtom } from "jotai";
 import {
   addOptimisticActionAtom,
   generateOptimisticId,
-  removeDraftOptimisticActionsByEventIdAtom,
+  removeOptimisticActionsByEventIdAtom,
 } from "../../hooks/optimistic-actions";
 import type { CreateQueueItem, CreateQueueRequest } from "./create-queue";
 import { CreateQueueContext } from "./create-queue-provider";
 
 export function useCreateAction() {
   const addOptimisticAction = useSetAtom(addOptimisticActionAtom);
-  const removeDraftOptimisticActionsByEventId = useSetAtom(
-    removeDraftOptimisticActionsByEventIdAtom,
+  const removeOptimisticActionsByEventId = useSetAtom(
+    removeOptimisticActionsByEventIdAtom,
   );
 
   const actorRef = CreateQueueContext.useActorRef();
@@ -22,10 +22,9 @@ export function useCreateAction() {
       const optimisticId = generateOptimisticId();
 
       React.startTransition(() => {
-        // Remove any existing draft optimistic actions for this event
-        removeDraftOptimisticActionsByEventId(req.event.id);
+        // Removes all existing actions; relevant in the case of duplicate creates
+        removeOptimisticActionsByEventId(req.event.id);
 
-        // Add the create optimistic action
         addOptimisticAction({
           id: optimisticId,
           type: "create",
@@ -46,7 +45,7 @@ export function useCreateAction() {
       // Return optimistic id to allow callers to await completion externally
       return optimisticId;
     },
-    [actorRef, addOptimisticAction, removeDraftOptimisticActionsByEventId],
+    [actorRef, addOptimisticAction, removeOptimisticActionsByEventId],
   );
 
   return update;

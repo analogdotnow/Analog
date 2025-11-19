@@ -45,7 +45,7 @@ export function UpdateQueueProvider({ children }: UpdateQueueProviderProps) {
               removeOptimisticAction(item.optimisticId);
             },
             onSuccess: () => {
-              // removeOptimisticAction(item.optimisticId);
+              removeOptimisticAction(item.optimisticId);
               item.onSuccess?.();
             },
           },
@@ -61,7 +61,7 @@ export function UpdateQueueProvider({ children }: UpdateQueueProviderProps) {
             removeOptimisticAction(item.optimisticId);
           },
           onSuccess: () => {
-            // removeOptimisticAction(item.optimisticId);
+            removeOptimisticAction(item.optimisticId);
             item.onSuccess?.();
           },
         },
