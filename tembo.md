@@ -17,13 +17,16 @@ Analog is an open-source calendar application built with Next.js, TypeScript, an
 This is a Turborepo monorepo with the following workspace organization:
 
 - **apps/web** - Main Next.js application (runs on port 3000)
+- **packages/ai** - AI integrations (Composio, Browserbase, Firecrawl) for enhanced AI features
 - **packages/api** - tRPC API layer with routers for all features
 - **packages/auth** - Better Auth configuration and OAuth setup
 - **packages/db** - Drizzle ORM schema and database utilities
 - **packages/env** - Environment variable validation with type safety
+- **packages/meeting-links** - Meeting link detection and parsing utilities
 - **packages/providers** - Calendar and conferencing provider integrations
 - **packages/schemas** - Shared Zod validation schemas
 - **packages/temporal** - Temporal (date/time) utilities
+- **packages/timezone-coordinates** - Timezone coordinate mapping utilities
 - **packages/google-\*** - Generated Google API clients (Calendar, Maps, Tasks, People)
 - **tooling/eslint-config** - Shared ESLint configurations
 - **tooling/typescript-config** - Shared TypeScript configurations
@@ -34,6 +37,9 @@ This is a Turborepo monorepo with the following workspace organization:
 - API endpoints go in `packages/api/src/routers`
 - Database schema changes go in `packages/db/src/schema`
 - Provider integrations go in `packages/providers`
+- AI integration tools go in `packages/ai`
+- Meeting link parsing utilities go in `packages/meeting-links`
+- Timezone utilities go in `packages/timezone-coordinates`
 
 ## Setup Commands
 
