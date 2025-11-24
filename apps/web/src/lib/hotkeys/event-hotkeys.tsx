@@ -12,8 +12,7 @@ import {
   useCreateDraftAction,
   useUnselectAllAction,
 } from "@/components/calendar/hooks/use-optimistic-mutations";
-import { DeleteEventConfirmation } from "@/components/delete-event-confirmation";
-import { useSidebarWithSide } from "@/components/ui/sidebar";
+import { DeleteEventConfirmation } from "@/components/dialogs/delete-event-confirmation";
 import { createDraftEvent } from "@/lib/utils/calendar";
 import { getEventById } from "../db";
 
@@ -25,12 +24,12 @@ const KEYBOARD_SHORTCUTS = {
 } as const;
 
 export function EventHotkeys() {
-  const { open: rightSidebarOpen, setOpen: setRightSidebarOpen } =
-    useSidebarWithSide("right");
   const settings = useAtomValue(calendarSettingsAtom);
   const selectedEventIds = useAtomValue(selectedEventIdsAtom);
 
   const createDraftAction = useCreateDraftAction();
+
+  const [open, setOpen] = React.useState(false);
 
   useHotkeys(
     KEYBOARD_SHORTCUTS.CREATE_EVENT,
@@ -38,10 +37,6 @@ export function EventHotkeys() {
       const start = Temporal.Now.zonedDateTimeISO(settings.defaultTimeZone);
 
       const end = start.add({ minutes: settings.defaultEventDuration });
-
-      if (!rightSidebarOpen) {
-        setRightSidebarOpen(true);
-      }
 
       const event = createDraftEvent({ start, end });
 
@@ -97,8 +92,6 @@ export function EventHotkeys() {
     },
     { scopes: ["event"] },
   );
-
-  const [open, setOpen] = React.useState(false);
 
   const onConfirm = React.useCallback(async () => {
     if (!selectedEventIds[0]) {

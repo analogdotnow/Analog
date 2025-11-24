@@ -4,14 +4,15 @@ import * as React from "react";
 import { useAtom, useAtomValue } from "jotai";
 
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
+import { selectedEventIdsAtom } from "@/atoms/selected-events";
 import { EventFormStateContext } from "@/components/calendar/flows/event-form/event-form-state-provider";
 import {
   useFormAction,
   useSaveAction,
 } from "@/components/calendar/flows/event-form/use-form-action";
-import { useActorRefSubscription } from "@/components/calendar/flows/use-actor-subscription";
 import { useDefaultCalendar } from "@/components/calendar/hooks/use-default-calendar";
 import { getDefaultEvent } from "@/components/event-form/utils/defaults";
+import { getEventById } from "@/lib/db";
 import {
   requiresAttendeeConfirmation,
   requiresRecurrenceConfirmation,
@@ -32,6 +33,7 @@ function requiresConfirmation(values: FormValues) {
 export function useEventForm() {
   const actorRef = EventFormStateContext.useActorRef();
   const settings = useAtomValue(calendarSettingsAtom);
+  const selectedEventId = useAtomValue(selectedEventIdsAtom)[0] ?? null;
 
   const defaultCalendar = useDefaultCalendar();
 
@@ -49,6 +51,10 @@ export function useEventForm() {
       onSubmit: formSchema,
     },
     onSubmit: async ({ value, meta }) => {
+      if (isPristine) {
+        return;
+      }
+
       await saveAction(value, meta?.sendUpdate, () => {
         actorRef.send({ type: "CONFIRMED" });
         setIsPristine(true);
@@ -83,23 +89,57 @@ export function useEventForm() {
 
   const updateFormState = useUpdateFormState();
 
-  useActorRefSubscription({
-    actorRef,
-    onUpdate: async (snapshot) => {
-      if (!snapshot.matches("loading") || !defaultCalendar) {
+  const loadingEvent = EventFormStateContext.useSelector((snapshot) =>
+    snapshot.matches("loading") ? snapshot.context.formEvent : null,
+  );
+
+  // Safety net: if the initial LOAD is missed (e.g. window expands late), refetch
+  // the selected event by id and force a LOAD so the form hydrates on first try.
+  React.useEffect(() => {
+    if (!selectedEventId) {
+      return;
+    }
+
+    const snapshot = actorRef.getSnapshot();
+    const currentId = snapshot.context.formEvent?.id;
+
+    if (snapshot.matches("loading") && currentId === selectedEventId) {
+      return;
+    }
+
+    void (async () => {
+      const event = await getEventById(selectedEventId);
+
+      if (!event) {
         return;
       }
 
-      const event = snapshot.context.formEvent!;
+      actorRef.send({ type: "LOAD", item: event });
+    })();
+  }, [actorRef, selectedEventId]);
 
-      if (formState.event?.id !== event.id || isPristine) {
-        setIsPristine(true);
-        await updateFormState(event);
+  React.useEffect(() => {
+    if (!loadingEvent) {
+      return;
+    }
 
-        return;
-      }
-    },
-  });
+    // Draft events need default calendar; real events can hydrate without it.
+    if (loadingEvent.type === "draft" && !defaultCalendar) {
+      return;
+    }
+
+    if (formState.event?.id !== loadingEvent.id || isPristine) {
+      setIsPristine(true);
+      updateFormState(loadingEvent);
+    }
+  }, [
+    loadingEvent,
+    defaultCalendar,
+    formState.event?.id,
+    isPristine,
+    setIsPristine,
+    updateFormState,
+  ]);
 
   React.useEffect(() => {
     if (!defaultCalendar || form.state.values.calendar.calendarId !== "") {

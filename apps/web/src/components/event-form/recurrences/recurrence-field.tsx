@@ -1,11 +1,8 @@
 import * as React from "react";
 import { useAtomValue } from "jotai";
-import { RRuleTemporal } from "rrule-temporal";
-import { toText } from "rrule-temporal/totext";
 import { Temporal } from "temporal-polyfill";
 
 import { Recurrence } from "@repo/providers/interfaces";
-import { toZonedDateTime } from "@repo/temporal";
 
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { Button } from "@/components/ui/button";
@@ -22,12 +19,13 @@ import {
 import { cn } from "@/lib/utils";
 import { RecurrenceDialog } from "./recurrence-dialog";
 import { generateRecurrenceSuggestions } from "./recurrence-suggestions";
+import { useRecurrence } from "./use-recurrence";
+import { useRecurringEvent } from "./use-recurring-event";
 
 interface RecurrenceFieldProps {
   className?: string;
   id?: string;
   date: Temporal.ZonedDateTime;
-  timeZone?: string;
   value: Recurrence | null | undefined;
   onChange: (value: Recurrence | null) => void;
   onBlur: () => void;
@@ -40,7 +38,6 @@ export function RecurrenceField({
   id,
   date,
   value,
-  timeZone = "UTC",
   onChange,
   onBlur,
   disabled,
@@ -48,53 +45,76 @@ export function RecurrenceField({
 }: RecurrenceFieldProps) {
   const { locale } = useAtomValue(calendarSettingsAtom);
   const options = generateRecurrenceSuggestions({ date, locale });
+  const baseEvent = useRecurringEvent(recurringEventId);
 
-  const { description, rrule } = React.useMemo(() => {
-    if (!value || !value.freq) {
-      return { description: undefined, rrule: undefined, rule: undefined };
+  const displayRecurrence = React.useMemo(() => {
+    if (value !== undefined) {
+      return value;
     }
 
-    const { freq, until, rDate, exDate, ...params } = value;
+    return baseEvent?.recurrence;
+  }, [value, baseEvent?.recurrence]);
 
-    const rule = new RRuleTemporal({
-      ...params,
-      freq,
-      rDate: rDate?.map((date) => toZonedDateTime(date, { timeZone })),
-      exDate: exDate?.map((date) => toZonedDateTime(date, { timeZone })),
-      until: until ? toZonedDateTime(until, { timeZone }) : undefined,
-      dtstart: date,
-    });
+  const timeZone = React.useMemo(() => {
+    return date.timeZoneId;
+  }, [date]);
 
-    return {
-      description: toText(rule),
-      rule,
-      rrule: rule.toString(),
-    };
-  }, [date, value, timeZone]);
+  const recurrence = useRecurrence({
+    recurrence: displayRecurrence ?? undefined,
+    date,
+    timeZone,
+  });
 
   return (
     <DropdownMenu>
-      <RecurrenceDialog start={date} recurrence={value} onChange={onChange}>
+      <RecurrenceDialog
+        start={date}
+        recurrence={value ?? undefined}
+        onChange={onChange}
+      >
         <DropdownMenuTrigger asChild>
           <Button
             id={id}
             variant="ghost"
             disabled={disabled || !!recurringEventId}
-            className={cn("flex h-8 w-full justify-start", className)}
+            className={cn(
+              "flex h-8 w-full justify-start focus:bg-accent/80 focus-visible:bg-accent/80 data-[state=open]:bg-accent/80 data-[state=open]:dark:bg-accent/80",
+              className,
+            )}
             onBlur={onBlur}
           >
-            <span className="line-clamp-1 truncate text-sm">
-              {recurringEventId ? "Recurring" : (description ?? "Repeat")}
+            <span
+              className={cn(
+                "line-clamp-1 truncate text-sm first-letter:capitalize",
+                !displayRecurrence && "text-muted-foreground/70",
+              )}
+            >
+              {recurrence.description ??
+                (recurringEventId ? "Recurring" : "Repeat")}
             </span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="min-w-64" align="end">
+          {value ? (
+            <>
+              <DropdownMenuItem
+                onSelect={() => {
+                  onChange(null);
+                }}
+              >
+                Do not repeat
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+            </>
+          ) : null}
           {options.map((option) => (
             <DropdownMenuGroup key={option.id}>
               <DropdownMenuLabel>{option.label}</DropdownMenuLabel>
               {option.items.map((item) => (
                 <DropdownMenuItem
-                  className={cn(item.rrule === rrule && "bg-accent")}
+                  className={cn(
+                    item.rrule === recurrence.rrule && "bg-accent/80",
+                  )}
                   key={item.id}
                   onSelect={() => {
                     onChange(item.recurrence);

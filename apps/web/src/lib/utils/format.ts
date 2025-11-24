@@ -3,41 +3,16 @@ import { Temporal } from "temporal-polyfill";
 
 import { toDate } from "@repo/temporal";
 
-type FormatTimeOptions =
-  | {
-      value: Temporal.ZonedDateTime;
-      use12Hour: boolean;
-      locale?: string;
-      timeZone?: string;
-    }
-  | {
-      value: Temporal.Instant;
-      use12Hour: boolean;
-      locale?: string;
-      timeZone: string;
-    }
-  | {
-      value: Temporal.PlainTime;
-      use12Hour: boolean;
-      locale?: string;
-      timeZone?: string;
-    };
+interface FormatTimeOptions {
+  value: Temporal.ZonedDateTime | Temporal.Instant | Temporal.PlainTime;
+  use12Hour: boolean;
+  locale?: string;
+  timeZone: string;
+}
 
 export function formatTime(options: FormatTimeOptions): string;
 export function formatTime(
-  value: Temporal.ZonedDateTime,
-  use12Hour: boolean,
-  timeZone?: string,
-  locale?: string,
-): string;
-export function formatTime(
-  value: Temporal.Instant,
-  use12Hour: boolean,
-  timeZone: string,
-  locale?: string,
-): string;
-export function formatTime(
-  value: Temporal.PlainTime,
+  value: Temporal.ZonedDateTime | Temporal.Instant | Temporal.PlainTime,
   use12Hour: boolean,
   timeZone?: string,
   locale?: string,
@@ -72,7 +47,7 @@ export function formatTime(
       date: toDate(value, { timeZone: timeZone! }),
       format: use12Hour ? "h:mm a" : "HH:mm",
       locale,
-      tz: "UTC",
+      tz: timeZone ?? "UTC",
     });
   }
 

@@ -12,6 +12,7 @@ interface DragAwareWrapperProps extends React.ComponentProps<"div"> {
 
 // TODO: replace with a portal
 export function DragAwareWrapper({
+  className,
   eventId,
   children,
   style,
@@ -22,7 +23,7 @@ export function DragAwareWrapper({
 
   return (
     <div
-      className={cn("z-10", isDragging && "z-99999")}
+      className={cn("z-10", isDragging && "z-99999", className)}
       style={style}
       {...props}
     >

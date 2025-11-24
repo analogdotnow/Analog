@@ -74,12 +74,14 @@ export function useSelectAction() {
     (event: CalendarEvent) => {
       for (const eventId of selectedEventIds) {
         if (eventId === event.id) {
+          console.log("event already selected", eventId);
           continue;
         }
 
         removeDraftOptimisticActionsByEventId(eventId);
       }
 
+      console.log("selecting event", event.id, JSON.stringify(event, null, 2));
       setSelectedEventIds([event.id]);
       setRightSidebarOpen(true);
 

@@ -8,3 +8,4 @@ export * from "./attendees";
 export * from "./notes";
 export * from "./zoom";
 export * from "./google-meet";
+export * from "./logo-square";

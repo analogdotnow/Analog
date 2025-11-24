@@ -9,8 +9,8 @@ import type {
   CalendarEvent,
   Recurrence,
 } from "../../interfaces";
-import { toRecurrenceProperties } from "../../lib/utils/recurrences/export";
-import { parseTextRecurrence } from "../../lib/utils/recurrences/parse";
+import { toRecurrenceProperties } from "../../lib/recurrences/export";
+import { parseTextRecurrence } from "../../lib/recurrences/parse";
 import { parseConferenceData, toConferenceData } from "./conferences";
 import type {
   GoogleCalendarDate,

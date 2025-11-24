@@ -7,8 +7,8 @@ import { toDate } from "@repo/temporal";
 
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { commandMenuOpenAtom } from "@/atoms/command-menu";
+import { currentDateAtom } from "@/atoms/view-preferences";
 import { CommandGroup, CommandItem } from "@/components/ui/command";
-import { useCalendarState } from "@/hooks/use-calendar-state";
 import { calendarColorVariable } from "@/lib/css";
 import { useEventsForDisplay } from "../calendar/hooks/use-events";
 import { useSelectAction } from "../calendar/hooks/use-optimistic-mutations";
@@ -16,7 +16,7 @@ import { useSelectAction } from "../calendar/hooks/use-optimistic-mutations";
 export function EventSearchCommands() {
   const search = useCommandState((state) => state.search);
   const { data } = useEventsForDisplay();
-  const { setCurrentDate } = useCalendarState();
+  const setCurrentDate = useSetAtom(currentDateAtom);
   const selectAction = useSelectAction();
   const { use12Hour } = useAtomValue(calendarSettingsAtom);
   const setOpen = useSetAtom(commandMenuOpenAtom);

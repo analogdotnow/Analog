@@ -130,10 +130,12 @@ export function Header() {
                     </a>
                   ))}
                 </div>
-                <Button asChild size="sm" className="font-medium">
-                  <Link href="/login" prefetch>
-                    Sign In
-                  </Link>
+                <Button
+                  size="sm"
+                  className="font-medium"
+                  render={<Link href="/login" prefetch />}
+                >
+                  Sign In
                 </Button>
               </div>
             </div>

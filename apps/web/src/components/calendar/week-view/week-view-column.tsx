@@ -33,17 +33,18 @@ export function WeekViewDayColumn({
   const viewPreferences = useAtomValue(viewPreferencesAtom);
   const { defaultTimeZone } = useAtomValue(calendarSettingsAtom);
 
-  const { isDayVisible, isLastVisibleDay, visibleDayIndex } =
+  const { isDayVisible, isLastVisibleDay, visibleDayIndex, weekend } =
     React.useMemo(() => {
-      const isDayVisible = viewPreferences.showWeekends || !isWeekend(date);
+      const weekend = isWeekend(date);
+      const isDayVisible = viewPreferences.showWeekends || !weekend;
       const visibleDayIndex = visibleDays.findIndex(
         (d) => Temporal.PlainDate.compare(d, date) === 0,
       );
       const isLastVisibleDay =
         isDayVisible && visibleDayIndex === visibleDays.length - 1;
 
-      return { isDayVisible, isLastVisibleDay, visibleDayIndex };
-    }, [date, visibleDays, viewPreferences.showWeekends]);
+      return { isDayVisible, isLastVisibleDay, visibleDayIndex, weekend };
+    }, [viewPreferences.showWeekends, visibleDays, date]);
 
   const positionedEvents =
     eventCollection.positionedEvents[visibleDayIndex] ?? [];
@@ -54,6 +55,7 @@ export function WeekViewDayColumn({
       className={cn(
         "relative grid auto-cols-fr border-r border-border/70",
         isLastVisibleDay && "border-r-0",
+        weekend && "bg-column-weekend",
         isDayVisible ? "visible" : "hidden w-0 overflow-hidden",
       )}
       data-today={isToday(date, { timeZone: defaultTimeZone }) || undefined}
@@ -63,6 +65,7 @@ export function WeekViewDayColumn({
           key={positionedEvent.item.event.id}
           positionedEvent={positionedEvent}
           containerRef={containerRef}
+          columns={visibleDays.length}
         />
       ))}
 
@@ -102,13 +105,16 @@ function WeekViewDayTimeSlots({ date }: WeekViewDayTimeSlotsProps) {
       onPanEnd={onDragEnd}
       onDoubleClick={onDoubleClick}
     >
-      {HOURS.map((hour) => (
-        <div
-          key={hour.toString()}
-          className="pointer-events-none min-h-[var(--week-cells-height)] border-b border-border/70 last:border-b-0"
-        />
-      ))}
+      <div>
+        {HOURS.map((hour) => (
+          <div
+            key={hour.toString()}
+            className="pointer-events-none min-h-(--week-cells-height) border-b border-border/70 last:border-b-0"
+          />
+        ))}
+      </div>
       <DragPreview style={{ top, height, opacity }} />
+      <div className="pointer-events-none h-(--week-view-bottom-padding)" />
     </motion.div>
   );
 }

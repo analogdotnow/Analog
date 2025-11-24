@@ -6,25 +6,27 @@ import { motion } from "motion/react";
 import { Temporal } from "temporal-polyfill";
 
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
+import { timeZonesAtom } from "@/atoms/timezones";
 import { currentDateAtom } from "@/atoms/view-preferences";
+import { DragAwareWrapper } from "@/components/calendar/event/drag-aware-wrapper";
 import { DragPreview } from "@/components/calendar/event/drag-preview";
 import { DraggableEvent } from "@/components/calendar/event/draggable-event";
 import { EventItem } from "@/components/calendar/event/event-item";
+import { useEdgeAutoScroll } from "@/components/calendar/hooks/drag-and-drop/use-auto-scroll";
+import { useDoubleClickToCreate } from "@/components/calendar/hooks/drag-and-drop/use-double-click-to-create";
+import { useDragToCreate } from "@/components/calendar/hooks/drag-and-drop/use-drag-to-create";
+import type { EventCollectionItem } from "@/components/calendar/hooks/event-collection";
+import { useEventCollection } from "@/components/calendar/hooks/use-event-collection";
+import { useGridLayout } from "@/components/calendar/hooks/use-grid-layout";
+import { useSelectAction } from "@/components/calendar/hooks/use-optimistic-mutations";
 import { HOURS } from "@/components/calendar/timeline/constants";
 import {
   TimeIndicator,
   TimeIndicatorBackground,
 } from "@/components/calendar/timeline/time-indicator";
 import { Timeline } from "@/components/calendar/timeline/timeline";
+import { useScrollToCurrentTime } from "@/components/calendar/week-view/use-scroll-to-current-time";
 import { cn } from "@/lib/utils";
-import { DragAwareWrapper } from "../event/drag-aware-wrapper";
-import { useEdgeAutoScroll } from "../hooks/drag-and-drop/use-auto-scroll";
-import { useDoubleClickToCreate } from "../hooks/drag-and-drop/use-double-click-to-create";
-import { useDragToCreate } from "../hooks/drag-and-drop/use-drag-to-create";
-import { EventCollectionItem } from "../hooks/event-collection";
-import { useEventCollection } from "../hooks/use-event-collection";
-import { useSelectAction } from "../hooks/use-optimistic-mutations";
-import { useScrollToCurrentTime } from "../week-view/use-scroll-to-current-time";
 
 interface DayViewProps {
   currentDate: Temporal.PlainDate;
@@ -67,6 +69,7 @@ function PositionedEvent({
         showTime
         height={positionedEvent.height}
         containerRef={containerRef}
+        columns={1}
       />
     </DragAwareWrapper>
   );
@@ -74,6 +77,7 @@ function PositionedEvent({
 
 export function DayView({ events, scrollContainerRef }: DayViewProps) {
   const currentDate = useAtomValue(currentDateAtom);
+  const timeZones = useAtomValue(timeZonesAtom);
   const containerRef = React.useRef<HTMLDivElement | null>(null);
   const headerRef = React.useRef<HTMLDivElement>(null);
 
@@ -88,9 +92,24 @@ export function DayView({ events, scrollContainerRef }: DayViewProps) {
 
   const eventCollection = useEventCollection(events, currentDate, "day");
 
+  const gridTemplateColumns = useGridLayout([currentDate], {
+    includeTimeColumn: true,
+  });
+
+  const style = React.useMemo(() => {
+    return {
+      "--time-columns": `${timeZones.length}`,
+      "--day-view-grid": gridTemplateColumns,
+    } as React.CSSProperties;
+  }, [timeZones, gridTemplateColumns]);
+
   return (
-    <div data-slot="day-view" className="contents">
-      <AllDayRow ref={headerRef}>
+    <div
+      data-slot="day-view"
+      className="isolate flex flex-col [--time-column-width:3rem] [--timeline-container-width:calc(var(--time-columns)*2.5rem+0.5rem)] [--week-view-bottom-padding:16rem] sm:[--time-column-width:5rem] sm:[--timeline-container-width:calc(var(--time-columns)*3rem+1rem)]"
+      style={style}
+    >
+      <AllDayRow ref={headerRef} gridTemplateColumns={gridTemplateColumns}>
         {eventCollection.allDayEvents.map((item) => (
           <DayViewPositionedEvent
             key={`spanning-${item.event.id}`}
@@ -102,12 +121,9 @@ export function DayView({ events, scrollContainerRef }: DayViewProps) {
 
       <div
         ref={containerRef}
-        className="relative isolate grid flex-1 grid-cols-[5rem_1fr] overflow-hidden border-border/70"
+        className="relative isolate grid flex-1 grid-cols-(--day-view-grid) overflow-hidden border-border/70 transition-[grid-template-columns] duration-200 ease-linear"
       >
-        <TimeIndicatorBackground />
-
         <Timeline />
-
         <div className="relative">
           {eventCollection.positionedEvents.map((positionedEvent) => (
             <PositionedEvent
@@ -118,27 +134,38 @@ export function DayView({ events, scrollContainerRef }: DayViewProps) {
           ))}
 
           <TimeIndicator date={currentDate} />
-
           <MemoizedDayViewTimeSlots />
         </div>
+        <TimeIndicatorBackground />
       </div>
     </div>
   );
 }
 
-type AllDayRowProps = React.ComponentProps<"div">;
+interface AllDayRowProps extends React.ComponentProps<"div"> {
+  gridTemplateColumns: string;
+}
 
-function AllDayRow({ children, className, ref, ...props }: AllDayRowProps) {
+function AllDayRow({
+  children,
+  className,
+  ref,
+  gridTemplateColumns,
+  ...props
+}: AllDayRowProps) {
   return (
     <div
       ref={ref}
       className={cn(
-        "sticky top-0 z-30 border-t border-border/70 bg-background/80 backdrop-blur-md",
+        "sticky top-0 z-30 border-t border-border/70 bg-background",
         className,
       )}
       {...props}
     >
-      <div className="grid grid-cols-[5rem_1fr] border-b border-border/70">
+      <div
+        className="grid border-b border-border/70"
+        style={{ gridTemplateColumns }}
+      >
         <div className="relative flex min-h-7 flex-col justify-center border-r border-border/70">
           <span className="w-16 max-w-full ps-2 text-right text-[10px] text-muted-foreground/70 sm:ps-4 sm:text-xs">
             All day
@@ -230,7 +257,7 @@ function HourColumn() {
         return (
           <div
             key={hour.toString()}
-            className="pointer-events-none h-[var(--week-cells-height)] border-b border-border/70 last:border-b-0"
+            className="pointer-events-none h-(--week-cells-height) border-b border-border/70 last:border-b-0"
           />
         );
       })}

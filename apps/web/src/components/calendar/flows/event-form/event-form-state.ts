@@ -11,7 +11,6 @@ export interface ConfirmedEvent {
   type: "CONFIRMED";
 }
 
-// Keep SAVE in the event union for compatibility with existing callers.
 export interface SaveEvent {
   type: "SAVE";
   notify?: boolean;

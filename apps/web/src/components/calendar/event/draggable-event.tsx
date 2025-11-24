@@ -39,6 +39,7 @@ interface DraggableEventProps {
   isLastDay?: boolean;
   "aria-hidden"?: boolean | "true" | "false";
   containerRef: React.RefObject<HTMLDivElement | null>;
+  columns: number;
   rows?: number;
   zIndex?: number;
 }
@@ -51,6 +52,7 @@ export function DraggableEvent({
   isFirstDay = true,
   isLastDay = true,
   containerRef,
+  columns,
   rows,
   zIndex,
   ...props
@@ -143,7 +145,12 @@ export function DraggableEvent({
         });
 
         updateAction({
-          changes: { id: event.id, start, end: start.add(duration) },
+          changes: {
+            id: event.id,
+            start,
+            end: start.add(duration),
+            type: event.type,
+          },
         });
 
         return;
@@ -164,7 +171,12 @@ export function DraggableEvent({
         });
 
         updateAction({
-          changes: { id: event.id, start, end: start.add(duration) },
+          changes: {
+            id: event.id,
+            start,
+            end: start.add(duration),
+            type: event.type,
+          },
         });
 
         return;
@@ -174,7 +186,12 @@ export function DraggableEvent({
         const start = event.start.add({ days: columnOffset });
 
         updateAction({
-          changes: { id: event.id, start, end: start.add(duration) },
+          changes: {
+            id: event.id,
+            start,
+            end: start.add(duration),
+            type: event.type,
+          },
         });
 
         return;
@@ -191,7 +208,12 @@ export function DraggableEvent({
         });
 
       updateAction({
-        changes: { id: event.id, start, end: start.add(duration) },
+        changes: {
+          id: event.id,
+          start,
+          end: start.add(duration),
+          type: event.type,
+        },
       });
     },
     [updateAction, cellHeight, view, rows, containerRef],
@@ -202,11 +224,25 @@ export function DraggableEvent({
     // Do not reset transform immediately to avoid flashback to original
     // position. We'll reset when the event data updates optimistically.
 
-    const columnOffset = calculateColumnOffset({
-      deltaX: info.offset.x,
-      containerWidth: containerRef.current?.getBoundingClientRect().width ?? 0,
-      columns: 7,
-    });
+    let columnOffset = 0;
+
+    if (containerRef.current) {
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const timelineWidth =
+        view === "month"
+          ? 0
+          : (containerRef.current.firstElementChild?.getBoundingClientRect()
+              .width ?? 0);
+      const dayAreaWidth = containerRect.width - timelineWidth;
+
+      if (dayAreaWidth > 0 && columns > 0) {
+        columnOffset = calculateColumnOffset({
+          deltaX: info.offset.x,
+          containerWidth: dayAreaWidth,
+          columns,
+        });
+      }
+    }
 
     // Calculate vertical movement relative to the container so that auto-scroll is taken into account.
     let deltaY = info.offset.y;
@@ -318,7 +354,11 @@ export function DraggableEvent({
       });
 
       updateAction({
-        changes: { id: eventRef.current.id, start: rounded },
+        changes: {
+          id: eventRef.current.id,
+          start: rounded,
+          type: eventRef.current.type,
+        },
       });
     },
     [updateAction, cellHeight],
@@ -337,7 +377,11 @@ export function DraggableEvent({
       });
 
       updateAction({
-        changes: { id: eventRef.current.id, end: rounded },
+        changes: {
+          id: eventRef.current.id,
+          end: rounded,
+          type: eventRef.current.type,
+        },
       });
     },
     [updateAction, cellHeight],
@@ -453,13 +497,13 @@ export function DraggableEvent({
                   onPanEnd={onDragEnd}
                 />
                 <motion.div
-                  className="absolute inset-x-0 top-0 h-[min(15%,_0.25rem)] cursor-row-resize touch-none"
+                  className="absolute inset-x-0 top-0 h-[min(15%,0.25rem)] cursor-row-resize touch-none"
                   onPanStart={onResizeTopStart}
                   onPan={onResizeTop}
                   onPanEnd={onResizeTopEnd}
                 />
                 <motion.div
-                  className="absolute inset-x-0 bottom-0 h-[min(15%,_0.25rem)] cursor-row-resize touch-none"
+                  className="absolute inset-x-0 bottom-0 h-[min(15%,0.25rem)] cursor-row-resize touch-none"
                   onPanStart={onResizeBottomStart}
                   onPan={onResizeBottom}
                   onPanEnd={onResizeBottomEnd}

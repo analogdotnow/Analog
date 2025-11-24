@@ -12,36 +12,24 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useActorRefSubscription } from "../use-actor-subscription";
 import { DeleteQueueContext } from "./delete-queue-provider";
 
 export function DeleteRecurringEventDialog() {
-  // const item = DeleteQueueContext.useSelector((state) => state.context.item);
   const actorRef = DeleteQueueContext.useActorRef();
-  const [open, setOpen] = React.useState(false);
-
-  useActorRefSubscription({
-    actorRef,
-    onUpdate: (snapshot) => {
-      if (snapshot.matches("askRecurringScope")) {
-        setOpen(true);
-      }
-    },
-  });
+  const open = DeleteQueueContext.useSelector((snapshot) =>
+    snapshot.matches("askRecurringScope"),
+  );
 
   const onSelectInstance = React.useCallback(() => {
     actorRef.send({ type: "SCOPE_INSTANCE" });
-    setOpen(false);
   }, [actorRef]);
 
   const onSelectAll = React.useCallback(() => {
     actorRef.send({ type: "SCOPE_SERIES" });
-    setOpen(false);
   }, [actorRef]);
 
   const onCancel = React.useCallback(() => {
     actorRef.send({ type: "CANCEL" });
-    setOpen(false);
   }, [actorRef]);
 
   return (
