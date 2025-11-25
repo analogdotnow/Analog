@@ -7,6 +7,7 @@ import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { jotaiStore } from "@/atoms/store";
 import { ThemeProvider } from "@/components/ui/theme-provider";
 import { TRPCReactProvider } from "@/lib/trpc/client";
+import { CounterStoreProvider } from "@/stores/counter-store-provider";
 
 export function Providers(props: Readonly<{ children: ReactNode }>) {
   return (
@@ -18,7 +19,9 @@ export function Providers(props: Readonly<{ children: ReactNode }>) {
         disableTransitionOnChange
       >
         <JotaiProvider store={jotaiStore}>
-          <TRPCReactProvider>{props.children}</TRPCReactProvider>
+          <CounterStoreProvider>
+            <TRPCReactProvider>{props.children}</TRPCReactProvider>
+          </CounterStoreProvider>
         </JotaiProvider>
       </ThemeProvider>
     </NuqsAdapter>
