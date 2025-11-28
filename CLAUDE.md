@@ -1,3 +1,5 @@
+# tembo.md
+
 # Project Context
 
 Analog is an open-source calendar application built with Next.js, TypeScript, and modern web technologies. It integrates with Google Calendar, Microsoft Calendar, and Zoom, providing a unified calendar experience with AI-powered features.
@@ -247,3 +249,4 @@ Follow the Prettier import sort configuration:
 - [tRPC Documentation](https://trpc.io/docs)
 - [Temporal Polyfill](https://github.com/js-temporal/temporal-polyfill)
 - [shadcn/ui Components](https://ui.shadcn.com)
+
