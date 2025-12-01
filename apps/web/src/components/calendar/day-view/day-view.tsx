@@ -1,9 +1,12 @@
 "use client";
 
 import * as React from "react";
+import { format } from "date-fns";
 import { useAtomValue } from "jotai";
 import { motion } from "motion/react";
 import { Temporal } from "temporal-polyfill";
+
+import { isToday, toDate } from "@repo/temporal";
 
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { timeZonesAtom } from "@/atoms/timezones";
@@ -25,6 +28,7 @@ import {
   TimeIndicatorBackground,
 } from "@/components/calendar/timeline/time-indicator";
 import { Timeline } from "@/components/calendar/timeline/timeline";
+import { TimelineHeader } from "@/components/calendar/timeline/timeline-header";
 import { useScrollToCurrentTime } from "@/components/calendar/week-view/use-scroll-to-current-time";
 import { cn } from "@/lib/utils";
 
@@ -94,6 +98,7 @@ export function DayView({ events, scrollContainerRef }: DayViewProps) {
 
   const gridTemplateColumns = useGridLayout([currentDate], {
     includeTimeColumn: true,
+    ignoreWeekendPreference: true,
   });
 
   const style = React.useMemo(() => {
@@ -109,15 +114,21 @@ export function DayView({ events, scrollContainerRef }: DayViewProps) {
       className="isolate flex flex-col [--time-column-width:3rem] [--timeline-container-width:calc(var(--time-columns)*2.5rem+0.5rem)] [--week-view-bottom-padding:16rem] sm:[--time-column-width:5rem] sm:[--timeline-container-width:calc(var(--time-columns)*3rem+1rem)]"
       style={style}
     >
-      <AllDayRow ref={headerRef} gridTemplateColumns={gridTemplateColumns}>
-        {eventCollection.allDayEvents.map((item) => (
-          <DayViewPositionedEvent
-            key={`spanning-${item.event.id}`}
-            item={item}
-            currentDate={currentDate}
-          />
-        ))}
-      </AllDayRow>
+      <div
+        ref={headerRef}
+        className="sticky top-0 z-30 bg-background"
+      >
+        <DayViewHeader day={currentDate} />
+        <AllDayRow gridTemplateColumns={gridTemplateColumns}>
+          {eventCollection.allDayEvents.map((item) => (
+            <DayViewPositionedEvent
+              key={`spanning-${item.event.id}`}
+              item={item}
+              currentDate={currentDate}
+            />
+          ))}
+        </AllDayRow>
+      </div>
 
       <div
         ref={containerRef}
@@ -148,33 +159,64 @@ interface AllDayRowProps extends React.ComponentProps<"div"> {
 
 function AllDayRow({
   children,
-  className,
-  ref,
   gridTemplateColumns,
   ...props
 }: AllDayRowProps) {
   return (
     <div
-      ref={ref}
-      className={cn(
-        "sticky top-0 z-30 border-t border-border/70 bg-background",
-        className,
-      )}
+      className="grid border-b border-border/70"
+      style={{ gridTemplateColumns }}
       {...props}
     >
-      <div
-        className="grid border-b border-border/70"
-        style={{ gridTemplateColumns }}
-      >
-        <div className="relative flex min-h-7 flex-col justify-center border-r border-border/70">
-          <span className="w-16 max-w-full ps-2 text-right text-[10px] text-muted-foreground/70 sm:ps-4 sm:text-xs">
-            All day
-          </span>
-        </div>
-        <div className="relative border-r border-border/70 py-1 last:border-r-0">
-          {children}
-        </div>
+      <div className="relative flex min-h-7 flex-col justify-center border-r border-border/70">
+        <span className="pe-3 text-right text-[10px] text-muted-foreground/70 select-none sm:pe-4 sm:text-xs">
+          All day
+        </span>
       </div>
+      <div className="relative flex flex-col border-r border-border/70 last:border-r-0">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+interface DayViewHeaderProps {
+  day: Temporal.PlainDate;
+}
+
+function DayViewHeader({ day }: DayViewHeaderProps) {
+  return (
+    <div className="grid grid-cols-(--day-view-grid) border-b border-border/70 transition-[grid-template-columns] duration-200 ease-linear select-none">
+      <TimelineHeader />
+      <DayViewHeaderDay day={day} />
+    </div>
+  );
+}
+
+function DayViewHeaderDay({ day }: DayViewHeaderProps) {
+  const settings = useAtomValue(calendarSettingsAtom);
+
+  const value = React.useMemo(
+    () => toDate(day, { timeZone: settings.defaultTimeZone }),
+    [day, settings.defaultTimeZone],
+  );
+
+  return (
+    <div
+      className={cn(
+        "overflow-hidden py-2 text-center text-base font-medium text-muted-foreground/70",
+        isToday(day, { timeZone: settings.defaultTimeZone }) && "text-foreground",
+      )}
+    >
+      <span
+        className="truncate text-xs @xs/calendar-view:text-sm @md/calendar-view:hidden"
+        aria-hidden="true"
+      >
+        {format(value, "E")[0]} {format(value, "d")}
+      </span>
+      <span className="truncate text-sm @max-md/calendar-view:hidden @lg/calendar-view:text-base">
+        {format(value, "EEE d")}
+      </span>
     </div>
   );
 }
@@ -207,13 +249,15 @@ function DayViewPositionedEvent({
   }, [item.start, item.end, currentDate]);
 
   return (
-    <EventItem
-      onClick={onClick}
-      item={item}
-      view="month"
-      isFirstDay={isFirstDay}
-      isLastDay={isLastDay}
-    />
+    <div className="my-px">
+      <EventItem
+        onClick={onClick}
+        item={item}
+        view="month"
+        isFirstDay={isFirstDay}
+        isLastDay={isLastDay}
+      />
+    </div>
   );
 }
 

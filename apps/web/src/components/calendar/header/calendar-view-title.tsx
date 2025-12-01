@@ -63,11 +63,11 @@ export function CalendarViewTitle({ className }: CalendarViewTitleProps) {
             variant="ghost"
             className="h-8 w-fit px-2 py-0 data-[state=open]:bg-accent/80"
           >
-            <AnimatePresence>
+            <AnimatePresence mode="wait">
               <motion.h2
                 key={titleData.full}
                 className={cn(
-                  "inset-0 flex h-8 items-center justify-start gap-2 leading-none transition-all",
+                  "flex h-8 items-center justify-start gap-2 leading-none",
                   className,
                 )}
                 variants={variants}

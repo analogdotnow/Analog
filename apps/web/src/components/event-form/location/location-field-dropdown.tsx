@@ -19,12 +19,22 @@ interface LocationFieldDropdownProps {
   className?: string;
   location: string;
   disabled?: boolean;
+  onDelete?: () => void;
 }
 
 export function LocationFieldDropdown({
   location,
   disabled,
+  onDelete,
 }: LocationFieldDropdownProps) {
+  const onCopyLocation = async () => {
+    try {
+      await navigator.clipboard.writeText(location);
+    } catch {
+      // ignore clipboard errors
+    }
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild disabled={disabled}>
@@ -38,17 +48,19 @@ export function LocationFieldDropdown({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start">
-        <DropdownMenuItem>
-          <MapIcon className="size-4" />
-          Open in Google Maps
+        <DropdownMenuItem asChild>
+          <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`} target="_blank" rel="noopener noreferrer">
+            <MapIcon className="size-4" />
+            Open in Google Maps
+          </a>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem>
+        <DropdownMenuItem onSelect={onCopyLocation}>
           <ClipboardDocumentListIcon className="size-4" />
           Copy Location
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem variant="destructive">
+        <DropdownMenuItem variant="destructive" onSelect={onDelete}>
           <TrashIcon className="size-4" />
           Remove Location
         </DropdownMenuItem>

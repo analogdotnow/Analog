@@ -7,7 +7,7 @@ import { startOfDay } from "@repo/temporal";
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { timeZonesAtom } from "@/atoms/timezones";
 import { currentDateAtom } from "@/atoms/view-preferences";
-import { range } from "@/lib/utils";
+import { cn, range } from "@/lib/utils";
 import { formatTime } from "@/lib/utils/format";
 
 export function Timeline() {
@@ -15,7 +15,13 @@ export function Timeline() {
   const currentDate = useAtomValue(currentDateAtom);
 
   return (
-    <div className="grid grid-flow-col grid-cols-[3rem_repeat(auto-fill,_2.5rem)] grid-rows-1 border-r border-border/70 select-none sm:grid-cols-[4rem_repeat(auto-fill,_3rem)]">
+    <div
+      className={cn(
+        "grid grid-cols-[repeat(auto-fill,3rem)] sm:grid-cols-[repeat(auto-fill,4rem)] grid-rows-1 border-r border-border/70 select-none",
+        timeZones.length > 1 &&
+          "grid-cols-[3rem_repeat(auto-fill,2.5rem)] sm:grid-cols-[4rem_repeat(auto-fill,3rem)]",
+      )}
+    >
       {timeZones.map((timeZone) => (
         <TimelineColumn
           key={timeZone.id}
@@ -35,13 +41,8 @@ export function useHours(currentDate: Temporal.PlainDate, timeZone: string) {
   return React.useMemo(() => {
     const start = startOfDay(currentDate, { timeZone: defaultTimeZone });
 
-    let day = start;
     const hours = HOURS.map((time) => {
-      if (time.hour === 0) {
-        day = day.add({ days: 1 });
-      }
-
-      return day.add({ hours: time.hour }).withTimeZone(timeZone);
+      return start.add({ hours: time.hour }).withTimeZone(timeZone);
     });
 
     return hours.map((hour) => ({

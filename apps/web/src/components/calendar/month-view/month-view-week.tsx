@@ -71,7 +71,8 @@ export function MonthViewWeek({
       // Check if event is within the week range
       const isInWeek =
         isWithinInterval(eventStart, { start: weekStart, end: weekEnd }) ||
-        isWithinInterval(eventEnd, { start: weekStart, end: weekEnd });
+        isWithinInterval(eventEnd, { start: weekStart, end: weekEnd }) ||
+        (isBefore(eventStart, weekStart) && isAfter(eventEnd, weekEnd));
 
       if (!isInWeek) {
         return false;

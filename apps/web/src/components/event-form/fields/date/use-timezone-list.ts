@@ -41,6 +41,7 @@ export function useTimezoneSearch({ timezones, search }: UseSearchProps) {
         (item) => item.city ?? "",
         (item) => item.id,
         (item) => item.name,
+        (item) => item.abbreviation,
         (item) => item.offset.label.short,
         (item) => item.offset.label.long,
       ],

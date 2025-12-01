@@ -1,30 +1,32 @@
 import { atom } from "jotai";
+import { calendarSettingsAtom } from "./calendar-settings";
 
 interface TimeZone {
   id: string;
-  label: string;
-  default?: boolean;
+  label?: string;
+  default: boolean;
 }
 
-export const timeZonesAtom = atom<TimeZone[]>([
-  {
-    id: "America/Los_Angeles",
-    label: "UTC",
-  },
-  {
-    id: "Europe/Amsterdam",
-    label: "CEST",
+export const timeZonesAtom = atom<TimeZone[]>((get) => {
+  const settings = get(calendarSettingsAtom);
+
+  return [{
+    id: settings.defaultTimeZone,
     default: true,
-  },
-]);
-
-export const addTimeZoneAtom = atom(null, (get, set, timeZone: TimeZone) => {
-  set(timeZonesAtom, [...get(timeZonesAtom), timeZone]);
+  }, {
+    id: "America/New_York",
+    default: false,
+  }];
 });
 
-export const removeTimeZoneAtom = atom(null, (get, set, timeZone: TimeZone) => {
-  set(
-    timeZonesAtom,
-    get(timeZonesAtom).filter((tz) => tz !== timeZone),
-  );
-});
+// TODO: Add these atoms back in when we have a way to manage timezones
+// export const addTimeZoneAtom = atom(null, (get, set, timeZone: TimeZone) => {
+//   set(timeZonesAtom, [...get(timeZonesAtom), timeZone]);
+// });
+//
+// export const removeTimeZoneAtom = atom(null, (get, set, timeZone: TimeZone) => {
+//   set(
+//     timeZonesAtom,
+//     get(timeZonesAtom).filter((tz) => tz !== timeZone),
+//   );
+// });

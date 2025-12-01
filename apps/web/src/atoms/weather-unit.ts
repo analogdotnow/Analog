@@ -25,6 +25,6 @@ export function preferredTempUnitFromLocale(): "C" | "F" {
 }
 
 export const temperatureUnitAtom = atomWithStorage<"C" | "F">(
-  "analog-weather-unit-2",
+  "analog-weather-unit",
   preferredTempUnitFromLocale(),
 );

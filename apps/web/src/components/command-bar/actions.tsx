@@ -55,10 +55,11 @@ interface ActionProps
 export function Action({ children, type, href, ...props }: ActionProps) {
   if (type === "link") {
     return (
-      <ActionButton {...props}>
-        <a href={href} target="_blank" rel="noopener noreferrer">
-          {children}
-        </a>
+      <ActionButton
+        render={<a href={href} target="_blank" rel="noopener noreferrer" />}
+        {...props}
+      >
+        {children}
       </ActionButton>
     );
   }

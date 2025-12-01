@@ -6,23 +6,23 @@ import { useTRPC } from "@/lib/trpc/client";
 
 export function useDefaultCalendar() {
   const trpc = useTRPC();
-  const query = useQuery(trpc.calendars.list.queryOptions());
+  const { data } = useQuery(trpc.calendars.list.queryOptions());
   const color = React.useMemo(() => {
-    if (!query.data?.defaultCalendar) {
+    if (!data?.defaultCalendar) {
       return "var(--color-muted-foreground)";
     }
 
-    return `var(${calendarColorVariable(query.data?.defaultCalendar?.accountId, query.data?.defaultCalendar?.id)}, var(--color-muted-foreground))`;
-  }, [query.data?.defaultCalendar]);
+    return `var(${calendarColorVariable(data?.defaultCalendar?.accountId, data?.defaultCalendar?.id)}, var(--color-muted-foreground))`;
+  }, [data?.defaultCalendar]);
 
   return React.useMemo(() => {
-    if (!query.data?.defaultCalendar) {
+    if (!data?.defaultCalendar) {
       return undefined;
     }
 
     return {
-      ...query.data.defaultCalendar,
+      ...data?.defaultCalendar,
       color,
     };
-  }, [query.data?.defaultCalendar, color]);
+  }, [data?.defaultCalendar, color]);
 }

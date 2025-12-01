@@ -71,7 +71,7 @@ function EventContextMenuCalendarList({
   event,
 }: EventContextMenuCalendarListProps) {
   const trpc = useTRPC();
-  const calendarQuery = useQuery(trpc.calendars.list.queryOptions());
+  const { data } = useQuery(trpc.calendars.list.queryOptions());
 
   const updateAction = usePartialUpdateAction();
 
@@ -92,7 +92,7 @@ function EventContextMenuCalendarList({
 
   return (
     <div className="mb-1 flex scrollbar-hidden gap-3 overflow-x-auto px-2 py-2">
-      {calendarQuery.data?.accounts.map((account, index) => (
+      {data?.accounts.map((account, index) => (
         <React.Fragment key={index}>
           {account.calendars.map((calendar, index) => (
             <Tooltip key={index}>

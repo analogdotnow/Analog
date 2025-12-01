@@ -18,14 +18,14 @@ export function useCreateDraftAction() {
   const setSelectedEventIds = useSetAtom(selectedEventIdsAtom);
   const addOptimisticAction = useSetAtom(addOptimisticActionAtom);
   const trpc = useTRPC();
-  const query = useQuery(trpc.calendars.list.queryOptions());
+  const { data } = useQuery(trpc.calendars.list.queryOptions());
   const { setOpen: setRightSidebarOpen } = useSidebarWithSide("right");
   const actorRef = EventFormStateContext.useActorRef();
   const unselectAllAction = useUnselectAllAction();
 
   return React.useCallback(
     (event: DraftEvent) => {
-      const defaultCalendar = query.data?.defaultCalendar;
+      const defaultCalendar = data?.defaultCalendar;
 
       if (!defaultCalendar) {
         return;
@@ -53,7 +53,7 @@ export function useCreateDraftAction() {
     },
     [
       actorRef,
-      query.data?.defaultCalendar,
+      data?.defaultCalendar,
       addOptimisticAction,
       setSelectedEventIds,
       setRightSidebarOpen,

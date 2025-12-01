@@ -17,5 +17,5 @@ export function isConferenceLink({
     return false;
   }
 
-  return location === conference.video?.joinUrl.value;
+  return location === conference.video?.joinUrl?.value;
 }

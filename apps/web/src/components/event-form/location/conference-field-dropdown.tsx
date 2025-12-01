@@ -1,8 +1,8 @@
 "use client";
 
 import {
+  ArrowTopRightOnSquareIcon,
   ClipboardDocumentListIcon,
-  MapIcon,
   TrashIcon,
 } from "@heroicons/react/16/solid";
 
@@ -21,12 +21,26 @@ interface ConferenceFieldDropdownProps {
   className?: string;
   conference: ConferenceData;
   disabled?: boolean;
+  onDelete?: () => void;
 }
 
 export function ConferenceFieldDropdown({
   conference,
   disabled,
+  onDelete,
 }: ConferenceFieldDropdownProps) {
+  const onCopyJoinUrl = async () => {
+    if (!conference.video?.joinUrl.value) {
+      return;
+    }
+    
+    try {
+      await navigator.clipboard.writeText(conference.video?.joinUrl.value);
+    } catch {
+      // ignore clipboard errors
+    }
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild disabled={disabled}>
@@ -40,17 +54,19 @@ export function ConferenceFieldDropdown({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start">
-        <DropdownMenuItem>
-          <MapIcon className="size-4" />
-          Open in Google Meet
+        <DropdownMenuItem asChild disabled={!conference.video?.joinUrl.value}>
+          <a href={conference.video?.joinUrl.value} target="_blank" rel="noopener noreferrer">
+            <ArrowTopRightOnSquareIcon className="size-4" />
+            Join Meeting
+          </a>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem>
+        <DropdownMenuItem onSelect={onCopyJoinUrl} disabled={!conference.video?.joinUrl.value}>
           <ClipboardDocumentListIcon className="size-4" />
           Copy Join URL
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem variant="destructive">
+        <DropdownMenuItem variant="destructive" onSelect={onDelete}>
           <TrashIcon className="size-4" />
           Remove Video Call
         </DropdownMenuItem>

@@ -51,7 +51,7 @@ export function TimeIndicatorBackground() {
             </div>
           </div>
         </div>
-        <div className="h-0.5 w-20"></div>
+        <div className="h-0.5 w-(--timeline-container-width)"></div>
         <div className="z-20 h-0.5 grow bg-red-500/10"></div>
       </div>
     </div>

@@ -6,14 +6,20 @@ import { Weekday } from "@repo/providers/interfaces";
 
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
-const daysOfWeek = [
-  { short: "Mon", full: "Monday", value: "mo" },
-  { short: "Tue", full: "Tuesday", value: "tu" },
-  { short: "Wed", full: "Wednesday", value: "we" },
-  { short: "Thu", full: "Thursday", value: "th" },
-  { short: "Fri", full: "Friday", value: "fr" },
-  { short: "Sat", full: "Saturday", value: "sa" },
-  { short: "Sun", full: "Sunday", value: "su" },
+interface DayOfWeekItem {
+  short: string;
+  full: string;
+  value: Weekday;
+}
+
+const daysOfWeek: DayOfWeekItem[] = [
+  { short: "Mon", full: "Monday", value: "MO" },
+  { short: "Tue", full: "Tuesday", value: "TU" },
+  { short: "Wed", full: "Wednesday", value: "WE" },
+  { short: "Thu", full: "Thursday", value: "TH" },
+  { short: "Fri", full: "Friday", value: "FR" },
+  { short: "Sat", full: "Saturday", value: "SA" },
+  { short: "Sun", full: "Sunday", value: "SU" },
 ];
 
 interface DayOfWeekFieldProps {

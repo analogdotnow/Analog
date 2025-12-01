@@ -20,7 +20,6 @@ import {
 import { usePlacesSearch } from "@/hooks/use-places-search";
 import { cn } from "@/lib/utils";
 import { ConferenceFieldDropdown } from "./conference-field-dropdown";
-import { LocationConferencePopover } from "./location-conference-popover";
 import { LocationFieldDropdown } from "./location-field-dropdown";
 import { LocationWeather } from "./location-weather";
 import { isConferenceLink } from "./utils";
@@ -34,6 +33,7 @@ interface LocationFieldProps {
   onBlur?: (event: React.FocusEvent<HTMLInputElement>) => void;
   disabled?: boolean;
   conference: FormConference | null | undefined;
+  onRemoveConference?: () => void;
 }
 
 interface AddressSuggestion {
@@ -139,6 +139,7 @@ export function LocationField({
   onBlur,
   disabled = false,
   conference,
+  onRemoveConference,
 }: LocationFieldProps) {
   "use memo";
 
@@ -203,11 +204,19 @@ export function LocationField({
         </AutocompletePositioner>
       </Autocomplete>
       {conference?.type === "conference" ? (
-        <ConferenceFieldDropdown conference={conference} disabled={disabled} />
+        <ConferenceFieldDropdown
+          conference={conference}
+          disabled={disabled}
+          onDelete={onRemoveConference}
+        />
       ) : null}
       {!isVideoCall && inputValue.trim() !== "" ? (
         <>
-          <LocationFieldDropdown location={inputValue} disabled={disabled} />
+          <LocationFieldDropdown
+            location={inputValue}
+            disabled={disabled}
+            onDelete={() => onChange?.("")}
+          />
           <LocationWeather location={inputValue} disabled={disabled} />
         </>
       ) : null}
