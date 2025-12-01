@@ -51,7 +51,10 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
   public readonly providerAccountId: string;
   private graphClient: Client;
 
-  constructor({ accessToken, providerAccountId }: MicrosoftCalendarProviderOptions) {
+  constructor({
+    accessToken,
+    providerAccountId,
+  }: MicrosoftCalendarProviderOptions) {
     this.providerAccountId = providerAccountId;
     this.graphClient = Client.initWithMiddleware({
       authProvider: {
@@ -70,7 +73,10 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
         .get();
 
       return (response.value as MicrosoftCalendar[]).map((calendar) => ({
-        ...parseMicrosoftCalendar({ calendar, providerAccountId: this.providerAccountId }),
+        ...parseMicrosoftCalendar({
+          calendar,
+          providerAccountId: this.providerAccountId,
+        }),
       }));
     });
   }
@@ -152,8 +158,7 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
         .get();
 
       const events = (response.value as MicrosoftEvent[]).map(
-        (event: MicrosoftEvent) =>
-          parseMicrosoftEvent({ event, calendar }),
+        (event: MicrosoftEvent) => parseMicrosoftEvent({ event, calendar }),
       );
 
       return { events, recurringMasterEvents: [] };

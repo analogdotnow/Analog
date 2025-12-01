@@ -47,7 +47,8 @@ export function isMovedBetweenCalendars(
   previous: CalendarEvent,
 ) {
   return (
-    updated.calendar.provider.accountId !== previous.calendar.provider.accountId ||
+    updated.calendar.provider.accountId !==
+      previous.calendar.provider.accountId ||
     updated.calendar.id !== previous.calendar.id
   );
 }

@@ -2,9 +2,8 @@ import { TRPCError } from "@trpc/server";
 import * as z from "zod";
 
 import { auth } from "@repo/auth/server";
-import type { ProviderId } from "@repo/providers/interfaces";
 import { assignColor } from "@repo/providers/calendars/colors";
-import { createCalendarInputSchema, providerSchema } from "@repo/schemas";
+import { createCalendarInputSchema } from "@repo/schemas";
 
 import {
   calendarProcedure,
@@ -51,7 +50,7 @@ export const calendarsRouter = createTRPCRouter({
       return {
         id: account.id,
         provider: {
-          id: account.providerId as ProviderId,
+          id: account.providerId,
           accountId: account.accountId,
         },
         name: account.email,
@@ -112,7 +111,10 @@ export const calendarsRouter = createTRPCRouter({
   get: calendarProcedure
     .input(
       z.object({
-        provider: providerSchema,
+        provider: z.object({
+          id: z.enum(["google", "microsoft"]),
+          accountId: z.string(),
+        }),
         calendarId: z.string(),
       }),
     )
@@ -136,7 +138,10 @@ export const calendarsRouter = createTRPCRouter({
     .input(
       z.object({
         id: z.string(),
-        provider: providerSchema,
+        provider: z.object({
+          id: z.enum(["google", "microsoft"]),
+          accountId: z.string(),
+        }),
         name: z.string(),
         timeZone: z.string().optional(),
       }),
@@ -180,7 +185,10 @@ export const calendarsRouter = createTRPCRouter({
   delete: calendarProcedure
     .input(
       z.object({
-        provider: providerSchema,
+        provider: z.object({
+          id: z.enum(["google", "microsoft"]),
+          accountId: z.string(),
+        }),
         calendarId: z.string(),
       }),
     )

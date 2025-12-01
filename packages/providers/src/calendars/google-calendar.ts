@@ -40,7 +40,10 @@ export class GoogleCalendarProvider implements CalendarProvider {
   public readonly providerAccountId: string;
   private client: GoogleCalendar;
 
-  constructor({ accessToken, providerAccountId }: GoogleCalendarProviderOptions) {
+  constructor({
+    accessToken,
+    providerAccountId,
+  }: GoogleCalendarProviderOptions) {
     this.providerAccountId = providerAccountId;
     this.client = new GoogleCalendar({
       accessToken,

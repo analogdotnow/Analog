@@ -1,6 +1,5 @@
 import { TRPCError } from "@trpc/server";
 
-import type { ProviderId } from "@repo/providers/interfaces";
 import { createTaskInputSchema } from "@repo/schemas";
 
 import { createTRPCRouter, taskProcedure } from "../trpc";
@@ -31,7 +30,7 @@ export const tasksRouter = createTRPCRouter({
       return {
         id: account.id,
         provider: {
-          id: account.providerId as ProviderId,
+          id: account.providerId,
           accountId: account.accountId,
         },
         name: account.email,

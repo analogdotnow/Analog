@@ -5,12 +5,7 @@ import { zZonedDateTimeInstance } from "temporal-zod";
 import * as z from "zod";
 
 import { CalendarEvent } from "@repo/providers/interfaces";
-import {
-  createEventInputSchema,
-  eventCalendarSchema,
-  providerSchema,
-  updateEventInputSchema,
-} from "@repo/schemas";
+import { createEventInputSchema, updateEventInputSchema } from "@repo/schemas";
 import { toInstant } from "@repo/temporal";
 
 import { calendarProcedure, createTRPCRouter } from "../trpc";
@@ -79,7 +74,12 @@ export const eventsRouter = createTRPCRouter({
       z.object({
         timeMin: zZonedDateTimeInstance.optional(),
         timeMax: zZonedDateTimeInstance.optional(),
-        calendar: eventCalendarSchema.extend({
+        calendar: z.object({
+          id: z.string(),
+          provider: z.object({
+            id: z.enum(["google", "microsoft"]),
+            accountId: z.string(),
+          }),
           syncToken: z.string().optional(),
         }),
         timeZone: z.string().default("UTC"),
@@ -126,7 +126,13 @@ export const eventsRouter = createTRPCRouter({
   get: calendarProcedure
     .input(
       z.object({
-        calendar: eventCalendarSchema,
+        calendar: z.object({
+          id: z.string(),
+          provider: z.object({
+            id: z.enum(["google", "microsoft"]),
+            accountId: z.string(),
+          }),
+        }),
         eventId: z.string(),
         timeZone: z.string().optional(),
       }),
@@ -199,8 +205,20 @@ export const eventsRouter = createTRPCRouter({
         data: updateEventInputSchema,
         move: z
           .object({
-            source: eventCalendarSchema,
-            destination: eventCalendarSchema,
+            source: z.object({
+              id: z.string(),
+              provider: z.object({
+                id: z.enum(["google", "microsoft"]),
+                accountId: z.string(),
+              }),
+            }),
+            destination: z.object({
+              id: z.string(),
+              provider: z.object({
+                id: z.enum(["google", "microsoft"]),
+                accountId: z.string(),
+              }),
+            }),
           })
           .optional(),
       }),
@@ -257,7 +275,10 @@ export const eventsRouter = createTRPCRouter({
         destinationProvider.client.calendars(),
       ]);
 
-      const sourceCalendar = findCalendarOrThrow(sourceCalendars, move.source.id);
+      const sourceCalendar = findCalendarOrThrow(
+        sourceCalendars,
+        move.source.id,
+      );
       const destinationCalendar = findCalendarOrThrow(
         destinationCalendars,
         move.destination.id,
@@ -265,7 +286,8 @@ export const eventsRouter = createTRPCRouter({
 
       // If destination is the same as source, just update
       if (
-        move.source.provider.accountId === move.destination.provider.accountId &&
+        move.source.provider.accountId ===
+          move.destination.provider.accountId &&
         move.source.id === move.destination.id
       ) {
         const event = await sourceProvider.client.updateEvent(
@@ -335,7 +357,13 @@ export const eventsRouter = createTRPCRouter({
   delete: calendarProcedure
     .input(
       z.object({
-        calendar: eventCalendarSchema,
+        calendar: z.object({
+          id: z.string(),
+          provider: z.object({
+            id: z.enum(["google", "microsoft"]),
+            accountId: z.string(),
+          }),
+        }),
         eventId: z.string(),
         sendUpdate: z.boolean().optional().default(true),
       }),
@@ -364,14 +392,18 @@ export const eventsRouter = createTRPCRouter({
   move: calendarProcedure
     .input(
       z.object({
-        source: eventCalendarSchema.extend({
-          provider: providerSchema.extend({
+        source: z.object({
+          id: z.string(),
+          provider: z.object({
             id: z.literal("google"),
+            accountId: z.string(),
           }),
         }),
-        destination: eventCalendarSchema.extend({
-          provider: providerSchema.extend({
+        destination: z.object({
+          id: z.string(),
+          provider: z.object({
             id: z.literal("google"),
+            accountId: z.string(),
           }),
         }),
         eventId: z.string(),
@@ -444,7 +476,13 @@ export const eventsRouter = createTRPCRouter({
   respondToInvite: calendarProcedure
     .input(
       z.object({
-        calendar: eventCalendarSchema,
+        calendar: z.object({
+          id: z.string(),
+          provider: z.object({
+            id: z.enum(["google", "microsoft"]),
+            accountId: z.string(),
+          }),
+        }),
         eventId: z.string(),
         response: z.object({
           status: z.enum(["accepted", "tentative", "declined", "unknown"]),
@@ -466,15 +504,11 @@ export const eventsRouter = createTRPCRouter({
         });
       }
 
-      await provider.client.responseToEvent(
-        input.calendar.id,
-        input.eventId,
-        {
-          status: input.response.status,
-          comment: input.response.comment,
-          sendUpdate: input.response.sendUpdate,
-        },
-      );
+      await provider.client.responseToEvent(input.calendar.id, input.eventId, {
+        status: input.response.status,
+        comment: input.response.comment,
+        sendUpdate: input.response.sendUpdate,
+      });
 
       return { success: true };
     }),

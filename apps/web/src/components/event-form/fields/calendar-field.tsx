@@ -1,8 +1,6 @@
 import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
 
-import type { CalendarEventCalendar } from "@repo/providers/interfaces";
-
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -26,8 +24,20 @@ import { cn } from "@/lib/utils";
 interface CalendarFieldProps {
   id: string;
   className?: string;
-  value: CalendarEventCalendar;
-  onChange: (calendar: CalendarEventCalendar) => void;
+  value: {
+    id: string;
+    provider: {
+      id: "google" | "microsoft";
+      accountId: string;
+    };
+  };
+  onChange: (calendar: {
+    id: string;
+    provider: {
+      id: "google" | "microsoft";
+      accountId: string;
+    };
+  }) => void;
   onBlur: () => void;
   disabled?: boolean;
 }

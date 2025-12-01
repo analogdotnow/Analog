@@ -1,7 +1,5 @@
 import { TRPCError } from "@trpc/server";
 
-import type { ProviderId } from "@repo/providers/interfaces";
-
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { getAccounts, getDefaultAccount } from "../utils/accounts";
 
@@ -13,7 +11,7 @@ export const accountsRouter = createTRPCRouter({
       accounts: accounts.map((account) => ({
         id: account.id,
         provider: {
-          id: account.providerId as ProviderId,
+          id: account.providerId,
           accountId: account.accountId,
         },
         name: account.name,
@@ -38,7 +36,7 @@ export const accountsRouter = createTRPCRouter({
       account: {
         id: account.id,
         provider: {
-          id: account.providerId as ProviderId,
+          id: account.providerId as "google" | "microsoft",
           accountId: account.accountId,
         },
         name: account.name,

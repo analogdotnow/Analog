@@ -76,7 +76,10 @@ function EventContextMenuCalendarList({
   const updateAction = usePartialUpdateAction();
 
   const moveEvent = React.useCallback(
-    (calendar: { id: string; provider: { id: "google" | "microsoft"; accountId: string } }) => {
+    (calendar: {
+      id: string;
+      provider: { id: "google" | "microsoft"; accountId: string };
+    }) => {
       updateAction({
         changes: {
           id: event.id,
@@ -104,7 +107,9 @@ function EventContextMenuCalendarList({
                     } as React.CSSProperties
                   }
                   disabled={!canMoveBetweenCalendars(event, calendar)}
-                  onSelect={() => moveEvent({ id: calendar.id, provider: calendar.provider })}
+                  onSelect={() =>
+                    moveEvent({ id: calendar.id, provider: calendar.provider })
+                  }
                 />
               </TooltipTrigger>
               <TooltipContent className="w-full max-w-48" sideOffset={8}>
@@ -157,7 +162,9 @@ export function EventContextMenu({ event, children }: EventContextMenuProps) {
     <ContextMenu>
       {children}
       <ContextMenuContent className="w-64">
-        <ContextMenuRadioGroup value={`${event.calendar.provider.accountId}-${event.calendar.id}`}>
+        <ContextMenuRadioGroup
+          value={`${event.calendar.provider.accountId}-${event.calendar.id}`}
+        >
           <EventContextMenuCalendarList event={event} />
         </ContextMenuRadioGroup>
 

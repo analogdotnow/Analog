@@ -4,20 +4,18 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { SuperJSONResult } from "superjson";
 import { Temporal } from "temporal-polyfill";
 
-import type { ProviderId } from "@repo/providers/interfaces";
 import { startOfDay } from "@repo/temporal";
 
 import { useZonedDateTime } from "@/components/calendar/context/datetime-provider";
 import { Calendar, CalendarEvent } from "./interfaces";
 import { superjson } from "./trpc/superjson";
 
-export interface EventRow
-  extends Omit<
-    CalendarEvent,
-    "start" | "end" | "createdAt" | "updatedAt" | "calendar"
-  > {
+export interface EventRow extends Omit<
+  CalendarEvent,
+  "start" | "end" | "createdAt" | "updatedAt" | "calendar"
+> {
   calendarId: string;
-  providerId: ProviderId;
+  providerId: "google" | "microsoft";
   providerAccountId: string;
   start: SuperJSONResult;
   end: SuperJSONResult;
@@ -28,7 +26,7 @@ export interface EventRow
 }
 
 export interface CalendarRow extends Omit<Calendar, "provider"> {
-  providerId: ProviderId;
+  providerId: "google" | "microsoft";
   providerAccountId: string;
 }
 

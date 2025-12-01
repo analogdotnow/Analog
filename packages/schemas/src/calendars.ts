@@ -1,12 +1,13 @@
 import * as z from "zod";
 
-import { providerSchema } from "./events";
-
 export const createCalendarInputSchema = z.object({
   name: z.string(),
   description: z.string().optional(),
   timeZone: z.string().optional(),
-  provider: providerSchema,
+  provider: z.object({
+    id: z.enum(["google", "microsoft"]),
+    accountId: z.string(),
+  }),
 });
 
 export const updateCalendarInputSchema = createCalendarInputSchema.extend({
