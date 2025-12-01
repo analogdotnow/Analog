@@ -1,13 +1,14 @@
 import { useCallback } from "react";
-import { useAtomValue } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import { Temporal } from "temporal-polyfill";
 
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
-import { useCalendarState } from "@/hooks/use-calendar-state";
+import { calendarViewAtom, currentDateAtom } from "@/atoms/view-preferences";
 import { navigateToNext, navigateToPrevious } from "../utils/date-time";
 
 export function useCalendarNavigation() {
-  const { currentDate, view, setCurrentDate } = useCalendarState();
+  const [currentDate, setCurrentDate] = useAtom(currentDateAtom);
+  const view = useAtomValue(calendarViewAtom);
   const settings = useAtomValue(calendarSettingsAtom);
 
   const handlePrevious = useCallback(() => {

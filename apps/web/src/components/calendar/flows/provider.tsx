@@ -4,7 +4,6 @@ import { DeleteEventAttendeeDialog } from "./delete-event/delete-event-attendee-
 import { DeleteQueueProvider } from "./delete-event/delete-queue-provider";
 import { DeleteRecurringEventDialog } from "./delete-event/delete-recurring-event-dialog";
 import { EventFormStateProvider } from "./event-form/event-form-state-provider";
-import { FocusRefProvider } from "./event-form/focus-ref-context";
 import { UpdateEventAttendeeDialog } from "./update-event/update-event-attendee-dialog";
 import { UpdateQueueProvider } from "./update-event/update-queue-provider";
 import { UpdateRecurringEventDialog } from "./update-event/update-recurring-event-dialog";
@@ -18,16 +17,14 @@ export function FlowsProvider({ children }: FlowsProviderProps) {
     <UpdateQueueProvider>
       <CreateQueueProvider>
         <EventFormStateProvider>
-          <FocusRefProvider>
-            <CreateEventAttendeeDialog />
-            <UpdateEventAttendeeDialog />
-            <UpdateRecurringEventDialog />
-            <DeleteQueueProvider>
-              <DeleteEventAttendeeDialog />
-              <DeleteRecurringEventDialog />
-              {children}
-            </DeleteQueueProvider>
-          </FocusRefProvider>
+          <CreateEventAttendeeDialog />
+          <UpdateEventAttendeeDialog />
+          <UpdateRecurringEventDialog />
+          <DeleteQueueProvider>
+            <DeleteEventAttendeeDialog />
+            <DeleteRecurringEventDialog />
+            {children}
+          </DeleteQueueProvider>
         </EventFormStateProvider>
       </CreateQueueProvider>
     </UpdateQueueProvider>

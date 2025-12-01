@@ -5,7 +5,7 @@ import * as React from "react";
 import { authClient } from "@repo/auth/client";
 import { env } from "@repo/env/client";
 
-import { AddAccountDialog } from "@/components/add-account-dialog";
+import { AddAccountDialog } from "@/components/settings-dialog/tabs/accounts/add-account-dialog";
 import { Button } from "@/components/ui/button";
 
 export function AddAccountButton() {

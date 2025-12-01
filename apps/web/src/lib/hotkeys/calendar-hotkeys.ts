@@ -1,15 +1,15 @@
 "use client";
 
-import { useAtomValue } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useHotkeys } from "react-hotkeys-hook";
 import { Temporal } from "temporal-polyfill";
 
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
+import { calendarViewAtom, currentDateAtom } from "@/atoms/view-preferences";
 import {
   navigateToNext,
   navigateToPrevious,
 } from "@/components/calendar/utils/date-time";
-import { useCalendarState } from "@/hooks/use-calendar-state";
 
 const KEYBOARD_SHORTCUTS = {
   MONTH: "m",
@@ -24,7 +24,8 @@ const KEYBOARD_SHORTCUTS = {
 
 export function CalendarHotkeys() {
   const { defaultTimeZone } = useAtomValue(calendarSettingsAtom);
-  const { view, setView, setCurrentDate } = useCalendarState();
+  const [view, setView] = useAtom(calendarViewAtom);
+  const setCurrentDate = useSetAtom(currentDateAtom);
 
   useHotkeys(KEYBOARD_SHORTCUTS.MONTH, () => setView("month"), {
     scopes: ["calendar"],

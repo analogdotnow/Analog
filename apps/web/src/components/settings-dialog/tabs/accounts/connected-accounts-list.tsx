@@ -16,13 +16,15 @@ import { useTRPC } from "@/lib/trpc/client";
 
 export function ConnectedAccountsList() {
   const trpc = useTRPC();
-  const query = useQuery(trpc.accounts.list.queryOptions());
+  const { data, isPending, isError } = useQuery(
+    trpc.accounts.list.queryOptions(),
+  );
 
-  if (query.isPending) {
+  if (isPending) {
     return <AccountsListSkeleton />;
   }
 
-  if (query.isError) {
+  if (isError) {
     return (
       <div className="py-8 text-center text-muted-foreground">
         <p>Error loading accounts.</p>
@@ -30,7 +32,7 @@ export function ConnectedAccountsList() {
     );
   }
 
-  if (query.data.accounts.length === 0) {
+  if (data?.accounts.length === 0) {
     return (
       <div className="py-8 text-center text-muted-foreground">
         <p>No accounts connected yet.</p>
@@ -41,7 +43,7 @@ export function ConnectedAccountsList() {
 
   return (
     <ul className="flex flex-col gap-y-2">
-      {query.data.accounts.map((account) => (
+      {data?.accounts.map((account) => (
         <React.Fragment key={account.id}>
           <AccountListItem account={account} />
           <Separator className="last:hidden" />

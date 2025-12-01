@@ -7,6 +7,7 @@ import { Temporal } from "temporal-polyfill";
 import { isToday } from "@repo/temporal";
 
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
+import { columnHeightAtom } from "@/atoms/cell-height";
 import { formatTime } from "@/lib/utils/format";
 import { useZonedDateTime } from "../context/datetime-provider";
 
@@ -22,10 +23,11 @@ export function useCurrentTimeIndicator({
   const time = useZonedDateTime();
   const { defaultTimeZone, use12Hour, locale } =
     useAtomValue(calendarSettingsAtom);
+  const columnHeight = useAtomValue(columnHeightAtom);
 
   return React.useMemo(() => {
     const totalMinutes = time.hour * 60 + time.minute;
-    const position = (totalMinutes / END_OF_DAY_MINUTES) * 100;
+    const position = (totalMinutes / END_OF_DAY_MINUTES) * columnHeight;
     const visible = isToday(date, {
       timeZone: defaultTimeZone,
     });
@@ -42,5 +44,5 @@ export function useCurrentTimeIndicator({
       visible,
       label,
     };
-  }, [date, use12Hour, time, locale, defaultTimeZone]);
+  }, [date, use12Hour, time, locale, defaultTimeZone, columnHeight]);
 }

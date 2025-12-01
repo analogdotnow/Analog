@@ -12,37 +12,24 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useActorRefSubscription } from "../use-actor-subscription";
 import { UpdateQueueContext } from "./update-queue-provider";
 
 export function UpdateEventAttendeeDialog() {
-  // const item = UpdateQueueContext.useSelector((state) => state.context.item);
   const actorRef = UpdateQueueContext.useActorRef();
-
-  const [open, setOpen] = React.useState(false);
-
-  useActorRefSubscription({
-    actorRef,
-    onUpdate: (snapshot) => {
-      if (snapshot.matches("askNotifyAttendee")) {
-        setOpen(true);
-      }
-    },
-  });
+  const open = UpdateQueueContext.useSelector((snapshot) =>
+    snapshot.matches("askNotifyAttendee"),
+  );
 
   const onSaveAndNotify = React.useCallback(() => {
     actorRef.send({ type: "NOTIFY_CHOICE", notify: true });
-    setOpen(false);
   }, [actorRef]);
 
   const onSave = React.useCallback(() => {
     actorRef.send({ type: "NOTIFY_CHOICE", notify: false });
-    setOpen(false);
   }, [actorRef]);
 
   const onCancel = React.useCallback(() => {
     actorRef.send({ type: "CANCEL" });
-    setOpen(false);
   }, [actorRef]);
 
   return (

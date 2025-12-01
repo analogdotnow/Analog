@@ -15,12 +15,22 @@ if (typeof window !== "undefined") {
 type AutocompleteRequest = google.maps.places.AutocompleteRequest;
 type AutocompleteSessionToken = google.maps.places.AutocompleteSessionToken;
 
-export function usePlacesSearch(request: AutocompleteRequest) {
+interface UsePlacesSearchOptions {
+  enabled: boolean;
+}
+
+export function usePlacesSearch(
+  request: AutocompleteRequest,
+  options?: UsePlacesSearchOptions,
+) {
   const sessionTokenRef = React.useRef<AutocompleteSessionToken>(undefined);
 
-  const sessionToken = sessionTokenRef.current;
   const trpc = useTRPC();
-  const query = useQuery(trpc.user.approximateLocation.queryOptions());
+  const { data: coordinates } = useQuery(
+    trpc.user.approximateLocation.queryOptions(undefined, {
+      enabled: options?.enabled,
+    }),
+  );
 
   return useQuery({
     queryKey: [request.input],
@@ -38,9 +48,7 @@ export function usePlacesSearch(request: AutocompleteRequest) {
         sessionTokenRef.current = new AutocompleteSessionToken();
       }
 
-      const coordinates = query.data;
-
-      return await AutocompleteSuggestion.fetchAutocompleteSuggestions({
+      return AutocompleteSuggestion.fetchAutocompleteSuggestions({
         ...request,
         locationBias: coordinates
           ? {
@@ -51,10 +59,11 @@ export function usePlacesSearch(request: AutocompleteRequest) {
               radius: 20000,
             }
           : "IP_BIAS",
-        sessionToken: sessionToken,
+        sessionToken: sessionTokenRef.current,
       });
     },
     placeholderData: keepPreviousData,
     staleTime: 1,
+    enabled: options?.enabled,
   });
 }

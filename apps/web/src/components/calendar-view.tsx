@@ -1,22 +1,26 @@
 "use client";
 
 import * as React from "react";
-import { useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 
+import { activeLayoutAtom } from "@/atoms/active-layout";
 import {
   calendarPreferencesAtom,
   getCalendarPreference,
 } from "@/atoms/calendar-preferences";
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { cellHeightAtom } from "@/atoms/cell-height";
-import { viewPreferencesAtom } from "@/atoms/view-preferences";
+import {
+  calendarViewAtom,
+  currentDateAtom,
+  viewPreferencesAtom,
+} from "@/atoms/view-preferences";
 import { AgendaView } from "@/components/calendar/agenda-view/agenda-view";
 import { EventGap, EventHeight } from "@/components/calendar/constants";
 import { DayView } from "@/components/calendar/day-view/day-view";
 import { CalendarHeader } from "@/components/calendar/header/calendar-header";
 import { MonthView } from "@/components/calendar/month-view/month-view";
 import { WeekView } from "@/components/calendar/week-view/week-view";
-import { useCalendarState } from "@/hooks/use-calendar-state";
 import { db, mapEventQueryInput } from "@/lib/db";
 import { cn } from "@/lib/utils";
 import { applyOptimisticActions } from "./calendar/hooks/apply-optimistic-actions";
@@ -29,7 +33,8 @@ interface CalendarContentProps {
 }
 
 function CalendarContent({ scrollContainerRef }: CalendarContentProps) {
-  const { currentDate, view } = useCalendarState();
+  const currentDate = useAtomValue(currentDateAtom);
+  const view = useAtomValue(calendarViewAtom);
   const { data } = useEventsForDisplay();
 
   const defaultTimeZone = useAtomValue(calendarSettingsAtom).defaultTimeZone;
@@ -42,7 +47,12 @@ function CalendarContent({ scrollContainerRef }: CalendarContentProps) {
     db.events.bulkPut(
       data?.events?.map((item) => mapEventQueryInput(item.event)) ?? [],
     );
-  }, [data?.events]);
+    db.events.bulkPut(
+      Object.values(data?.recurringMasterEvents ?? {}).map((event) =>
+        mapEventQueryInput(event),
+      ) ?? [],
+    );
+  }, [data?.events, data?.recurringMasterEvents]);
 
   const events = React.useMemo(() => {
     const events = applyOptimisticActions({
@@ -92,7 +102,7 @@ function CalendarContent({ scrollContainerRef }: CalendarContentProps) {
     );
   }
 
-  return <AgendaView currentDate={currentDate} events={events} />;
+  return <AgendaView currentDate={currentDate} items={events} />;
 }
 
 interface CalendarViewProps {
@@ -105,12 +115,42 @@ export function CalendarView({ className }: CalendarViewProps) {
 
   const cellHeight = useAtomValue(cellHeightAtom);
 
+  const setActiveLayout = useSetAtom(activeLayoutAtom);
+
+  const onFocus = React.useCallback(() => {
+    setActiveLayout("calendar");
+  }, [setActiveLayout]);
+
+  const calendarViewRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const controller = new AbortController();
+
+    document.addEventListener(
+      "mousedown",
+      (e) => {
+        if (!calendarViewRef.current?.contains(e.target as Node)) {
+          return;
+        }
+
+        setActiveLayout("calendar");
+      },
+      { signal: controller.signal },
+    );
+
+    return () => {
+      controller.abort();
+    };
+  }, [setActiveLayout]);
+
   return (
     <div
+      ref={calendarViewRef}
       className={cn(
-        "relative flex flex-col overflow-auto has-data-[slot=month-view]:flex-1",
+        "@container/calendar-view relative flex flex-col overflow-auto select-none has-data-[slot=month-view]:flex-1",
         className,
       )}
+      onClick={onFocus}
       style={
         {
           "--event-height": `${EventHeight}px`,
@@ -127,7 +167,6 @@ export function CalendarView({ className }: CalendarViewProps) {
       >
         <CalendarContent scrollContainerRef={scrollContainerRef} />
       </div>
-      {/* <SignalView className="absolute bottom-8 left-1/2 -translate-x-1/2" /> */}
     </div>
   );
 }

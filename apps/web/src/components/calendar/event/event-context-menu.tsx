@@ -38,10 +38,11 @@ function CalendarRadioItem({
     <ContextMenuPrimitive.RadioItem
       data-slot="context-menu-radio-item"
       className={cn(
-        "peer relative size-3 shrink-0 rounded-[4px] outline-hidden transition-opacity duration-150 hover:opacity-80",
+        "peer relative size-3 shrink-0 rounded-[4px] outline-hidden transition-opacity duration-150",
         "ring-offset-2 ring-offset-popover focus-visible:border-ring focus-visible:ring-[1px] focus-visible:ring-ring/50",
         "aria-invalid:border-destructive aria-invalid:ring-destructive/20 data-[state=checked]:border-primary",
         "bg-(--calendar-color) disabled:bg-muted",
+        "data-disabled:pointer-events-none data-disabled:opacity-40",
         disabled && "bg-(--calendar-color)/50",
         className,
       )}
@@ -70,7 +71,7 @@ function EventContextMenuCalendarList({
   event,
 }: EventContextMenuCalendarListProps) {
   const trpc = useTRPC();
-  const calendarQuery = useQuery(trpc.calendars.list.queryOptions());
+  const { data } = useQuery(trpc.calendars.list.queryOptions());
 
   const updateAction = usePartialUpdateAction();
 
@@ -81,16 +82,17 @@ function EventContextMenuCalendarList({
           id: event.id,
           accountId,
           calendarId,
+          type: event.type,
         },
         notify: true,
       });
     },
-    [updateAction, event.id],
+    [updateAction, event.id, event.type],
   );
 
   return (
     <div className="mb-1 flex scrollbar-hidden gap-3 overflow-x-auto px-2 py-2">
-      {calendarQuery.data?.accounts.map((account, index) => (
+      {data?.accounts.map((account, index) => (
         <React.Fragment key={index}>
           {account.calendars.map((calendar, index) => (
             <Tooltip key={index}>
@@ -137,12 +139,13 @@ export function EventContextMenu({ event, children }: EventContextMenuProps) {
         changes: {
           id: event.id,
           response: { status },
+          type: event.type,
         },
         // TODO: should this be the default?
         notify: true,
       });
     },
-    [updateAction, responseStatus, event.id],
+    [updateAction, responseStatus, event.id, event.type],
   );
 
   const deleteAction = useDeleteAction();

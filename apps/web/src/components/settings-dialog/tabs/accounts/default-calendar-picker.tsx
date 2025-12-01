@@ -28,7 +28,9 @@ export function DefaultCalendarPicker() {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
-  const query = useQuery(trpc.calendars.list.queryOptions());
+  const { data, isPending, isError } = useQuery(
+    trpc.calendars.list.queryOptions(),
+  );
   const mutation = useMutation(
     trpc.calendars.setDefault.mutationOptions({
       onSuccess: () => {
@@ -39,7 +41,7 @@ export function DefaultCalendarPicker() {
 
   const onValueChange = React.useCallback(
     (value: string) => {
-      const accountId = query.data?.accounts.find((account) =>
+      const accountId = data?.accounts.find((account) =>
         account.calendars.some((calendar) => calendar.id === value),
       )?.id;
 
@@ -49,14 +51,14 @@ export function DefaultCalendarPicker() {
 
       mutation.mutate({ calendarId: value, accountId });
     },
-    [query.data?.accounts, mutation],
+    [data?.accounts, mutation],
   );
 
-  if (query.isPending) {
+  if (isPending) {
     return <DefaultCalendarPickerSkeleton />;
   }
 
-  if (query.isError) {
+  if (isError) {
     return (
       <div className="py-4 text-center text-muted-foreground">
         <p>No calendars available.</p>
@@ -70,10 +72,7 @@ export function DefaultCalendarPicker() {
       <Label htmlFor="default-calendar" className="sr-only">
         Default Calendar
       </Label>
-      <Select
-        value={query.data.defaultCalendar.id}
-        onValueChange={onValueChange}
-      >
+      <Select value={data?.defaultCalendar.id} onValueChange={onValueChange}>
         <SelectTrigger
           id="default-calendar"
           className="w-fit max-w-full min-w-48"
@@ -81,7 +80,7 @@ export function DefaultCalendarPicker() {
           <SelectValue placeholder="Select default calendar" />
         </SelectTrigger>
         <SelectContent>
-          {query.data.accounts.map((account) => (
+          {data?.accounts.map((account) => (
             <SelectGroup key={account.id}>
               <SelectLabel className="py-1.5 text-xs">
                 {account.name}

@@ -12,36 +12,24 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useActorRefSubscription } from "../use-actor-subscription";
 import { CreateQueueContext } from "./create-queue-provider";
 
 export function CreateEventAttendeeDialog() {
   const actorRef = CreateQueueContext.useActorRef();
-
-  const [open, setOpen] = React.useState(false);
-
-  useActorRefSubscription({
-    actorRef,
-    onUpdate: (snapshot) => {
-      if (snapshot.matches("askNotifyAttendee")) {
-        setOpen(true);
-      }
-    },
-  });
+  const open = CreateQueueContext.useSelector((snapshot) =>
+    snapshot.matches("askNotifyAttendee"),
+  );
 
   const onSaveAndNotify = React.useCallback(() => {
     actorRef.send({ type: "NOTIFY_CHOICE", notify: true });
-    setOpen(false);
   }, [actorRef]);
 
   const onSave = React.useCallback(() => {
     actorRef.send({ type: "NOTIFY_CHOICE", notify: false });
-    setOpen(false);
   }, [actorRef]);
 
   const onCancel = React.useCallback(() => {
     actorRef.send({ type: "CANCEL" });
-    setOpen(false);
   }, [actorRef]);
 
   return (

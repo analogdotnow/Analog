@@ -58,17 +58,19 @@ export function OverflowIndicator({
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <button
-          className={cn(
-            "pointer-events-auto text-xs text-muted-foreground hover:text-foreground",
-            "rounded-md px-2 py-1 transition-colors hover:bg-muted/50",
-            className,
-          )}
-          style={gridColumn ? { gridColumn } : undefined}
-        >
-          +{items.length} more
-        </button>
+      <PopoverTrigger
+        render={
+          <button
+            className={cn(
+              "pointer-events-auto text-xs text-muted-foreground hover:text-foreground",
+              "rounded-md px-2 py-1 transition-colors hover:bg-muted/50",
+              className,
+            )}
+            style={gridColumn ? { gridColumn } : undefined}
+          />
+        }
+      >
+        +{items.length} more
       </PopoverTrigger>
 
       <PopoverContent

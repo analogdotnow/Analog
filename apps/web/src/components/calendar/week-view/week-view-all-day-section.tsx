@@ -6,17 +6,17 @@ import { isToday, isWeekend } from "@repo/temporal";
 
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { viewPreferencesAtom } from "@/atoms/view-preferences";
+import { useDoubleClickToCreate } from "@/components/calendar/hooks/drag-and-drop/use-double-click-to-create";
 import { EventCollectionForWeek } from "@/components/calendar/hooks/use-event-collection";
 import {
   useMultiDayOverflow,
   type UseMultiDayOverflowResult,
 } from "@/components/calendar/hooks/use-multi-day-overflow";
-import { useCreateDraftAction } from "@/components/calendar/hooks/use-optimistic-mutations";
+import { useUnselectAllAction } from "@/components/calendar/hooks/use-optimistic-mutations";
 import { OverflowIndicator } from "@/components/calendar/overflow/overflow-indicator";
 import { getEventsStartingOnPlainDate } from "@/components/calendar/utils/event";
 import { WeekViewAllDayEvent } from "@/components/calendar/week-view/week-view-all-day-event";
 import { cn } from "@/lib/utils";
-import { createDraftEvent } from "@/lib/utils/calendar";
 
 interface WeekViewAllDaySectionProps {
   allDays: Temporal.PlainDate[];
@@ -33,10 +33,12 @@ export function WeekViewAllDaySection({
 }: WeekViewAllDaySectionProps) {
   const settings = useAtomValue(calendarSettingsAtom);
 
-  // Use overflow hook for all-day events
+  const overflowRef = React.useRef<HTMLDivElement | null>(null);
+
   const overflow = useMultiDayOverflow({
     events: eventCollection.allDayEvents,
     timeZone: settings.defaultTimeZone,
+    containerRef: overflowRef,
     minVisibleLanes: 10,
   });
 
@@ -44,7 +46,7 @@ export function WeekViewAllDaySection({
     <div className="border-b border-border/70 [--calendar-height:100%]">
       <div className="relative grid grid-cols-(--week-view-grid) transition-[grid-template-columns] duration-200 ease-linear">
         <div className="relative flex min-h-7 flex-col justify-center border-r border-border/70">
-          <span className="w-16 max-w-full ps-2 text-right text-[10px] text-muted-foreground/70 sm:ps-4 sm:text-xs">
+          <span className="pe-3 text-right text-[10px] text-muted-foreground/70 select-none sm:pe-4 sm:text-xs">
             All day
           </span>
         </div>
@@ -53,8 +55,10 @@ export function WeekViewAllDaySection({
           <WeekViewAllDayColumn
             key={day.toString()}
             day={day}
+            isWeekend={isWeekend(day)}
             visibleDays={visibleDays}
             overflow={overflow}
+            overflowRef={overflowRef}
           />
         ))}
 
@@ -70,6 +74,7 @@ export function WeekViewAllDaySection({
                 weekStart={allDays[0]!}
                 weekEnd={allDays[allDays.length - 1]!}
                 containerRef={containerRef}
+                columns={visibleDays.length}
               />
             )),
           )}
@@ -81,22 +86,24 @@ export function WeekViewAllDaySection({
 
 interface WeekViewAllDayColumnProps {
   day: Temporal.PlainDate;
+  isWeekend: boolean;
   visibleDays: Temporal.PlainDate[];
   overflow: UseMultiDayOverflowResult;
+  overflowRef: React.RefObject<HTMLDivElement | null>;
 }
 
 function WeekViewAllDayColumn({
   day,
+  isWeekend,
   visibleDays,
   overflow,
+  overflowRef,
 }: WeekViewAllDayColumnProps) {
-  const settings = useAtomValue(calendarSettingsAtom);
   const viewPreferences = useAtomValue(viewPreferencesAtom);
-  const createDraftAction = useCreateDraftAction();
 
   const { isDayVisible, isLastVisibleDay, dayOverflowEvents } =
     React.useMemo(() => {
-      const isDayVisible = viewPreferences.showWeekends || !isWeekend(day);
+      const isDayVisible = viewPreferences.showWeekends || !isWeekend;
       const visibleDayIndex = visibleDays.findIndex(
         (d) => Temporal.PlainDate.compare(d, day) === 0,
       );
@@ -114,17 +121,21 @@ function WeekViewAllDayColumn({
     }, [
       day,
       visibleDays,
+      isWeekend,
       overflow.overflowEvents,
       viewPreferences.showWeekends,
     ]);
 
-  const onClick = React.useCallback(() => {
-    const start = day;
+  const onDoubleClick = useDoubleClickToCreate({
+    date: day,
+    allDay: true,
+  });
 
-    const end = start.add({ days: 1 });
+  const unselectAllAction = useUnselectAllAction();
 
-    createDraftAction(createDraftEvent({ start, end }));
-  }, [day, createDraftAction]);
+  const onBackgroundClick = React.useCallback(() => {
+    unselectAllAction();
+  }, [unselectAllAction]);
 
   return (
     <div
@@ -132,12 +143,11 @@ function WeekViewAllDayColumn({
       className={cn(
         "relative border-r border-border/70",
         isLastVisibleDay && "border-r-0",
+        isWeekend && "bg-column-weekend",
         isDayVisible ? "visible" : "hidden w-0",
       )}
-      data-today={
-        isToday(day, { timeZone: settings.defaultTimeZone }) || undefined
-      }
-      onClick={onClick}
+      onDoubleClick={onDoubleClick}
+      onClick={onBackgroundClick}
     >
       {/* Reserve space for multi-day events */}
       <div
@@ -145,7 +155,7 @@ function WeekViewAllDayColumn({
         style={{
           paddingTop: `${overflow.capacityInfo.totalLanes * 28}px`, // 24px event height + 4px gap
         }}
-        ref={overflow.containerRef}
+        ref={overflowRef}
       />
 
       {/* Show overflow indicator for this day if there are overflow events that start on this day */}

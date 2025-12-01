@@ -16,6 +16,11 @@ interface GridLayoutOptions {
    * Custom time column width (defaults to "6rem")
    */
   timeColumnWidth?: string;
+  /**
+   * When true, ignores the "hide weekends" preference and shows all days.
+   * Useful for Day View where hiding the only column would break the view.
+   */
+  ignoreWeekendPreference?: boolean;
 }
 
 /**
@@ -29,12 +34,20 @@ export function useGridLayout(
   days: Temporal.PlainDate[],
   options: GridLayoutOptions = {},
 ) {
-  const { includeTimeColumn = false, timeColumnWidth = "5rem" } = options;
+  const {
+    includeTimeColumn = false,
+    timeColumnWidth = "var(--timeline-container-width)",
+    ignoreWeekendPreference = false,
+  } = options;
 
   const viewPreferences = useAtomValue(viewPreferencesAtom);
 
   return React.useMemo(() => {
     const columnSizes = days.map((day) => {
+      if (ignoreWeekendPreference) {
+        return "minmax(0,1fr)";
+      }
+
       // A day is visible if either the user wants to show weekends or the day is **not** a weekend.
       // We always rely on the actual `Date` object instead of a numeric index so that the check works
       // regardless of what day the week starts on (Monday-first, Sunday-first, etc.).
@@ -46,5 +59,11 @@ export function useGridLayout(
     const dayColumns = columnSizes.join(" ");
 
     return includeTimeColumn ? `${timeColumnWidth} ${dayColumns}` : dayColumns;
-  }, [days, viewPreferences.showWeekends, includeTimeColumn, timeColumnWidth]);
+  }, [
+    days,
+    viewPreferences.showWeekends,
+    includeTimeColumn,
+    timeColumnWidth,
+    ignoreWeekendPreference,
+  ]);
 }

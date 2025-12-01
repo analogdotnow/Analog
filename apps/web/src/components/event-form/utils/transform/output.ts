@@ -39,7 +39,7 @@ export function toCalendarEvent({
     end: values.isAllDay ? values.end.toPlainDate() : values.end,
     readOnly: event?.readOnly ?? false,
     attendees: values.attendees.length > 0 ? values.attendees : undefined,
-    recurrence: values.recurrence,
+    recurrence: values.recurrence ?? undefined,
     recurringEventId: values.recurringEventId,
     response: toResponse(values.attendees),
     conference: values.conference,

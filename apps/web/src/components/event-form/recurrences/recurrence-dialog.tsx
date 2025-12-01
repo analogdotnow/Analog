@@ -2,15 +2,13 @@
 
 import * as React from "react";
 import { useForm } from "@tanstack/react-form";
-import { format } from "date-fns";
 import { Temporal } from "temporal-polyfill";
 import * as z from "zod";
 
-import { Frequency, Recurrence, Weekday } from "@repo/providers/interfaces";
+import { Recurrence } from "@repo/providers/interfaces";
 import { toDate } from "@repo/temporal";
 
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import {
   Dialog,
   DialogContent,
@@ -18,33 +16,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { cn } from "@/lib/utils";
-
-const daysOfWeek = [
-  { short: "Mon", full: "Monday", value: "mo" },
-  { short: "Tue", full: "Tuesday", value: "tu" },
-  { short: "Wed", full: "Wednesday", value: "we" },
-  { short: "Thu", full: "Thursday", value: "th" },
-  { short: "Fri", full: "Friday", value: "fr" },
-  { short: "Sat", full: "Saturday", value: "sa" },
-  { short: "Sun", full: "Sunday", value: "su" },
-];
+import { DayOfWeekField } from "./fields/day-of-week-field";
+import { EndAfterField } from "./fields/end-after-field";
+import { EndIntervalField } from "./fields/end-interval-field";
+import { EndUntilField } from "./fields/end-until-field";
+import { FrequencyField } from "./fields/frequency-field";
 
 interface RecurrenceDialogProps {
   children: React.ReactNode;
@@ -68,16 +46,40 @@ export const formRecurrenceSchema = z.object({
   count: z.number().int().min(1).optional(),
   until: z
     .date()
-    .transform((d) => {
-      return Temporal.PlainDate.from(d.toISOString().split("T")[0]!);
-    })
-    .optional(),
+    .optional()
+    .transform((date) => {
+      if (!date) {
+        return undefined;
+      }
+
+      return Temporal.PlainDate.from(date.toISOString().split("T")[0]!);
+    }),
   byDay: z.array(z.enum(["MO", "TU", "WE", "TH", "FR", "SA", "SU"])).optional(),
   byMonth: z.array(z.number().int().min(1).max(12)).optional(),
   byMonthDay: z.array(z.number().int().min(1).max(31)).optional(),
   byYearDay: z.array(z.number().int().min(1).max(366)).optional(),
   byWeekNo: z.array(z.number().int().min(1).max(53)).optional(),
 });
+
+function getDefaultValues(
+  recurrence: Recurrence | null | undefined,
+  start: Temporal.ZonedDateTime,
+) {
+  return {
+    freq: recurrence?.freq ?? "WEEKLY",
+    interval: recurrence?.interval,
+    endType: recurrence?.until ? "on" : recurrence?.count ? "after" : "never",
+    byDay: recurrence?.byDay,
+    until: recurrence?.until
+      ? toDate(recurrence.until, { timeZone: "UTC" })
+      : toDate(start.add({ years: 1 }), { timeZone: "UTC" }),
+    count: recurrence?.count ?? (7 as number | undefined),
+    byMonth: recurrence?.byMonth,
+    byMonthDay: recurrence?.byMonthDay,
+    byYearDay: recurrence?.byYearDay,
+    byWeekNo: recurrence?.byWeekNo,
+  };
+}
 
 export function RecurrenceDialog({
   children,
@@ -87,52 +89,28 @@ export function RecurrenceDialog({
 }: RecurrenceDialogProps) {
   const [open, setOpen] = React.useState(false);
 
-  const defaultValues = React.useMemo(() => {
-    return {
-      freq: recurrence?.freq ?? "WEEKLY",
-      interval: recurrence?.interval,
-      endType: recurrence?.until ? "on" : recurrence?.count ? "after" : "never",
-      byDay: recurrence?.byDay,
-      // Keep Date in the form. We'll transform to Temporal on submit via schema.parse
-      until: recurrence?.until
-        ? toDate(recurrence.until, { timeZone: "UTC" })
-        : (toDate(start.add({ years: 1 }), { timeZone: "UTC" }) as
-            | Date
-            | undefined),
-      count: recurrence?.count ?? (7 as number | undefined),
-      byMonth: recurrence?.byMonth,
-      byMonthDay: recurrence?.byMonthDay,
-      byYearDay: recurrence?.byYearDay,
-      byWeekNo: recurrence?.byWeekNo,
-    };
-  }, [recurrence, start]);
-
   const form = useForm({
-    defaultValues,
+    defaultValues: getDefaultValues(recurrence, start),
     onSubmit: ({ value, formApi }) => {
       if (formApi.state.isDefaultValue) {
         setOpen(false);
+
         return;
       }
 
-      // Validate/transform using the schema, then bubble up
-      const parsed = formRecurrenceSchema.parse(value);
-      // Remove endType and filter fields based on the selected end type
-      const { endType, ...baseData } = parsed;
+      const { endType, ...data } = formRecurrenceSchema.parse(value);
 
-      const recurrenceData = {
-        ...baseData,
+      onChange({
+        ...data,
         // Only include the field that matches the selected end type
-        until: endType === "on" ? baseData.until : undefined,
-        count: endType === "after" ? baseData.count : undefined,
-      };
-
-      onChange(recurrenceData);
+        until: endType === "on" ? data.until : undefined,
+        count: endType === "after" ? data.count : undefined,
+      });
       setOpen(false);
     },
   });
 
-  const minUntil = React.useMemo(() => {
+  const min = React.useMemo(() => {
     return toDate(start);
   }, [start]);
 
@@ -147,6 +125,7 @@ export function RecurrenceDialog({
           onSubmit={(e) => {
             e.preventDefault();
             e.stopPropagation();
+
             form.handleSubmit();
           }}
         >
@@ -161,34 +140,18 @@ export function RecurrenceDialog({
             <div className="flex items-center gap-2">
               <form.Field name="interval">
                 {(field) => (
-                  <Input
-                    id="interval"
+                  <EndIntervalField
                     value={field.state.value ?? 1}
-                    onChange={(e) =>
-                      field.handleChange(e.target.valueAsNumber || 1)
-                    }
-                    className="w-16"
-                    type="number"
-                    min={1}
+                    onValueChange={field.handleChange}
                   />
                 )}
               </form.Field>
               <form.Field name="freq">
                 {(field) => (
-                  <Select
+                  <FrequencyField
                     value={field.state.value}
-                    onValueChange={(v) => field.handleChange(v as Frequency)}
-                  >
-                    <SelectTrigger className="w-28">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="DAILY">Day</SelectItem>
-                      <SelectItem value="WEEKLY">Week</SelectItem>
-                      <SelectItem value="MONTHLY">Month</SelectItem>
-                      <SelectItem value="YEARLY">Year</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    onValueChange={field.handleChange}
+                  />
                 )}
               </form.Field>
             </div>
@@ -203,25 +166,10 @@ export function RecurrenceDialog({
                     </Label>
                     <form.Field name="byDay">
                       {(field) => (
-                        <ToggleGroup
-                          variant="outline"
-                          type="multiple"
+                        <DayOfWeekField
                           value={field.state.value ?? []}
-                          onValueChange={(v) =>
-                            field.handleChange(v as Weekday[])
-                          }
-                          className="w-full"
-                        >
-                          {daysOfWeek.map((day) => (
-                            <ToggleGroupItem
-                              key={day.value}
-                              value={day.value}
-                              aria-label={`Toggle ${day.full}`}
-                            >
-                              {day.short}
-                            </ToggleGroupItem>
-                          ))}
-                        </ToggleGroup>
+                          onValueChange={field.handleChange}
+                        />
                       )}
                     </form.Field>
                   </>
@@ -254,38 +202,13 @@ export function RecurrenceDialog({
                     </Label>
                     <form.Field name="until">
                       {(field) => (
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "ml-2 justify-start text-left font-normal",
-                                !field.state.value && "text-muted-foreground",
-                              )}
-                              disabled={endTypeField.state.value !== "on"}
-                            >
-                              {field.state.value
-                                ? format(
-                                    field.state.value,
-                                    field.state.value.getFullYear() !==
-                                      new Date().getFullYear()
-                                      ? "EEE MMM dd, yyyy"
-                                      : "EEE MMM dd",
-                                  )
-                                : "Select date"}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={field.state.value}
-                              onSelect={(d) => field.handleChange(d)}
-                              modifiers={{
-                                min: minUntil,
-                              }}
-                            />
-                          </PopoverContent>
-                        </Popover>
+                        <EndUntilField
+                          value={field.state.value}
+                          // @ts-expect-error - TODO: fix this
+                          onValueChange={field.handleChange}
+                          min={min}
+                          disabled={endTypeField.state.value !== "on"}
+                        />
                       )}
                     </form.Field>
                   </div>
@@ -297,18 +220,9 @@ export function RecurrenceDialog({
                     </Label>
                     <form.Field name="count">
                       {(field) => (
-                        <Input
-                          value={field.state.value ?? ""}
-                          onChange={(e) =>
-                            field.handleChange(
-                              e.target.value === ""
-                                ? undefined
-                                : e.target.valueAsNumber || 1,
-                            )
-                          }
-                          className="ml-2 w-16"
-                          type="number"
-                          min={1}
+                        <EndAfterField
+                          value={field.state.value ?? 1}
+                          onValueChange={field.handleChange}
                           disabled={endTypeField.state.value !== "after"}
                         />
                       )}

@@ -48,26 +48,28 @@ const PROVIDERS = [
 
 export function IntegrationsList() {
   const trpc = useTRPC();
-  const query = useQuery(trpc.integrations.list.queryOptions());
+  const { data, isPending, isError } = useQuery(
+    trpc.integrations.list.queryOptions(),
+  );
 
   const providers = React.useMemo(() => {
-    if (!query.data) {
+    if (!data) {
       return [];
     }
 
     return PROVIDERS.map((provider) => ({
       ...provider,
-      account: query.data.connectedAccounts.find(
+      account: data.connectedAccounts.find(
         (account) => account.slug === provider.id,
       ),
     }));
-  }, [query.data]);
+  }, [data]);
 
-  if (query.isPending) {
+  if (isPending) {
     return <IntegrationsListSkeleton />;
   }
 
-  if (query.isError) {
+  if (isError) {
     return (
       <div className="py-8 text-center text-muted-foreground">
         <p>We couldn&apos;t load your connected accounts.</p>

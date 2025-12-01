@@ -7,23 +7,29 @@ import type { PositionedEvent } from "@/components/calendar/utils/event";
 interface WeekViewEventProps {
   positionedEvent: PositionedEvent;
   containerRef: React.RefObject<HTMLDivElement | null>;
+  columns: number;
 }
 
 export function WeekViewEvent({
   positionedEvent,
   containerRef,
+  columns,
 }: WeekViewEventProps) {
+  const style = React.useMemo(() => {
+    return {
+      top: `${positionedEvent.top}px`,
+      height: `${positionedEvent.height}px`,
+      left: `${positionedEvent.left * 100}%`,
+      width: `${positionedEvent.width * 100}%`,
+    };
+  }, [positionedEvent]);
+
   return (
     <DragAwareWrapper
       key={positionedEvent.item.event.id}
       eventId={positionedEvent.item.event.id}
       className="absolute z-10"
-      style={{
-        top: `${positionedEvent.top}px`,
-        height: `${positionedEvent.height}px`,
-        left: `${positionedEvent.left * 100}%`,
-        width: `${positionedEvent.width * 100}%`,
-      }}
+      style={style}
     >
       <DraggableEvent
         item={positionedEvent.item}
@@ -31,6 +37,7 @@ export function WeekViewEvent({
         showTime
         height={positionedEvent.height}
         containerRef={containerRef}
+        columns={columns}
       />
     </DragAwareWrapper>
   );

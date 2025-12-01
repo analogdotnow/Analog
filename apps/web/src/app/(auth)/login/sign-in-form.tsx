@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import { authClient } from "@repo/auth/client";
 
+import { Logo, LogoSquare } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -42,14 +43,9 @@ export function SignInForm({ redirectUrl = "/calendar" }: SignInFormProps) {
   };
 
   return (
-    <Card className="max-w-sm border-none bg-transparent shadow-none">
-      <CardHeader>
-        <CardTitle className="text-center text-xl font-medium md:text-2xl">
-          Analog
-        </CardTitle>
-        <CardDescription className="text-md text-center text-balance md:text-lg">
-          The calendar that changes everything
-        </CardDescription>
+    <Card className="max-w-xs border-none bg-transparent subpixel-antialiased shadow-none todesktop:select-none">
+      <CardHeader className="flex flex-col items-center justify-center gap-4 pb-4">
+        <Logo className="w-32 overflow-visible opacity-80" />
       </CardHeader>
       <CardContent>
         <div className="grid gap-8">
@@ -63,7 +59,7 @@ export function SignInForm({ redirectUrl = "/calendar" }: SignInFormProps) {
                 <Button
                   key={provider.id}
                   variant="outline"
-                  className={cn("w-full gap-2")}
+                  className="w-full gap-2 inset-fade-shadow-light"
                   disabled={loading}
                   onClick={() => signInWithProvider(provider.id)}
                 >
@@ -77,18 +73,18 @@ export function SignInForm({ redirectUrl = "/calendar" }: SignInFormProps) {
       </CardContent>
       <CardFooter>
         <div className="flex w-full justify-center py-4">
-          <p className="text-center text-sm text-balance text-muted-foreground">
+          <p className="text-center text-xs text-balance text-primary/40">
             By continuing, you agree to our{" "}
             <Link
               href="/terms"
-              className="font-medium text-primary hover:underline"
+              className="font-medium text-primary/80 hover:underline todesktop:hover:cursor-default"
             >
               Terms of Service
             </Link>{" "}
             and{" "}
             <Link
               href="/privacy"
-              className="font-medium text-primary hover:underline"
+              className="font-medium text-primary/80 hover:underline todesktop:hover:cursor-default"
             >
               Privacy Policy
             </Link>

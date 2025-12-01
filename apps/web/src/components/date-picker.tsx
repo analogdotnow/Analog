@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { useAtomValue } from "jotai";
+import * as React from "react";
+import { useAtom, useAtomValue } from "jotai";
 import { Temporal } from "temporal-polyfill";
 
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
+import { calendarViewAtom, currentDateAtom } from "@/atoms/view-preferences";
 import { Calendar } from "@/components/ui/calendar";
-import { useCalendarState } from "@/hooks/use-calendar-state";
 import { cn } from "@/lib/utils";
 
 function toDate(date: Temporal.PlainDate): Date {
@@ -14,18 +14,21 @@ function toDate(date: Temporal.PlainDate): Date {
 }
 
 export function DatePicker() {
-  const { currentDate, setCurrentDate, view } = useCalendarState();
-  const [displayedDate, setDisplayedDate] = useState<Date>(toDate(currentDate));
-  const [displayedMonth, setDisplayedMonth] = useState<Date>(
+  const [currentDate, setCurrentDate] = useAtom(currentDateAtom);
+  const view = useAtomValue(calendarViewAtom);
+  const [displayedDate, setDisplayedDate] = React.useState<Date>(
     toDate(currentDate),
   );
-  const updateSource = useRef<"internal" | "external">("external");
+  const [displayedMonth, setDisplayedMonth] = React.useState<Date>(
+    toDate(currentDate),
+  );
+  const updateSource = React.useRef<"internal" | "external">("external");
 
   // Prevent circular updates and animation conflicts by tracking update source:
   // - Internal (calendar clicks): Update context directly, skip useEffect
   // - External (navigation/hotkeys): Update local state via useEffect
 
-  const handleSelect = (date: Date | undefined) => {
+  const onSelect = (date: Date | undefined) => {
     if (!date) {
       return;
     }
@@ -41,12 +44,14 @@ export function DatePicker() {
     );
   };
 
-  const settings = useAtomValue(calendarSettingsAtom);
-  useEffect(() => {
+  const { weekStartsOn } = useAtomValue(calendarSettingsAtom);
+
+  React.useEffect(() => {
     if (updateSource.current === "external") {
       setDisplayedDate(toDate(currentDate));
       setDisplayedMonth(toDate(currentDate));
     }
+
     updateSource.current = "external";
   }, [currentDate]);
 
@@ -55,16 +60,16 @@ export function DatePicker() {
 
   return (
     <Calendar
-      weekStartsOn={(settings.weekStartsOn % 7) as 0 | 1 | 2 | 3 | 4 | 5 | 6}
+      weekStartsOn={(weekStartsOn % 7) as 0 | 1 | 2 | 3 | 4 | 5 | 6}
       animate
       mode="single"
       required
       fixedWeeks
       selected={displayedDate}
-      onSelect={handleSelect}
+      onSelect={onSelect}
       month={displayedMonth}
       onMonthChange={setDisplayedMonth}
-      className={cn("w-full px-0 [&_[role=gridcell]]:w-[33px]")}
+      className={cn("w-fit px-0 **:[[role=gridcell]]:w-7")}
       todayClassName={cn(
         "[&>button]:!bg-sidebar-primary [&>button]:!text-sidebar-primary-foreground",
         "[&>button:hover]:!bg-sidebar-primary [&>button:hover]:brightness-90",

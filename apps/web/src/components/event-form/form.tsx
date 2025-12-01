@@ -10,7 +10,7 @@ export function FormRow({
   return (
     <div
       className={cn(
-        "relative grid grid-cols-(--grid-event-form) items-center px-2",
+        "relative grid grid-cols-(--grid-event-form) items-center",
         className,
       )}
       {...props}
@@ -23,15 +23,21 @@ export function FormRow({
 interface FormRowIconProps {
   icon: React.ComponentType<{ className?: string }>;
   className?: string;
+  disabled?: boolean;
 }
 
-export function FormRowIcon({ icon: Icon, className }: FormRowIconProps) {
+export function FormRowIcon({
+  icon: Icon,
+  className,
+  disabled,
+}: FormRowIconProps) {
   return (
-    <div className="pointer-events-none absolute inset-0 grid grid-cols-(--grid-event-form) items-start gap-2 pt-2">
-      <div className="col-start-1 ps-4">
+    <div className="pointer-events-none absolute inset-0 z-10 grid grid-cols-(--grid-event-form) items-start gap-2 pt-2">
+      <div className="col-start-1 ps-2">
         <Icon
           className={cn(
-            "size-4 text-muted-foreground peer-hover:text-foreground",
+            "size-4 text-muted-foreground/60",
+            disabled && "opacity-50",
             className,
           )}
         />
@@ -47,10 +53,7 @@ export function FormContainer({
 }: React.ComponentProps<"div">) {
   return (
     <div
-      className={cn(
-        "flex flex-col gap-y-2 rounded-2xl border border-input bg-background px-0.5 py-2.5",
-        className,
-      )}
+      className={cn("flex flex-col gap-y-1 px-0 py-0", className)}
       {...props}
     >
       {children}

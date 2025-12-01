@@ -3,24 +3,13 @@
 import * as React from "react";
 
 import { useLiveEventById } from "@/lib/db";
-import { useActorRefSubscription } from "../use-actor-subscription";
 import { EventFormStateContext } from "./event-form-state-provider";
 import { getDifferences } from "./merge-changes";
 
 function useEventFormId() {
-  const actorRef = EventFormStateContext.useActorRef();
-  const [id, setId] = React.useState<string>("");
-
-  useActorRefSubscription({
-    actorRef,
-    onUpdate: (snapshot) => {
-      if (snapshot.matches("loading")) {
-        setId(snapshot.context.formEvent?.id ?? "");
-      }
-    },
-  });
-
-  return id;
+  return EventFormStateContext.useSelector((snapshot) =>
+    snapshot.matches("loading") ? (snapshot.context.formEvent?.id ?? "") : "",
+  );
 }
 
 interface LiveUpdateProviderProps {
@@ -30,6 +19,10 @@ interface LiveUpdateProviderProps {
 export function LiveUpdateProvider({ children }: LiveUpdateProviderProps) {
   const actorRef = EventFormStateContext.useActorRef();
   const id = useEventFormId();
+
+  const formEvent = EventFormStateContext.useSelector((snapshot) =>
+    snapshot.matches("loading") ? snapshot.context.formEvent : null,
+  );
 
   const event = useLiveEventById(id);
 

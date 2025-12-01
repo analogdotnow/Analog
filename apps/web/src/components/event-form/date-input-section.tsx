@@ -1,11 +1,13 @@
+"use client";
+
 import * as React from "react";
 import { ArrowRightIcon, ClockIcon } from "@heroicons/react/16/solid";
 import { useField } from "@tanstack/react-form";
 import { Temporal } from "temporal-polyfill";
 
-import { MemoizedDateInput } from "@/components/date-input";
-import { MemoizedTimeInput } from "@/components/time-input";
-import { MemoizedTimezoneSelect } from "@/components/timezone-select";
+import { MemoizedDateInput } from "@/components/event-form/fields/date/date-input";
+import { MemoizedTimeInput } from "@/components/event-form/fields/date/time-input";
+import { MemoizedTimezoneInput } from "@/components/event-form/fields/date/timezone-input";
 import { cn } from "@/lib/utils";
 import { initialValues } from "./utils/defaults";
 import { withForm } from "./utils/form";
@@ -102,91 +104,98 @@ export const DateInputSection = withForm({
     const isAllDay = isAllDayField.state.value;
 
     return (
-      <section className="flex flex-col gap-y-2.5">
-        <div
-          className={cn(
-            "relative grid grid-cols-(--grid-event-form) items-center gap-1",
-            isAllDay && "hidden",
-          )}
-        >
-          <label htmlFor="start.time" className="sr-only">
-            Start time
-          </label>
-          <MemoizedTimeInput
-            id="start.time"
-            className="col-span-2 col-start-1 h-8 border-none bg-transparent ps-8 shadow-none dark:bg-transparent"
-            value={startField.state.value}
-            open={openTimePicker === "start"}
-            onOpenChange={onTimeStartOpenChange}
-            onChange={onStartChange}
-            disabled={disabled}
-          />
-          <label htmlFor="end.time" className="sr-only">
-            End time
-          </label>
-          <MemoizedTimeInput
-            id="end.time"
-            className="col-span-2 col-start-3 h-8 border-none bg-transparent ps-8 shadow-none dark:bg-transparent"
-            value={endField.state.value}
-            open={openTimePicker === "end"}
-            onOpenChange={onTimeEndOpenChange}
-            onChange={onEndChange}
-            disabled={disabled}
-          />
-          <div className="pointer-events-none absolute inset-0 grid grid-cols-(--grid-event-form) items-center gap-2">
-            <div className="col-start-1 ps-2">
-              <ClockIcon className="size-4 text-muted-foreground peer-hover:text-foreground" />
-            </div>
-            <div className="col-start-3 ps-1.5">
-              <ArrowRightIcon className="size-4 text-muted-foreground hover:text-foreground" />
-            </div>
-          </div>
-        </div>
-        <div className="relative grid grid-cols-(--grid-event-form) items-center gap-1">
-          <label htmlFor="start.date" className="sr-only">
-            Start date
-          </label>
-          <MemoizedDateInput
-            id="start.date"
-            className={cn(
-              "col-span-1 col-start-2 h-8 border-none bg-transparent ps-3 shadow-none dark:bg-transparent",
-              isAllDay && "col-span-2 col-start-1 ps-8",
-            )}
-            value={startField.state.value}
-            onChange={onStartChange}
-            disabled={disabled}
-          />
-          <label htmlFor="end.date" className="sr-only">
-            End date
-          </label>
-          <MemoizedDateInput
-            id="end.date"
-            className={cn(
-              "col-span-1 col-start-4 h-8 border-none bg-transparent ps-3 shadow-none dark:bg-transparent",
-              isAllDay && "col-span-2 col-start-3 ps-8",
-            )}
-            value={endField.state.value}
-            minValue={startField.state.value}
-            onChange={onEndChange}
-            disabled={disabled}
-          />
-          {isAllDay ? (
+      <section className="flex flex-col gap-y-1">
+        <div className="flex flex-col gap-y-1">
+          <div className="relative grid grid-cols-(--grid-event-form) items-center gap-1">
+            <label htmlFor="start.time" className="sr-only">
+              Start time
+            </label>
+            <MemoizedTimeInput
+              id="start.time"
+              className="col-span-2 col-start-1 h-8 border-none bg-transparent ps-8 shadow-none dark:bg-transparent"
+              value={startField.state.value}
+              open={openTimePicker === "start"}
+              onOpenChange={onTimeStartOpenChange}
+              onChange={onStartChange}
+              disabled={disabled || isAllDay}
+            />
+            <label htmlFor="end.time" className="sr-only">
+              End time
+            </label>
+            <MemoizedTimeInput
+              id="end.time"
+              className="col-span-2 col-start-3 h-8 border-none bg-transparent ps-8 shadow-none dark:bg-transparent"
+              value={endField.state.value}
+              open={openTimePicker === "end"}
+              onOpenChange={onTimeEndOpenChange}
+              onChange={onEndChange}
+              disabled={disabled || isAllDay}
+            />
             <div className="pointer-events-none absolute inset-0 grid grid-cols-(--grid-event-form) items-center gap-2">
-              <div className="col-start-1 ps-1.5">
-                <ClockIcon className="size-4 text-muted-foreground peer-hover:text-foreground" />
+              <div className="col-start-1 ps-2">
+                <ClockIcon
+                  className={cn(
+                    "size-4 text-muted-foreground/60",
+                    disabled && "opacity-50",
+                  )}
+                />
               </div>
               <div className="col-start-3 ps-1.5">
-                <ArrowRightIcon className="size-4 text-muted-foreground hover:text-foreground" />
+                <ArrowRightIcon
+                  className={cn(
+                    "size-4 text-muted-foreground/60",
+                    disabled && "opacity-50",
+                  )}
+                />
               </div>
             </div>
-          ) : null}
+          </div>
+          <div className="relative grid grid-cols-(--grid-event-form) items-center gap-1">
+            <label htmlFor="start.date" className="sr-only">
+              Start date
+            </label>
+            <MemoizedDateInput
+              id="start.date"
+              className={cn(
+                "col-span-1 col-start-2 h-8 border-none bg-transparent ps-3 shadow-none dark:bg-transparent",
+                isAllDay && "col-span-2 col-start-1 ps-8",
+              )}
+              value={startField.state.value}
+              onChange={onStartChange}
+              disabled={disabled}
+            />
+            <label htmlFor="end.date" className="sr-only">
+              End date
+            </label>
+            <MemoizedDateInput
+              id="end.date"
+              className={cn(
+                "col-span-1 col-start-4 h-8 border-none bg-transparent ps-3 shadow-none dark:bg-transparent",
+                isAllDay && "col-span-2 col-start-3 ps-8",
+              )}
+              value={endField.state.value}
+              start={startField.state.value}
+              onChange={onEndChange}
+              disabled={disabled}
+            />
+            {/* {isAllDay ? (
+              <div className="pointer-events-none absolute inset-0 grid grid-cols-(--grid-event-form) items-center gap-2">
+                <div className="col-start-1 ps-1.5">
+                  <ClockIcon className="size-4 text-muted-foreground peer-hover:text-foreground" />
+                </div>
+                <div className="col-start-3 ps-1.5">
+                  <ArrowRightIcon className="size-4 text-muted-foreground hover:text-foreground" />
+                </div>
+              </div>
+            ) : null} */}
+          </div>
         </div>
         {isSameTimezone ? (
           <>
             <label htmlFor="timezone" className="sr-only">
               Select a timezone
             </label>
-            <MemoizedTimezoneSelect
+            <MemoizedTimezoneInput
               id="timezone"
               className="w-full"
               value={startField.state.value.timeZoneId}
@@ -200,7 +209,7 @@ export const DateInputSection = withForm({
               <label htmlFor="start-timezone" className="sr-only">
                 Start timezone
               </label>
-              <MemoizedTimezoneSelect
+              <MemoizedTimezoneInput
                 id="start-timezone"
                 className="w-full"
                 value={startField.state.value.timeZoneId}
@@ -212,7 +221,7 @@ export const DateInputSection = withForm({
               <label htmlFor="end-timezone" className="sr-only">
                 End timezone
               </label>
-              <MemoizedTimezoneSelect
+              <MemoizedTimezoneInput
                 id="end-timezone"
                 className="w-full"
                 value={endField.state.value.timeZoneId}

@@ -3,13 +3,15 @@ import { useAtomValue } from "jotai";
 import { Temporal } from "temporal-polyfill";
 
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
+import { columnHeightAtom } from "@/atoms/cell-height";
 import { createDraftEvent } from "@/lib/utils/calendar";
-import { TIME_INTERVALS } from "../../constants";
+import { TIME_INTERVALS, TOTAL_MINUTES_IN_DAY } from "../../constants";
 import { useCreateDraftAction } from "../use-optimistic-mutations";
 
 interface UseDoubleClickToCreateOptions {
   date: Temporal.PlainDate;
   columnRef?: React.RefObject<HTMLDivElement | null>;
+  allDay?: boolean;
 }
 
 function timeFromMinutes(minutes: number) {
@@ -25,32 +27,50 @@ function timeFromMinutes(minutes: number) {
 export function useDoubleClickToCreate({
   date,
   columnRef,
+  allDay = false,
 }: UseDoubleClickToCreateOptions) {
   const { defaultTimeZone, defaultStartTime, defaultEventDuration } =
     useAtomValue(calendarSettingsAtom);
+
+  const columnHeight = useAtomValue(columnHeightAtom);
 
   const createDraftAction = useCreateDraftAction();
 
   return React.useCallback(
     (e: React.MouseEvent) => {
+      if (allDay) {
+        const event = createDraftEvent({
+          start: date,
+          end: date.add({ days: 1 }),
+          allDay: true,
+        });
+
+        createDraftAction(event);
+
+        return;
+      }
+
       // Month view
       if (!columnRef?.current) {
         const start = date.toZonedDateTime({
           timeZone: defaultTimeZone,
           plainTime: defaultStartTime,
         });
+
         const end = start.add({ minutes: defaultEventDuration });
 
-        createDraftAction(createDraftEvent({ start, end, allDay: false }));
+        const event = createDraftEvent({ start, end, allDay: false });
+
+        createDraftAction(event);
+
         return;
       }
 
       // Day or week view
       const rect = columnRef.current.getBoundingClientRect();
       const relativeY = e.clientY - rect.top;
-      const columnHeight = rect.height;
 
-      const minutes = (relativeY / columnHeight) * 1440;
+      const minutes = (relativeY / columnHeight) * TOTAL_MINUTES_IN_DAY;
       const snapped =
         Math.floor(
           Math.max(0, Math.min(1440, minutes)) / TIME_INTERVALS.SNAP_TO_MINUTES,
@@ -62,11 +82,16 @@ export function useDoubleClickToCreate({
         timeZone: defaultTimeZone,
         plainTime: startTime,
       });
+
       const end = start.add({ minutes: defaultEventDuration });
 
-      createDraftAction(createDraftEvent({ start, end, allDay: false }));
+      const event = createDraftEvent({ start, end, allDay: false });
+
+      createDraftAction(event);
     },
     [
+      allDay,
+      columnHeight,
       columnRef,
       createDraftAction,
       date,

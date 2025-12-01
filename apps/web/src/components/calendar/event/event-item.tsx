@@ -135,7 +135,7 @@ export function EventItem({
         onClick={onClick}
         className={cn(
           "@container/event flex gap-x-1.5 py-1 ps-1 pe-2",
-          "mt-[var(--calendar-color-gap)] h-[var(--calendar-color-height)] items-center text-[10px] sm:text-xs",
+          "mt-(--calendar-color-gap) h-(--calendar-color-height) items-center text-[10px] sm:text-xs",
           isSelected &&
             "bg-event-selected text-event-selected hover:bg-event-selected-hover",
           className,
@@ -146,7 +146,7 @@ export function EventItem({
       >
         <div
           className={cn(
-            "w-1 shrink-0 self-stretch rounded-lg bg-[color-mix(in_oklab,var(--background),var(--calendar-color)_90%)] opacity-40 group-data-[selected=true]:opacity-0",
+            "w-1 shrink-0 self-stretch rounded-lg bg-event-selected-hover opacity-40 group-data-[selected=true]:opacity-0",
             !isFirstDay && "hidden",
           )}
         />
@@ -176,7 +176,7 @@ export function EventItem({
         isLastDay={isLastDay}
         onClick={onClick}
         className={cn(
-          "@container/event relative flex gap-x-1.5 py-1 ps-1 pe-2 ring-1 ring-background/80",
+          "@container/event @container relative flex gap-x-1.5 py-1 ps-1 pe-2 ring-1 ring-background/80",
           // duration.total({ unit: "minute" }) < 45 && "pe-1",
           view === "week" ? "text-[10px] sm:text-xs" : "text-xs",
           isSelected &&
@@ -188,7 +188,7 @@ export function EventItem({
         onTouchStart={onTouchStart}
       >
         {children}
-        <div className="w-1 shrink-0 rounded-lg bg-[color-mix(in_oklab,var(--background),var(--calendar-color)_90%)] opacity-40 group-data-[selected=true]:opacity-0" />
+        <div className="w-1 shrink-0 rounded-lg bg-event-selected-hover opacity-40 group-data-[selected=true]:opacity-0" />
         <div
           className={cn(
             // durationMinutes < 45 ? "items-center" : "flex-col",
@@ -213,7 +213,6 @@ export function EventItem({
     <button
       className={cn(
         "group hover:text-event-hover @container/event flex w-full flex-col gap-1 rounded-md border border-event bg-event p-2 text-left text-event transition outline-none hover:border-event-hover hover:bg-event-hover focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 data-past-event:line-through data-past-event:opacity-90",
-        "border-[color-mix(in_oklab,var(--background),var(--calendar-color)_30%)] bg-[color-mix(in_oklab,var(--background),var(--calendar-color)_20%)]",
         isSelected &&
           "bg-event-selected text-event-selected hover:bg-event-selected-hover",
         className,

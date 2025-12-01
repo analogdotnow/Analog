@@ -6,6 +6,7 @@ import { Temporal } from "temporal-polyfill";
 
 import { startOfDay } from "@repo/temporal";
 
+import { useZonedDateTime } from "@/components/calendar/context/datetime-provider";
 import { Calendar, CalendarEvent } from "./interfaces";
 import { superjson } from "./trpc/superjson";
 
@@ -139,7 +140,6 @@ export const db = new Database();
 export async function getEventById(id: string) {
   const row = await db.events.where("id").equals(id).first();
 
-  // console.log("getEventById row", JSON.stringify(row, null, 2));
   if (!row) {
     return undefined;
   }
@@ -156,4 +156,50 @@ export function useLiveEventById(id: string) {
   return React.useMemo(() => {
     return result ? mapEventQuery(result) : undefined;
   }, [result]);
+}
+
+export function useOngoingEvent(): CalendarEvent[] {
+  const now = useZonedDateTime();
+
+  const nowEpoch = React.useMemo(() => {
+    return now.toInstant().epochMilliseconds;
+  }, [now]);
+
+  const result = useLiveQuery(async () => {
+    const rows = await db.events
+      .where("startUnix")
+      .belowOrEqual(nowEpoch)
+      .and((row) => row.endUnix >= nowEpoch)
+      .sortBy("startUnix");
+
+    return rows.map(mapEventQuery);
+  }, [nowEpoch]);
+
+  return result ?? [];
+}
+
+export function useUpcomingEvent(): CalendarEvent[] {
+  const now = useZonedDateTime();
+
+  const nowEpoch = React.useMemo(() => {
+    return now.toInstant().epochMilliseconds;
+  }, [now]);
+
+  const result = useLiveQuery(async () => {
+    const candidates = await db.events
+      .where("startUnix")
+      .above(nowEpoch)
+      .limit(10)
+      .toArray();
+
+    const firstStart = candidates[0]?.startUnix;
+    const rows =
+      firstStart !== undefined
+        ? candidates.filter((row) => row.startUnix === firstStart)
+        : [];
+
+    return rows.map(mapEventQuery);
+  }, [nowEpoch]);
+
+  return result ?? [];
 }

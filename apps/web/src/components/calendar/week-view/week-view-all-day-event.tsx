@@ -1,3 +1,5 @@
+"use client";
+
 import * as React from "react";
 import { Temporal } from "temporal-polyfill";
 
@@ -12,6 +14,7 @@ interface WeekViewAllDayEventProps {
   weekStart: Temporal.PlainDate;
   weekEnd: Temporal.PlainDate;
   containerRef: React.RefObject<HTMLDivElement | null>;
+  columns: number;
 }
 
 export function WeekViewAllDayEvent({
@@ -20,6 +23,7 @@ export function WeekViewAllDayEvent({
   weekStart,
   weekEnd,
   containerRef,
+  columns,
 }: WeekViewAllDayEventProps) {
   const { colStart, span } = getGridPosition(item, weekStart, weekEnd);
 
@@ -35,7 +39,7 @@ export function WeekViewAllDayEvent({
     <DragAwareWrapper
       key={item.event.id}
       eventId={item.event.id}
-      className="pointer-events-auto my-[1px] min-w-0"
+      className="pointer-events-auto my-px min-w-0"
       style={{
         // Add 1 to colStart to account for the time column
         gridColumn: `${colStart + 2} / span ${span}`,
@@ -46,6 +50,7 @@ export function WeekViewAllDayEvent({
         item={item}
         view="month"
         containerRef={containerRef}
+        columns={columns}
         isFirstDay={isFirstDay}
         isLastDay={isLastDay}
         rows={1}

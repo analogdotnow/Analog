@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Cog6ToothIcon, LinkIcon, UsersIcon } from "@heroicons/react/16/solid";
+import { Cog6ToothIcon, UsersIcon } from "@heroicons/react/16/solid";
 
 import {
   Dialog,

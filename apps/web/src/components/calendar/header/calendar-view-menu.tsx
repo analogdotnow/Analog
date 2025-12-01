@@ -4,7 +4,11 @@ import * as React from "react";
 import { useAtom } from "jotai";
 import { ChevronDownIcon } from "lucide-react";
 
-import { ViewPreferences, viewPreferencesAtom } from "@/atoms/view-preferences";
+import {
+  ViewPreferences,
+  calendarViewAtom,
+  viewPreferencesAtom,
+} from "@/atoms/view-preferences";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -17,7 +21,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Key } from "@/components/ui/keyboard-shortcut";
-import { useCalendarState } from "@/hooks/use-calendar-state";
 import { CalendarView } from "../interfaces";
 
 function CalendarViewPreferences() {
@@ -112,7 +115,7 @@ function CalendarViewOptions({
 }
 
 export function CalendarViewMenu() {
-  const { view, setView } = useCalendarState();
+  const [view, setView] = useAtom(calendarViewAtom);
   const viewDisplayName = view.charAt(0).toUpperCase() + view.slice(1);
 
   return (

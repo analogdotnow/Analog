@@ -12,37 +12,24 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useActorRefSubscription } from "../use-actor-subscription";
 import { DeleteQueueContext } from "./delete-queue-provider";
 
 export function DeleteEventAttendeeDialog() {
-  // const item = DeleteQueueContext.useSelector((state) => state.context.item);
   const actorRef = DeleteQueueContext.useActorRef();
-
-  const [open, setOpen] = React.useState(false);
-
-  useActorRefSubscription({
-    actorRef,
-    onUpdate: (snapshot) => {
-      if (snapshot.matches("askNotifyAttendee")) {
-        setOpen(true);
-      }
-    },
-  });
+  const open = DeleteQueueContext.useSelector((snapshot) =>
+    snapshot.matches("askNotifyAttendee"),
+  );
 
   const onSaveAndNotify = React.useCallback(() => {
     actorRef.send({ type: "NOTIFY_CHOICE", notify: true });
-    setOpen(false);
   }, [actorRef]);
 
   const onSave = React.useCallback(() => {
     actorRef.send({ type: "NOTIFY_CHOICE", notify: false });
-    setOpen(false);
   }, [actorRef]);
 
   const onCancel = React.useCallback(() => {
     actorRef.send({ type: "CANCEL" });
-    setOpen(false);
   }, [actorRef]);
 
   return (

@@ -44,8 +44,35 @@
   }
 }
 
+@utility inset-fade-shadow {
+  box-shadow:
+    0 4px 4px 0 rgba(255, 255, 255, 0.02) inset,
+    0 4px 24px 0 rgba(255, 255, 255, 0.04) inset;
+}
+
+@utility inset-fade-shadow-light {
+  box-shadow:
+    0 4px 4px 0 rgba(255, 255, 255, 0.01) inset,
+    0 4px 24px 0 rgba(255, 255, 255, 0.02) inset;
+}
+
+@utility border-layered {
+  @apply relative border border-border/40;
+  border-radius: inherit;
+
+  &::before {
+    content: "";
+    border-radius: inherit;
+    @apply pointer-events-none absolute -inset-[1px] border-t border-foreground/5;
+  }
+}
+
 :root,
 .light {
+  @supports (interpolate-size: allow-keywords) {
+    interpolate-size: allow-keywords;
+  }
+
   --background-landing: var(--color-neutral-50);
   --background: var(--color-white);
   --foreground: var(--color-neutral-950);
@@ -83,12 +110,10 @@
   --avatar-gradient-top: var(--color-zinc-200);
   --avatar-gradient-bottom: var(--color-zinc-100);
   --analog-neutral: oklch(0.945 0 0);
-  --calendar-red: #fb2c36;
-  --calendar-orange: #ff6900;
-  --calendar-yellow: #f0b100;
-  --calendar-green: #00c950;
-  --calendar-blue: #2b7fff;
-  --calendar-purple: #ad46ff;
+
+  --input-focus: var(--color-neutral-200);
+  --column-weekend: var(--color-neutral-100);
+  --column-background: var(--color-neutral-50);
 }
 
 .dark {
@@ -97,11 +122,19 @@
     var(--color-neutral-950) 90%,
     var(--color-neutral-900)
   );
-  --background: var(--color-neutral-900);
+  --background: color-mix(
+    in oklch,
+    var(--color-neutral-950) 40%,
+    var(--color-neutral-900)
+  );
   --foreground: var(--color-neutral-50);
   --card: var(--color-neutral-900);
   --card-foreground: var(--color-neutral-50);
-  --popover: var(--color-neutral-800);
+  --popover: color-mix(
+    in oklch,
+    var(--color-neutral-900) 50%,
+    var(--color-neutral-800) 50%
+  );
   --popover-foreground: var(--color-neutral-50);
   --primary: var(--color-neutral-200);
   --primary-foreground: var(--color-neutral-900);
@@ -109,14 +142,10 @@
   --secondary-foreground: var(--color-neutral-50);
   --muted: var(--color-neutral-800);
   --muted-foreground: var(--color-neutral-400);
-  --accent: var(--color-neutral-700);
+  --accent: var(--color-neutral-800);
   --accent-foreground: var(--color-neutral-50);
   --destructive: var(--color-red-400);
-  --border: color-mix(
-    in oklch,
-    var(--color-neutral-800) 50%,
-    var(--color-neutral-700)
-  );
+  --border: var(--color-neutral-800);
   --input: color-mix(
     in oklch,
     var(--color-neutral-800) 50%,
@@ -128,17 +157,13 @@
   --chart-3: var(--color-amber-500);
   --chart-4: var(--color-purple-500);
   --chart-5: var(--color-rose-500);
-  --sidebar: color-mix(
-    in oklch,
-    var(--color-neutral-900) 50%,
-    var(--color-neutral-800)
-  );
+  --sidebar: var(--color-neutral-900);
   --sidebar-foreground: var(--color-neutral-50);
   --sidebar-primary: var(--color-blue-500);
   --sidebar-primary-foreground: var(--color-neutral-50);
   --sidebar-accent: var(--color-neutral-800);
   --sidebar-accent-foreground: var(--color-neutral-50);
-  --sidebar-border: rgba(255, 255, 255, 0.1);
+  --sidebar-border: var(--color-neutral-800);
   --sidebar-ring: var(--color-neutral-600);
   --avatar-gradient-top: color-mix(
     in oklch,
@@ -146,6 +171,18 @@
     var(--color-neutral-900) 50%
   );
   --avatar-gradient-bottom: var(--color-neutral-800);
+
+  --column-weekend: color-mix(
+    in oklch,
+    var(--color-neutral-950) 20%,
+    var(--color-neutral-900)
+  );
+  --column-background: color-mix(
+    in oklch,
+    var(--color-neutral-950) 40%,
+    var(--color-neutral-900)
+  );
+  --input-focus: var(--color-neutral-800);
 }
 
 @theme inline {
@@ -191,6 +228,12 @@
   --color-sidebar-ring: var(--sidebar-ring);
   --color-avatar-gradient-top: var(--avatar-gradient-top);
   --color-avatar-gradient-bottom: var(--avatar-gradient-bottom);
+
+  --color-input-focus: var(--input-focus);
+  --color-column-weekend: var(--column-weekend);
+
+  --color-column: var(--column-background);
+
   --background-color-event: color-mix(
     in oklab,
     var(--background),
@@ -255,6 +298,7 @@
   );
 
   --grid-event-form: 1em minmax(0, 1fr) 1em minmax(0, 1fr);
+  --grid-event-form-half: 1em minmax(0, 1fr);
 
   --font-weight-normal: 350;
   --font-weight-medium: 400;
@@ -265,8 +309,17 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
-    @apply bg-background text-foreground;
+    /* @apply bg-background text-foreground; */
+  }
+
+  ::view-transition-old(.fade) {
+    animation: slide-out 0.5s cubic-bezier(0.86, 0, 0.07, 1) forwards;
+  }
+
+  ::view-transition-new(.fade) {
+    animation: slide-in 0.5s cubic-bezier(0.86, 0, 0.07, 1) forwards;
   }
 
   /* tiptap editor */
@@ -280,7 +333,7 @@
     }
 
     .mention {
-      @apply mr-0.5 rounded-sm px-1 py-0.5 text-sm font-medium;
+      @apply mr-0.5 rounded-sm px-1.5 py-1 text-sm font-medium;
 
       &[data-id="mention-time"] {
         @apply bg-green-500/10 text-green-500;
@@ -293,6 +346,11 @@
       &[data-id="mention-date"] {
         @apply bg-blue-500/10 text-blue-500;
       }
+    }
+
+    .suggestion {
+      @apply bg-blue-500/10 text-blue-500;
+      @apply mr-0.5 rounded-sm px-1.5 py-1 font-medium;
     }
 
     p {

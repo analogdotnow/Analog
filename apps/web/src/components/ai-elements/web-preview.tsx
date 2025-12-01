@@ -127,6 +127,10 @@ export const WebPreviewNavigationButton = ({
 
 export type WebPreviewUrlProps = ComponentProps<typeof Input>;
 
+type InputKeyDownEvent = Parameters<
+  NonNullable<WebPreviewUrlProps["onKeyDown"]>
+>[0];
+
 export const WebPreviewUrl = ({
   value,
   onChange,
@@ -135,7 +139,7 @@ export const WebPreviewUrl = ({
 }: WebPreviewUrlProps) => {
   const { url, setUrl } = useWebPreview();
 
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (event: InputKeyDownEvent) => {
     if (event.key === "Enter") {
       const target = event.target as HTMLInputElement;
       setUrl(target.value);
