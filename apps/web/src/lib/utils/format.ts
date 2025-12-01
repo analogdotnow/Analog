@@ -3,12 +3,19 @@ import { Temporal } from "temporal-polyfill";
 
 import { toDate } from "@repo/temporal";
 
-interface FormatTimeOptions {
-  value: Temporal.ZonedDateTime | Temporal.Instant | Temporal.PlainTime;
-  use12Hour: boolean;
-  locale?: string;
-  timeZone: string;
-}
+type FormatTimeOptions =
+  | {
+      value: Temporal.ZonedDateTime | Temporal.Instant | Temporal.PlainTime;
+      use12Hour: boolean;
+      locale?: string;
+      timeZone: string;
+    }
+  | {
+      value: Temporal.ZonedDateTime;
+      use12Hour: boolean;
+      locale?: string;
+      timeZone?: string;
+    };
 
 export function formatTime(options: FormatTimeOptions): string;
 export function formatTime(

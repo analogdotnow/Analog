@@ -1,6 +1,6 @@
 import { Temporal } from "temporal-polyfill";
 
-import { Frequency, Recurrence, Weekday } from "../../../interfaces";
+import type { Frequency, Recurrence, Weekday } from "../../interfaces";
 
 interface ParseIcsDateTimeOptions {
   value: string;

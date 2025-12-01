@@ -1,6 +1,6 @@
 import { Temporal } from "temporal-polyfill";
 
-import type { Recurrence } from "../../../interfaces";
+import type { Recurrence } from "../../interfaces";
 
 function formatTemporal(
   value: Temporal.PlainDate | Temporal.ZonedDateTime | Temporal.Instant,
