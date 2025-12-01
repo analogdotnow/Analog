@@ -22,15 +22,15 @@
     "@repo/env": "workspace:*",
     "postgres": "^3.4.7",
     "server-only": "^0.0.1",
-    "superjson": "^2.2.2",
+    "superjson": "^2.2.6",
     "superjson-temporal": "^0.4.0",
     "temporal-polyfill": "^0.3.0"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
-    "@types/node": "^24.10.0",
-    "drizzle-kit": "^0.31.6",
+    "@types/node": "^24.10.1",
+    "drizzle-kit": "^0.31.7",
     "eslint": "^9.39.1",
     "typescript": "^5.9.2"
   }

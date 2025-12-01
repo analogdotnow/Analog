@@ -12,12 +12,12 @@
   "peerDependencies": {
     "@formkit/tempo": "^0.1.2",
     "temporal-polyfill": "^0.3.0",
-    "zod": "^4.1.5"
+    "zod": "^4.1.13"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
-    "@types/node": "^24.10.0",
+    "@types/node": "^24.10.1",
     "eslint": "^9.39.1",
     "typescript": "^5.9.2"
   }

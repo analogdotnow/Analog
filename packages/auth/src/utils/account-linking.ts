@@ -90,13 +90,9 @@ export const handleUnlinkAccount = createAuthMiddleware(async (ctx) => {
     const calendars = await calendarProvider.calendars();
     const primaryCalendar = calendars.find((calendar) => calendar.primary);
 
-    await ctx.context.internalAdapter.updateUser(
-      user.id,
-      {
-        defaultAccountId: newDefaultAccount.id,
-        defaultCalendarId: primaryCalendar?.id,
-      },
-      ctx,
-    );
+    await ctx.context.internalAdapter.updateUser(user.id, {
+      defaultAccountId: newDefaultAccount.id,
+      defaultCalendarId: primaryCalendar?.id,
+    });
   }
 });

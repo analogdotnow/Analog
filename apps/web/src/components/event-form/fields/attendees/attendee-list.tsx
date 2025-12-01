@@ -164,8 +164,10 @@ function AttendeeActions({ children, className }: AttendeeActionsProps) {
   );
 }
 
-interface AttendeeListItemProps
-  extends Omit<React.ComponentPropsWithoutRef<"div">, "children"> {
+interface AttendeeListItemProps extends Omit<
+  React.ComponentPropsWithoutRef<"div">,
+  "children"
+> {
   name?: string;
   email: string;
   status: AttendeeStatus;

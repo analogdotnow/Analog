@@ -149,8 +149,10 @@ export function CalendarListPickerItem({
   );
 }
 
-interface CalendarListPickerProps
-  extends Omit<React.ComponentProps<typeof Popover>, "children"> {
+interface CalendarListPickerProps extends Omit<
+  React.ComponentProps<typeof Popover>,
+  "children"
+> {
   children: React.ReactNode;
   items: CalenderAccount[];
   value?: Calendar;

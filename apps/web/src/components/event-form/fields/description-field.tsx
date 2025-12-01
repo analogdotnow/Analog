@@ -6,8 +6,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { useAutoResizeTextarea } from "@/hooks/use-auto-resize-textarea";
 import { cn } from "@/lib/utils";
 
-interface DescriptionFieldProps
-  extends Omit<React.ComponentPropsWithoutRef<typeof Textarea>, "onChange"> {
+interface DescriptionFieldProps extends Omit<
+  React.ComponentPropsWithoutRef<typeof Textarea>,
+  "onChange"
+> {
   onChange: (value: string) => void;
 }
 

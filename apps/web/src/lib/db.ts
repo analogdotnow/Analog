@@ -10,8 +10,10 @@ import { useZonedDateTime } from "@/components/calendar/context/datetime-provide
 import { Calendar, CalendarEvent } from "./interfaces";
 import { superjson } from "./trpc/superjson";
 
-export interface EventRow
-  extends Omit<CalendarEvent, "start" | "end" | "createdAt" | "updatedAt"> {
+export interface EventRow extends Omit<
+  CalendarEvent,
+  "start" | "end" | "createdAt" | "updatedAt"
+> {
   start: SuperJSONResult;
   end: SuperJSONResult;
   createdAt: SuperJSONResult | undefined;
