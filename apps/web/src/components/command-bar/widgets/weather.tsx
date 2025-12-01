@@ -182,8 +182,10 @@ function WeatherConditionIcon({ condition, className }: ConditionIconProps) {
   return null;
 }
 
-interface WeatherDisplayProps
-  extends Omit<React.ComponentProps<"div">, "children"> {
+interface WeatherDisplayProps extends Omit<
+  React.ComponentProps<"div">,
+  "children"
+> {
   data: WeatherData;
 }
 

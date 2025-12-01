@@ -46,8 +46,10 @@ export function ActionButton({
   );
 }
 
-interface ActionProps
-  extends Omit<React.ComponentProps<typeof Button>, "type"> {
+interface ActionProps extends Omit<
+  React.ComponentProps<typeof Button>,
+  "type"
+> {
   type?: "button" | "link";
   href?: string;
 }
