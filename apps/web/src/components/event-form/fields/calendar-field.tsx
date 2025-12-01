@@ -62,26 +62,24 @@ export function CalendarField({
   return (
     <CalendarListPicker items={items} onSelect={onSelect} value={selected}>
       <PopoverTrigger
-        id={id}
-        className={cn(
-          "flex h-8 w-full items-center gap-2 font-medium",
-          className,
-        )}
-        disabled={disabled}
-        asChild
-      >
-        <Button
-          variant="ghost"
-          className="grow justify-start text-sm hover:bg-accent/80 focus:bg-accent/80 focus:ring-0 focus:ring-offset-0 focus-visible:bg-accent/80 focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=open]:bg-accent/80 dark:hover:bg-accent/80 dark:focus:bg-accent/80 dark:focus-visible:bg-accent/80 data-[state=open]:dark:bg-accent/80"
-        >
-          <CalendarColorIndicator
-            primary={selected?.primary ?? false}
-            calendarId={selected?.id ?? ""}
-            accountId={selected?.accountId ?? ""}
+        render={
+          <Button
+            id={id}
+            variant="ghost"
+            className={cn(
+              "flex h-8 w-full grow items-center justify-start gap-2 text-sm font-medium hover:bg-accent/80 focus:bg-accent/80 focus:ring-0 focus:ring-offset-0 focus-visible:bg-accent/80 focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=open]:bg-accent/80 dark:hover:bg-accent/80 dark:focus:bg-accent/80 dark:focus-visible:bg-accent/80 data-[state=open]:dark:bg-accent/80",
+              className,
+            )}
             disabled={disabled}
           />
-          {/* {selected?.name} */}
-        </Button>
+        }
+      >
+        <CalendarColorIndicator
+          primary={selected?.primary ?? false}
+          calendarId={selected?.id ?? ""}
+          accountId={selected?.accountId ?? ""}
+          disabled={disabled}
+        />
       </PopoverTrigger>
     </CalendarListPicker>
   );
@@ -151,7 +149,9 @@ export function CalendarListPickerItem({
   );
 }
 
-interface CalendarListPickerProps extends React.ComponentProps<typeof Popover> {
+interface CalendarListPickerProps
+  extends Omit<React.ComponentProps<typeof Popover>, "children"> {
+  children: React.ReactNode;
   items: CalenderAccount[];
   value?: Calendar;
   onSelect: (calendar: Calendar) => void;

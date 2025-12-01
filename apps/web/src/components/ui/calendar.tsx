@@ -156,7 +156,7 @@ function Calendar({
           props.rangeEndClassName,
         ),
         selected: cn(
-          "[&>button]:bg-primary [&>button]:text-primary-foreground [&>button]:hover:bg-primary [&>button]:hover:text-primary-foreground",
+          "[&>button]:bg-primary [&>button]:text-primary-foreground [&>button]:hover:bg-primary dark:[&>button]:hover:bg-primary/80 [&>button]:hover:text-primary-foreground",
           props.selectedClassName,
         ),
         today: cn(

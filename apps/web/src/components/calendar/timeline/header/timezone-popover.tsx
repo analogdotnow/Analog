@@ -18,16 +18,18 @@ export function TimeZonePopoverTrigger({
   children,
 }: TimeZonePopoverTriggerProps) {
   return (
-    <PopoverTrigger asChild>
-      <Button
-        variant="ghost"
-        size="sm"
-        className="h-fit max-w-full min-w-10 justify-start rounded-sm px-0 py-0.5 ps-0.5 text-end text-xs leading-3.5 data-[state=open]:bg-accent/80 sm:min-w-12 dark:data-[state=open]:bg-accent/80"
-      >
-        <div className="min-w-full mask-r-from-80% mask-r-to-90%">
-          <span className="min-w-full pe-2 text-end sm:pe-4">{children}</span>
-        </div>
-      </Button>
+    <PopoverTrigger
+      render={
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-fit max-w-full min-w-10 justify-start rounded-sm px-0 py-0.5 ps-0.5 text-end text-xs leading-3.5 data-[state=open]:bg-accent/80 sm:min-w-12 dark:data-[state=open]:bg-accent/80"
+        />
+      }
+    >
+      <div className="min-w-full mask-r-from-80% mask-r-to-90%">
+        <span className="min-w-full pe-2 text-end sm:pe-4">{children}</span>
+      </div>
     </PopoverTrigger>
   );
 }

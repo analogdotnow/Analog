@@ -48,7 +48,9 @@ const PROVIDERS = [
 
 export function IntegrationsList() {
   const trpc = useTRPC();
-  const { data, isPending, isError } = useQuery(trpc.integrations.list.queryOptions());
+  const { data, isPending, isError } = useQuery(
+    trpc.integrations.list.queryOptions(),
+  );
 
   const providers = React.useMemo(() => {
     if (!data) {

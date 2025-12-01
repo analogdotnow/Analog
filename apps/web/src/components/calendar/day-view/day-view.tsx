@@ -114,10 +114,7 @@ export function DayView({ events, scrollContainerRef }: DayViewProps) {
       className="isolate flex flex-col [--time-column-width:3rem] [--timeline-container-width:calc(var(--time-columns)*2.5rem+0.5rem)] [--week-view-bottom-padding:16rem] sm:[--time-column-width:5rem] sm:[--timeline-container-width:calc(var(--time-columns)*3rem+1rem)]"
       style={style}
     >
-      <div
-        ref={headerRef}
-        className="sticky top-0 z-30 bg-background"
-      >
+      <div ref={headerRef} className="sticky top-0 z-30 bg-background">
         <DayViewHeader day={currentDate} />
         <AllDayRow gridTemplateColumns={gridTemplateColumns}>
           {eventCollection.allDayEvents.map((item) => (
@@ -205,7 +202,8 @@ function DayViewHeaderDay({ day }: DayViewHeaderProps) {
     <div
       className={cn(
         "overflow-hidden py-2 text-center text-base font-medium text-muted-foreground/70",
-        isToday(day, { timeZone: settings.defaultTimeZone }) && "text-foreground",
+        isToday(day, { timeZone: settings.defaultTimeZone }) &&
+          "text-foreground",
       )}
     >
       <span

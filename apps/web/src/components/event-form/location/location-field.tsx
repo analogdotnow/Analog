@@ -21,7 +21,6 @@ import { usePlacesSearch } from "@/hooks/use-places-search";
 import { cn } from "@/lib/utils";
 import { ConferenceFieldDropdown } from "./conference-field-dropdown";
 import { LocationFieldDropdown } from "./location-field-dropdown";
-import { LocationWeather } from "./location-weather";
 import { isConferenceLink } from "./utils";
 
 interface LocationFieldProps {
@@ -155,6 +154,10 @@ export function LocationField({
         items={suggestions}
         value={isVideoCall ? "" : inputValue}
         onValueChange={(value) => {
+          if (value === "conference.create:google.meet") {
+            return;
+          }
+
           if (isVideoCall) {
             return;
           }
@@ -217,7 +220,7 @@ export function LocationField({
             disabled={disabled}
             onDelete={() => onChange?.("")}
           />
-          <LocationWeather location={inputValue} disabled={disabled} />
+          {/* <LocationWeather location={inputValue} disabled={disabled} /> */}
         </>
       ) : null}
     </div>
@@ -248,7 +251,7 @@ function LocationFieldConferenceOptions() {
     <AutocompleteGroup className="p-1">
       <AutocompleteGroupLabel>Add video call</AutocompleteGroupLabel>
 
-      <AutocompleteItem className="gap-2" value="Google Meet">
+      <AutocompleteItem className="gap-2" value="conference.create:google.meet">
         <GoogleMeet className="h-4 w-4" />
         Google Meet
       </AutocompleteItem>

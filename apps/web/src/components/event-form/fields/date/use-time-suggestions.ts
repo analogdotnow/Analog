@@ -92,7 +92,9 @@ export function useTimeSuggestions(searchValue: string) {
     const parsedDate = parseDate(searchValue);
 
     const matches = matchSorter(list, searchValue, {
-      keys: settings.use12Hour ? ["formattedIn12h", "formattedIn24h"] : ["formattedIn24h"],
+      keys: settings.use12Hour
+        ? ["formattedIn12h", "formattedIn24h"]
+        : ["formattedIn24h"],
     });
 
     if (!parsedDate) {

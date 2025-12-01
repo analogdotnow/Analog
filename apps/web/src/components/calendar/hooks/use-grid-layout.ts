@@ -59,5 +59,11 @@ export function useGridLayout(
     const dayColumns = columnSizes.join(" ");
 
     return includeTimeColumn ? `${timeColumnWidth} ${dayColumns}` : dayColumns;
-  }, [days, viewPreferences.showWeekends, includeTimeColumn, timeColumnWidth, ignoreWeekendPreference]);
+  }, [
+    days,
+    viewPreferences.showWeekends,
+    includeTimeColumn,
+    timeColumnWidth,
+    ignoreWeekendPreference,
+  ]);
 }

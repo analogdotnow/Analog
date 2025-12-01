@@ -1,4 +1,5 @@
 import { atom } from "jotai";
+
 import { calendarSettingsAtom } from "./calendar-settings";
 
 interface TimeZone {
@@ -10,13 +11,12 @@ interface TimeZone {
 export const timeZonesAtom = atom<TimeZone[]>((get) => {
   const settings = get(calendarSettingsAtom);
 
-  return [{
-    id: settings.defaultTimeZone,
-    default: true,
-  }, {
-    id: "America/New_York",
-    default: false,
-  }];
+  return [
+    {
+      id: settings.defaultTimeZone,
+      default: true,
+    },
+  ];
 });
 
 // TODO: Add these atoms back in when we have a way to manage timezones

@@ -11,15 +11,7 @@ import { toDate } from "@repo/temporal";
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
-import {
-  FocusOutsideEvent,
-  InteractOutsideEvent,
-  PointerDownOutsideEvent,
-  Popover,
-  PopoverAnchor,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
 function parseDate(input: string) {
@@ -81,7 +73,6 @@ export function DateInput({
 }: DateInputProps) {
   const { locale } = useAtomValue(calendarSettingsAtom);
   const [open, setOpen] = React.useState(false);
-  const triggerRef = React.useRef<HTMLButtonElement>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
 
   const date = React.useMemo(() => {
@@ -192,16 +183,6 @@ export function DateInput({
     setDisplayedMonth(date.toPlainYearMonth());
   }, []);
 
-  const onOpenChange = React.useCallback(
-    (open: boolean) => {
-      if (disabled) {
-        return;
-      }
-      setOpen(open);
-    },
-    [disabled],
-  );
-
   const onFocus = React.useCallback(() => {
     if (open) {
       return;
@@ -238,28 +219,50 @@ export function DateInput({
   );
 
   return (
-    <Popover open={open && !disabled} onOpenChange={onOpenChange}>
-      <PopoverTrigger ref={triggerRef} className="hidden"></PopoverTrigger>
-      <PopoverAnchor asChild>
-        <Input
-          id={id}
-          className={cn(
-            "col-span-2 col-start-1 h-8 border-none bg-transparent ps-7 text-sm font-medium md:text-sm dark:bg-transparent",
-            // min &&
-            //   date &&
-            //   sameDay(date, min) &&
-            // "text-muted-foreground",
-            className,
-          )}
-          disabled={disabled}
-          value={input}
-          ref={inputRef}
-          onFocus={onFocus}
-          onChange={(e) => onInputChange(e.target.value)}
-          onKeyDown={onKeyDown}
-        />
-      </PopoverAnchor>
-      <DateInputPopoverContent inputRef={inputRef}>
+    <Popover
+      open={open && !disabled}
+      onOpenChange={(
+        nextOpen,
+        eventDetails, // Popover.Root.ChangeEventDetails
+      ) => {
+        const target = eventDetails.event.target as Node | null;
+
+        if (nextOpen || !target || eventDetails.reason === "escape-key") {
+          setOpen(nextOpen);
+
+          return;
+        }
+
+        if (inputRef.current?.contains(target)) {
+          eventDetails.cancel();
+
+          inputRef.current?.focus();
+          return;
+        }
+
+        setOpen(nextOpen);
+      }}
+    >
+      <Input
+        id={id}
+        className={cn(
+          "col-span-2 col-start-1 h-8 border-none bg-transparent ps-7 text-sm font-medium md:text-sm dark:bg-transparent",
+          className,
+        )}
+        disabled={disabled}
+        value={input}
+        ref={inputRef}
+        onFocus={onFocus}
+        onChange={(e) => onInputChange(e.target.value)}
+        onKeyDown={onKeyDown}
+      />
+      <PopoverContent
+        className="w-auto p-2"
+        align="start"
+        anchorRef={inputRef}
+        side="top"
+        finalFocus={false}
+      >
         <TemporalCalendar
           defaultMonth={defaultMonth}
           selected={date}
@@ -269,44 +272,8 @@ export function DateInput({
           onSelect={onSelect}
           timeZone={value.timeZoneId}
         />
-      </DateInputPopoverContent>
+      </PopoverContent>
     </Popover>
-  );
-}
-
-interface DateInputPopoverContentProps {
-  children: React.ReactNode;
-  inputRef: React.RefObject<HTMLInputElement | null>;
-}
-
-function DateInputPopoverContent({
-  children,
-  inputRef,
-}: DateInputPopoverContentProps) {
-  const onOutside = React.useCallback(
-    (e: PointerDownOutsideEvent | FocusOutsideEvent | InteractOutsideEvent) => {
-      if (inputRef.current && inputRef.current.contains(e.target as Node)) {
-        e.preventDefault();
-      }
-    },
-    [inputRef],
-  );
-
-  const onOpenAutoFocus = React.useCallback((e: Event) => {
-    e.preventDefault();
-  }, []);
-
-  return (
-    <PopoverContent
-      className="w-auto overflow-hidden p-0"
-      align="end"
-      onOpenAutoFocus={onOpenAutoFocus}
-      onPointerDownOutside={onOutside}
-      onFocusOutside={onOutside}
-      onInteractOutside={onOutside}
-    >
-      {children}
-    </PopoverContent>
   );
 }
 

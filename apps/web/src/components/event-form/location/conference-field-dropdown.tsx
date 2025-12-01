@@ -33,7 +33,7 @@ export function ConferenceFieldDropdown({
     if (!conference.video?.joinUrl.value) {
       return;
     }
-    
+
     try {
       await navigator.clipboard.writeText(conference.video?.joinUrl.value);
     } catch {
@@ -55,13 +55,20 @@ export function ConferenceFieldDropdown({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start">
         <DropdownMenuItem asChild disabled={!conference.video?.joinUrl.value}>
-          <a href={conference.video?.joinUrl.value} target="_blank" rel="noopener noreferrer">
+          <a
+            href={conference.video?.joinUrl.value}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             <ArrowTopRightOnSquareIcon className="size-4" />
             Join Meeting
           </a>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={onCopyJoinUrl} disabled={!conference.video?.joinUrl.value}>
+        <DropdownMenuItem
+          onSelect={onCopyJoinUrl}
+          disabled={!conference.video?.joinUrl.value}
+        >
           <ClipboardDocumentListIcon className="size-4" />
           Copy Join URL
         </DropdownMenuItem>

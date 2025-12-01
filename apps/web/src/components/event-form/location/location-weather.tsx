@@ -17,9 +17,7 @@ export function LocationWeather({ location, disabled }: LocationWeatherProps) {
 
   return (
     <Popover>
-      <PopoverTrigger asChild>
-        <Weather variant="small" />
-      </PopoverTrigger>
+      <PopoverTrigger render={<Weather variant="small" />} />
       <PopoverContent></PopoverContent>
     </Popover>
   );

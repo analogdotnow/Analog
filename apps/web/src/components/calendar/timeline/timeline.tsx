@@ -17,7 +17,7 @@ export function Timeline() {
   return (
     <div
       className={cn(
-        "grid grid-cols-[repeat(auto-fill,3rem)] sm:grid-cols-[repeat(auto-fill,4rem)] grid-rows-1 border-r border-border/70 select-none",
+        "grid grid-cols-[repeat(auto-fill,3rem)] grid-rows-1 border-r border-border/70 select-none sm:grid-cols-[repeat(auto-fill,4rem)]",
         timeZones.length > 1 &&
           "grid-cols-[3rem_repeat(auto-fill,2.5rem)] sm:grid-cols-[4rem_repeat(auto-fill,3rem)]",
       )}

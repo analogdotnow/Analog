@@ -26,15 +26,17 @@ export function LocationConferencePopover({
 
   return (
     <Popover>
-      <PopoverTrigger asChild>
-        <Button
-          variant="secondary"
-          size="sm"
-          className="h-7 max-w-36 justify-start truncate border border-white/5 px-2 text-xs"
-          disabled={disabled}
-        >
-          <span className="truncate">{conference.video?.joinUrl.value}</span>
-        </Button>
+      <PopoverTrigger
+        render={
+          <Button
+            variant="secondary"
+            size="sm"
+            className="h-7 max-w-36 justify-start truncate border border-white/5 px-2 text-xs"
+            disabled={disabled}
+          />
+        }
+      >
+        <span className="truncate">{conference.video?.joinUrl.value}</span>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-80 p-2">
         <ConferenceDetails conference={conference} disabled={disabled} />

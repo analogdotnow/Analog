@@ -167,7 +167,9 @@ export function EventForm({ className }: EventFormProps) {
                       onChange={field.handleChange}
                       disabled={disabled}
                       conference={conferenceField.state.value}
-                      onRemoveConference={() => conferenceField.handleChange(null)}
+                      onRemoveConference={() =>
+                        conferenceField.handleChange(null)
+                      }
                     />
                   )}
                 </form.Field>

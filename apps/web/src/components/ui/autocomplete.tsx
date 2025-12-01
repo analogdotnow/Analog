@@ -1,3 +1,4 @@
+import * as React from "react";
 import { Autocomplete as AutocompletePrimitive } from "@base-ui-components/react/autocomplete";
 import { XIcon } from "lucide-react";
 
@@ -42,12 +43,14 @@ function AutocompletePopup({
   );
 }
 
-function AutocompletePositioner(
-  props: React.ComponentProps<typeof AutocompletePrimitive.Positioner>,
-) {
+function AutocompletePositioner({
+  sideOffset = 4,
+  ...props
+}: React.ComponentProps<typeof AutocompletePrimitive.Positioner>) {
   return (
     <AutocompletePrimitive.Portal>
       <AutocompletePrimitive.Positioner
+        sideOffset={sideOffset}
         data-slot="autocomplete-positioner"
         {...props}
       />

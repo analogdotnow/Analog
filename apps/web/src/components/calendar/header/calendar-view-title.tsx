@@ -58,42 +58,47 @@ export function CalendarViewTitle({ className }: CalendarViewTitleProps) {
   return (
     <div className="relative h-8 w-full">
       <Popover>
-        <PopoverTrigger asChild>
-          <Button
-            variant="ghost"
-            className="h-8 w-fit px-2 py-0 data-[state=open]:bg-accent/80"
-          >
-            <AnimatePresence mode="wait">
-              <motion.h2
-                key={titleData.full}
-                className={cn(
-                  "flex h-8 items-center justify-start gap-2 leading-none",
-                  className,
-                )}
-                variants={variants}
-                initial="initial"
-                animate="animate"
-                exit="exit"
+        <PopoverTrigger
+          render={
+            <Button
+              variant="ghost"
+              className="h-8 w-fit px-2 py-0 data-[state=open]:bg-accent/80"
+            />
+          }
+        >
+          <AnimatePresence mode="wait">
+            <motion.h2
+              key={titleData.full}
+              className={cn(
+                "flex h-8 items-center justify-start gap-2 leading-none",
+                className,
+              )}
+              variants={variants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+            >
+              <span
+                className="line-clamp-1 @md/header:hidden"
+                aria-hidden="true"
               >
-                <span
-                  className="line-clamp-1 @md/header:hidden"
-                  aria-hidden="true"
-                >
-                  {titleData.short}
+                {titleData.short}
+              </span>
+              <span className="line-clamp-1 @max-md/header:hidden">
+                {titleData.full}
+              </span>
+              {view !== "month" && viewPreferences.showWeekNumbers ? (
+                <span className="line-clamp-1 text-sm text-muted-foreground">
+                  W{currentDate.weekOfYear}
                 </span>
-                <span className="line-clamp-1 @max-md/header:hidden">
-                  {titleData.full}
-                </span>
-                {view !== "month" && viewPreferences.showWeekNumbers ? (
-                  <span className="line-clamp-1 text-sm text-muted-foreground">
-                    W{currentDate.weekOfYear}
-                  </span>
-                ) : null}
-              </motion.h2>
-            </AnimatePresence>
-          </Button>
+              ) : null}
+            </motion.h2>
+          </AnimatePresence>
         </PopoverTrigger>
-        <PopoverContent className="w-fit rounded-xl p-2" align="start">
+        <PopoverContent
+          className="w-fit rounded-xl p-2 before:rounded-[calc(var(--radius-xl)-1px)]"
+          align="start"
+        >
           <DatePicker />
         </PopoverContent>
       </Popover>

@@ -110,33 +110,35 @@ export function TimezoneInput({
   return (
     <div className="flex flex-1">
       <Popover open={open && !disabled} onOpenChange={onOpenChange}>
-        <PopoverTrigger asChild>
-          <Button
-            id={id}
-            variant="ghost"
-            size="sm"
-            role="combobox"
-            aria-expanded={open}
-            className={cn(
-              "w-full justify-start gap-2 px-2 data-[state=open]:bg-accent/80",
-              className,
-            )}
-            disabled={disabled}
-          >
-            <TimeZoneAwareGlobeIcon
-              offset={displayValue?.offset.value ?? 0}
-              className="size-4 text-muted-foreground/60"
+        <PopoverTrigger
+          render={
+            <Button
+              id={id}
+              variant="ghost"
+              size="sm"
+              role="combobox"
+              aria-expanded={open}
+              className={cn(
+                "w-full justify-start gap-2 px-2 data-[state=open]:bg-accent/80",
+                className,
+              )}
+              disabled={disabled}
             />
-            <span className="text-muted-foreground/80">
-              {displayValue.offset.label.short}
-            </span>
-            {displayValue.city ?? displayValue.name}
-          </Button>
+          }
+        >
+          <TimeZoneAwareGlobeIcon
+            offset={displayValue?.offset.value ?? 0}
+            className="size-4 text-muted-foreground/60"
+          />
+          <span className="text-muted-foreground/80">
+            {displayValue.offset.label.short}
+          </span>
+          {displayValue.city ?? displayValue.name}
         </PopoverTrigger>
         <PopoverContent
-          className="max-w-screen min-w-(--radix-popper-anchor-width) p-0"
-          align="end"
-          side="bottom"
+          className="max-w-screen min-w-(--anchor-width) p-0"
+          align="start"
+          side="top"
           sideOffset={4}
         >
           <Command shouldFilter={false} value={value}>

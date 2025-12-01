@@ -23,7 +23,7 @@ const hexToRgbObjectSchema = z
 // Usage:
 // const { r, g, b } = hexToRgbObjectSchema.parse("#1a2b3c");
 
-const COLORS = [
+export const COLORS = [
   "#FB2C36", // Red
   "#FF6900", // Orange
   "#F0B100", // Yellow

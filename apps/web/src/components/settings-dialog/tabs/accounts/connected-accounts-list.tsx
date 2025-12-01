@@ -16,7 +16,9 @@ import { useTRPC } from "@/lib/trpc/client";
 
 export function ConnectedAccountsList() {
   const trpc = useTRPC();
-  const { data, isPending, isError } = useQuery(trpc.accounts.list.queryOptions());
+  const { data, isPending, isError } = useQuery(
+    trpc.accounts.list.queryOptions(),
+  );
 
   if (isPending) {
     return <AccountsListSkeleton />;

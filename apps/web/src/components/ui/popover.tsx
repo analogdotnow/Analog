@@ -1,78 +1,111 @@
 "use client";
 
-import * as React from "react";
-import * as PopoverPrimitive from "@radix-ui/react-popover";
+import { Popover as PopoverPrimitive } from "@base-ui-components/react/popover";
 
 import { cn } from "@/lib/utils";
 
-function Popover({
-  ...props
-}: React.ComponentProps<typeof PopoverPrimitive.Root>) {
-  return <PopoverPrimitive.Root data-slot="popover" {...props} />;
-}
+const PopoverCreateHandle = PopoverPrimitive.createHandle;
 
-function PopoverTrigger({
-  ...props
-}: React.ComponentProps<typeof PopoverPrimitive.Trigger>) {
+const Popover = PopoverPrimitive.Root;
+
+function PopoverTrigger(props: PopoverPrimitive.Trigger.Props) {
   return <PopoverPrimitive.Trigger data-slot="popover-trigger" {...props} />;
 }
 
-function PopoverContent({
+function PopoverPopup({
+  children,
   className,
+  side = "bottom",
   align = "center",
   sideOffset = 4,
-  showArrow = false,
+  alignOffset = 0,
+  anchorRef,
+  tooltipStyle = false,
+  initialFocus,
+  finalFocus,
   ...props
-}: React.ComponentProps<typeof PopoverPrimitive.Content> & {
-  showArrow?: boolean;
+}: PopoverPrimitive.Popup.Props & {
+  side?: PopoverPrimitive.Positioner.Props["side"];
+  align?: PopoverPrimitive.Positioner.Props["align"];
+  sideOffset?: PopoverPrimitive.Positioner.Props["sideOffset"];
+  alignOffset?: PopoverPrimitive.Positioner.Props["alignOffset"];
+  anchorRef?: React.RefObject<HTMLElement | null>;
+  tooltipStyle?: boolean;
 }) {
   return (
     <PopoverPrimitive.Portal>
-      <PopoverPrimitive.Content
-        data-slot="popover-content"
+      <PopoverPrimitive.Positioner
+        anchor={anchorRef}
         align={align}
+        alignOffset={alignOffset}
+        className="z-50 h-(--positioner-height) w-(--positioner-width) max-w-(--available-width) transition-[top,left,right,bottom,transform] data-instant:transition-none"
+        data-slot="popover-positioner"
+        side={side}
         sideOffset={sideOffset}
-        className={cn(
-          "z-50 w-72 rounded-md border bg-popover/90 p-4 text-popover-foreground shadow-md outline-hidden backdrop-blur-lg data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95",
-          className,
-        )}
-        {...props}
       >
-        {props.children}
-        {showArrow && (
-          <PopoverPrimitive.Arrow className="-my-px fill-popover drop-shadow-[0_1px_0_var(--border)]" />
-        )}
-      </PopoverPrimitive.Content>
+        <PopoverPrimitive.Popup
+          initialFocus={initialFocus}
+          finalFocus={finalFocus}
+          className={cn(
+            "not-[class*='w-']:[min-w-80] relative flex h-(--popup-height,auto) w-(--popup-width,auto) origin-(--transform-origin) rounded-lg border bg-popover/95 bg-clip-padding text-popover-foreground shadow-lg backdrop-blur-lg transition-[width,height,scale,opacity] before:pointer-events-none before:absolute before:inset-0 before:rounded-[calc(var(--radius-lg)-1px)] before:shadow-[0_1px_--theme(--color-black/4%)] data-starting-style:scale-98 data-starting-style:opacity-0 dark:bg-clip-border dark:before:shadow-[0_-1px_--theme(--color-white/8%)]",
+            tooltipStyle &&
+              "w-fit rounded-md text-xs text-balance shadow-md shadow-black/5 before:rounded-[calc(var(--radius-md)-1px)]",
+            className,
+          )}
+          data-slot="popover-popup"
+          {...props}
+        >
+          <PopoverPrimitive.Viewport
+            className={cn(
+              "relative size-full max-h-(--available-height) overflow-clip px-(--viewport-inline-padding) outline-none [--viewport-inline-padding:--spacing(0)] **:data-current:w-[calc(var(--popup-width)-2*var(--viewport-inline-padding)-2px)] **:data-current:opacity-100 **:data-current:transition-opacity **:data-current:data-ending-style:opacity-0 data-instant:transition-none **:data-previous:w-[calc(var(--popup-width)-2*var(--viewport-inline-padding)-2px)] **:data-previous:opacity-100 **:data-previous:transition-opacity **:data-previous:data-ending-style:opacity-0 **:data-current:data-starting-style:opacity-0 **:data-previous:data-starting-style:opacity-0",
+              tooltipStyle
+                ? "py-1 [--viewport-inline-padding:--spacing(2)]"
+                : "not-data-transitioning:overflow-y-auto",
+            )}
+            data-slot="popover-viewport"
+          >
+            {children}
+          </PopoverPrimitive.Viewport>
+        </PopoverPrimitive.Popup>
+      </PopoverPrimitive.Positioner>
     </PopoverPrimitive.Portal>
   );
 }
 
-function PopoverAnchor({
-  ...props
-}: React.ComponentProps<typeof PopoverPrimitive.Anchor>) {
-  return <PopoverPrimitive.Anchor data-slot="popover-anchor" {...props} />;
+function PopoverClose({ ...props }: PopoverPrimitive.Close.Props) {
+  return <PopoverPrimitive.Close data-slot="popover-close" {...props} />;
 }
 
-type PointerDownOutsideEvent = Parameters<
-  NonNullable<PopoverPrimitive.PopoverContentProps["onPointerDownOutside"]>
->[0];
-type FocusOutsideEvent = Parameters<
-  NonNullable<PopoverPrimitive.PopoverContentProps["onFocusOutside"]>
->[0];
-type InteractOutsideEvent = Parameters<
-  NonNullable<PopoverPrimitive.PopoverContentProps["onInteractOutside"]>
->[0];
-type FocusEvent = Parameters<
-  NonNullable<PopoverPrimitive.PopoverContentProps["onFocus"]>
->[0];
+function PopoverTitle({ className, ...props }: PopoverPrimitive.Title.Props) {
+  return (
+    <PopoverPrimitive.Title
+      className={cn("text-lg leading-none font-semibold", className)}
+      data-slot="popover-title"
+      {...props}
+    />
+  );
+}
+
+function PopoverDescription({
+  className,
+  ...props
+}: PopoverPrimitive.Description.Props) {
+  return (
+    <PopoverPrimitive.Description
+      className={cn("text-sm text-muted-foreground", className)}
+      data-slot="popover-description"
+      {...props}
+    />
+  );
+}
 
 export {
+  PopoverCreateHandle,
   Popover,
-  PopoverAnchor,
-  PopoverContent,
   PopoverTrigger,
-  type PointerDownOutsideEvent,
-  type FocusOutsideEvent,
-  type InteractOutsideEvent,
-  type FocusEvent,
+  PopoverPopup,
+  PopoverPopup as PopoverContent,
+  PopoverTitle,
+  PopoverDescription,
+  PopoverClose,
 };

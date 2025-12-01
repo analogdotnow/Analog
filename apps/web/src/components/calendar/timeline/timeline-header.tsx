@@ -19,7 +19,7 @@ export function TimelineHeader() {
   return (
     <div
       className={cn(
-        "grid grid-cols-[repeat(auto-fill,3rem)] sm:grid-cols-[repeat(auto-fill,4rem)] items-end justify-end py-2 pb-2.5 text-center text-[10px] font-medium text-muted-foreground/70 sm:text-xs",
+        "grid grid-cols-[repeat(auto-fill,3rem)] items-end justify-end py-2 pb-2.5 text-center text-[10px] font-medium text-muted-foreground/70 sm:grid-cols-[repeat(auto-fill,4rem)] sm:text-xs",
         timeZones.length > 1 &&
           "grid-cols-[3rem_repeat(auto-fill,2.5rem)] sm:grid-cols-[4rem_repeat(auto-fill,3rem)]",
       )}

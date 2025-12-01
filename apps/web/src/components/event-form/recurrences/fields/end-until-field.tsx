@@ -30,17 +30,19 @@ export function UntilPopoverTrigger({
   disabled,
 }: UntilPopoverTriggerProps) {
   return (
-    <PopoverTrigger asChild>
-      <Button
-        variant="outline"
-        className={cn(
-          "ml-2 justify-start text-left font-normal",
-          !value && "text-muted-foreground",
-        )}
-        disabled={disabled}
-      >
-        {value ? formatDate(value) : "Select date"}
-      </Button>
+    <PopoverTrigger
+      render={
+        <Button
+          variant="outline"
+          className={cn(
+            "ml-2 justify-start text-left font-normal",
+            !value && "text-muted-foreground",
+          )}
+          disabled={disabled}
+        />
+      }
+    >
+      {value ? formatDate(value) : "Select date"}
     </PopoverTrigger>
   );
 }
