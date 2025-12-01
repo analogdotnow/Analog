@@ -5,7 +5,7 @@ export interface TaskCollection {
   providerId?: string;
   title?: string;
   updated?: string;
-  accountId: string;
+  providerAccountId: string;
 }
 
 export interface TaskCollectionWithTasks extends TaskCollection {
@@ -14,7 +14,7 @@ export interface TaskCollectionWithTasks extends TaskCollection {
 
 export interface Task {
   id: string;
-  accountId: string;
+  providerAccountId: string;
   taskCollectionId: string;
   providerId?: string;
   title?: string;

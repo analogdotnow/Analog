@@ -75,8 +75,7 @@ export function useUpdateEventMutation() {
             ...data,
             ...(move?.destination
               ? {
-                  accountId: move.destination.accountId,
-                  calendarId: move.destination.calendarId,
+                  calendar: move.destination,
                 }
               : {}),
           };

@@ -70,8 +70,8 @@ function CalendarContent({ scrollContainerRef }: CalendarContentProps) {
     return pastFiltered.filter((eventItem) => {
       const preference = getCalendarPreference(
         calendarPreferences,
-        eventItem.event.accountId,
-        eventItem.event.calendarId,
+        eventItem.event.calendar.provider.accountId,
+        eventItem.event.calendar.id,
       );
 
       return !(preference?.hidden === true);

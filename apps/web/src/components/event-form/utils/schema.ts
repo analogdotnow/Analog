@@ -1,7 +1,7 @@
 import { zZonedDateTimeInstance } from "temporal-zod";
 import * as z from "zod";
 
-import { recurrenceSchema } from "@repo/schemas";
+import { eventCalendarSchema, recurrenceSchema } from "@repo/schemas";
 
 export const conferenceEntryPointSchema = z.object({
   joinUrl: z.object({
@@ -61,13 +61,9 @@ export const formSchema = z.object({
   recurrence: recurrenceSchema.nullable().optional(),
   recurringEventId: z.string().optional(),
   description: z.string(),
-  calendar: z.object({
-    accountId: z.string(),
-    calendarId: z.string(),
-  }),
+  calendar: eventCalendarSchema,
   attendees: z.array(attendeeSchema),
   conference: conferenceSchema.nullable().optional(),
-  providerId: z.enum(["google", "microsoft"]),
   visibility: z.enum(["default", "public", "private", "confidential"]),
 });
 

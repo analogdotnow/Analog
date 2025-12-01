@@ -24,7 +24,7 @@ export function CalendarPickerItemToggle({
       data-slot="checkbox"
       style={
         {
-          "--calendar-color": `var(${calendarColorVariable(calendar.accountId, calendar.id)}, var(--color-muted-foreground))`,
+          "--calendar-color": `var(${calendarColorVariable(calendar.provider.accountId, calendar.id)}, var(--color-muted-foreground))`,
         } as React.CSSProperties
       }
       className={cn(

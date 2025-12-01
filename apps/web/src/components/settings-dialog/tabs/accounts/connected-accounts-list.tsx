@@ -79,15 +79,15 @@ interface AccountListItemProps {
 function AccountListItem({ account }: AccountListItemProps) {
   return (
     <li className="group flex items-center gap-3">
-      <AccountIcon provider={account.providerId} />
+      <AccountIcon provider={account.provider.id} />
 
       <p className="pointer-events-none flex-1 text-sm font-medium">
         {account.email}
       </p>
 
       <DisconnectAccountButton
-        providerAccountId={account.providerAccountId}
-        providerId={account.providerId}
+        providerAccountId={account.provider.accountId}
+        providerId={account.provider.id}
       />
     </li>
   );

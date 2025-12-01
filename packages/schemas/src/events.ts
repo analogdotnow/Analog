@@ -121,6 +121,16 @@ export const dateInputSchema = z.union([
   zZonedDateTimeInstance,
 ]);
 
+export const providerSchema = z.object({
+  id: z.enum(["google", "microsoft"]),
+  accountId: z.string(),
+});
+
+export const eventCalendarSchema = z.object({
+  id: z.string(),
+  provider: providerSchema,
+});
+
 const attendeeSchema = z.object({
   id: z.string().optional(),
   email: z.string().email(),
@@ -220,9 +230,7 @@ export const createEventInputSchema = z.object({
   visibility: z
     .enum(["default", "public", "private", "confidential"])
     .optional(),
-  accountId: z.string(),
-  calendarId: z.string(),
-  providerId: z.enum(["google", "microsoft"]),
+  calendar: eventCalendarSchema,
   readOnly: z.boolean(),
   metadata: z.union([microsoftMetadataSchema, googleMetadataSchema]).optional(),
   attendees: z.array(attendeeSchema).optional(),
@@ -257,9 +265,7 @@ export const patchEventInputSchema = z.object({
   visibility: z
     .enum(["default", "public", "private", "confidential"])
     .optional(),
-  accountId: z.string(),
-  calendarId: z.string(),
-  providerId: z.enum(["google", "microsoft"]),
+  calendar: eventCalendarSchema,
   readOnly: z.boolean(),
   attendees: z.array(attendeeSchema).optional(),
   conference: conferenceSchema.optional(),

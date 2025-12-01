@@ -1,4 +1,4 @@
 export interface ProviderConfig {
   accessToken: string;
-  accountId: string;
+  providerAccountId: string;
 }

@@ -93,9 +93,10 @@ export const conferencingRouter = createTRPCRouter({
       const event = await client.updateEvent(calendar, input.eventId, {
         id: input.eventId,
         title: input.agenda,
-        accountId: input.calendarAccountId,
-        calendarId: input.calendarId,
-        providerId: provider.account.providerId,
+        calendar: {
+          id: calendar.id,
+          provider: calendar.provider,
+        },
         readOnly: calendar.readOnly,
         start,
         end,

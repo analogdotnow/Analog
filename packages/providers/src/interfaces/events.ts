@@ -1,5 +1,12 @@
 import type { Temporal } from "temporal-polyfill";
 
+import type { Provider } from "./calendars";
+
+export interface CalendarEventCalendar {
+  id: string;
+  provider: Provider;
+}
+
 export interface CalendarEvent {
   id: string;
   title?: string;
@@ -16,9 +23,7 @@ export interface CalendarEvent {
   color?: string | null;
   visibility?: "default" | "public" | "private" | "confidential";
   readOnly: boolean;
-  providerId: "google" | "microsoft";
-  accountId: string;
-  calendarId: string;
+  calendar: CalendarEventCalendar;
   createdAt?: Temporal.Instant;
   updatedAt?: Temporal.Instant;
   response?: {
@@ -28,7 +33,6 @@ export interface CalendarEvent {
   metadata?: Record<string, unknown>;
   conference?: Conference | null;
   recurrence?: Recurrence | null;
-  providerAccountId?: string;
   recurringEventId?: string;
 }
 
@@ -41,10 +45,7 @@ export type CalendarEventSyncItem =
       status: "deleted";
       event: {
         id: string;
-        calendarId: string;
-        accountId: string;
-        providerId: "google" | "microsoft";
-        providerAccountId?: string;
+        calendar: CalendarEventCalendar;
       };
     };
 

@@ -1,10 +1,12 @@
 import * as z from "zod";
 
+import { providerSchema } from "./events";
+
 export const createCalendarInputSchema = z.object({
   name: z.string(),
   description: z.string().optional(),
   timeZone: z.string().optional(),
-  accountId: z.string(),
+  provider: providerSchema,
 });
 
 export const updateCalendarInputSchema = createCalendarInputSchema.extend({
@@ -14,9 +16,9 @@ export const updateCalendarInputSchema = createCalendarInputSchema.extend({
 
 export type CreateCalendarInput = Omit<
   z.infer<typeof createCalendarInputSchema>,
-  "accountId"
+  "provider"
 >;
 export type UpdateCalendarInput = Omit<
   z.infer<typeof updateCalendarInputSchema>,
-  "accountId"
+  "provider"
 >;

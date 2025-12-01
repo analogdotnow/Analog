@@ -40,9 +40,10 @@ export function useCreateDraftAction() {
           ...event,
           type: "draft",
           readOnly: false,
-          providerId: defaultCalendar.providerId,
-          accountId: defaultCalendar.accountId,
-          calendarId: defaultCalendar.id,
+          calendar: {
+            id: defaultCalendar.id,
+            provider: defaultCalendar.provider,
+          },
         },
       });
 

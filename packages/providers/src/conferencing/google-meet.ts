@@ -6,16 +6,16 @@ import { ProviderError } from "../lib/provider-error";
 
 interface GoogleMeetProviderOptions {
   accessToken: string;
-  accountId: string;
+  providerAccountId: string;
 }
 
 export class GoogleMeetProvider implements ConferencingProvider {
   public readonly providerId = "google" as const;
-  public readonly accountId: string;
+  public readonly providerAccountId: string;
   private client: GoogleCalendar;
 
-  constructor({ accessToken, accountId }: GoogleMeetProviderOptions) {
-    this.accountId = accountId;
+  constructor({ accessToken, providerAccountId }: GoogleMeetProviderOptions) {
+    this.providerAccountId = providerAccountId;
     this.client = new GoogleCalendar({
       accessToken,
     });

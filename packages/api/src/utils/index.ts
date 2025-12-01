@@ -8,15 +8,18 @@ interface Provider {
   client: CalendarProvider;
 }
 
-export function findProviderOrThrow(providers: Provider[], accountId: string) {
+export function findProviderOrThrow(
+  providers: Provider[],
+  providerAccountId: string,
+) {
   const provider = providers.find(
-    ({ account }) => account.accountId === accountId,
+    ({ account }) => account.accountId === providerAccountId,
   );
 
   if (!provider?.client) {
     throw new TRPCError({
       code: "NOT_FOUND",
-      message: `Could not find provider for account id: ${accountId}`,
+      message: `Could not find provider for providerAccountId: ${providerAccountId}`,
     });
   }
 

@@ -18,7 +18,7 @@ import { format, formatTime } from "@/lib/utils/format";
 
 function eventColor(event: CalendarEvent) {
   return {
-    "--calendar-color": `var(${calendarColorVariable(event.accountId, event.calendarId)}, var(--color-muted-foreground))`,
+    "--calendar-color": `var(${calendarColorVariable(event.calendar.provider.accountId, event.calendar.id)}, var(--color-muted-foreground))`,
   } as React.CSSProperties;
 }
 

@@ -142,7 +142,7 @@ export function useEventForm() {
   ]);
 
   React.useEffect(() => {
-    if (!defaultCalendar || form.state.values.calendar.calendarId !== "") {
+    if (!defaultCalendar || form.state.values.calendar.id !== "") {
       return;
     }
 

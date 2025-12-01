@@ -87,7 +87,7 @@ function CalendarColorPicker() {
 
   const currentPreference = getCalendarPreference(
     calendarPreferences,
-    calendar.accountId,
+    calendar.provider.accountId,
     calendar.id,
   );
 
@@ -95,7 +95,7 @@ function CalendarColorPicker() {
 
   const onColorChange = (newColor: string) => {
     setCalendarPreferences((prev) =>
-      setCalendarPreference(prev, calendar.accountId, calendar.id, {
+      setCalendarPreference(prev, calendar.provider.accountId, calendar.id, {
         color: newColor,
       }),
     );
@@ -126,7 +126,7 @@ function useCalendarVisibility() {
 
   const preference = getCalendarPreference(
     calendarPreferences,
-    calendar.accountId,
+    calendar.provider.accountId,
     calendar.id,
   );
 
@@ -135,12 +135,12 @@ function useCalendarVisibility() {
   const setVisible = React.useCallback(
     (visible: boolean) => {
       setCalendarPreferences((prev) =>
-        setCalendarPreference(prev, calendar.accountId, calendar.id, {
+        setCalendarPreference(prev, calendar.provider.accountId, calendar.id, {
           hidden: !visible,
         }),
       );
     },
-    [setCalendarPreferences, calendar.accountId, calendar.id],
+    [setCalendarPreferences, calendar.provider.accountId, calendar.id],
   );
 
   return { visible, setVisible };

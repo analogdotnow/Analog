@@ -12,16 +12,16 @@ import { parseGoogleTask, toGoogleTask } from "./google-tasks/utils";
 
 interface GoogleTasksProviderOptions {
   accessToken: string;
-  accountId: string;
+  providerAccountId: string;
 }
 
 export class GoogleTasksProvider implements TaskProvider {
   public readonly providerId = "google" as const;
-  public readonly accountId: string;
+  public readonly providerAccountId: string;
   private client: GoogleTasks;
 
-  constructor({ accessToken, accountId }: GoogleTasksProviderOptions) {
-    this.accountId = accountId;
+  constructor({ accessToken, providerAccountId }: GoogleTasksProviderOptions) {
+    this.providerAccountId = providerAccountId;
     this.client = new GoogleTasks({
       accessToken,
     });
@@ -40,7 +40,7 @@ export class GoogleTasksProvider implements TaskProvider {
           providerId: "google",
           title: taskCollection.title,
           updated: taskCollection.updated,
-          accountId: this.accountId,
+          providerAccountId: this.providerAccountId,
         }));
     });
   }
@@ -57,14 +57,14 @@ export class GoogleTasksProvider implements TaskProvider {
           return {
             id: taskCollection.id!,
             title: taskCollection.title!,
-            accountId: this.accountId,
+            providerAccountId: this.providerAccountId,
             providerId: "google",
             tasks:
               tasks?.map((task) =>
                 parseGoogleTask({
                   task,
                   collectionId: taskCollection.id!,
-                  accountId: this.accountId,
+                  providerAccountId: this.providerAccountId,
                 }),
               ) ?? [],
           };
@@ -83,7 +83,7 @@ export class GoogleTasksProvider implements TaskProvider {
       return parseGoogleTask({
         task: createdTask,
         collectionId: task.taskCollectionId,
-        accountId: this.accountId,
+        providerAccountId: this.providerAccountId,
       });
     });
   }
@@ -97,7 +97,7 @@ export class GoogleTasksProvider implements TaskProvider {
           parseGoogleTask({
             task,
             collectionId: taskCollectionId,
-            accountId: this.accountId,
+            providerAccountId: this.providerAccountId,
           }),
         ) ?? []
       );
@@ -113,7 +113,7 @@ export class GoogleTasksProvider implements TaskProvider {
       return parseGoogleTask({
         task: updatedTask,
         collectionId: task.taskCollectionId,
-        accountId: this.accountId,
+        providerAccountId: this.providerAccountId,
       });
     });
   }

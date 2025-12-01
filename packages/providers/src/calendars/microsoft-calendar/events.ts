@@ -69,7 +69,6 @@ function parseDate(date: string) {
 }
 
 interface ParseMicrosoftEventOptions {
-  accountId: string;
   calendar: Calendar;
   event: MicrosoftEvent;
 }
@@ -102,7 +101,6 @@ function parseResponseStatus(
 }
 
 export function parseMicrosoftEvent({
-  accountId,
   calendar,
   event,
 }: ParseMicrosoftEventOptions): CalendarEvent {
@@ -131,9 +129,10 @@ export function parseMicrosoftEvent({
     url: event.webLink ?? undefined,
     // @ts-expect-error -- type from Graph API package is incorrect
     etag: event["@odata.etag"],
-    providerId: "microsoft",
-    accountId,
-    calendarId: calendar.id,
+    calendar: {
+      id: calendar.id,
+      provider: calendar.provider,
+    },
     readOnly: calendar.readOnly,
     conference: parseMicrosoftConference(event),
     ...(responseStatus ? { response: { status: responseStatus } } : {}),

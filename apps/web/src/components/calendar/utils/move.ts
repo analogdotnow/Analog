@@ -5,8 +5,8 @@ export function canMoveBetweenCalendars(
   destination: Calendar,
 ): boolean {
   const isSameCalendar =
-    event.accountId === destination.accountId &&
-    event.calendarId === destination.id;
+    event.calendar.provider.accountId === destination.provider.accountId &&
+    event.calendar.id === destination.id;
 
   if (isSameCalendar) {
     return false;

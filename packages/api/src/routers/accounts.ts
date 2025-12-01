@@ -1,5 +1,7 @@
 import { TRPCError } from "@trpc/server";
 
+import type { ProviderId } from "@repo/providers/interfaces";
+
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { getAccounts, getDefaultAccount } from "../utils/accounts";
 
@@ -10,8 +12,10 @@ export const accountsRouter = createTRPCRouter({
     return {
       accounts: accounts.map((account) => ({
         id: account.id,
-        providerAccountId: account.accountId,
-        providerId: account.providerId,
+        provider: {
+          id: account.providerId as ProviderId,
+          accountId: account.accountId,
+        },
         name: account.name,
         email: account.email,
         image: account.image,
@@ -33,8 +37,10 @@ export const accountsRouter = createTRPCRouter({
     return {
       account: {
         id: account.id,
-        providerAccountId: account.accountId,
-        providerId: account.providerId,
+        provider: {
+          id: account.providerId as ProviderId,
+          accountId: account.accountId,
+        },
         name: account.name,
         email: account.email,
         image: account.image,

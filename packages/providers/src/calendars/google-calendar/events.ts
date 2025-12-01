@@ -118,14 +118,12 @@ function parseRecurrence(
 
 interface ParsedGoogleCalendarEventOptions {
   calendar: Calendar;
-  accountId: string;
   event: GoogleCalendarEvent;
   defaultTimeZone?: string;
 }
 
 export function parseGoogleCalendarEvent({
   calendar,
-  accountId,
   event,
   defaultTimeZone = "UTC",
 }: ParsedGoogleCalendarEventOptions): CalendarEvent {
@@ -162,9 +160,10 @@ export function parseGoogleCalendarEvent({
       | "private"
       | "confidential"
       | undefined,
-    providerId: "google",
-    accountId,
-    calendarId: calendar.id,
+    calendar: {
+      id: calendar.id,
+      provider: calendar.provider,
+    },
     readOnly:
       calendar.readOnly ||
       ["birthday", "focusTime", "outOfOffice", "workingLocation"].includes(
@@ -303,7 +302,7 @@ export function updateEventParams(
     // TODO: how to handle recurrence when the time zone is changed (i.e. until, rDate, exDate).
     recurrence: recurrences(event),
     recurringEventId: event.recurringEventId,
-    calendarId: event.calendarId,
+    calendarId: event.calendar.id,
   };
 }
 

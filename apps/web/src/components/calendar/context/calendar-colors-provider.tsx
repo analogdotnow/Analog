@@ -26,12 +26,12 @@ export function CalendarColorsProvider({
     for (const calendar of calendars) {
       const preference = getCalendarPreference(
         calendarPreferences,
-        calendar.accountId,
+        calendar.provider.accountId,
         calendar.id,
       );
 
       document.documentElement.style.setProperty(
-        calendarColorVariable(calendar.accountId, calendar.id),
+        calendarColorVariable(calendar.provider.accountId, calendar.id),
         preference?.color ?? calendar.color ?? "var(--color-muted-foreground)",
       );
     }

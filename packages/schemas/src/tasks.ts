@@ -1,6 +1,8 @@
 import { Temporal } from "temporal-polyfill";
 import * as z from "zod";
 
+import { providerSchema } from "./events";
+
 export const createTaskCollectionInputSchema = z.object({
   title: z.string(),
 });
@@ -9,7 +11,7 @@ export const createTaskInputSchema = z.object({
   title: z.string(),
   taskCollectionId: z.string(),
   description: z.string().optional(),
-  accountId: z.string(),
+  provider: providerSchema,
   completed: z
     .union([
       z.instanceof(Temporal.PlainDate),

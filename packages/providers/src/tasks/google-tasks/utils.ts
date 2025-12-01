@@ -12,11 +12,11 @@ function parseGoogleTaskDate(date: string) {
 export function parseGoogleTask({
   task,
   collectionId,
-  accountId,
+  providerAccountId,
 }: {
   task: GoogleTask;
   collectionId: string;
-  accountId: string;
+  providerAccountId: string;
 }): Task {
   return {
     id: task.id!,
@@ -25,7 +25,7 @@ export function parseGoogleTask({
     description: task.notes,
     due: task.due ? parseGoogleTaskDate(task.due) : undefined,
     providerId: "google",
-    accountId,
+    providerAccountId,
     taskCollectionId: collectionId,
   };
 }
