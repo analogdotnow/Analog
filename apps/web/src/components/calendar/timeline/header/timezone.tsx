@@ -70,7 +70,7 @@ function OffsetDisplay({ timeZoneId }: OffsetDisplayProps) {
       return null;
     }
 
-    return `${isEarlier ? "-" : "+"}${(Math.abs(offsetInMinutes) / 60).toFixed(0)}h${Math.abs(offsetInMinutes) % 60 > 0 ? `and ${(Math.abs(offsetInMinutes) % 60).toFixed(0)} m` : ""}`;
+    return `${isEarlier ? "-" : "+"}${Math.trunc(Math.abs(offsetInMinutes) / 60)}h${Math.abs(offsetInMinutes) % 60 > 0 ? `and ${(Math.abs(offsetInMinutes) % 60).toFixed(0)} m` : ""}`;
   }, [now, timeZoneId]);
 
   if (timeZoneId === now.timeZoneId || !offset) {
