@@ -12,8 +12,11 @@ import { superjson } from "./trpc/superjson";
 
 export interface EventRow extends Omit<
   CalendarEvent,
-  "start" | "end" | "createdAt" | "updatedAt"
+  "start" | "end" | "createdAt" | "updatedAt" | "calendar"
 > {
+  calendarId: string;
+  providerId: "google" | "microsoft";
+  providerAccountId: string;
   start: SuperJSONResult;
   end: SuperJSONResult;
   createdAt: SuperJSONResult | undefined;
@@ -22,14 +25,19 @@ export interface EventRow extends Omit<
   endUnix: number;
 }
 
+export interface CalendarRow extends Omit<Calendar, "provider"> {
+  providerId: "google" | "microsoft";
+  providerAccountId: string;
+}
+
 export class Database extends Dexie {
   public events!: Table<EventRow, string>;
-  public calendars!: Table<Calendar, string>;
+  public calendars!: Table<CalendarRow, string>;
 
   constructor() {
     super("db");
 
-    this.version(1).stores({
+    this.version(2).stores({
       calendars: [
         "id",
         "providerId",
@@ -38,7 +46,6 @@ export class Database extends Dexie {
         "etag",
         "timeZone",
         "primary",
-        "accountId",
         "providerAccountId",
         "color",
         "readOnly",
@@ -48,7 +55,6 @@ export class Database extends Dexie {
         "start",
         "end",
         "calendarId",
-        "accountId",
         "providerId",
         "providerAccountId",
         "recurringEventId",
@@ -69,9 +75,9 @@ export class Database extends Dexie {
         "response.status",
 
         "[calendarId+startUnix]",
-        "[accountId+startUnix]",
+        "[providerAccountId+startUnix]",
         "[providerId+calendarId]",
-        "[providerId+accountId]",
+        "[providerId+providerAccountId]",
         "[startUnix+endUnix]",
       ].join(","),
     });
@@ -104,8 +110,14 @@ export function mapEventQueryInput(event: CalendarEvent): EventRow {
     ? superjson.serialize(event.updatedAt)
     : undefined;
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { calendar, ...rest } = event;
+
   return {
-    ...event,
+    ...rest,
+    calendarId: event.calendar.id,
+    providerId: event.calendar.provider.id,
+    providerAccountId: event.calendar.provider.accountId,
     start,
     end,
     startUnix,
@@ -116,8 +128,14 @@ export function mapEventQueryInput(event: CalendarEvent): EventRow {
 }
 
 export function mapEventQuery(row: EventRow): CalendarEvent {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { startUnix, endUnix, ...rest } = row;
+  const {
+    startUnix: _startUnix,
+    endUnix: _endUnix,
+    calendarId,
+    providerId,
+    providerAccountId,
+    ...rest
+  } = row;
 
   const start = superjson.deserialize(row.start) as
     | Temporal.PlainDate
@@ -134,7 +152,41 @@ export function mapEventQuery(row: EventRow): CalendarEvent {
     ? (superjson.deserialize(row.updatedAt) as Temporal.Instant)
     : undefined;
 
-  return { ...rest, start, end, createdAt, updatedAt };
+  return {
+    ...rest,
+    calendar: {
+      id: calendarId,
+      provider: {
+        id: providerId,
+        accountId: providerAccountId,
+      },
+    },
+    start,
+    end,
+    createdAt,
+    updatedAt,
+  };
+}
+
+export function mapCalendarQueryInput(calendar: Calendar): CalendarRow {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { provider, ...rest } = calendar;
+  return {
+    ...rest,
+    providerId: provider.id,
+    providerAccountId: provider.accountId,
+  };
+}
+
+export function mapCalendarQuery(row: CalendarRow): Calendar {
+  const { providerId, providerAccountId, ...rest } = row;
+  return {
+    ...rest,
+    provider: {
+      id: providerId,
+      accountId: providerAccountId,
+    },
+  };
 }
 
 export const db = new Database();

@@ -10,8 +10,10 @@ export const accountsRouter = createTRPCRouter({
     return {
       accounts: accounts.map((account) => ({
         id: account.id,
-        providerAccountId: account.accountId,
-        providerId: account.providerId,
+        provider: {
+          id: account.providerId,
+          accountId: account.accountId,
+        },
         name: account.name,
         email: account.email,
         image: account.image,
@@ -33,8 +35,10 @@ export const accountsRouter = createTRPCRouter({
     return {
       account: {
         id: account.id,
-        providerAccountId: account.accountId,
-        providerId: account.providerId,
+        provider: {
+          id: account.providerId as "google" | "microsoft",
+          accountId: account.accountId,
+        },
         name: account.name,
         email: account.email,
         image: account.image,

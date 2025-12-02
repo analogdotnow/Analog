@@ -220,9 +220,13 @@ export const createEventInputSchema = z.object({
   visibility: z
     .enum(["default", "public", "private", "confidential"])
     .optional(),
-  accountId: z.string(),
-  calendarId: z.string(),
-  providerId: z.enum(["google", "microsoft"]),
+  calendar: z.object({
+    id: z.string(),
+    provider: z.object({
+      id: z.enum(["google", "microsoft"]),
+      accountId: z.string(),
+    }),
+  }),
   readOnly: z.boolean(),
   metadata: z.union([microsoftMetadataSchema, googleMetadataSchema]).optional(),
   attendees: z.array(attendeeSchema).optional(),
@@ -257,9 +261,13 @@ export const patchEventInputSchema = z.object({
   visibility: z
     .enum(["default", "public", "private", "confidential"])
     .optional(),
-  accountId: z.string(),
-  calendarId: z.string(),
-  providerId: z.enum(["google", "microsoft"]),
+  calendar: z.object({
+    id: z.string(),
+    provider: z.object({
+      id: z.enum(["google", "microsoft"]),
+      accountId: z.string(),
+    }),
+  }),
   readOnly: z.boolean(),
   attendees: z.array(attendeeSchema).optional(),
   conference: conferenceSchema.optional(),

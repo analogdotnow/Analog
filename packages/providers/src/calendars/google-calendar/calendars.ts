@@ -2,12 +2,12 @@ import type { Calendar } from "../../interfaces";
 import type { GoogleCalendarCalendarListEntry } from "./interfaces";
 
 interface ParsedGoogleCalendarCalendarListEntryOptions {
-  accountId: string;
+  providerAccountId: string;
   entry: GoogleCalendarCalendarListEntry;
 }
 
 export function parseGoogleCalendarCalendarListEntry({
-  accountId,
+  providerAccountId,
   entry,
 }: ParsedGoogleCalendarCalendarListEntryOptions): Calendar {
   return {
@@ -20,9 +20,10 @@ export function parseGoogleCalendarCalendarListEntry({
     primary: entry.primary!,
     readOnly:
       entry.accessRole === "reader" || entry.accessRole === "freeBusyReader",
-    providerId: "google",
-    accountId,
-    providerAccountId: accountId,
+    provider: {
+      id: "google",
+      accountId: providerAccountId,
+    },
     color: entry.backgroundColor,
     syncToken: null,
   };

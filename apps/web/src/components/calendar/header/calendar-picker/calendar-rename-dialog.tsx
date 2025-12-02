@@ -49,7 +49,7 @@ export function CalendarRenameDialog() {
   const onSubmit = () => {
     mutate({
       id: calendar.id,
-      accountId: calendar.accountId,
+      provider: calendar.provider,
       name: name.trim(),
     });
   };

@@ -43,16 +43,19 @@ const MAX_EVENTS_PER_CALENDAR = 250;
 
 interface MicrosoftCalendarProviderOptions {
   accessToken: string;
-  accountId: string;
+  providerAccountId: string;
 }
 
 export class MicrosoftCalendarProvider implements CalendarProvider {
   public readonly providerId = "microsoft" as const;
-  public readonly accountId: string;
+  public readonly providerAccountId: string;
   private graphClient: Client;
 
-  constructor({ accessToken, accountId }: MicrosoftCalendarProviderOptions) {
-    this.accountId = accountId;
+  constructor({
+    accessToken,
+    providerAccountId,
+  }: MicrosoftCalendarProviderOptions) {
+    this.providerAccountId = providerAccountId;
     this.graphClient = Client.initWithMiddleware({
       authProvider: {
         getAccessToken: async () => accessToken,
@@ -70,7 +73,10 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
         .get();
 
       return (response.value as MicrosoftCalendar[]).map((calendar) => ({
-        ...parseMicrosoftCalendar({ calendar, accountId: this.accountId }),
+        ...parseMicrosoftCalendar({
+          calendar,
+          providerAccountId: this.providerAccountId,
+        }),
       }));
     });
   }
@@ -86,7 +92,7 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
 
       return parseMicrosoftCalendar({
         calendar,
-        accountId: this.accountId,
+        providerAccountId: this.providerAccountId,
       });
     });
   }
@@ -101,7 +107,7 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
 
       return parseMicrosoftCalendar({
         calendar: createdCalendar,
-        accountId: this.accountId,
+        providerAccountId: this.providerAccountId,
       });
     });
   }
@@ -117,7 +123,7 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
 
       return parseMicrosoftCalendar({
         calendar: updatedCalendar,
-        accountId: this.accountId,
+        providerAccountId: this.providerAccountId,
       });
     });
   }
@@ -152,8 +158,7 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
         .get();
 
       const events = (response.value as MicrosoftEvent[]).map(
-        (event: MicrosoftEvent) =>
-          parseMicrosoftEvent({ event, accountId: this.accountId, calendar }),
+        (event: MicrosoftEvent) => parseMicrosoftEvent({ event, calendar }),
       );
 
       return { events, recurringMasterEvents: [] };
@@ -218,10 +223,10 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
               status: "deleted",
               event: {
                 id: item.id,
-                calendarId: calendar.id,
-                accountId: this.accountId,
-                providerId: this.providerId,
-                providerAccountId: this.accountId,
+                calendar: {
+                  id: calendar.id,
+                  provider: calendar.provider,
+                },
               },
             });
 
@@ -232,7 +237,6 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
             status: "updated",
             event: parseMicrosoftEvent({
               event: item,
-              accountId: this.accountId,
               calendar,
             }),
           });
@@ -263,7 +267,6 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
 
       return parseMicrosoftEvent({
         event,
-        accountId: this.accountId,
         calendar,
       });
     });
@@ -280,20 +283,11 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
 
       return parseMicrosoftEvent({
         event: createdEvent,
-        accountId: this.accountId,
         calendar,
       });
     });
   }
 
-  /**
-   * Updates an existing event
-   *
-   * @param calendarId - The calendar identifier
-   * @param eventId - The event identifier
-   * @param event - Partial event data for updates using UpdateEventInput interface
-   * @returns The updated transformed Event object
-   */
   async updateEvent(
     calendar: Calendar,
     eventId: string,
@@ -323,7 +317,6 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
 
       return parseMicrosoftEvent({
         event: updatedEvent,
-        accountId: this.accountId,
         calendar,
       });
     });
@@ -363,8 +356,10 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
 
       return {
         ...event,
-        calendarId: destinationCalendar.id,
-        // Mark as readOnly to signal as placeholder behavior if needed by callers
+        calendar: {
+          id: destinationCalendar.id,
+          provider: destinationCalendar.provider,
+        },
         readOnly: event.readOnly,
       };
     });

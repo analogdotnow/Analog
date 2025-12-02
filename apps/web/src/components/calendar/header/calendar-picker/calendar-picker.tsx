@@ -52,7 +52,7 @@ function VisibleCalendarItem({
       )}
       style={
         {
-          "--calendar-color": `var(${calendarColorVariable(calendar.accountId, calendar.id)}, var(--color-muted-foreground))`,
+          "--calendar-color": `var(${calendarColorVariable(calendar.provider.accountId, calendar.id)}, var(--color-muted-foreground))`,
         } as React.CSSProperties
       }
     />
@@ -75,7 +75,7 @@ function VisibleCalendars({ className, calendars }: VisibleCalendarProps) {
     <div className={cn("flex -space-x-1", className)}>
       {calendars.slice(0, Math.min(calendars.length, 3)).map((calendar) => (
         <VisibleCalendarItem
-          key={`${calendar.accountId}.${calendar.id}`}
+          key={`${calendar.provider.accountId}.${calendar.id}`}
           calendar={calendar}
         />
       ))}
@@ -96,7 +96,7 @@ function CalendarPickerContent() {
       .filter((calendar) => {
         const preference = getCalendarPreference(
           calendarPreferences,
-          calendar.accountId,
+          calendar.provider.accountId,
           calendar.id,
         );
         return !preference?.hidden;
@@ -154,7 +154,7 @@ function CalendarPickerContent() {
                   {account.calendars.map((calendar) => (
                     <CalendarPickerItem
                       calendar={calendar}
-                      key={`${calendar.accountId}-${calendar.id}`}
+                      key={`${calendar.provider.accountId}-${calendar.id}`}
                     >
                       <CalendarPickerItemContent>
                         <CalendarPickerItemActionsMenu />

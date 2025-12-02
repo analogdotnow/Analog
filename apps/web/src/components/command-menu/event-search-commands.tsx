@@ -45,7 +45,7 @@ export function EventSearchCommands() {
 
       const color =
         item.event.color ??
-        `var(${calendarColorVariable(item.event.accountId, item.event.calendarId)}, var(--color-muted-foreground))`;
+        `var(${calendarColorVariable(item.event.calendar.provider.accountId, item.event.calendar.id)}, var(--color-muted-foreground))`;
 
       return {
         ...item,

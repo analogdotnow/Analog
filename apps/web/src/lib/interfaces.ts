@@ -4,8 +4,6 @@ import type {
   CalendarEvent as ProviderCalendarEvent,
 } from "@repo/providers/interfaces";
 
-import type { RouterOutputs } from "./trpc";
-
 export type CalendarEvent = ProviderCalendarEvent & {
   type?: "draft" | "event";
 };

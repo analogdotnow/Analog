@@ -47,8 +47,9 @@ export function isMovedBetweenCalendars(
   previous: CalendarEvent,
 ) {
   return (
-    updated.accountId !== previous.accountId ||
-    updated.calendarId !== previous.calendarId
+    updated.calendar.provider.accountId !==
+      previous.calendar.provider.accountId ||
+    updated.calendar.id !== previous.calendar.id
   );
 }
 
@@ -76,8 +77,7 @@ export function buildUpdateEvent(
       ...event,
       ...(isCalendarChanged
         ? {
-            accountId: previous.accountId,
-            calendarId: previous.calendarId,
+            calendar: previous.calendar,
           }
         : {}),
       ...(options.sendUpdate
@@ -92,14 +92,8 @@ export function buildUpdateEvent(
     ...(isCalendarChanged
       ? {
           move: {
-            source: {
-              accountId: previous.accountId,
-              calendarId: previous.calendarId,
-            },
-            destination: {
-              accountId: event.accountId,
-              calendarId: event.calendarId,
-            },
+            source: previous.calendar,
+            destination: event.calendar,
           },
         }
       : {}),
@@ -122,8 +116,7 @@ export function buildUpdateSeries(
       ...event,
       ...(isCalendarChanged
         ? {
-            accountId: previous.accountId,
-            calendarId: previous.calendarId,
+            calendar: previous.calendar,
           }
         : {}),
       ...(options.sendUpdate
@@ -140,14 +133,8 @@ export function buildUpdateSeries(
     ...(isCalendarChanged
       ? {
           move: {
-            source: {
-              accountId: previous.accountId,
-              calendarId: previous.calendarId,
-            },
-            destination: {
-              accountId: event.accountId,
-              calendarId: event.calendarId,
-            },
+            source: previous.calendar,
+            destination: event.calendar,
           },
         }
       : {}),

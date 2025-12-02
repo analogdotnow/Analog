@@ -76,12 +76,14 @@ function EventContextMenuCalendarList({
   const updateAction = usePartialUpdateAction();
 
   const moveEvent = React.useCallback(
-    (accountId: string, calendarId: string) => {
+    (calendar: {
+      id: string;
+      provider: { id: "google" | "microsoft"; accountId: string };
+    }) => {
       updateAction({
         changes: {
           id: event.id,
-          accountId,
-          calendarId,
+          calendar,
           type: event.type,
         },
         notify: true,
@@ -98,14 +100,16 @@ function EventContextMenuCalendarList({
             <Tooltip key={index}>
               <TooltipTrigger asChild>
                 <CalendarRadioItem
-                  value={`${calendar.accountId}-${calendar.id}`}
+                  value={`${calendar.provider.accountId}-${calendar.id}`}
                   style={
                     {
                       "--calendar-color": calendar.color,
                     } as React.CSSProperties
                   }
                   disabled={!canMoveBetweenCalendars(event, calendar)}
-                  onSelect={() => moveEvent(calendar.accountId, calendar.id)}
+                  onSelect={() =>
+                    moveEvent({ id: calendar.id, provider: calendar.provider })
+                  }
                 />
               </TooltipTrigger>
               <TooltipContent className="w-full max-w-48" sideOffset={8}>
@@ -158,7 +162,9 @@ export function EventContextMenu({ event, children }: EventContextMenuProps) {
     <ContextMenu>
       {children}
       <ContextMenuContent className="w-64">
-        <ContextMenuRadioGroup value={`${event.accountId}-${event.calendarId}`}>
+        <ContextMenuRadioGroup
+          value={`${event.calendar.provider.accountId}-${event.calendar.id}`}
+        >
           <EventContextMenuCalendarList event={event} />
         </ContextMenuRadioGroup>
 

@@ -41,8 +41,7 @@ export function DeleteQueueProvider({ children }: DeleteQueueProviderProps) {
 
       deleteMutation.mutate(
         {
-          accountId: item.event.accountId,
-          calendarId: item.event.calendarId,
+          calendar: item.event.calendar,
           eventId,
           sendUpdate: item.notify,
         },

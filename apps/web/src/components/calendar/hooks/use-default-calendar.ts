@@ -12,7 +12,7 @@ export function useDefaultCalendar() {
       return "var(--color-muted-foreground)";
     }
 
-    return `var(${calendarColorVariable(data?.defaultCalendar?.accountId, data?.defaultCalendar?.id)}, var(--color-muted-foreground))`;
+    return `var(${calendarColorVariable(data?.defaultCalendar?.provider.accountId, data?.defaultCalendar?.id)}, var(--color-muted-foreground))`;
   }, [data?.defaultCalendar]);
 
   return React.useMemo(() => {

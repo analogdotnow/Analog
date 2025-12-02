@@ -5,7 +5,7 @@ import { ProviderError } from "../lib/provider-error";
 
 interface ZoomProviderOptions {
   accessToken: string;
-  accountId?: string; // Unused but allows shared construction signature
+  providerAccountId?: string;
 }
 
 export class ZoomProvider implements ConferencingProvider {

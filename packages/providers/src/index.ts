@@ -44,14 +44,14 @@ function accountToProvider<
   if (!activeAccount.accessToken) {
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: `Invalid account: Missing access token for provider '${activeAccount.providerId}' (accountId: ${activeAccount.accountId})`,
+      message: `Invalid account: Missing access token for provider '${activeAccount.providerId}' (providerAccountId: ${activeAccount.accountId})`,
     });
   }
 
   if (!activeAccount.refreshToken) {
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: `Invalid account: Missing refresh token for provider '${activeAccount.providerId}' (accountId: ${activeAccount.accountId})`,
+      message: `Invalid account: Missing refresh token for provider '${activeAccount.providerId}' (providerAccountId: ${activeAccount.accountId})`,
     });
   }
 
@@ -60,13 +60,13 @@ function accountToProvider<
   if (!Provider) {
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: `Provider not supported: '${activeAccount.providerId}' (accountId: ${activeAccount.accountId})`,
+      message: `Provider not supported: '${activeAccount.providerId}' (providerAccountId: ${activeAccount.accountId})`,
     });
   }
 
   return new Provider({
     accessToken: activeAccount.accessToken,
-    accountId: activeAccount.accountId,
+    providerAccountId: activeAccount.accountId,
   });
 }
 
@@ -95,14 +95,14 @@ export function accountToConferencingProvider(
   if (!activeAccount.accessToken) {
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: `Invalid account: Missing access token for provider '${activeAccount.providerId}' (accountId: ${activeAccount.accountId})`,
+      message: `Invalid account: Missing access token for provider '${activeAccount.providerId}' (providerAccountId: ${activeAccount.accountId})`,
     });
   }
 
   if (!activeAccount.refreshToken) {
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: `Invalid account: Missing refresh token for provider '${activeAccount.providerId}' (accountId: ${activeAccount.accountId})`,
+      message: `Invalid account: Missing refresh token for provider '${activeAccount.providerId}' (providerAccountId: ${activeAccount.accountId})`,
     });
   }
 
@@ -111,13 +111,13 @@ export function accountToConferencingProvider(
   if (!Provider) {
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: `Conferencing provider not supported: '${providerId}' for account '${activeAccount.providerId}' (accountId: ${activeAccount.accountId})`,
+      message: `Conferencing provider not supported: '${providerId}' for account '${activeAccount.providerId}' (providerAccountId: ${activeAccount.accountId})`,
     });
   }
 
   return new Provider({
     accessToken: activeAccount.accessToken,
-    accountId: activeAccount.accountId,
+    providerAccountId: activeAccount.accountId,
   });
 }
 

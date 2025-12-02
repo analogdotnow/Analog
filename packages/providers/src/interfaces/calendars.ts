@@ -2,14 +2,15 @@ import type { Temporal } from "temporal-polyfill";
 
 export interface Calendar {
   id: string;
-  providerId: "google" | "microsoft";
+  provider: {
+    id: "google" | "microsoft";
+    accountId: string;
+  };
   name: string;
   description?: string;
   etag?: string;
   timeZone?: string;
   primary: boolean;
-  accountId: string;
-  providerAccountId: string;
   color?: string;
   readOnly: boolean;
   syncToken: string | null;

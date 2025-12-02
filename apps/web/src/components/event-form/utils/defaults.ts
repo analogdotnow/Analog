@@ -29,11 +29,13 @@ export const initialValues: FormValues = {
   recurringEventId: undefined,
   attendees: [],
   calendar: {
-    accountId: "",
-    calendarId: "",
+    id: "",
+    provider: {
+      id: "google",
+      accountId: "",
+    },
   },
   conference: undefined,
-  providerId: "google",
   visibility: "default",
 };
 
@@ -66,10 +68,9 @@ export function getDefaultValues({
     availability: "busy",
     attendees: [],
     calendar: {
-      accountId: defaultCalendar.accountId,
-      calendarId: defaultCalendar.id,
+      id: defaultCalendar.id,
+      provider: defaultCalendar.provider,
     },
-    providerId: defaultCalendar.providerId,
     visibility: "default",
   };
 }

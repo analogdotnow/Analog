@@ -4,7 +4,10 @@ export const createCalendarInputSchema = z.object({
   name: z.string(),
   description: z.string().optional(),
   timeZone: z.string().optional(),
-  accountId: z.string(),
+  provider: z.object({
+    id: z.enum(["google", "microsoft"]),
+    accountId: z.string(),
+  }),
 });
 
 export const updateCalendarInputSchema = createCalendarInputSchema.extend({
@@ -14,9 +17,9 @@ export const updateCalendarInputSchema = createCalendarInputSchema.extend({
 
 export type CreateCalendarInput = Omit<
   z.infer<typeof createCalendarInputSchema>,
-  "accountId"
+  "provider"
 >;
 export type UpdateCalendarInput = Omit<
   z.infer<typeof updateCalendarInputSchema>,
-  "accountId"
+  "provider"
 >;

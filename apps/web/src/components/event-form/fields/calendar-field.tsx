@@ -24,8 +24,20 @@ import { cn } from "@/lib/utils";
 interface CalendarFieldProps {
   id: string;
   className?: string;
-  value: { accountId: string; calendarId: string };
-  onChange: (calendar: { accountId: string; calendarId: string }) => void;
+  value: {
+    id: string;
+    provider: {
+      id: "google" | "microsoft";
+      accountId: string;
+    };
+  };
+  onChange: (calendar: {
+    id: string;
+    provider: {
+      id: "google" | "microsoft";
+      accountId: string;
+    };
+  }) => void;
   onBlur: () => void;
   disabled?: boolean;
 }
@@ -47,7 +59,7 @@ export function CalendarField({
 
   const onSelect = React.useCallback(
     (calendar: Calendar) => {
-      onChange({ accountId: calendar.accountId, calendarId: calendar.id });
+      onChange({ id: calendar.id, provider: calendar.provider });
       onBlur();
     },
     [onChange, onBlur],
@@ -56,7 +68,7 @@ export function CalendarField({
   const selected = React.useMemo(() => {
     return data?.accounts
       .flatMap((item) => item.calendars)
-      .find((item) => item.id === value.calendarId);
+      .find((item) => item.id === value.id);
   }, [data, value]);
 
   return (
@@ -77,7 +89,7 @@ export function CalendarField({
         <CalendarColorIndicator
           primary={selected?.primary ?? false}
           calendarId={selected?.id ?? ""}
-          accountId={selected?.accountId ?? ""}
+          providerAccountId={selected?.provider.accountId ?? ""}
           disabled={disabled}
         />
       </PopoverTrigger>
@@ -88,7 +100,7 @@ export function CalendarField({
 interface CalendarColorIndicatorProps {
   primary: boolean;
   calendarId: string;
-  accountId: string;
+  providerAccountId: string;
   className?: string;
   disabled?: boolean;
 }
@@ -96,11 +108,11 @@ interface CalendarColorIndicatorProps {
 export function CalendarColorIndicator({
   primary,
   calendarId,
-  accountId,
+  providerAccountId,
   className,
   disabled,
 }: CalendarColorIndicatorProps) {
-  const color = `var(${calendarColorVariable(accountId, calendarId)}, var(--color-muted-foreground))`;
+  const color = `var(${calendarColorVariable(providerAccountId, calendarId)}, var(--color-muted-foreground))`;
 
   return (
     <div className={cn("size-5 p-1", className)}>
@@ -131,7 +143,7 @@ export function CalendarListPickerItem({
   calendar,
   onSelect,
 }: CalendarListPickerItemProps) {
-  const canMove = !calendar.readOnly && calendar.providerId === "google";
+  const canMove = !calendar.readOnly && calendar.provider.id === "google";
 
   return (
     <CommandItem
@@ -142,7 +154,7 @@ export function CalendarListPickerItem({
       <CalendarColorIndicator
         primary={calendar.primary}
         calendarId={calendar.id}
-        accountId={calendar.accountId}
+        providerAccountId={calendar.provider.accountId}
       />
       <span className="flex-1 truncate">{calendar.name}</span>
     </CommandItem>
@@ -190,7 +202,7 @@ export function CalendarListPicker({
                 >
                   {account.calendars.map((calendar) => (
                     <CalendarListPickerItem
-                      key={`${calendar.accountId}-${calendar.id}`}
+                      key={`${calendar.provider.accountId}-${calendar.id}`}
                       calendar={calendar}
                       onSelect={onSelect}
                     />

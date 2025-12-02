@@ -32,16 +32,19 @@ const MAX_EVENTS_PER_CALENDAR = 250;
 
 interface GoogleCalendarProviderOptions {
   accessToken: string;
-  accountId: string;
+  providerAccountId: string;
 }
 
 export class GoogleCalendarProvider implements CalendarProvider {
   public readonly providerId = "google" as const;
-  public readonly accountId: string;
+  public readonly providerAccountId: string;
   private client: GoogleCalendar;
 
-  constructor({ accessToken, accountId }: GoogleCalendarProviderOptions) {
-    this.accountId = accountId;
+  constructor({
+    accessToken,
+    providerAccountId,
+  }: GoogleCalendarProviderOptions) {
+    this.providerAccountId = providerAccountId;
     this.client = new GoogleCalendar({
       accessToken,
     });
@@ -55,7 +58,7 @@ export class GoogleCalendarProvider implements CalendarProvider {
 
       return items.map((calendar) => {
         const parsedCalendar = parseGoogleCalendarCalendarListEntry({
-          accountId: this.accountId,
+          providerAccountId: this.providerAccountId,
           entry: calendar,
         });
 
@@ -70,7 +73,7 @@ export class GoogleCalendarProvider implements CalendarProvider {
         await this.client.users.me.calendarList.retrieve(calendarId);
 
       return parseGoogleCalendarCalendarListEntry({
-        accountId: this.accountId,
+        providerAccountId: this.providerAccountId,
         entry: calendar,
       });
     });
@@ -85,7 +88,7 @@ export class GoogleCalendarProvider implements CalendarProvider {
       });
 
       return parseGoogleCalendarCalendarListEntry({
-        accountId: this.accountId,
+        providerAccountId: this.providerAccountId,
         entry: createdCalendar,
       });
     });
@@ -101,7 +104,7 @@ export class GoogleCalendarProvider implements CalendarProvider {
       });
 
       return parseGoogleCalendarCalendarListEntry({
-        accountId: this.accountId,
+        providerAccountId: this.providerAccountId,
         entry: updatedCalendar,
       });
     });
@@ -135,7 +138,6 @@ export class GoogleCalendarProvider implements CalendarProvider {
         items?.map((event) =>
           parseGoogleCalendarEvent({
             calendar,
-            accountId: this.accountId,
             event,
             defaultTimeZone: timeZone ?? "UTC",
           }),
@@ -219,10 +221,10 @@ export class GoogleCalendarProvider implements CalendarProvider {
               status: "deleted",
               event: {
                 id: event.id!,
-                calendarId: calendar.id,
-                accountId: this.accountId,
-                providerId: this.providerId,
-                providerAccountId: this.accountId,
+                calendar: {
+                  id: calendar.id,
+                  provider: calendar.provider,
+                },
               },
             });
             continue;
@@ -230,7 +232,6 @@ export class GoogleCalendarProvider implements CalendarProvider {
 
           const parsedEvent = parseGoogleCalendarEvent({
             calendar,
-            accountId: this.accountId,
             event,
             defaultTimeZone: timeZone,
           });
@@ -304,7 +305,6 @@ export class GoogleCalendarProvider implements CalendarProvider {
 
       return parseGoogleCalendarEvent({
         calendar,
-        accountId: this.accountId,
         event,
         defaultTimeZone: timeZone ?? "UTC",
       });
@@ -324,7 +324,6 @@ export class GoogleCalendarProvider implements CalendarProvider {
 
         return parseGoogleCalendarEvent({
           calendar,
-          accountId: this.accountId,
           event: createdEvent,
         });
       } catch (error) {
@@ -394,7 +393,6 @@ export class GoogleCalendarProvider implements CalendarProvider {
 
       return parseGoogleCalendarEvent({
         calendar,
-        accountId: this.accountId,
         event: updatedEvent,
       });
     });
@@ -428,7 +426,6 @@ export class GoogleCalendarProvider implements CalendarProvider {
 
       return parseGoogleCalendarEvent({
         calendar: destinationCalendar,
-        accountId: this.accountId,
         event: moved,
       });
     });

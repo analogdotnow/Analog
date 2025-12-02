@@ -16,13 +16,13 @@ export const calendarsRouter = createTRPCRouter({
     .input(createCalendarInputSchema)
     .mutation(async ({ ctx, input }) => {
       const provider = ctx.providers.find(
-        ({ account }) => account.accountId === input.accountId,
+        ({ account }) => account.accountId === input.provider.accountId,
       );
 
       if (!provider?.client) {
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: `Calendar client not found for accountId: ${input.accountId}`,
+          message: `Calendar client not found for providerAccountId: ${input.provider.accountId}`,
         });
       }
 
@@ -49,8 +49,10 @@ export const calendarsRouter = createTRPCRouter({
 
       return {
         id: account.id,
-        providerAccountId: account.accountId,
-        providerId: account.providerId,
+        provider: {
+          id: account.providerId,
+          accountId: account.accountId,
+        },
         name: account.email,
         calendars,
       };
@@ -71,7 +73,7 @@ export const calendarsRouter = createTRPCRouter({
       ) ??
       calendars.find(
         (calendar) =>
-          calendar.providerAccountId === defaultAccount.accountId &&
+          calendar.provider.accountId === defaultAccount.accountId &&
           calendar.primary,
       );
 
@@ -109,19 +111,22 @@ export const calendarsRouter = createTRPCRouter({
   get: calendarProcedure
     .input(
       z.object({
-        accountId: z.string(),
+        provider: z.object({
+          id: z.enum(["google", "microsoft"]),
+          accountId: z.string(),
+        }),
         calendarId: z.string(),
       }),
     )
     .query(async ({ ctx, input }) => {
       const provider = ctx.providers.find(
-        ({ account }) => account.accountId === input.accountId,
+        ({ account }) => account.accountId === input.provider.accountId,
       );
 
       if (!provider?.client) {
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: `Calendar client not found for accountId: ${input.accountId}`,
+          message: `Calendar client not found for providerAccountId: ${input.provider.accountId}`,
         });
       }
 
@@ -133,20 +138,23 @@ export const calendarsRouter = createTRPCRouter({
     .input(
       z.object({
         id: z.string(),
-        accountId: z.string(),
+        provider: z.object({
+          id: z.enum(["google", "microsoft"]),
+          accountId: z.string(),
+        }),
         name: z.string(),
         timeZone: z.string().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
       const provider = ctx.providers.find(
-        ({ account }) => account.accountId === input.accountId,
+        ({ account }) => account.accountId === input.provider.accountId,
       );
 
       if (!provider?.client) {
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: `Calendar client not found for accountId: ${input.accountId}`,
+          message: `Calendar client not found for providerAccountId: ${input.provider.accountId}`,
         });
       }
 
@@ -177,19 +185,22 @@ export const calendarsRouter = createTRPCRouter({
   delete: calendarProcedure
     .input(
       z.object({
-        accountId: z.string(),
+        provider: z.object({
+          id: z.enum(["google", "microsoft"]),
+          accountId: z.string(),
+        }),
         calendarId: z.string(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
       const provider = ctx.providers.find(
-        ({ account }) => account.accountId === input.accountId,
+        ({ account }) => account.accountId === input.provider.accountId,
       );
 
       if (!provider?.client) {
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: `Calendar client not found for accountId: ${input.accountId}`,
+          message: `Calendar client not found for providerAccountId: ${input.provider.accountId}`,
         });
       }
 

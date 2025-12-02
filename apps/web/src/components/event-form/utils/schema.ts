@@ -62,12 +62,14 @@ export const formSchema = z.object({
   recurringEventId: z.string().optional(),
   description: z.string(),
   calendar: z.object({
-    accountId: z.string(),
-    calendarId: z.string(),
+    id: z.string(),
+    provider: z.object({
+      id: z.enum(["google", "microsoft"]),
+      accountId: z.string(),
+    }),
   }),
   attendees: z.array(attendeeSchema),
   conference: conferenceSchema.nullable().optional(),
-  providerId: z.enum(["google", "microsoft"]),
   visibility: z.enum(["default", "public", "private", "confidential"]),
 });
 

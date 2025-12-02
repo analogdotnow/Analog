@@ -98,7 +98,7 @@ export function TRPCReactProvider(props: Readonly<TRPCReactProviderProps>) {
   return (
     <PersistQueryClientProvider
       client={queryClient}
-      persistOptions={{ persister }}
+      persistOptions={{ persister, buster: "01-12-2025" }}
     >
       <TRPCProvider trpcClient={trpcClient} queryClient={queryClient}>
         {props.children}

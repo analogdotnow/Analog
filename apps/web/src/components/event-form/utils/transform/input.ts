@@ -70,11 +70,10 @@ export function parseDraftEvent({
     recurrence: event.recurrence,
     recurringEventId: event.recurringEventId,
     attendees: parseAttendees(event),
-    calendar: {
-      accountId: event?.accountId ?? defaultCalendar.accountId,
-      calendarId: event?.calendarId ?? defaultCalendar.id,
+    calendar: event?.calendar ?? {
+      id: defaultCalendar.id,
+      provider: defaultCalendar.provider,
     },
-    providerId: event?.providerId ?? defaultCalendar.providerId,
     conference: event.conference,
     visibility: event.visibility ?? "default",
   };
@@ -106,11 +105,7 @@ export function parseCalendarEvent({
     recurrence: event.recurrence,
     recurringEventId: event.recurringEventId,
     attendees: parseAttendees(event),
-    calendar: {
-      accountId: event.accountId ?? "",
-      calendarId: event.calendarId ?? "",
-    },
-    providerId: event.providerId,
+    calendar: event.calendar,
     conference: event.conference,
     visibility: event.visibility ?? "default",
   };

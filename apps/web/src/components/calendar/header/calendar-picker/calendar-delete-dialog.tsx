@@ -44,7 +44,7 @@ export function CalendarDeleteDialog() {
 
   const onDelete = () => {
     mutate({
-      accountId: calendar.accountId,
+      provider: calendar.provider,
       calendarId: calendar.id,
     });
   };
