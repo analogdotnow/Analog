@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { isOnlineMeeting } from "@/lib/utils/events";
 import { format, formatTime } from "@/lib/utils/format";
 
+// TODO: instead use the common function that's already used across the project
 function eventColor(event: CalendarEvent) {
   return {
     "--calendar-color": `var(${calendarColorVariable(event.calendar.provider.accountId, event.calendar.id)}, var(--color-muted-foreground))`,
