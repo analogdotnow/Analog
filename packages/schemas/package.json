@@ -12,13 +12,13 @@
   "peerDependencies": {
     "temporal-polyfill": "^0.3.0",
     "temporal-zod": "https://pkg.pr.new/analogdotnow/temporal-utils/temporal-zod@395939e",
-    "zod": "^4.1.13"
+    "zod": "^4.2.1"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
-    "@types/node": "^24.10.1",
-    "eslint": "^9.39.1",
+    "@types/node": "^24.10.4",
+    "eslint": "^9.39.2",
     "typescript": "^5.9.2"
   }
 }

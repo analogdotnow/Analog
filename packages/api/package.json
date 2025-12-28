@@ -13,12 +13,12 @@
     "type-check": "tsc --noEmit"
   },
   "peerDependencies": {
-    "@sentry/node": "^10.27.0",
-    "@trpc/server": "^11.7.2",
-    "better-auth": "^1.4.4",
-    "drizzle-orm": "^0.44.7",
+    "@sentry/node": "^10.32.1",
+    "@trpc/server": "^11.8.1",
+    "better-auth": "^1.4.9",
+    "drizzle-orm": "^0.45.1",
     "remeda": "^2.30.0",
-    "next": "16.0.6",
+    "next": "16.1.1",
     "server-only": "^0.0.1",
     "superjson": "^2.2.6",
     "superjson-temporal": "^0.4.0",
@@ -26,7 +26,7 @@
     "temporal-zod": "https://pkg.pr.new/analogdotnow/temporal-utils/temporal-zod@395939e",
     "trpc-to-openapi": "^3.0.1",
     "trpc-to-mcp": "^1.3.2",
-    "zod": "^4.1.13"
+    "zod": "^4.2.1"
   },
   "dependencies": {
     "@analog/meeting-links": "workspace:*",
@@ -43,14 +43,14 @@
     "@repo/schemas": "workspace:*",
     "@repo/temporal": "workspace:*",
     "@upstash/ratelimit": "^2.0.7",
-    "@upstash/redis": "^1.35.7"
+    "@upstash/redis": "^1.36.0"
   },
   "devDependencies": {
     "@microsoft/microsoft-graph-types": "^2.40.0",
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
-    "@types/node": "^24.10.1",
-    "eslint": "^9.39.1",
+    "@types/node": "^24.10.4",
+    "eslint": "^9.39.2",
     "typescript": "^5.9.2"
   }
 }

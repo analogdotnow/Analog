@@ -15,12 +15,12 @@
     "type-check": "tsc --noEmit"
   },
   "peerDependencies": {
-    "@trpc/server": "^11.7.2",
-    "better-auth": "^1.4.4",
+    "@trpc/server": "^11.8.1",
+    "better-auth": "^1.4.9",
     "server-only": "^0.0.1",
     "temporal-polyfill": "^0.3.0",
     "temporal-zod": "https://pkg.pr.new/analogdotnow/temporal-utils/temporal-zod@395939e",
-    "zod": "^4.1.13"
+    "zod": "^4.2.1"
   },
   "dependencies": {
     "@analog/meeting-links": "workspace:*",
@@ -37,8 +37,8 @@
     "@repo/schemas": "workspace:*",
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
-    "@types/node": "^24.10.1",
-    "eslint": "^9.39.1",
+    "@types/node": "^24.10.4",
+    "eslint": "^9.39.2",
     "typescript": "^5.9.2"
   }
 }

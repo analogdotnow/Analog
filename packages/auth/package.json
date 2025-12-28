@@ -12,22 +12,22 @@
     "type-check": "tsc --noEmit"
   },
   "peerDependencies": {
-    "better-auth": "^1.4.4",
-    "drizzle-orm": "^0.44.7",
+    "better-auth": "^1.4.9",
+    "drizzle-orm": "^0.45.1",
     "server-only": "^0.0.1"
   },
   "dependencies": {
     "@repo/db": "workspace:*",
     "@repo/env": "workspace:*",
     "@repo/providers": "workspace:*",
-    "@upstash/redis": "^1.35.7"
+    "@upstash/redis": "^1.36.0"
   },
   "devDependencies": {
     "@microsoft/microsoft-graph-types": "^2.40.0",
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
-    "@types/node": "^24.10.1",
-    "eslint": "^9.39.1",
+    "@types/node": "^24.10.4",
+    "eslint": "^9.39.2",
     "typescript": "^5.9.2"
   }
 }

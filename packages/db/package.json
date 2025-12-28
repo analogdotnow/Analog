@@ -16,7 +16,7 @@
     "db:studio": "drizzle-kit studio"
   },
   "peerDependencies": {
-    "drizzle-orm": "^0.44.7"
+    "drizzle-orm": "^0.45.1"
   },
   "dependencies": {
     "@repo/env": "workspace:*",
@@ -29,9 +29,9 @@
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
-    "@types/node": "^24.10.1",
-    "drizzle-kit": "^0.31.7",
-    "eslint": "^9.39.1",
+    "@types/node": "^24.10.4",
+    "drizzle-kit": "^0.31.8",
+    "eslint": "^9.39.2",
     "typescript": "^5.9.2"
   }
 }

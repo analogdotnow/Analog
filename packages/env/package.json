@@ -11,16 +11,16 @@
     "type-check": "tsc --noEmit"
   },
   "peerDependencies": {
-    "zod": "^4.1.13"
+    "zod": "^4.2.1"
   },
   "dependencies": {
-    "@t3-oss/env-nextjs": "^0.13.8"
+    "@t3-oss/env-nextjs": "^0.13.10"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
-    "@types/node": "^24.10.1",
-    "eslint": "^9.39.1",
+    "@types/node": "^24.10.4",
+    "eslint": "^9.39.2",
     "typescript": "^5.9.2"
   }
 }

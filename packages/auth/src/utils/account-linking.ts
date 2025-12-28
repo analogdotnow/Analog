@@ -11,7 +11,7 @@ import { getCalendarProvider } from "@repo/providers";
 
 export const createProviderHandler = async (
   account: HookAccountRecord,
-  ctx: GenericEndpointContext | undefined,
+  ctx: GenericEndpointContext | null,
 ) => {
   if (!account.accessToken || !account.refreshToken) {
     throw new APIError("INTERNAL_SERVER_ERROR", {
