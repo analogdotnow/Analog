@@ -2,31 +2,25 @@ import type { Calendar as MicrosoftCalendar } from "@microsoft/microsoft-graph-t
 
 import type { Calendar } from "../../interfaces";
 
-interface ParseMicrosoftCalendarOptions {
+interface ParseCalendarOptions {
   providerAccountId: string;
   calendar: MicrosoftCalendar;
 }
 
-export function parseMicrosoftCalendar({
+export function parseCalendar({
   providerAccountId,
   calendar,
-}: ParseMicrosoftCalendarOptions): Calendar {
+}: ParseCalendarOptions): Calendar {
   return {
     id: calendar.id!,
     name: calendar.name!,
-    primary: calendar.isDefaultCalendar!,
+    primary: Boolean(calendar.isDefaultCalendar),
     provider: {
       id: "microsoft",
       accountId: providerAccountId,
     },
     color: calendar.hexColor!,
-    readOnly: !calendar.canEdit,
+    readOnly: calendar.canEdit === false,
     syncToken: null,
   };
-}
-
-export function calendarPath(calendarId: string) {
-  return calendarId === "primary"
-    ? "/me/calendar"
-    : `/me/calendars/${calendarId}`;
 }

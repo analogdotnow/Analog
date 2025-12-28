@@ -170,3 +170,6 @@ export interface Recurrence {
   rscale?: RScale;
   skip?: "OMIT" | "BACKWARD" | "FORWARD";
 }
+
+export type Meeting = Omit<CalendarEvent, "attendees"> &
+  Required<Pick<CalendarEvent, "attendees">>;
