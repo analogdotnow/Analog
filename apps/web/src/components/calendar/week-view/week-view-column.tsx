@@ -10,17 +10,17 @@ import { viewPreferencesAtom } from "@/atoms/view-preferences";
 import { DragPreview } from "@/components/calendar/event/drag-preview";
 import { useDoubleClickToCreate } from "@/components/calendar/hooks/drag-and-drop/use-double-click-to-create";
 import { useDragToCreate } from "@/components/calendar/hooks/drag-and-drop/use-drag-to-create";
-import { EventCollectionForWeek } from "@/components/calendar/hooks/use-event-collection";
+import { WeekEventCollection } from "@/components/calendar/hooks/use-event-collection";
 import { HOURS } from "@/components/calendar/timeline/constants";
 import { TimeIndicator } from "@/components/calendar/timeline/time-indicator";
-import type { PositionedEvent } from "@/components/calendar/utils/event";
+import type { PositionedEvent } from "@/components/calendar/utils/positioning";
 import { cn } from "@/lib/utils";
 import { WeekViewEvent } from "./week-view-event";
 
 interface WeekViewDayColumnsProps {
   date: Temporal.PlainDate;
   visibleDays: Temporal.PlainDate[];
-  eventCollection: EventCollectionForWeek;
+  eventCollection: WeekEventCollection;
   containerRef: React.RefObject<HTMLDivElement | null>;
 }
 

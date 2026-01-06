@@ -1,3 +1,5 @@
+"use client";
+
 import { ClipboardDocumentListIcon } from "@heroicons/react/16/solid";
 
 import { Button } from "@/components/ui/button";
@@ -16,6 +18,8 @@ export function CopyButton({
   value,
   disabled,
 }: CopyButtonProps) {
+  "use memo";
+
   return (
     <Button
       type="button"

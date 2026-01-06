@@ -2,272 +2,145 @@ import { useMemo } from "react";
 import { useAtomValue } from "jotai";
 import { Temporal } from "temporal-polyfill";
 
-import { calendarSettingsAtom } from "@/atoms/calendar-settings";
+import { isAfter, isBefore, isWeekend } from "@repo/temporal";
+
 import { cellHeightAtom } from "@/atoms/cell-height";
+import { viewPreferencesAtom } from "@/atoms/view-preferences";
 import {
   calculateWeekViewEventPositions,
   getAllDayEventCollectionsForDays,
   getEventCollectionsForDay,
-  isAllDayOrMultiDay,
   type PositionedEvent,
-} from "@/components/calendar/utils/event";
+} from "@/components/calendar/utils/positioning";
 import { EventCollectionItem } from "./event-collection";
 
-// Pre-filter events by date range to avoid processing irrelevant events
 function preFilterEventsByDateRange(
   items: EventCollectionItem[],
   startDate: Temporal.PlainDate,
   endDate: Temporal.PlainDate,
-): EventCollectionItem[] {
-  return items.filter((item) => {
-    const eventStart = item.start.toPlainDate();
-    const eventEnd = item.end.toPlainDate();
-
-    // Check if event overlaps with the date range
+) {
+  return items.filter(({ start, end }) => {
     return (
-      Temporal.PlainDate.compare(eventEnd, startDate) >= 0 &&
-      Temporal.PlainDate.compare(eventStart, endDate) <= 0
+      Temporal.PlainDate.compare(start.toPlainDate(), endDate) <= 0 &&
+      Temporal.PlainDate.compare(end.toPlainDate(), startDate) >= 0
     );
   });
 }
 
-// Simple per-day processing for month view (keeps code easy to reason about)
-function getEventCollectionsForMonthSimple(
-  items: EventCollectionItem[],
-  days: Temporal.PlainDate[],
-): Map<string, EventCollectionByDay> {
-  const map = new Map<string, EventCollectionByDay>();
+function isWithinWeekdayRange(
+  item: EventCollectionItem,
+  rangeStart: Temporal.PlainDate,
+  rangeEnd: Temporal.PlainDate,
+) {
+  const eventStart = item.start.toPlainDate();
+  const eventEnd = item.end.toPlainDate();
+  const clampedStart = isBefore(eventStart, rangeStart)
+    ? rangeStart
+    : eventStart;
+  const clampedEnd = isAfter(eventEnd, rangeEnd) ? rangeEnd : eventEnd;
 
-  if (days.length === 0) {
-    return map;
+  if (clampedStart.until(clampedEnd, { largestUnit: "days" }).days >= 2) {
+    return true;
   }
 
-  // Pre-filter events to those that can possibly overlap with the visible range
-  const startDate = days[0]!;
-  const endDate = days[days.length - 1]!;
-  const relevant = preFilterEventsByDateRange(items, startDate, endDate);
-
-  for (const day of days) {
-    map.set(day.toString(), getEventCollectionsForDay(relevant, day));
-  }
-
-  return map;
+  return !isWeekend(clampedStart) || !isWeekend(clampedEnd);
 }
 
-// Optimized week view processing
-function getOptimizedWeekViewEvents(
-  items: EventCollectionItem[],
-  days: Temporal.PlainDate[],
-  cellHeight: number,
-  timeZone: string,
-): {
-  allDayEvents: EventCollectionItem[];
-  positionedEvents: PositionedEvent[][];
-} {
-  if (days.length === 0) return { allDayEvents: [], positionedEvents: [] };
-
-  // Pre-filter events for the week range
-  const startDate = days[0]!;
-  const endDate = days[days.length - 1]!;
-  const relevantItems = preFilterEventsByDateRange(items, startDate, endDate);
-
-  // Early return if no relevant events
-  if (relevantItems.length === 0) {
-    return {
-      allDayEvents: [],
-      positionedEvents: days.map(() => []),
-    };
-  }
-
-  const allDayEvents = getAllDayEventCollectionsForDays(relevantItems, days);
-
-  const positionedEvents = calculateWeekViewEventPositions(
-    relevantItems,
-    days,
-    cellHeight,
-    timeZone,
-  );
-
-  return { allDayEvents, positionedEvents };
-}
-
-// Day view specific processing
-function getOptimizedDayViewEvents(
-  items: EventCollectionItem[],
-  day: Temporal.PlainDate,
-  cellHeight: number,
-  timeZone: string,
-): {
-  allDayEvents: EventCollectionItem[];
-  positionedEvents: PositionedEvent[];
-} {
-  // Filter events for this specific day
-  const relevantItems = items.filter((item) => {
-    const eventStart = item.start.toPlainDate();
-    const eventEnd = item.end.toPlainDate();
-
-    // Check if event overlaps with the day
-    return (
-      Temporal.PlainDate.compare(eventEnd, day) >= 0 &&
-      Temporal.PlainDate.compare(eventStart, day) <= 0
-    );
-  });
-
-  // Early return if no relevant events
-  if (relevantItems.length === 0) {
-    return {
-      allDayEvents: [],
-      positionedEvents: [],
-    };
-  }
-
-  const allDayEvents = relevantItems.filter((item) => isAllDayOrMultiDay(item));
-
-  // Use the week view positioning logic but for a single day
-  const positionedEvents = calculateWeekViewEventPositions(
-    relevantItems,
-    [day],
-    cellHeight,
-    timeZone,
-  );
-
-  return {
-    allDayEvents,
-    positionedEvents: positionedEvents[0] || [],
-  };
-}
-
-export type EventCollectionByDay = {
+export interface EventCollectionByDay {
   dayEvents: EventCollectionItem[];
   spanningEvents: EventCollectionItem[];
   allDayEvents: EventCollectionItem[];
   allEvents: EventCollectionItem[];
-};
+}
 
-export type EventCollectionForMonth = {
-  type: "month";
+export interface MonthEventCollection {
   eventsByDay: Map<string, EventCollectionByDay>;
-};
+}
 
-export type EventCollectionForWeek = {
-  type: "week";
+export interface WeekEventCollection {
   allDayEvents: EventCollectionItem[];
   positionedEvents: PositionedEvent[][];
-};
+}
 
-type EventCollectionForDay = {
-  type: "day";
-  allDayEvents: EventCollectionItem[];
-  positionedEvents: PositionedEvent[];
-};
-
-export function useEventCollection(
-  eventItems: EventCollectionItem[],
+export function useMonthEventCollection(
+  items: EventCollectionItem[],
   days: Temporal.PlainDate[],
-  viewType: "month",
-): EventCollectionForMonth;
+): MonthEventCollection {
+  return useMemo(() => {
+    if (items.length === 0 || days.length === 0) {
+      return { eventsByDay: new Map() };
+    }
 
-export function useEventCollection(
-  eventItems: EventCollectionItem[],
+    const events = preFilterEventsByDateRange(items, days.at(0)!, days.at(-1)!);
+    const eventsByDay = new Map<string, EventCollectionByDay>();
+
+    for (const day of days) {
+      eventsByDay.set(day.toString(), getEventCollectionsForDay(events, day));
+    }
+
+    return { eventsByDay };
+  }, [items, days]);
+}
+
+export function useWeekEventCollection(
+  items: EventCollectionItem[],
   days: Temporal.PlainDate[],
-  viewType: "week",
-): EventCollectionForWeek;
-
-export function useEventCollection(
-  eventItems: EventCollectionItem[],
-  day: Temporal.PlainDate,
-  viewType: "day",
-): EventCollectionForDay;
-
-/**
- * Hook for processing and organizing events based on calendar view type
- *
- * @param eventItems - Array of EventCollectionItem objects to process
- * @param days - Array of Date objects representing the visible days (or single date for day view)
- * @param viewType - Type of calendar view ("month", "week", or "day")
- * @returns Processed event collections optimized for the specific view
- */
-export function useEventCollection(
-  eventItems: EventCollectionItem[],
-  daysOrDay: Temporal.PlainDate[] | Temporal.PlainDate,
-  viewType: "month" | "week" | "day",
-): EventCollectionForMonth | EventCollectionForWeek | EventCollectionForDay {
-  const timeZone = useAtomValue(calendarSettingsAtom).defaultTimeZone;
+): WeekEventCollection {
   const cellHeight = useAtomValue(cellHeightAtom);
 
   return useMemo(() => {
-    // Early return for empty inputs
-    if (eventItems.length === 0) {
-      if (viewType === "month") {
-        return {
-          type: "month" as const,
-          eventsByDay: new Map(),
-        };
-      }
-      if (viewType === "week") {
-        return {
-          type: "week" as const,
-          allDayEvents: [],
-          positionedEvents: [],
-        };
-      }
-      return {
-        type: "day" as const,
-        allDayEvents: [],
-        positionedEvents: [],
-      };
+    if (items.length === 0 || days.length === 0) {
+      return { allDayEvents: [], positionedEvents: [] };
     }
 
-    if (viewType === "day") {
-      const day = daysOrDay as Temporal.PlainDate;
-      const { allDayEvents, positionedEvents } = getOptimizedDayViewEvents(
-        eventItems,
-        day,
-        cellHeight,
-        timeZone,
-      );
-      return {
-        type: "day" as const,
-        allDayEvents,
-        positionedEvents,
-      };
+    const events = preFilterEventsByDateRange(items, days.at(0)!, days.at(-1)!);
+
+    if (events.length === 0) {
+      return { allDayEvents: [], positionedEvents: days.map(() => []) };
     }
 
-    const days = daysOrDay as Temporal.PlainDate[];
+    const allDayEvents = getAllDayEventCollectionsForDays(events, days);
 
-    if (days.length === 0) {
-      if (viewType === "month") {
-        return {
-          type: "month" as const,
-          eventsByDay: new Map(),
-        };
-      }
-      return {
-        type: "week" as const,
-        allDayEvents: [],
-        positionedEvents: [],
-      };
-    }
-
-    if (viewType === "month") {
-      const eventsByDay = getEventCollectionsForMonthSimple(eventItems, days);
-      return {
-        type: "month" as const,
-        eventsByDay,
-      };
-    }
-
-    const { allDayEvents, positionedEvents } = getOptimizedWeekViewEvents(
-      eventItems,
+    const positionedEvents = calculateWeekViewEventPositions({
+      events,
       days,
       cellHeight,
-      timeZone,
-    );
+    });
 
-    return {
-      type: "week" as const,
-      allDayEvents,
-      positionedEvents,
-    };
-  }, [eventItems, daysOrDay, viewType, timeZone, cellHeight]);
+    return { allDayEvents, positionedEvents };
+  }, [items, days, cellHeight]);
+}
+
+export function useWeekRowEvents(
+  collection: MonthEventCollection,
+  weekStart: Temporal.PlainDate,
+  weekEnd: Temporal.PlainDate,
+): EventCollectionItem[] {
+  const { showWeekends } = useAtomValue(viewPreferencesAtom);
+
+  return useMemo(() => {
+    const uniqueEvents = new Map<string, EventCollectionItem>();
+
+    let day = weekStart;
+
+    while (Temporal.PlainDate.compare(day, weekEnd) <= 0) {
+      const dayEvents = collection.eventsByDay.get(day.toString());
+
+      if (dayEvents) {
+        for (const item of dayEvents.allEvents) {
+          uniqueEvents.set(item.event.id, item);
+        }
+      }
+
+      day = day.add({ days: 1 });
+    }
+
+    if (showWeekends) {
+      return [...uniqueEvents.values()];
+    }
+
+    return [...uniqueEvents.values()].filter((item) =>
+      isWithinWeekdayRange(item, weekStart, weekEnd),
+    );
+  }, [collection.eventsByDay, showWeekends, weekStart, weekEnd]);
 }

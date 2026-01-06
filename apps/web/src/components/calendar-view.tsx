@@ -37,10 +37,10 @@ function CalendarContent({ scrollContainerRef }: CalendarContentProps) {
   const view = useAtomValue(calendarViewAtom);
   const { data } = useEventsForDisplay();
 
-  const defaultTimeZone = useAtomValue(calendarSettingsAtom).defaultTimeZone;
+  const { defaultTimeZone } = useAtomValue(calendarSettingsAtom);
   const optimisticActions = useAtomValue(optimisticActionsByEventIdAtom);
 
-  const viewPreferences = useAtomValue(viewPreferencesAtom);
+  const { showPastEvents } = useAtomValue(viewPreferencesAtom);
   const calendarPreferences = useAtomValue(calendarPreferencesAtom);
 
   React.useEffect(() => {
@@ -61,11 +61,9 @@ function CalendarContent({ scrollContainerRef }: CalendarContentProps) {
       optimisticActions,
     });
 
-    const pastFiltered = filterPastEvents(
-      events,
-      viewPreferences.showPastEvents,
-      defaultTimeZone,
-    );
+    const pastFiltered = showPastEvents
+      ? events
+      : filterPastEvents(events, defaultTimeZone);
 
     return pastFiltered.filter((eventItem) => {
       const preference = getCalendarPreference(
@@ -80,7 +78,7 @@ function CalendarContent({ scrollContainerRef }: CalendarContentProps) {
     data?.events,
     defaultTimeZone,
     optimisticActions,
-    viewPreferences,
+    showPastEvents,
     calendarPreferences,
   ]);
 

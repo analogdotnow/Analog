@@ -8,7 +8,7 @@ import { Temporal } from "temporal-polyfill";
 import { isToday } from "@repo/temporal";
 
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
-import { eventOverlapsDay } from "@/components/calendar/utils/event";
+import { eventOverlapsDay } from "@/components/calendar/utils/positioning";
 import { EventCollectionItem } from "../hooks/event-collection";
 import { AgendaViewEvent } from "./agenda-view-event";
 

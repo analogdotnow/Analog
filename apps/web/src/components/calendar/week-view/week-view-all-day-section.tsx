@@ -7,21 +7,21 @@ import { isToday, isWeekend } from "@repo/temporal";
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { viewPreferencesAtom } from "@/atoms/view-preferences";
 import { useDoubleClickToCreate } from "@/components/calendar/hooks/drag-and-drop/use-double-click-to-create";
-import { EventCollectionForWeek } from "@/components/calendar/hooks/use-event-collection";
+import { WeekEventCollection } from "@/components/calendar/hooks/use-event-collection";
 import {
   useMultiDayOverflow,
   type UseMultiDayOverflowResult,
 } from "@/components/calendar/hooks/use-multi-day-overflow";
 import { useUnselectAllAction } from "@/components/calendar/hooks/use-optimistic-mutations";
 import { OverflowIndicator } from "@/components/calendar/overflow/overflow-indicator";
-import { getEventsStartingOnPlainDate } from "@/components/calendar/utils/event";
+import { eventsStartingOn } from "@/components/calendar/utils/event";
 import { WeekViewAllDayEvent } from "@/components/calendar/week-view/week-view-all-day-event";
 import { cn } from "@/lib/utils";
 
 interface WeekViewAllDaySectionProps {
   allDays: Temporal.PlainDate[];
   visibleDays: Temporal.PlainDate[];
-  eventCollection: EventCollectionForWeek;
+  eventCollection: WeekEventCollection;
   containerRef: React.RefObject<HTMLDivElement | null>;
 }
 
@@ -112,10 +112,7 @@ function WeekViewAllDayColumn({
         isDayVisible && visibleDayIndex === visibleDays.length - 1;
 
       // Filter overflow events to only show those that start on this day
-      const dayOverflowEvents = getEventsStartingOnPlainDate(
-        overflow.overflowEvents,
-        day,
-      );
+      const dayOverflowEvents = eventsStartingOn(overflow.overflowEvents, day);
 
       return { isDayVisible, isLastVisibleDay, dayOverflowEvents };
     }, [

@@ -230,11 +230,11 @@ export function isWithinInterval(
   options: IsWithinIntervalOptions,
 ): boolean;
 export function isWithinInterval(
-  date: Temporal.PlainDate,
+  value: Temporal.PlainDate,
   interval: { start: Temporal.PlainDate; end: Temporal.PlainDate },
 ): boolean;
 export function isWithinInterval(
-  date: Temporal.PlainDate | Temporal.ZonedDateTime,
+  value: Temporal.PlainDate | Temporal.ZonedDateTime,
   interval: {
     start: Temporal.PlainDate | Temporal.ZonedDateTime;
     end: Temporal.PlainDate | Temporal.ZonedDateTime;
@@ -243,33 +243,48 @@ export function isWithinInterval(
 ): boolean;
 
 export function isWithinInterval(
-  date: Temporal.PlainDate | Temporal.ZonedDateTime,
+  value: Temporal.PlainDate | Temporal.ZonedDateTime,
   interval: {
     start: Temporal.PlainDate | Temporal.ZonedDateTime;
     end: Temporal.PlainDate | Temporal.ZonedDateTime;
   },
   options?: IsWithinIntervalOptions,
 ): boolean {
-  const date1 =
-    date instanceof Temporal.ZonedDateTime
-      ? date.withTimeZone(options!.timeZone)
-      : date;
-  const date2 =
-    interval.start instanceof Temporal.ZonedDateTime
-      ? interval.start.withTimeZone(options!.timeZone)
-      : interval.start;
-  const date3 =
+  if (
+    value instanceof Temporal.PlainDate &&
+    interval.start instanceof Temporal.PlainDate &&
+    interval.end instanceof Temporal.PlainDate
+  ) {
+    return (
+      Temporal.PlainDate.compare(value, interval.start) >= 0 &&
+      Temporal.PlainDate.compare(value, interval.end) <= 0
+    );
+  }
+
+  if (
+    value instanceof Temporal.ZonedDateTime &&
+    interval.start instanceof Temporal.ZonedDateTime &&
     interval.end instanceof Temporal.ZonedDateTime
-      ? interval.end.withTimeZone(options!.timeZone)
-      : interval.end;
+  ) {
+    return (
+      Temporal.ZonedDateTime.compare(value, interval.start) >= 0 &&
+      Temporal.ZonedDateTime.compare(value, interval.end) <= 0
+    );
+  }
+
+  if (!options) {
+    throw new Error(
+      "options with timeZone required when comparing different types or timezones",
+    );
+  }
+
+  const date = toPlainDate(value, options);
+  const start = toPlainDate(interval.start, options);
+  const end = toPlainDate(interval.end, options);
 
   return (
-    date1.year >= date2.year &&
-    date1.year <= date3.year &&
-    date1.month >= date2.month &&
-    date1.month <= date3.month &&
-    date1.day >= date2.day &&
-    date1.day <= date3.day
+    Temporal.PlainDate.compare(date, start) >= 0 &&
+    Temporal.PlainDate.compare(date, end) <= 0
   );
 }
 

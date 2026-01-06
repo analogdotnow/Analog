@@ -11,7 +11,7 @@ import { timeZonesAtom } from "@/atoms/timezones";
 import { currentDateAtom, viewPreferencesAtom } from "@/atoms/view-preferences";
 import { useEdgeAutoScroll } from "@/components/calendar/hooks/drag-and-drop/use-auto-scroll";
 import type { EventCollectionItem } from "@/components/calendar/hooks/event-collection";
-import { useEventCollection } from "@/components/calendar/hooks/use-event-collection";
+import { useWeekEventCollection } from "@/components/calendar/hooks/use-event-collection";
 import { useGridLayout } from "@/components/calendar/hooks/use-grid-layout";
 import { TimeIndicatorBackground } from "@/components/calendar/timeline/time-indicator";
 import { Timeline } from "@/components/calendar/timeline/timeline";
@@ -52,7 +52,7 @@ export function WeekView({
     };
   }, [currentDate, settings.weekStartsOn, viewPreferences.showWeekends]);
 
-  const eventCollection = useEventCollection(events, visibleDays, "week");
+  const eventCollection = useWeekEventCollection(events, visibleDays);
 
   const containerRef = React.useRef<HTMLDivElement>(null);
   const headerRef = React.useRef<HTMLDivElement>(null);

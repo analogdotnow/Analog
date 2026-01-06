@@ -2,7 +2,7 @@ import * as React from "react";
 
 import { DragAwareWrapper } from "@/components/calendar/event/drag-aware-wrapper";
 import { DraggableEvent } from "@/components/calendar/event/draggable-event";
-import type { PositionedEvent } from "@/components/calendar/utils/event";
+import type { PositionedEvent } from "@/components/calendar/utils/positioning";
 
 interface WeekViewEventProps {
   positionedEvent: PositionedEvent;

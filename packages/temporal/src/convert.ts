@@ -70,19 +70,24 @@ interface ToPlainDateOptions {
   timeZone: string;
 }
 
+export function toPlainDate(date: Temporal.PlainDate): Temporal.PlainDate;
 export function toPlainDate(
   date: Temporal.PlainDate | Temporal.ZonedDateTime | Temporal.Instant,
   options: ToPlainDateOptions,
+): Temporal.PlainDate;
+export function toPlainDate(
+  date: Temporal.PlainDate | Temporal.ZonedDateTime | Temporal.Instant,
+  options?: ToPlainDateOptions,
 ): Temporal.PlainDate {
   if (date instanceof Temporal.PlainDate) {
     return date;
   }
 
   if (date instanceof Temporal.ZonedDateTime) {
-    return date.withTimeZone(options.timeZone).toPlainDate();
+    return date.withTimeZone(options!.timeZone).toPlainDate();
   }
 
-  return date.toZonedDateTimeISO(options.timeZone).toPlainDate();
+  return date.toZonedDateTimeISO(options!.timeZone).toPlainDate();
 }
 
 interface ToZonedDateTimeOptions {

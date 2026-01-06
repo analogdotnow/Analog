@@ -19,7 +19,7 @@ import { useEdgeAutoScroll } from "@/components/calendar/hooks/drag-and-drop/use
 import { useDoubleClickToCreate } from "@/components/calendar/hooks/drag-and-drop/use-double-click-to-create";
 import { useDragToCreate } from "@/components/calendar/hooks/drag-and-drop/use-drag-to-create";
 import type { EventCollectionItem } from "@/components/calendar/hooks/event-collection";
-import { useEventCollection } from "@/components/calendar/hooks/use-event-collection";
+import { useWeekEventCollection } from "@/components/calendar/hooks/use-event-collection";
 import { useGridLayout } from "@/components/calendar/hooks/use-grid-layout";
 import { useSelectAction } from "@/components/calendar/hooks/use-optimistic-mutations";
 import { HOURS } from "@/components/calendar/timeline/constants";
@@ -94,7 +94,7 @@ export function DayView({ events, scrollContainerRef }: DayViewProps) {
 
   useEdgeAutoScroll(scrollContainerRef, { headerRef });
 
-  const eventCollection = useEventCollection(events, currentDate, "day");
+  const eventCollection = useWeekEventCollection(events, [currentDate]);
 
   const gridTemplateColumns = useGridLayout([currentDate], {
     includeTimeColumn: true,
@@ -133,7 +133,7 @@ export function DayView({ events, scrollContainerRef }: DayViewProps) {
       >
         <Timeline />
         <div className="relative">
-          {eventCollection.positionedEvents.map((positionedEvent) => (
+          {eventCollection.positionedEvents[0]?.map((positionedEvent) => (
             <PositionedEvent
               key={positionedEvent.item.event.id}
               positionedEvent={positionedEvent}

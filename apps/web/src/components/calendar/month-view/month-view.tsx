@@ -16,7 +16,7 @@ import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { getWeekDays } from "@/components/calendar/utils/date-time";
 import { groupArrayIntoChunks } from "@/lib/utils";
 import { EventCollectionItem } from "../hooks/event-collection";
-import { useEventCollection } from "../hooks/use-event-collection";
+import { useMonthEventCollection } from "../hooks/use-event-collection";
 import { useGridLayout } from "../hooks/use-grid-layout";
 import { useUnselectAllAction } from "../hooks/use-optimistic-mutations";
 import { MonthViewHeader } from "./month-view-header";
@@ -50,7 +50,7 @@ export function MonthView({ currentDate, events }: MonthViewProps) {
   const containerRef = React.useRef<HTMLDivElement | null>(null);
 
   const gridTemplateColumns = useGridLayout(getWeekDays(currentDate));
-  const eventCollection = useEventCollection(events, days, "month");
+  const eventCollection = useMonthEventCollection(events, days);
 
   const rows = weeks.length;
 

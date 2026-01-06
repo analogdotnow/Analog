@@ -12,7 +12,7 @@ import { viewPreferencesAtom } from "@/atoms/view-preferences";
 import { useDoubleClickToCreate } from "@/components/calendar/hooks/drag-and-drop/use-double-click-to-create";
 import type { UseMultiDayOverflowResult } from "@/components/calendar/hooks/use-multi-day-overflow";
 import { OverflowIndicator } from "@/components/calendar/overflow/overflow-indicator";
-import { getEventsStartingOnPlainDate } from "@/components/calendar/utils/event";
+import { eventsStartingOn } from "@/components/calendar/utils/event";
 import { cn } from "@/lib/utils";
 
 interface MonthViewDayProps {
@@ -81,13 +81,13 @@ function MonthViewDayHeader({ day }: MonthViewDayHeaderProps) {
 
 const MemorizedMonthViewDayHeader = React.memo(MonthViewDayHeader);
 
-type MonthViewCellProps = {
+interface MonthViewCellProps {
   children: React.ReactNode;
   className?: string;
   day: Temporal.PlainDate;
   currentDate: Temporal.PlainDate;
   dayIndex: number;
-};
+}
 
 function MonthViewCell({
   children,
@@ -105,6 +105,7 @@ function MonthViewCell({
     () => isSameMonth(day, currentDate),
     [day, currentDate],
   );
+
   const isDayVisible = React.useMemo(
     () => viewPreferences.showWeekends || !isWeekend(day),
     [viewPreferences.showWeekends, day],
@@ -145,7 +146,7 @@ interface MonthViewDayOverflowProps {
 function MonthViewDayOverflow({ overflow, day }: MonthViewDayOverflowProps) {
   // Filter overflow events to only show those that start on this day
   const dayOverflowEvents = React.useMemo(
-    () => getEventsStartingOnPlainDate(overflow.overflowEvents, day),
+    () => eventsStartingOn(overflow.overflowEvents, day),
     [overflow.overflowEvents, day],
   );
 
