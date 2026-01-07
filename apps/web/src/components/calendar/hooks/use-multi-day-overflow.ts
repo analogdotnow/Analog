@@ -1,27 +1,27 @@
 import * as React from "react";
 
-import { EventCollectionItem } from "@/components/calendar/hooks/event-collection";
 import { useContainerSize } from "@/hooks/use-container-size";
+import { InlineDisplayItem } from "@/lib/display-item";
 import { EventGap, EventHeight } from "../constants";
 import {
-  organizeEventsWithOverflow,
-  type EventCapacityInfo,
+  organizeItemsWithOverflow,
+  type DisplayItemCapacityInfo,
 } from "../utils/multi-day-layout";
 
 interface UseMultiDayOverflowOptions {
-  events: EventCollectionItem[];
+  items: InlineDisplayItem[];
   timeZone: string;
   containerRef: React.RefObject<HTMLDivElement | null>;
   minVisibleLanes?: number;
 }
 
 export interface UseMultiDayOverflowResult {
-  capacityInfo: EventCapacityInfo;
-  overflowEvents: EventCollectionItem[];
+  capacityInfo: DisplayItemCapacityInfo;
+  overflowItems: InlineDisplayItem[];
 }
 
 export function useMultiDayOverflow({
-  events,
+  items,
   timeZone,
   containerRef,
   minVisibleLanes,
@@ -29,19 +29,19 @@ export function useMultiDayOverflow({
   const { height } = useContainerSize(containerRef);
 
   return React.useMemo(() => {
-    const capacityInfo = organizeEventsWithOverflow({
-      events,
+    const capacityInfo = organizeItemsWithOverflow({
+      items,
       availableHeight: minVisibleLanes
         ? Math.max(minVisibleLanes * (EventHeight + EventGap), height)
         : height,
       timeZone,
-      eventHeight: EventHeight,
-      eventGap: EventGap,
+      itemHeight: EventHeight,
+      itemGap: EventGap,
     });
 
     return {
       capacityInfo,
-      overflowEvents: capacityInfo.overflowLanes.flat(),
+      overflowItems: capacityInfo.overflowLanes.flat(),
     };
-  }, [events, minVisibleLanes, height, timeZone]);
+  }, [items, minVisibleLanes, height, timeZone]);
 }

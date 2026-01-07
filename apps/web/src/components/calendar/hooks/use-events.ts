@@ -6,9 +6,9 @@ import { endOfMonth, startOfMonth } from "@repo/temporal";
 
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { currentDateAtom } from "@/atoms/view-preferences";
+import { createEventDisplayItem } from "@/lib/display-item";
 import { RouterOutputs } from "@/lib/trpc";
 import { useTRPC } from "@/lib/trpc/client";
-import { mapEventsToItems } from "./event-collection";
 
 const TIME_RANGE_DAYS_PAST = 30;
 const TIME_RANGE_DAYS_FUTURE = 30;
@@ -65,7 +65,9 @@ export function useEventsForDisplay() {
       }
 
       return {
-        events: mapEventsToItems(data.events, defaultTimeZone),
+        events: data.events.map((event) =>
+          createEventDisplayItem(event, defaultTimeZone),
+        ),
         recurringMasterEvents: data.recurringMasterEvents,
       };
     },

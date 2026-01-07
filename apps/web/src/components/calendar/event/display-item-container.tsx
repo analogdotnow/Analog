@@ -4,22 +4,23 @@ import * as React from "react";
 import { useAtomValue } from "jotai";
 
 import { draggingAtom } from "@/atoms/drag-resize-state";
+import { DisplayItem } from "@/lib/display-item";
 import { cn } from "@/lib/utils";
 
-interface DragAwareWrapperProps extends React.ComponentProps<"div"> {
-  eventId: string;
+interface DisplayItemContainerProps extends React.ComponentProps<"div"> {
+  item: DisplayItem;
 }
 
-// TODO: replace with a portal
-export function DragAwareWrapper({
+export function DisplayItemContainer({
   className,
-  eventId,
+  item,
   children,
   style,
   ...props
-}: DragAwareWrapperProps) {
-  const draggedEventId = useAtomValue(draggingAtom);
-  const isDragging = draggedEventId === eventId;
+}: DisplayItemContainerProps) {
+  const draggedItemId = useAtomValue(draggingAtom);
+
+  const isDragging = item.id ? draggedItemId === item.id : false;
 
   return (
     <div

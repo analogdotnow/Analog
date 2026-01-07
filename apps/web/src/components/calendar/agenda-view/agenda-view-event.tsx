@@ -2,28 +2,47 @@
 
 import * as React from "react";
 
-import { EventItem } from "@/components/calendar/event/event-item";
-import type { EventCollectionItem } from "@/components/calendar/hooks/event-collection";
+import { DisplayItemComponent } from "@/components/calendar/display-item/display-item";
 import { useSelectAction } from "@/components/calendar/hooks/use-optimistic-mutations";
+import {
+  DisplayItem,
+  InlineDisplayItem,
+  isEvent,
+  isInlineItem,
+} from "@/lib/display-item";
 
-interface AgendaViewEventProps {
-  item: EventCollectionItem;
+interface AgendaViewItemProps {
+  item: DisplayItem;
 }
 
-export function AgendaViewEvent({ item }: AgendaViewEventProps) {
+export function AgendaViewItem({ item }: AgendaViewItemProps) {
+  if (!isInlineItem(item)) {
+    return null;
+  }
+
+  return <AgendaViewInlineItem item={item} />;
+}
+
+interface AgendaViewInlineItemProps {
+  item: InlineDisplayItem;
+}
+
+function AgendaViewInlineItem({ item }: AgendaViewInlineItemProps) {
   const selectAction = useSelectAction();
 
   const onClick = React.useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
-      selectAction(item.event);
+      if (isEvent(item)) {
+        selectAction(item.event);
+      }
     },
-    [selectAction, item.event],
+    [selectAction, item],
   );
 
   return (
-    <EventItem
-      key={item.event.id}
+    <DisplayItemComponent
+      key={item.id}
       item={item}
       view="agenda"
       onClick={onClick}

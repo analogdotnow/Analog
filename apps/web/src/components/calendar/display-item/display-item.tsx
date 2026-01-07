@@ -5,32 +5,36 @@ import { useAtomValue } from "jotai";
 import { Temporal } from "temporal-polyfill";
 
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
-import { isEventSelected } from "@/atoms/selected-display-items";
+import { isDisplayItemSelected } from "@/atoms/selected-display-items";
 import {
   getBorderRadiusClasses,
   getContentPaddingClasses,
 } from "@/components/calendar/event/ui";
 import { calendarColorVariable } from "@/lib/css";
-import { EventDisplayItem } from "@/lib/display-item";
-import type { CalendarEvent } from "@/lib/interfaces";
+import {
+  DisplayItem,
+  InlineDisplayItem,
+  isAllDay,
+  isEvent,
+  isTask,
+} from "@/lib/display-item";
 import { cn } from "@/lib/utils";
 import { formatTime } from "@/lib/utils/format";
 
-interface EventWrapperProps {
-  event: CalendarEvent;
+interface DisplayItemWrapperProps {
+  color: string;
   isFirstDay?: boolean;
   isLastDay?: boolean;
-  isDragging?: boolean;
   onClick?: (e: React.MouseEvent) => void;
   className?: string;
   children: React.ReactNode;
   onMouseDown?: (e: React.MouseEvent) => void;
   onTouchStart?: (e: React.TouchEvent) => void;
+  "data-selected"?: boolean;
 }
 
-// Shared wrapper component for event styling
-function EventWrapper({
-  event,
+function DisplayItemWrapper({
+  color,
   isFirstDay = true,
   isLastDay = true,
   onClick,
@@ -39,7 +43,7 @@ function EventWrapper({
   onMouseDown,
   onTouchStart,
   "data-selected": dataSelected,
-}: EventWrapperProps & { "data-selected"?: boolean }) {
+}: DisplayItemWrapperProps) {
   return (
     <div
       className={cn(
@@ -50,11 +54,10 @@ function EventWrapper({
       )}
       style={
         {
-          "--calendar-color": event.color ?? "var(--color-muted-foreground)",
+          "--calendar-color": color,
         } as React.CSSProperties
       }
       data-selected={dataSelected || undefined}
-      // data-past-event={isEventInPast || undefined}
       data-first-day={isFirstDay || undefined}
       data-last-day={isLastDay || undefined}
       onClick={onClick}
@@ -66,12 +69,12 @@ function EventWrapper({
   );
 }
 
-interface EventItemProps {
-  item: EventDisplayItem;
+interface DisplayItemProps {
+  item: InlineDisplayItem;
   view: "month" | "week" | "day" | "agenda";
   onClick?: (e: React.MouseEvent) => void;
   showTime?: boolean;
-  currentTime?: Temporal.ZonedDateTime; // For updating time during drag
+  currentTime?: Temporal.ZonedDateTime;
   isFirstDay?: boolean;
   isLastDay?: boolean;
   children?: React.ReactNode;
@@ -80,7 +83,7 @@ interface EventItemProps {
   onTouchStart?: (e: React.TouchEvent) => void;
 }
 
-export function EventItem({
+export function DisplayItemComponent({
   item,
   view,
   onClick,
@@ -92,14 +95,13 @@ export function EventItem({
   className,
   onMouseDown,
   onTouchStart,
-}: EventItemProps) {
-  // Use the provided currentTime (for dragging) or the event's actual time
+}: DisplayItemProps) {
   const displayStart = currentTime ?? item.start;
   const displayEnd = currentTime ?? item.end;
 
   const isSelectedAtom = React.useMemo(
-    () => isEventSelected(item.event.id),
-    [item.event.id],
+    () => isDisplayItemSelected(item.id),
+    [item.id],
   );
   const isSelected = useAtomValue(isSelectedAtom);
 
@@ -109,27 +111,25 @@ export function EventItem({
 
   const { defaultTimeZone, locale, use12Hour } =
     useAtomValue(calendarSettingsAtom);
-  const eventTime = React.useMemo(() => {
-    if (item.event.allDay) {
+
+  const itemTime = React.useMemo(() => {
+    if (isAllDay(item)) {
       return "All day";
     }
+    return formatTime({
+      value: displayStart,
+      use12Hour,
+      locale,
+      timeZone: defaultTimeZone,
+    });
+  }, [displayStart, item, use12Hour, locale, defaultTimeZone]);
 
-    return `${formatTime({ value: displayStart, use12Hour, locale, timeZone: defaultTimeZone })}`;
-  }, [displayStart, item.event.allDay, use12Hour, locale, defaultTimeZone]);
-
-  const displayTitle =
-    item.event.title && item.event.title.length
-      ? item.event.title
-      : "(untitled)";
-
-  const color =
-    item.event.color ??
-    `var(${calendarColorVariable(item.event.calendar.provider.accountId, item.event.calendar.id)}, var(--color-muted-foreground))`;
+  const { title, color } = getDisplayItemDetails(item);
 
   if (view === "month") {
     return (
-      <EventWrapper
-        event={{ ...item.event, color }}
+      <DisplayItemWrapper
+        color={color}
         isFirstDay={isFirstDay}
         isLastDay={isLastDay}
         onClick={onClick}
@@ -152,32 +152,30 @@ export function EventItem({
         />
         <div className="flex min-w-0 grow items-stretch gap-y-1.5">
           {children}
+          <DisplayItemTypeIndicator item={item} />
           {!isFirstDay ? <div className="b h-lh" /> : null}
-          {
-            <span className="pointer-events-none truncate">
-              {displayTitle}{" "}
-              {!item.event.allDay && isFirstDay && (
-                <span className="truncate font-normal tabular-nums opacity-70 sm:text-[11px]">
-                  {eventTime}
-                </span>
-              )}
-            </span>
-          }
+          <span className="pointer-events-none truncate">
+            {title}{" "}
+            {!isAllDay(item) && isFirstDay && (
+              <span className="truncate font-normal tabular-nums opacity-70 sm:text-[11px]">
+                {itemTime}
+              </span>
+            )}
+          </span>
         </div>
-      </EventWrapper>
+      </DisplayItemWrapper>
     );
   }
 
   if (view === "week" || view === "day") {
     return (
-      <EventWrapper
-        event={{ ...item.event, color }}
+      <DisplayItemWrapper
+        color={color}
         isFirstDay={isFirstDay}
         isLastDay={isLastDay}
         onClick={onClick}
         className={cn(
           "@container/event @container relative flex gap-x-1.5 py-1 ps-1 pe-2 ring-1 ring-background/80",
-          // duration.total({ unit: "minute" }) < 45 && "pe-1",
           view === "week" ? "text-[10px] sm:text-xs" : "text-xs",
           isSelected &&
             "bg-event-selected text-event-selected hover:bg-event-selected-hover",
@@ -189,26 +187,22 @@ export function EventItem({
       >
         {children}
         <div className="w-1 shrink-0 rounded-lg bg-event-selected-hover opacity-40 group-data-[selected=true]:opacity-0" />
-        <div
-          className={cn(
-            // durationMinutes < 45 ? "items-center" : "flex-col",
-            "pointer-events-none relative flex w-full min-w-0 flex-col items-stretch gap-y-1",
-          )}
-        >
-          <div className="pointer-events-none truncate font-medium">
-            {item.event.title ?? "(untitled)"}{" "}
+        <div className="pointer-events-none relative flex w-full min-w-0 flex-col items-stretch gap-y-1">
+          <div className="pointer-events-none flex items-center gap-1 truncate font-medium">
+            <DisplayItemTypeIndicator item={item} />
+            {title}
           </div>
           {showTime && duration > 30 ? (
             <div className="pointer-events-none truncate font-normal tabular-nums opacity-70 sm:text-[11px]">
-              {eventTime}
+              {itemTime}
             </div>
           ) : null}
         </div>
-      </EventWrapper>
+      </DisplayItemWrapper>
     );
   }
 
-  // Agenda view - kept separate since it's significantly different
+  // Agenda view
   return (
     <button
       className={cn(
@@ -222,32 +216,73 @@ export function EventItem({
           "--calendar-color": color,
         } as React.CSSProperties
       }
-      // data-past-event={isPast(toDate(event.end, { timeZone })) || undefined}
       onClick={onClick}
       onMouseDown={onMouseDown}
       onTouchStart={onTouchStart}
     >
-      <div className="pointer-events-none text-sm font-medium">
-        {displayTitle}
+      <div className="pointer-events-none flex items-center gap-1.5 text-sm font-medium">
+        <DisplayItemTypeIndicator item={item} />
+        {title}
       </div>
       <div className="pointer-events-none text-xs opacity-70">
-        {item.event.allDay ? (
+        {isAllDay(item) ? (
           <span>All day</span>
         ) : (
-          <span className="uppercase">{eventTime}</span>
+          <span className="uppercase">{itemTime}</span>
         )}
-        {item.event.location ? (
-          <>
-            <span className="px-1 opacity-70"> · </span>
-            <span>{item.event.location}</span>
-          </>
-        ) : null}
+        <AgendaItemDetails item={item} />
       </div>
-      {item.event.description ? (
-        <div className="pointer-events-none my-1 text-xs opacity-90">
-          {item.event.description}
-        </div>
-      ) : null}
     </button>
   );
+}
+
+function DisplayItemTypeIndicator({ item }: { item: InlineDisplayItem }) {
+  if (isTask(item)) {
+    return (
+      <span className="inline-flex size-3 shrink-0 items-center justify-center rounded border border-current opacity-60">
+        <span className="sr-only">Task</span>
+      </span>
+    );
+  }
+  return null;
+}
+
+function AgendaItemDetails({ item }: { item: InlineDisplayItem }) {
+  if (isEvent(item)) {
+    const event = item.event;
+    return (
+      <>
+        {event.location ? (
+          <>
+            <span className="px-1 opacity-70"> · </span>
+            <span>{event.location}</span>
+          </>
+        ) : null}
+      </>
+    );
+  }
+  return null;
+}
+
+function getDisplayItemDetails(item: DisplayItem): {
+  title: string;
+  color: string;
+} {
+  if (isEvent(item)) {
+    const event = item.event;
+    const title =
+      event.title && event.title.length ? event.title : "(untitled)";
+    const color =
+      event.color ??
+      `var(${calendarColorVariable(event.calendar.provider.accountId, event.calendar.id)}, var(--color-muted-foreground))`;
+    return { title, color };
+  }
+
+  if (isTask(item)) {
+    const title = item.value.title || "(untitled task)";
+    const color = "var(--color-muted-foreground)";
+    return { title, color };
+  }
+
+  return { title: "(unknown)", color: "var(--color-muted-foreground)" };
 }

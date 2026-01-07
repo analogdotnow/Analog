@@ -8,9 +8,9 @@ import { Temporal } from "temporal-polyfill";
 import { isToday } from "@repo/temporal";
 
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
-import { eventOverlapsDay } from "@/components/calendar/utils/positioning";
-import { EventCollectionItem } from "../hooks/event-collection";
-import { AgendaViewEvent } from "./agenda-view-event";
+import { displayItemOverlapsDay } from "@/components/calendar/utils/positioning";
+import { DisplayItem, isInlineItem } from "@/lib/display-item";
+import { AgendaViewItem } from "./agenda-view-event";
 
 interface AgendaViewDayHeaderProps {
   day: Temporal.PlainDate;
@@ -51,15 +51,17 @@ function AgendaViewDayContainer({ children }: AgendaViewDayContainerProps) {
 
 interface AgendaViewDayProps {
   day: Temporal.PlainDate;
-  items: EventCollectionItem[];
+  items: DisplayItem[];
 }
 
 export function AgendaViewDay({ day, items }: AgendaViewDayProps) {
-  const events = React.useMemo(() => {
-    return items.filter((item) => eventOverlapsDay(item, day));
+  const dayItems = React.useMemo(() => {
+    return items.filter(
+      (item) => isInlineItem(item) && displayItemOverlapsDay(item, day),
+    );
   }, [day, items]);
 
-  if (events.length === 0) {
+  if (dayItems.length === 0) {
     return null;
   }
 
@@ -67,8 +69,8 @@ export function AgendaViewDay({ day, items }: AgendaViewDayProps) {
     <AgendaViewDayContainer>
       <AgendaViewDayHeader day={day} />
       <AgendaViewDayContent>
-        {events.map((event) => (
-          <AgendaViewEvent key={event.event.id} item={event} />
+        {dayItems.map((item) => (
+          <AgendaViewItem key={item.id} item={item} />
         ))}
       </AgendaViewDayContent>
     </AgendaViewDayContainer>

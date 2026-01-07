@@ -7,28 +7,28 @@ import { isToday, isWeekend } from "@repo/temporal";
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { viewPreferencesAtom } from "@/atoms/view-preferences";
 import { useDoubleClickToCreate } from "@/components/calendar/hooks/drag-and-drop/use-double-click-to-create";
-import { WeekEventCollection } from "@/components/calendar/hooks/use-event-collection";
+import { WeekDisplayCollection } from "@/components/calendar/hooks/use-event-collection";
 import {
   useMultiDayOverflow,
   type UseMultiDayOverflowResult,
 } from "@/components/calendar/hooks/use-multi-day-overflow";
 import { useUnselectAllAction } from "@/components/calendar/hooks/use-optimistic-mutations";
 import { OverflowIndicator } from "@/components/calendar/overflow/overflow-indicator";
-import { eventsStartingOn } from "@/components/calendar/utils/event";
+import { itemsStartingOn } from "@/components/calendar/utils/event";
 import { WeekViewAllDayEvent } from "@/components/calendar/week-view/week-view-all-day-event";
 import { cn } from "@/lib/utils";
 
 interface WeekViewAllDaySectionProps {
   allDays: Temporal.PlainDate[];
   visibleDays: Temporal.PlainDate[];
-  eventCollection: WeekEventCollection;
+  displayCollection: WeekDisplayCollection;
   containerRef: React.RefObject<HTMLDivElement | null>;
 }
 
 export function WeekViewAllDaySection({
   allDays,
   visibleDays,
-  eventCollection,
+  displayCollection,
   containerRef,
 }: WeekViewAllDaySectionProps) {
   const settings = useAtomValue(calendarSettingsAtom);
@@ -36,7 +36,7 @@ export function WeekViewAllDaySection({
   const overflowRef = React.useRef<HTMLDivElement | null>(null);
 
   const overflow = useMultiDayOverflow({
-    events: eventCollection.allDayEvents,
+    items: displayCollection.allDayItems,
     timeZone: settings.defaultTimeZone,
     containerRef: overflowRef,
     minVisibleLanes: 10,
@@ -66,11 +66,11 @@ export function WeekViewAllDaySection({
           <div />
 
           {overflow.capacityInfo.visibleLanes.map((lane, y) =>
-            lane.map((evt) => (
+            lane.map((item) => (
               <WeekViewAllDayEvent
-                key={evt.event.id}
+                key={item.id}
                 y={y}
-                item={evt}
+                item={item}
                 weekStart={allDays[0]!}
                 weekEnd={allDays[allDays.length - 1]!}
                 containerRef={containerRef}
@@ -101,7 +101,7 @@ function WeekViewAllDayColumn({
 }: WeekViewAllDayColumnProps) {
   const viewPreferences = useAtomValue(viewPreferencesAtom);
 
-  const { isDayVisible, isLastVisibleDay, dayOverflowEvents } =
+  const { isDayVisible, isLastVisibleDay, dayOverflowItems } =
     React.useMemo(() => {
       const isDayVisible = viewPreferences.showWeekends || !isWeekend;
       const visibleDayIndex = visibleDays.findIndex(
@@ -111,15 +111,14 @@ function WeekViewAllDayColumn({
       const isLastVisibleDay =
         isDayVisible && visibleDayIndex === visibleDays.length - 1;
 
-      // Filter overflow events to only show those that start on this day
-      const dayOverflowEvents = eventsStartingOn(overflow.overflowEvents, day);
+      const dayOverflowItems = itemsStartingOn(overflow.overflowItems, day);
 
-      return { isDayVisible, isLastVisibleDay, dayOverflowEvents };
+      return { isDayVisible, isLastVisibleDay, dayOverflowItems };
     }, [
       day,
       visibleDays,
       isWeekend,
-      overflow.overflowEvents,
+      overflow.overflowItems,
       viewPreferences.showWeekends,
     ]);
 
@@ -155,11 +154,11 @@ function WeekViewAllDayColumn({
         ref={overflowRef}
       />
 
-      {/* Show overflow indicator for this day if there are overflow events that start on this day */}
-      {dayOverflowEvents.length > 0 ? (
+      {/* Show overflow indicator for this day if there are overflow items that start on this day */}
+      {dayOverflowItems.length > 0 ? (
         <div className="absolute bottom-1 left-1/2 z-20 -translate-x-1/2 transform">
           <OverflowIndicator
-            items={dayOverflowEvents}
+            items={dayOverflowItems}
             date={day}
             className="rounded-md border border-border bg-background px-2 py-1 text-xs font-medium text-foreground shadow-md transition-colors hover:bg-muted/80"
           />

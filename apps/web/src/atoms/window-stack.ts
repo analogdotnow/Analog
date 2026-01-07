@@ -1,7 +1,7 @@
 import { atom } from "jotai";
 
 import { StackWindowEntry } from "@/components/command-bar/stacked-window";
-import { selectedEventIdsAtom } from "./selected-events";
+import { selectedEventIdsAtom } from "./selected-display-items";
 
 function createWindowId() {
   return `window-${crypto.randomUUID()}`;

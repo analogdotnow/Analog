@@ -6,7 +6,7 @@ import { useHotkeys } from "react-hotkeys-hook";
 import { Temporal } from "temporal-polyfill";
 
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
-import { selectedEventIdsAtom } from "@/atoms/selected-events";
+import { selectedEventIdsAtom } from "@/atoms/selected-display-items";
 import { useDeleteAction } from "@/components/calendar/flows/delete-event/use-delete-action";
 import {
   useCreateDraftAction,

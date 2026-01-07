@@ -11,15 +11,14 @@ import { isToday, toDate } from "@repo/temporal";
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { timeZonesAtom } from "@/atoms/timezones";
 import { currentDateAtom } from "@/atoms/view-preferences";
-import { DragAwareWrapper } from "@/components/calendar/event/drag-aware-wrapper";
+import { DisplayItemComponent } from "@/components/calendar/display-item/display-item";
+import { DisplayItemContainer } from "@/components/calendar/event/display-item-container";
 import { DragPreview } from "@/components/calendar/event/drag-preview";
 import { DraggableEvent } from "@/components/calendar/event/draggable-event";
-import { EventItem } from "@/components/calendar/event/event-item";
 import { useEdgeAutoScroll } from "@/components/calendar/hooks/drag-and-drop/use-auto-scroll";
 import { useDoubleClickToCreate } from "@/components/calendar/hooks/drag-and-drop/use-double-click-to-create";
 import { useDragToCreate } from "@/components/calendar/hooks/drag-and-drop/use-drag-to-create";
-import type { EventCollectionItem } from "@/components/calendar/hooks/event-collection";
-import { useWeekEventCollection } from "@/components/calendar/hooks/use-event-collection";
+import { useWeekDisplayCollection } from "@/components/calendar/hooks/use-event-collection";
 import { useGridLayout } from "@/components/calendar/hooks/use-grid-layout";
 import { useSelectAction } from "@/components/calendar/hooks/use-optimistic-mutations";
 import { HOURS } from "@/components/calendar/timeline/constants";
@@ -29,57 +28,72 @@ import {
 } from "@/components/calendar/timeline/time-indicator";
 import { Timeline } from "@/components/calendar/timeline/timeline";
 import { TimelineHeader } from "@/components/calendar/timeline/timeline-header";
+import type { PositionedDisplayItem } from "@/components/calendar/utils/positioning";
 import { useScrollToCurrentTime } from "@/components/calendar/week-view/use-scroll-to-current-time";
+import {
+  isEvent,
+  type DisplayItem,
+  type InlineDisplayItem,
+} from "@/lib/display-item";
 import { cn } from "@/lib/utils";
 
 interface DayViewProps {
   currentDate: Temporal.PlainDate;
-  events: EventCollectionItem[];
+  items: DisplayItem[];
   scrollContainerRef: React.RefObject<HTMLDivElement | null>;
 }
 
 interface PositionedEventProps {
-  positionedEvent: {
-    item: EventCollectionItem;
-    top: number;
-    height: number;
-    left: number;
-    width: number;
-    zIndex: number;
-  };
+  positionedItem: PositionedDisplayItem;
   containerRef: React.RefObject<HTMLDivElement | null>;
 }
 
 function PositionedEvent({
-  positionedEvent,
+  positionedItem,
   containerRef,
 }: PositionedEventProps) {
+  const style = {
+    top: `${positionedItem.top}px`,
+    height: `${positionedItem.height}px`,
+    left: `${positionedItem.left * 100}%`,
+    width: `${positionedItem.width * 100}%`,
+  };
+
+  if (!isEvent(positionedItem.item)) {
+    return (
+      <DisplayItemContainer
+        key={positionedItem.item.id}
+        item={positionedItem.item}
+        className="absolute z-10"
+        style={style}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <DisplayItemComponent item={positionedItem.item} view="day" showTime />
+      </DisplayItemContainer>
+    );
+  }
+
   return (
-    <DragAwareWrapper
-      key={positionedEvent.item.event.id}
-      eventId={positionedEvent.item.event.id}
+    <DisplayItemContainer
+      key={positionedItem.item.id}
+      item={positionedItem.item}
       className="absolute z-10"
-      style={{
-        top: `${positionedEvent.top}px`,
-        height: `${positionedEvent.height}px`,
-        left: `${positionedEvent.left * 100}%`,
-        width: `${positionedEvent.width * 100}%`,
-      }}
+      style={style}
       onClick={(e) => e.stopPropagation()}
     >
       <DraggableEvent
-        item={positionedEvent.item}
+        item={positionedItem.item}
         view="day"
         showTime
-        height={positionedEvent.height}
+        height={positionedItem.height}
         containerRef={containerRef}
         columns={1}
       />
-    </DragAwareWrapper>
+    </DisplayItemContainer>
   );
 }
 
-export function DayView({ events, scrollContainerRef }: DayViewProps) {
+export function DayView({ items, scrollContainerRef }: DayViewProps) {
   const currentDate = useAtomValue(currentDateAtom);
   const timeZones = useAtomValue(timeZonesAtom);
   const containerRef = React.useRef<HTMLDivElement | null>(null);
@@ -94,7 +108,7 @@ export function DayView({ events, scrollContainerRef }: DayViewProps) {
 
   useEdgeAutoScroll(scrollContainerRef, { headerRef });
 
-  const eventCollection = useWeekEventCollection(events, [currentDate]);
+  const displayCollection = useWeekDisplayCollection(items, [currentDate]);
 
   const gridTemplateColumns = useGridLayout([currentDate], {
     includeTimeColumn: true,
@@ -117,9 +131,9 @@ export function DayView({ events, scrollContainerRef }: DayViewProps) {
       <div ref={headerRef} className="sticky top-0 z-30 bg-background">
         <DayViewHeader day={currentDate} />
         <AllDayRow gridTemplateColumns={gridTemplateColumns}>
-          {eventCollection.allDayEvents.map((item) => (
-            <DayViewPositionedEvent
-              key={`spanning-${item.event.id}`}
+          {displayCollection.allDayItems.map((item) => (
+            <DayViewPositionedItem
+              key={`spanning-${item.id}`}
               item={item}
               currentDate={currentDate}
             />
@@ -133,10 +147,10 @@ export function DayView({ events, scrollContainerRef }: DayViewProps) {
       >
         <Timeline />
         <div className="relative">
-          {eventCollection.positionedEvents[0]?.map((positionedEvent) => (
+          {displayCollection.positionedItems[0]?.map((positionedItem) => (
             <PositionedEvent
-              key={positionedEvent.item.event.id}
-              positionedEvent={positionedEvent}
+              key={positionedItem.item.id}
+              positionedItem={positionedItem}
               containerRef={containerRef}
             />
           ))}
@@ -219,27 +233,28 @@ function DayViewHeaderDay({ day }: DayViewHeaderProps) {
   );
 }
 
-interface DayViewPositionedEventProps {
-  item: EventCollectionItem;
+interface DayViewPositionedItemProps {
+  item: InlineDisplayItem;
   currentDate: Temporal.PlainDate;
 }
 
-function DayViewPositionedEvent({
+function DayViewPositionedItem({
   item,
   currentDate,
-}: DayViewPositionedEventProps) {
+}: DayViewPositionedItemProps) {
   const selectAction = useSelectAction();
 
   const onClick = React.useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
-      selectAction(item.event);
+      if (isEvent(item)) {
+        selectAction(item.event);
+      }
     },
-    [selectAction, item.event],
+    [selectAction, item],
   );
 
   const { isFirstDay, isLastDay } = React.useMemo(() => {
-    // For single-day events, ensure they are properly marked as first and last day
     const isFirstDay = Temporal.PlainDate.compare(item.start, currentDate) >= 0;
     const isLastDay = Temporal.PlainDate.compare(item.end, currentDate) <= 0;
 
@@ -248,7 +263,7 @@ function DayViewPositionedEvent({
 
   return (
     <div className="my-px">
-      <EventItem
+      <DisplayItemComponent
         onClick={onClick}
         item={item}
         view="month"

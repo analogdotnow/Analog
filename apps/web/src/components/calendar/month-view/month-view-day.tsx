@@ -12,7 +12,7 @@ import { viewPreferencesAtom } from "@/atoms/view-preferences";
 import { useDoubleClickToCreate } from "@/components/calendar/hooks/drag-and-drop/use-double-click-to-create";
 import type { UseMultiDayOverflowResult } from "@/components/calendar/hooks/use-multi-day-overflow";
 import { OverflowIndicator } from "@/components/calendar/overflow/overflow-indicator";
-import { eventsStartingOn } from "@/components/calendar/utils/event";
+import { itemsStartingOn } from "@/components/calendar/utils/event";
 import { cn } from "@/lib/utils";
 
 interface MonthViewDayProps {
@@ -111,10 +111,9 @@ function MonthViewCell({
     [viewPreferences.showWeekends, day],
   );
 
-  // Determine if this day is in the last visible column
   const isLastVisibleColumn = viewPreferences.showWeekends
-    ? dayIndex === 6 // Saturday is last when weekends shown
-    : dayIndex === 5; // Friday is last when weekends hidden
+    ? dayIndex === 6
+    : dayIndex === 5;
 
   return (
     <div
@@ -144,19 +143,18 @@ interface MonthViewDayOverflowProps {
 }
 
 function MonthViewDayOverflow({ overflow, day }: MonthViewDayOverflowProps) {
-  // Filter overflow events to only show those that start on this day
-  const dayOverflowEvents = React.useMemo(
-    () => eventsStartingOn(overflow.overflowEvents, day),
-    [overflow.overflowEvents, day],
+  const dayOverflowItems = React.useMemo(
+    () => itemsStartingOn(overflow.overflowItems, day),
+    [overflow.overflowItems, day],
   );
 
-  if (dayOverflowEvents.length === 0) {
+  if (dayOverflowItems.length === 0) {
     return null;
   }
 
   return (
     <div className="pointer-events-auto z-10 flex flex-col items-center place-self-stretch pb-1">
-      <OverflowIndicator items={dayOverflowEvents} date={day} />
+      <OverflowIndicator items={dayOverflowItems} date={day} />
     </div>
   );
 }

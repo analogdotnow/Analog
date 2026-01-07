@@ -5,7 +5,7 @@ import { RiCalendarEventLine } from "@remixicon/react";
 import { Temporal } from "temporal-polyfill";
 
 import { AgendaDaysToShow } from "@/components/calendar/constants";
-import type { EventCollectionItem } from "@/components/calendar/hooks/event-collection";
+import type { DisplayItem } from "@/lib/display-item";
 import { AgendaViewDay } from "./agenda-view-day";
 
 function AgendaViewEmpty() {
@@ -15,9 +15,9 @@ function AgendaViewEmpty() {
         size={32}
         className="mb-2 text-muted-foreground/50"
       />
-      <h3 className="text-lg font-medium">No events found</h3>
+      <h3 className="text-lg font-medium">No items found</h3>
       <p className="text-muted-foreground">
-        There are no events scheduled for this time period.
+        There are no items scheduled for this time period.
       </p>
     </div>
   );
@@ -25,7 +25,7 @@ function AgendaViewEmpty() {
 
 interface AgendaViewProps {
   currentDate: Temporal.PlainDate;
-  items: EventCollectionItem[];
+  items: DisplayItem[];
 }
 
 export function AgendaView({ currentDate, items }: AgendaViewProps) {

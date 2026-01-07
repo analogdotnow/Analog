@@ -1,7 +1,7 @@
 import { ChevronUpIcon, TrashIcon } from "@heroicons/react/16/solid";
 import { useAtomValue } from "jotai";
 
-import { selectedEventIdsAtom } from "@/atoms/selected-events";
+import { selectedEventIdsAtom } from "@/atoms/selected-display-items";
 import { Key } from "@/components/ui/keyboard-shortcut";
 import { ActionButton, ActionShortcut } from "../actions";
 import { Window } from "../window";

@@ -5,14 +5,15 @@ import { Temporal } from "temporal-polyfill";
 
 import { isAfter, isBefore, isSameDay } from "@repo/temporal";
 
+import { DisplayItemComponent } from "@/components/calendar/display-item/display-item";
 import { DraggableEvent } from "@/components/calendar/event/draggable-event";
 import { getGridPosition } from "@/components/calendar/utils/multi-day-layout";
-import { DragAwareWrapper } from "../event/drag-aware-wrapper";
-import { EventCollectionItem } from "../hooks/event-collection";
+import { InlineDisplayItem, isEvent } from "@/lib/display-item";
+import { DisplayItemContainer } from "../event/display-item-container";
 
 interface PositionedEventProps {
   y: number;
-  item: EventCollectionItem;
+  item: InlineDisplayItem;
   weekStart: Temporal.PlainDate;
   weekEnd: Temporal.PlainDate;
   containerRef: React.RefObject<HTMLDivElement | null>;
@@ -29,40 +30,6 @@ export function PositionedEvent({
   rows,
   columns,
 }: PositionedEventProps) {
-  return (
-    <PositionedContainer
-      item={item}
-      y={y}
-      weekStart={weekStart}
-      weekEnd={weekEnd}
-    >
-      <PositionedContent
-        item={item}
-        weekStart={weekStart}
-        weekEnd={weekEnd}
-        containerRef={containerRef}
-        rows={rows}
-        columns={columns}
-      />
-    </PositionedContainer>
-  );
-}
-
-interface PositionedContainerProps {
-  children: React.ReactNode;
-  item: EventCollectionItem;
-  y: number;
-  weekStart: Temporal.PlainDate;
-  weekEnd: Temporal.PlainDate;
-}
-
-function PositionedContainer({
-  children,
-  item,
-  y,
-  weekStart,
-  weekEnd,
-}: PositionedContainerProps) {
   const style = React.useMemo(() => {
     const { colStart, span } = getGridPosition(item, weekStart, weekEnd);
 
@@ -72,59 +39,52 @@ function PositionedContainer({
     };
   }, [item, weekStart, weekEnd, y]);
 
-  return (
-    <DragAwareWrapper
-      key={item.event.id}
-      eventId={item.event.id}
-      className="pointer-events-auto my-px min-w-0"
-      style={style}
-    >
-      {children}
-    </DragAwareWrapper>
-  );
-}
-
-interface PositionedContentProps {
-  item: EventCollectionItem;
-  weekStart: Temporal.PlainDate;
-  weekEnd: Temporal.PlainDate;
-  containerRef: React.RefObject<HTMLDivElement | null>;
-  rows: number;
-  columns: number;
-}
-
-function PositionedContent({
-  item,
-  weekStart,
-  weekEnd,
-  containerRef,
-  rows,
-  columns,
-}: PositionedContentProps) {
   const { isFirstDay, isLastDay } = React.useMemo(() => {
-    // Calculate actual first/last day based on event dates
-    const eventStart = item.start.toPlainDate();
-    const eventEnd = item.end.toPlainDate();
+    const itemStart = item.start.toPlainDate();
+    const itemEnd = item.end.toPlainDate();
 
-    // For single-day events, ensure they are properly marked as first and last day
     const isFirstDay =
-      isAfter(eventStart, weekStart) || isSameDay(eventStart, weekStart);
-    const isLastDay =
-      isBefore(eventEnd, weekEnd) || isSameDay(eventEnd, weekEnd);
+      isAfter(itemStart, weekStart) || isSameDay(itemStart, weekStart);
+    const isLastDay = isBefore(itemEnd, weekEnd) || isSameDay(itemEnd, weekEnd);
 
     return { isFirstDay, isLastDay };
   }, [item.start, item.end, weekStart, weekEnd]);
 
+  if (!isEvent(item)) {
+    return (
+      <DisplayItemContainer
+        key={item.id}
+        item={item}
+        className="pointer-events-auto my-px min-w-0"
+        style={style}
+      >
+        <DisplayItemComponent
+          item={item}
+          view="month"
+          isFirstDay={isFirstDay}
+          isLastDay={isLastDay}
+        />
+      </DisplayItemContainer>
+    );
+  }
+
   return (
-    <DraggableEvent
+    <DisplayItemContainer
+      key={item.id}
       item={item}
-      view="month"
-      containerRef={containerRef}
-      isFirstDay={isFirstDay}
-      isLastDay={isLastDay}
-      rows={rows}
-      columns={columns}
-    />
+      className="pointer-events-auto my-px min-w-0"
+      style={style}
+    >
+      <DraggableEvent
+        item={item}
+        view="month"
+        containerRef={containerRef}
+        isFirstDay={isFirstDay}
+        isLastDay={isLastDay}
+        rows={rows}
+        columns={columns}
+      />
+    </DisplayItemContainer>
   );
 }
 
