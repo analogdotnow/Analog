@@ -93,21 +93,15 @@ export function OverflowIndicator({
           </button>
         </div>
 
-        <div className="max-h-96 overflow-auto px-2 pb-2">
-          {items.length === 0 ? (
-            <div className="py-2 text-sm text-muted-foreground">No items</div>
-          ) : (
-            <div className="space-y-2">
-              {items.map((item) => (
-                <OverflowItem
-                  key={item.id}
-                  item={item}
-                  date={date}
-                  onItemClick={onItemClick}
-                />
-              ))}
-            </div>
-          )}
+        <div className="max-h-96 space-y-2 overflow-auto px-2 pb-2">
+          {items.map((item) => (
+            <OverflowItem
+              key={item.id}
+              item={item}
+              date={date}
+              onItemClick={onItemClick}
+            />
+          ))}
         </div>
       </PopoverContent>
     </Popover>

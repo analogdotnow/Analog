@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { useAtomValue } from "jotai";
-import { Temporal } from "temporal-polyfill";
 
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { isDisplayItemSelected } from "@/atoms/selected-display-items";
@@ -74,7 +73,6 @@ interface DisplayItemProps {
   view: "month" | "week" | "day" | "agenda";
   onClick?: (e: React.MouseEvent) => void;
   showTime?: boolean;
-  currentTime?: Temporal.ZonedDateTime;
   isFirstDay?: boolean;
   isLastDay?: boolean;
   children?: React.ReactNode;
@@ -88,7 +86,6 @@ export function DisplayItemComponent({
   view,
   onClick,
   showTime,
-  currentTime,
   isFirstDay = true,
   isLastDay = true,
   children,
@@ -96,9 +93,6 @@ export function DisplayItemComponent({
   onMouseDown,
   onTouchStart,
 }: DisplayItemProps) {
-  const displayStart = currentTime ?? item.start;
-  const displayEnd = currentTime ?? item.end;
-
   const isSelectedAtom = React.useMemo(
     () => isDisplayItemSelected(item.id),
     [item.id],
@@ -106,8 +100,8 @@ export function DisplayItemComponent({
   const isSelected = useAtomValue(isSelectedAtom);
 
   const duration = React.useMemo(() => {
-    return displayStart.until(displayEnd).total({ unit: "minute" });
-  }, [displayStart, displayEnd]);
+    return item.start.until(item.end).total({ unit: "minute" });
+  }, [item.start, item.end]);
 
   const { defaultTimeZone, locale, use12Hour } =
     useAtomValue(calendarSettingsAtom);
@@ -117,12 +111,12 @@ export function DisplayItemComponent({
       return "All day";
     }
     return formatTime({
-      value: displayStart,
+      value: item.start,
       use12Hour,
       locale,
       timeZone: defaultTimeZone,
     });
-  }, [displayStart, item, use12Hour, locale, defaultTimeZone]);
+  }, [item, use12Hour, locale, defaultTimeZone]);
 
   const { title, color } = getDisplayItemDetails(item);
 
@@ -153,7 +147,7 @@ export function DisplayItemComponent({
         <div className="flex min-w-0 grow items-stretch gap-y-1.5">
           {children}
           <DisplayItemTypeIndicator item={item} />
-          {!isFirstDay ? <div className="b h-lh" /> : null}
+          {!isFirstDay ? <div className="h-lh" /> : null}
           <span className="pointer-events-none truncate">
             {title}{" "}
             {!isAllDay(item) && isFirstDay && (

@@ -22,7 +22,13 @@ export const selectedEventIdsAtom = atom(
       .filter((id) => id.startsWith("event_"))
       .map((id) => id.slice(6));
   },
-  (get, set, eventIds: string[]) => {
+  (get, set, update: string[] | ((prev: string[]) => string[])) => {
+    const prev = get(selectedDisplayItemIdsAtom)
+      .filter((id) => id.startsWith("event_"))
+      .map((id) => id.slice(6));
+
+    const eventIds = typeof update === "function" ? update(prev) : update;
+
     const otherItems = get(selectedDisplayItemIdsAtom).filter(
       (id) => !id.startsWith("event_"),
     );

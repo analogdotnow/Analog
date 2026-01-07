@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { useAtomValue } from "jotai";
-import { Temporal } from "temporal-polyfill";
 
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { isEventSelected } from "@/atoms/selected-display-items";
@@ -71,7 +70,6 @@ interface EventItemProps {
   view: "month" | "week" | "day" | "agenda";
   onClick?: (e: React.MouseEvent) => void;
   showTime?: boolean;
-  currentTime?: Temporal.ZonedDateTime; // For updating time during drag
   isFirstDay?: boolean;
   isLastDay?: boolean;
   children?: React.ReactNode;
@@ -85,7 +83,6 @@ export function EventItem({
   view,
   onClick,
   showTime,
-  currentTime,
   isFirstDay = true,
   isLastDay = true,
   children,
@@ -93,10 +90,6 @@ export function EventItem({
   onMouseDown,
   onTouchStart,
 }: EventItemProps) {
-  // Use the provided currentTime (for dragging) or the event's actual time
-  const displayStart = currentTime ?? item.start;
-  const displayEnd = currentTime ?? item.end;
-
   const isSelectedAtom = React.useMemo(
     () => isEventSelected(item.event.id),
     [item.event.id],
@@ -104,8 +97,8 @@ export function EventItem({
   const isSelected = useAtomValue(isSelectedAtom);
 
   const duration = React.useMemo(() => {
-    return displayStart.until(displayEnd).total({ unit: "minute" });
-  }, [displayStart, displayEnd]);
+    return item.start.until(item.end).total({ unit: "minute" });
+  }, [item.start, item.end]);
 
   const { defaultTimeZone, locale, use12Hour } =
     useAtomValue(calendarSettingsAtom);
@@ -114,8 +107,8 @@ export function EventItem({
       return "All day";
     }
 
-    return `${formatTime({ value: displayStart, use12Hour, locale, timeZone: defaultTimeZone })}`;
-  }, [displayStart, item.event.allDay, use12Hour, locale, defaultTimeZone]);
+    return `${formatTime({ value: item.start, use12Hour, locale, timeZone: defaultTimeZone })}`;
+  }, [item.start, item.event.allDay, use12Hour, locale, defaultTimeZone]);
 
   const displayTitle =
     item.event.title && item.event.title.length

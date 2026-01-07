@@ -124,10 +124,19 @@ export function useWeekDisplayCollection(
   const cellHeight = useAtomValue(cellHeightAtom);
 
   return useMemo(() => {
-    if (items.length === 0 || days.length === 0) {
+    if (days.length === 0) {
       return {
         allDayItems: [],
         positionedItems: [],
+        backgroundItems: [],
+        sideItems: [],
+      };
+    }
+
+    if (items.length === 0) {
+      return {
+        allDayItems: [],
+        positionedItems: days.map(() => []),
         backgroundItems: [],
         sideItems: [],
       };
