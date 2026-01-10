@@ -13,7 +13,7 @@
     "@ai-sdk/openai": "^2.0.88",
     "@ai-sdk/react": "^2.0.118",
     "@ariakit/react": "^0.4.20",
-    "@base-ui/react": "^1.0.0-rc.0",
+    "@base-ui/react": "^1.0.0",
     "@formkit/tempo": "^1.0.0",
     "@googlemaps/js-api-loader": "^2.0.0",
     "@heroicons/react": "^2.2.0",
