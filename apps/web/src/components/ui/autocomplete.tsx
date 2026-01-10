@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Autocomplete as AutocompletePrimitive } from "@base-ui-components/react/autocomplete";
+import { Autocomplete as AutocompletePrimitive } from "@base-ui/react/autocomplete";
 import { XIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
