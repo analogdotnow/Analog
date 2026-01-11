@@ -4,15 +4,15 @@ import { parseDateTime } from "./utils";
 
 export function parseScheduleItemStatus(status: ScheduleItem["status"]) {
   // TODO: Handle additional statuses
-  if (status === "busy" || status === "oof") {
-    return "busy";
+  switch (status) {
+    case "busy":
+    case "oof":
+      return "busy";
+    case "free":
+      return "free";
+    default:
+      return "unknown";
   }
-
-  if (status === "free") {
-    return "free";
-  }
-
-  return "unknown";
 }
 
 export function parseScheduleItem(item: ScheduleItem) {

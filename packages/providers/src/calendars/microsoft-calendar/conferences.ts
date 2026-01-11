@@ -1,17 +1,18 @@
 import { detectMeetingLink } from "@analog/meeting-links";
 import type { Event as MicrosoftEvent } from "@microsoft/microsoft-graph-types";
 
+import { CreateEventInput, UpdateEventInput } from "@repo/schemas";
+
 import type { Conference } from "../../interfaces";
 
-export function toMicrosoftConferenceData(conference: Conference) {
-  if (conference.type !== "create") {
+export function formatOnlineMeetingProvider(
+  event: CreateEventInput | UpdateEventInput,
+) {
+  if (event.conference?.type !== "create") {
     return undefined;
   }
 
-  return {
-    isOnlineMeeting: true,
-    onlineMeetingProvider: "teamsForBusiness" as const,
-  };
+  return "teamsForBusiness" as const;
 }
 
 function parseConferenceFallback(
@@ -62,9 +63,7 @@ function parseConferenceFallback(
   };
 }
 
-export function parseMicrosoftConference(
-  event: MicrosoftEvent,
-): Conference | undefined {
+export function parseConference(event: MicrosoftEvent): Conference | undefined {
   const joinUrl = event.onlineMeeting?.joinUrl ?? event.onlineMeetingUrl;
 
   if (!joinUrl) {
@@ -96,12 +95,18 @@ export function parseMicrosoftConference(
           phone: phoneNumbers.map((number) => ({
             joinUrl: {
               label: number,
-              value: number.startsWith("tel:")
-                ? number
-                : `tel:${number.replace(/[- ]/g, "")}`,
+              value: parsePhoneNumber(number),
             },
           })),
         }
       : {}),
   };
+}
+
+function parsePhoneNumber(value: string) {
+  if (value.startsWith("tel:")) {
+    return value;
+  }
+
+  return `tel:${value.replace(/[- ]/g, "")}`;
 }

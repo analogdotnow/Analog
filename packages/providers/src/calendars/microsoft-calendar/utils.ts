@@ -28,3 +28,24 @@ export function parseDateTime(dateTime: string, timeZone: string) {
     parseTimeZone(timeZone) ?? "UTC",
   );
 }
+
+export function calendarPath(calendarId: string) {
+  return calendarId === "primary"
+    ? "/me/calendar"
+    : `/me/calendars/${calendarId}`;
+}
+
+export function eventResponseStatusPath(
+  status: "accepted" | "tentative" | "declined",
+): "accept" | "tentativelyAccept" | "decline" {
+  switch (status) {
+    case "accepted":
+      return "accept";
+    case "tentative":
+      return "tentativelyAccept";
+    case "declined":
+      return "decline";
+    default:
+      throw new Error("Invalid status");
+  }
+}
