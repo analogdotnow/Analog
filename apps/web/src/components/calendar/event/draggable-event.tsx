@@ -91,15 +91,26 @@ export function DraggableEvent({
   const updateAction = usePartialUpdateAction();
   const { setCursor, resetCursor } = useGlobalCursor();
 
+  const elementRef = React.useRef<HTMLDivElement>(null);
   const onDragStart = (e: PointerEvent, info: PanInfo) => {
+    if (!containerRef.current || !elementRef.current) {
+      return;
+    }
+
+    const eventRect = elementRef.current.getBoundingClientRect();
+    if (
+      info.point.x < eventRect.left ||
+      info.point.x > eventRect.right ||
+      info.point.y < eventRect.top ||
+      info.point.y > eventRect.bottom
+    ) {
+      return;
+    }
+
     // Prevent possible text/image dragging flash on some browsers
     e.preventDefault();
 
     addDraggedEventId(item.event.id);
-
-    if (!containerRef.current) {
-      return;
-    }
 
     const rect = containerRef.current.getBoundingClientRect();
 
@@ -220,6 +231,11 @@ export function DraggableEvent({
   );
 
   const onDragEnd = (_e: PointerEvent, info: PanInfo) => {
+    // If drag never started (out of bounds), don't do anything
+    if (dragStartRelative.current === null) {
+      return;
+    }
+
     removeDraggedEventId(item.event.id);
     // Do not reset transform immediately to avoid flashback to original
     // position. We'll reset when the event data updates optimistically.
@@ -247,7 +263,7 @@ export function DraggableEvent({
     // Calculate vertical movement relative to the container so that auto-scroll is taken into account.
     let deltaY = info.offset.y;
 
-    if (containerRef.current && dragStartRelative.current !== null) {
+    if (containerRef.current) {
       const rect = containerRef.current.getBoundingClientRect();
       const relativeCurrentY = info.point.y - rect.top;
       deltaY = relativeCurrentY - dragStartRelative.current.y;
@@ -441,6 +457,7 @@ export function DraggableEvent({
       <motion.div
         className="size-full touch-none"
         style={{ transform, height, top, zIndex }}
+        ref={elementRef}
       >
         <EventContextMenu event={item.event}>
           <ContextMenuTrigger>
@@ -475,6 +492,7 @@ export function DraggableEvent({
     <motion.div
       className="size-full touch-none"
       style={{ transform, height, zIndex }}
+      ref={elementRef}
     >
       <EventContextMenu event={item.event}>
         <ContextMenuTrigger>
