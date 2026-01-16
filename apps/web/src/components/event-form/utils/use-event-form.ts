@@ -4,7 +4,7 @@ import * as React from "react";
 import { useAtom, useAtomValue } from "jotai";
 
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
-import { selectedEventIdsAtom } from "@/atoms/selected-events";
+import { selectedEventIdsAtom } from "@/atoms/selected-display-items";
 import { EventFormStateContext } from "@/components/calendar/flows/event-form/event-form-state-provider";
 import {
   useFormAction,

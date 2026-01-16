@@ -4,7 +4,7 @@ import * as React from "react";
 import { useAtomValue } from "jotai";
 import { AnimatePresence, motion, type Variants } from "motion/react";
 
-import { selectedEventIdsAtom } from "@/atoms/selected-events";
+import { selectedEventIdsAtom } from "@/atoms/selected-display-items";
 import { cn } from "@/lib/utils";
 import { StackedWindow } from "./stacked-window";
 import { useWindowStack } from "./use-window-stack";

@@ -4,7 +4,7 @@ import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAtom, useSetAtom } from "jotai";
 
-import { selectedEventIdsAtom } from "@/atoms/selected-events";
+import { selectedEventIdsAtom } from "@/atoms/selected-display-items";
 import { useSidebarWithSide } from "@/components/ui/sidebar";
 import type { CalendarEvent, DraftEvent } from "@/lib/interfaces";
 import { useTRPC } from "@/lib/trpc/client";

@@ -10,12 +10,12 @@ import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { timeZonesAtom } from "@/atoms/timezones";
 import { currentDateAtom, viewPreferencesAtom } from "@/atoms/view-preferences";
 import { useEdgeAutoScroll } from "@/components/calendar/hooks/drag-and-drop/use-auto-scroll";
-import type { EventCollectionItem } from "@/components/calendar/hooks/event-collection";
-import { useWeekEventCollection } from "@/components/calendar/hooks/use-event-collection";
+import { useWeekDisplayCollection } from "@/components/calendar/hooks/use-event-collection";
 import { useGridLayout } from "@/components/calendar/hooks/use-grid-layout";
 import { TimeIndicatorBackground } from "@/components/calendar/timeline/time-indicator";
 import { Timeline } from "@/components/calendar/timeline/timeline";
 import { getWeek } from "@/components/calendar/utils/date-time";
+import type { DisplayItem } from "@/lib/display-item";
 import { useUnselectAllAction } from "../hooks/use-optimistic-mutations";
 import { useScrollToCurrentTime } from "./use-scroll-to-current-time";
 import { WeekViewAllDaySection } from "./week-view-all-day-section";
@@ -23,12 +23,12 @@ import { WeekViewDayColumn } from "./week-view-column";
 import { WeekViewHeader } from "./week-view-header";
 
 interface WeekViewProps extends React.ComponentProps<"div"> {
-  events: EventCollectionItem[];
+  items: DisplayItem[];
   scrollContainerRef: React.RefObject<HTMLDivElement | null>;
 }
 
 export function WeekView({
-  events,
+  items,
   scrollContainerRef,
   ...props
 }: WeekViewProps) {
@@ -52,7 +52,7 @@ export function WeekView({
     };
   }, [currentDate, settings.weekStartsOn, viewPreferences.showWeekends]);
 
-  const eventCollection = useWeekEventCollection(events, visibleDays);
+  const displayCollection = useWeekDisplayCollection(items, visibleDays);
 
   const containerRef = React.useRef<HTMLDivElement>(null);
   const headerRef = React.useRef<HTMLDivElement>(null);
@@ -71,7 +71,7 @@ export function WeekView({
         <WeekViewAllDaySection
           allDays={week.days}
           visibleDays={visibleDays}
-          eventCollection={eventCollection}
+          displayCollection={displayCollection}
           containerRef={containerRef}
         />
       </div>
@@ -87,7 +87,7 @@ export function WeekView({
             key={date.toString()}
             date={date}
             visibleDays={visibleDays}
-            eventCollection={eventCollection}
+            displayCollection={displayCollection}
             containerRef={containerRef}
           />
         ))}

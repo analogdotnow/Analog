@@ -20,9 +20,9 @@ import { EventContextMenu } from "@/components/calendar/event/event-context-menu
 import { EventItem } from "@/components/calendar/event/event-item";
 import { getEventInForm } from "@/components/event-form/atoms/form";
 import { ContextMenuTrigger } from "@/components/ui/context-menu";
+import { EventDisplayItem, isAllDay } from "@/lib/display-item";
 import { usePartialUpdateAction } from "../flows/update-event/use-update-action";
 import { useGlobalCursor } from "../hooks/drag-and-drop/use-global-cursor";
-import type { EventCollectionItem } from "../hooks/event-collection";
 import { useSelectAction } from "../hooks/use-optimistic-mutations";
 import {
   calculateColumnOffset,
@@ -31,7 +31,7 @@ import {
 } from "./utils";
 
 interface DraggableEventProps {
-  item: EventCollectionItem;
+  item: EventDisplayItem;
   view: "month" | "week" | "day";
   showTime?: boolean;
   height?: number;
@@ -92,7 +92,6 @@ export function DraggableEvent({
   const { setCursor, resetCursor } = useGlobalCursor();
 
   const onDragStart = (e: PointerEvent, info: PanInfo) => {
-    // Prevent possible text/image dragging flash on some browsers
     e.preventDefault();
 
     addDraggedEventId(item.event.id);
@@ -157,7 +156,6 @@ export function DraggableEvent({
       }
 
       if (view === "day") {
-        // Can't move all day events in the day view
         if (event.start instanceof Temporal.PlainDate) {
           return;
         }
@@ -221,8 +219,6 @@ export function DraggableEvent({
 
   const onDragEnd = (_e: PointerEvent, info: PanInfo) => {
     removeDraggedEventId(item.event.id);
-    // Do not reset transform immediately to avoid flashback to original
-    // position. We'll reset when the event data updates optimistically.
 
     let columnOffset = 0;
 
@@ -244,7 +240,6 @@ export function DraggableEvent({
       }
     }
 
-    // Calculate vertical movement relative to the container so that auto-scroll is taken into account.
     let deltaY = info.offset.y;
 
     if (containerRef.current && dragStartRelative.current !== null) {
@@ -258,9 +253,6 @@ export function DraggableEvent({
     moveEvent(deltaY, columnOffset);
   };
 
-  // When the event time updates (optimistic or confirmed), reset the local
-  // transform so the item renders at its new computed position without a
-  // visual flash. Use layout effect to apply before paint to avoid flicker.
   React.useLayoutEffect(() => {
     top.set(0);
     left.set(0);
@@ -308,7 +300,6 @@ export function DraggableEvent({
     }
 
     const rect = containerRef.current.getBoundingClientRect();
-    // Guard against onPan firing before onPanStart by lazily initializing
     if (!resizeInitializedRef.current) {
       setIsResizing(true);
       startHeight.current = heightRef.current ?? 0;
@@ -328,7 +319,6 @@ export function DraggableEvent({
     }
 
     const rect = containerRef.current.getBoundingClientRect();
-    // Guard against onPan firing before onPanStart by lazily initializing
     if (!resizeInitializedRef.current) {
       setIsResizing(true);
       startHeight.current = heightRef.current ?? 0;
@@ -390,7 +380,6 @@ export function DraggableEvent({
   const onResizeTopEnd = (_: PointerEvent, info: PanInfo) => {
     setIsResizing(false);
     resetCursor();
-    // Keep the visual offset until optimistic update lands to avoid flashback
     if (!containerRef.current) {
       return;
     }
@@ -410,7 +399,6 @@ export function DraggableEvent({
     setIsResizing(false);
     resetCursor();
 
-    // Keep the visual state until optimistic update applies
     if (!containerRef.current) {
       return;
     }
@@ -436,7 +424,7 @@ export function DraggableEvent({
     [item.event, selectAction],
   );
 
-  if (item.event.allDay || view === "month") {
+  if (isAllDay(item) || view === "month") {
     return (
       <motion.div
         className="size-full touch-none"

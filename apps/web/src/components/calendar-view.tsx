@@ -22,11 +22,12 @@ import { CalendarHeader } from "@/components/calendar/header/calendar-header";
 import { MonthView } from "@/components/calendar/month-view/month-view";
 import { WeekView } from "@/components/calendar/week-view/week-view";
 import { db, mapEventQueryInput } from "@/lib/db";
+import { DisplayItem, isEvent } from "@/lib/display-item";
 import { cn } from "@/lib/utils";
 import { applyOptimisticActions } from "./calendar/hooks/apply-optimistic-actions";
 import { optimisticActionsByEventIdAtom } from "./calendar/hooks/optimistic-actions";
 import { useEventsForDisplay } from "./calendar/hooks/use-events";
-import { filterPastEvents } from "./calendar/utils/event";
+import { filterPastItems } from "./calendar/utils/event";
 
 interface CalendarContentProps {
   scrollContainerRef: React.RefObject<HTMLDivElement | null>;
@@ -54,22 +55,26 @@ function CalendarContent({ scrollContainerRef }: CalendarContentProps) {
     );
   }, [data?.events, data?.recurringMasterEvents]);
 
-  const events = React.useMemo(() => {
-    const events = applyOptimisticActions({
+  const displayItems = React.useMemo(() => {
+    const eventItems = applyOptimisticActions({
       items: data?.events ?? [],
       timeZone: defaultTimeZone,
       optimisticActions,
     });
 
-    const pastFiltered = showPastEvents
-      ? events
-      : filterPastEvents(events, defaultTimeZone);
+    const pastFiltered: DisplayItem[] = showPastEvents
+      ? eventItems
+      : filterPastItems(eventItems, defaultTimeZone);
 
-    return pastFiltered.filter((eventItem) => {
+    return pastFiltered.filter((item) => {
+      if (!isEvent(item)) {
+        return true;
+      }
+
       const preference = getCalendarPreference(
         calendarPreferences,
-        eventItem.event.calendar.provider.accountId,
-        eventItem.event.calendar.id,
+        item.event.calendar.provider.accountId,
+        item.event.calendar.id,
       );
 
       return !(preference?.hidden === true);
@@ -83,24 +88,26 @@ function CalendarContent({ scrollContainerRef }: CalendarContentProps) {
   ]);
 
   if (view === "month") {
-    return <MonthView currentDate={currentDate} events={events} />;
+    return <MonthView currentDate={currentDate} items={displayItems} />;
   }
 
   if (view === "week") {
-    return <WeekView events={events} scrollContainerRef={scrollContainerRef} />;
+    return (
+      <WeekView items={displayItems} scrollContainerRef={scrollContainerRef} />
+    );
   }
 
   if (view === "day") {
     return (
       <DayView
         currentDate={currentDate}
-        events={events}
+        items={displayItems}
         scrollContainerRef={scrollContainerRef}
       />
     );
   }
 
-  return <AgendaView currentDate={currentDate} items={events} />;
+  return <AgendaView currentDate={currentDate} items={displayItems} />;
 }
 
 interface CalendarViewProps {

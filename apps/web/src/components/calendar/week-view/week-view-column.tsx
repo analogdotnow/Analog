@@ -10,24 +10,24 @@ import { viewPreferencesAtom } from "@/atoms/view-preferences";
 import { DragPreview } from "@/components/calendar/event/drag-preview";
 import { useDoubleClickToCreate } from "@/components/calendar/hooks/drag-and-drop/use-double-click-to-create";
 import { useDragToCreate } from "@/components/calendar/hooks/drag-and-drop/use-drag-to-create";
-import { WeekEventCollection } from "@/components/calendar/hooks/use-event-collection";
+import { WeekDisplayCollection } from "@/components/calendar/hooks/use-event-collection";
 import { HOURS } from "@/components/calendar/timeline/constants";
 import { TimeIndicator } from "@/components/calendar/timeline/time-indicator";
-import type { PositionedEvent } from "@/components/calendar/utils/positioning";
+import type { PositionedDisplayItem } from "@/components/calendar/utils/positioning";
 import { cn } from "@/lib/utils";
 import { WeekViewEvent } from "./week-view-event";
 
 interface WeekViewDayColumnsProps {
   date: Temporal.PlainDate;
   visibleDays: Temporal.PlainDate[];
-  eventCollection: WeekEventCollection;
+  displayCollection: WeekDisplayCollection;
   containerRef: React.RefObject<HTMLDivElement | null>;
 }
 
 export function WeekViewDayColumn({
   date,
   visibleDays,
-  eventCollection,
+  displayCollection,
   containerRef,
 }: WeekViewDayColumnsProps) {
   const viewPreferences = useAtomValue(viewPreferencesAtom);
@@ -46,8 +46,8 @@ export function WeekViewDayColumn({
       return { isDayVisible, isLastVisibleDay, visibleDayIndex, weekend };
     }, [viewPreferences.showWeekends, visibleDays, date]);
 
-  const positionedEvents =
-    eventCollection.positionedEvents[visibleDayIndex] ?? [];
+  const positionedItems =
+    displayCollection.positionedItems[visibleDayIndex] ?? [];
 
   return (
     <div
@@ -60,10 +60,10 @@ export function WeekViewDayColumn({
       )}
       data-today={isToday(date, { timeZone: defaultTimeZone }) || undefined}
     >
-      {positionedEvents.map((positionedEvent: PositionedEvent) => (
+      {positionedItems.map((positionedItem: PositionedDisplayItem) => (
         <WeekViewEvent
-          key={positionedEvent.item.event.id}
-          positionedEvent={positionedEvent}
+          key={positionedItem.item.id}
+          positionedItem={positionedItem}
           containerRef={containerRef}
           columns={visibleDays.length}
         />

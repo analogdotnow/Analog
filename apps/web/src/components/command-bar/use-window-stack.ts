@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useAtomValue } from "jotai";
 
-import { selectedEventIdsAtom } from "@/atoms/selected-events";
+import { selectedEventIdsAtom } from "@/atoms/selected-display-items";
 import { windowStackAtom } from "@/atoms/window-stack";
 import { StackWindowEntry } from "./stacked-window";
 

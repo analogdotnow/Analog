@@ -10,8 +10,8 @@ import { CalendarSettings } from "@/atoms/calendar-settings";
 import { viewPreferencesAtom } from "@/atoms/view-preferences";
 import { useMultiDayOverflow } from "@/components/calendar/hooks/use-multi-day-overflow";
 import {
-  useWeekRowEvents,
-  type MonthEventCollection,
+  useWeekRowItems,
+  type MonthDisplayCollection,
 } from "../hooks/use-event-collection";
 import { MemoizedMonthViewDay } from "./month-view-day";
 import { MemoizedPositionedEvent } from "./month-view-positioned-event";
@@ -20,7 +20,7 @@ interface MonthViewWeekItemProps {
   week: Temporal.PlainDate[];
   weekIndex: number;
   rows: number;
-  eventCollection: MonthEventCollection;
+  displayCollection: MonthDisplayCollection;
 
   settings: CalendarSettings;
   containerRef: React.RefObject<HTMLDivElement | null>;
@@ -31,7 +31,7 @@ export function MonthViewWeek({
   week,
   weekIndex,
   rows,
-  eventCollection,
+  displayCollection,
   settings,
   containerRef,
   currentDate,
@@ -46,12 +46,11 @@ export function MonthViewWeek({
     );
   }, [viewPreferences.showWeekends, week]);
 
-  const weekEvents = useWeekRowEvents(eventCollection, weekStart, weekEnd);
+  const weekItems = useWeekRowItems(displayCollection, weekStart, weekEnd);
 
   const overflowRef = React.useRef<HTMLDivElement | null>(null);
-  // Use overflow hook to manage event display
   const overflow = useMultiDayOverflow({
-    events: weekEvents,
+    items: weekItems,
     timeZone: settings.defaultTimeZone,
     containerRef: overflowRef,
   });
@@ -78,7 +77,7 @@ export function MonthViewWeek({
           lane.map((item) => {
             return (
               <MemoizedPositionedEvent
-                key={item.event.id}
+                key={item.id}
                 rows={rows}
                 columns={visibleDays.length}
                 y={y}

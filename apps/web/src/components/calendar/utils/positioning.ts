@@ -8,12 +8,17 @@ import {
   startOfDay,
 } from "@repo/temporal";
 
-import { EventCollectionItem } from "../hooks/event-collection";
+import {
+  DisplayItem,
+  InlineDisplayItem,
+  isAllDay,
+  isInlineItem,
+} from "@/lib/display-item";
 
 const PROXIMITY_THRESHOLD = 40;
 
-export function eventOverlapsDay(
-  item: EventCollectionItem,
+export function displayItemOverlapsDay(
+  item: DisplayItem,
   day: Temporal.PlainDate,
 ) {
   const start = item.start.toPlainDate();
@@ -26,75 +31,74 @@ export function eventOverlapsDay(
   );
 }
 
-export function isAllDayOrMultiDay(item: EventCollectionItem) {
-  return item.event.allDay || isMultiDayEvent(item);
+export function isAllDayOrMultiDay(item: InlineDisplayItem) {
+  return isAllDay(item) || isMultiDayItem(item);
 }
 
-function isMultiDayEvent(item: EventCollectionItem) {
-  return item.event.allDay || !isSameDay(item.start, item.end);
+function isMultiDayItem(item: InlineDisplayItem) {
+  return isAllDay(item) || !isSameDay(item.start, item.end);
 }
 
 /**
- * Get event collections for multiple days (pass single day as [day] for single-day use)
+ * Get display item collections for a day
  */
-export function getEventCollectionsForDay(
-  events: EventCollectionItem[],
+export function getDisplayItemCollectionsForDay(
+  items: InlineDisplayItem[],
   day: Temporal.PlainDate,
 ) {
-  const dayEvents: EventCollectionItem[] = [];
-  const spanningEvents: EventCollectionItem[] = [];
-  const allEvents: EventCollectionItem[] = [];
+  const dayItems: InlineDisplayItem[] = [];
+  const spanningItems: InlineDisplayItem[] = [];
+  const allItems: InlineDisplayItem[] = [];
 
-  for (const event of events) {
-    if (!eventOverlapsDay(event, day)) {
+  for (const item of items) {
+    if (!displayItemOverlapsDay(item, day)) {
       continue;
     }
 
-    allEvents.push(event);
+    allItems.push(item);
 
-    const start = event.start.toPlainDate();
+    const start = item.start.toPlainDate();
 
     if (isSameDay(day, start)) {
-      dayEvents.push(event);
-    } else if (isMultiDayEvent(event)) {
-      spanningEvents.push(event);
+      dayItems.push(item);
+    } else if (isMultiDayItem(item)) {
+      spanningItems.push(item);
     }
   }
 
   return {
-    dayEvents,
-    spanningEvents,
-    allDayEvents: [...spanningEvents, ...dayEvents],
-    allEvents,
+    dayItems,
+    spanningItems,
+    allDayItems: [...spanningItems, ...dayItems],
+    allItems,
   };
 }
 
 function isOverlappingWithRange(
-  event: EventCollectionItem,
+  item: InlineDisplayItem,
   days: Temporal.PlainDate[],
 ) {
-  return days.some((day) => eventOverlapsDay(event, day));
+  return days.some((day) => displayItemOverlapsDay(item, day));
 }
+
 /**
- * Get aggregated all-day events for multiple days
+ * Get aggregated all-day items for multiple days
  */
-export function getAllDayEventCollectionsForDays(
-  events: EventCollectionItem[],
+export function getAllDayItemCollectionsForDays(
+  items: InlineDisplayItem[],
   days: Temporal.PlainDate[],
 ) {
   if (days.length === 0) {
     return [];
   }
 
-  const allDayEvents = events.filter(
-    (event) => isAllDayOrMultiDay(event) && isOverlappingWithRange(event, days),
+  return items.filter(
+    (item) => isAllDayOrMultiDay(item) && isOverlappingWithRange(item, days),
   );
-
-  return allDayEvents;
 }
 
-export interface PositionedEvent {
-  item: EventCollectionItem;
+export interface PositionedDisplayItem {
+  item: InlineDisplayItem;
   top: number;
   height: number;
   left: number;
@@ -102,20 +106,20 @@ export interface PositionedEvent {
   zIndex: number;
 }
 
-function getTimedEventsForDay(
-  events: EventCollectionItem[],
+function getTimedItemsForDay(
+  items: InlineDisplayItem[],
   day: Temporal.PlainDate,
-): EventCollectionItem[] {
-  return events.filter((event) => {
-    if (isAllDayOrMultiDay(event)) {
+): InlineDisplayItem[] {
+  return items.filter((item) => {
+    if (isAllDayOrMultiDay(item)) {
       return false;
     }
 
-    return eventOverlapsDay(event, day);
+    return displayItemOverlapsDay(item, day);
   });
 }
 
-function clampToStartOfDay(item: EventCollectionItem, day: Temporal.PlainDate) {
+function clampToStartOfDay(item: InlineDisplayItem, day: Temporal.PlainDate) {
   if (isSameDay(day, item.start, { timeZone: item.start.timeZoneId })) {
     return item.start;
   }
@@ -123,7 +127,7 @@ function clampToStartOfDay(item: EventCollectionItem, day: Temporal.PlainDate) {
   return startOfDay(day, { timeZone: item.start.timeZoneId });
 }
 
-function clampToEndOfDay(item: EventCollectionItem, day: Temporal.PlainDate) {
+function clampToEndOfDay(item: InlineDisplayItem, day: Temporal.PlainDate) {
   if (isSameDay(day, item.end, { timeZone: item.end.timeZoneId })) {
     return item.end;
   }
@@ -131,7 +135,7 @@ function clampToEndOfDay(item: EventCollectionItem, day: Temporal.PlainDate) {
   return endOfDay(day, { timeZone: item.end.timeZoneId });
 }
 
-function calculateEventDimensions(
+function calculateItemDimensions(
   start: Temporal.ZonedDateTime,
   end: Temporal.ZonedDateTime,
   startHour: number,
@@ -147,13 +151,13 @@ function calculateEventDimensions(
 }
 
 interface ProximityGroup {
-  events: EventCollectionItem[];
+  items: InlineDisplayItem[];
   startMinutes: number;
   endMinutes: number;
 }
 
-interface GroupEventsByProximityOptions {
-  sortedEvents: EventCollectionItem[];
+interface GroupItemsByProximityOptions {
+  sortedItems: InlineDisplayItem[];
   day: Temporal.PlainDate;
   cellHeight: number;
 }
@@ -173,7 +177,7 @@ function isWithinProximity({
 }: IsWithinProximityOptions) {
   const thresholdMinutes = (PROXIMITY_THRESHOLD / cellHeight) * 60;
 
-  const start = clampToStartOfDay(lastGroup.events.at(-1)!, day);
+  const start = clampToStartOfDay(lastGroup.items.at(-1)!, day);
 
   const startsWithinProximity =
     startMinutes - (start.hour * 60 + start.minute) <= thresholdMinutes;
@@ -182,20 +186,20 @@ function isWithinProximity({
   return startsWithinProximity && startsBeforeGroupEnds;
 }
 
-function groupEventsByProximity({
-  sortedEvents,
+function groupItemsByProximity({
+  sortedItems,
   day,
   cellHeight,
-}: GroupEventsByProximityOptions) {
-  if (sortedEvents.length === 0) {
+}: GroupItemsByProximityOptions) {
+  if (sortedItems.length === 0) {
     return [];
   }
 
   const groups: ProximityGroup[] = [];
 
-  for (const event of sortedEvents) {
-    const start = clampToStartOfDay(event, day);
-    const end = clampToEndOfDay(event, day);
+  for (const item of sortedItems) {
+    const start = clampToStartOfDay(item, day);
+    const end = clampToEndOfDay(item, day);
     const startMinutes = start.hour * 60 + start.minute;
     const endMinutes = end.hour * 60 + end.minute;
 
@@ -210,14 +214,14 @@ function groupEventsByProximity({
         day,
       })
     ) {
-      lastGroup.events.push(event);
+      lastGroup.items.push(item);
       lastGroup.endMinutes = Math.max(lastGroup.endMinutes, endMinutes);
 
       continue;
     }
 
     groups.push({
-      events: [event],
+      items: [item],
       startMinutes,
       endMinutes,
     });
@@ -259,7 +263,7 @@ function calculatePosition({
   columns,
   cellHeight,
 }: CalculatePositionOptions) {
-  const { top, height } = calculateEventDimensions(start, end, 0, cellHeight);
+  const { top, height } = calculateItemDimensions(start, end, 0, cellHeight);
 
   const offsetPercentage = Math.min(overlapDepth * 0.1, 0.5);
   const availableWidth = 1 - offsetPercentage;
@@ -272,25 +276,25 @@ function calculatePosition({
   return { top, height, left, width, zIndex };
 }
 
-function positionEventsForDay(
-  events: EventCollectionItem[],
+function positionItemsForDay(
+  items: InlineDisplayItem[],
   day: Temporal.PlainDate,
   cellHeight: number,
 ) {
-  const timedEvents = getTimedEventsForDay(events, day);
-  const sortedEvents = sortEventsForCollisionDetection(timedEvents);
+  const timedItems = getTimedItemsForDay(items, day);
+  const sortedItems = sortItemsForCollisionDetection(timedItems);
 
-  if (sortedEvents.length === 0) {
+  if (sortedItems.length === 0) {
     return [];
   }
 
-  const groups = groupEventsByProximity({
-    sortedEvents,
+  const groups = groupItemsByProximity({
+    sortedItems,
     day,
     cellHeight,
   });
 
-  const positioned: PositionedEvent[] = [];
+  const positioned: PositionedDisplayItem[] = [];
   const activeGroupEnds: number[] = [];
 
   for (const group of groups) {
@@ -298,7 +302,7 @@ function positionEventsForDay(
       activeGroupEnds.shift();
     }
 
-    for (const [index, item] of group.events.entries()) {
+    for (const [index, item] of group.items.entries()) {
       const start = clampToStartOfDay(item, day);
       const end = clampToEndOfDay(item, day);
 
@@ -307,7 +311,7 @@ function positionEventsForDay(
         end,
         index,
         overlapDepth: activeGroupEnds.length,
-        columns: group.events.length,
+        columns: group.items.length,
         cellHeight,
       });
 
@@ -322,22 +326,22 @@ function positionEventsForDay(
   return positioned;
 }
 
-interface CalculateWeekViewEventPositionsOptions {
-  events: EventCollectionItem[];
+interface CalculateWeekViewPositionsOptions {
+  items: InlineDisplayItem[];
   days: Temporal.PlainDate[];
   cellHeight: number;
 }
 
-export function calculateWeekViewEventPositions({
-  events,
+export function calculateWeekViewDisplayItemPositions({
+  items,
   days,
   cellHeight,
-}: CalculateWeekViewEventPositionsOptions) {
-  return days.map((day) => positionEventsForDay(events, day, cellHeight));
+}: CalculateWeekViewPositionsOptions) {
+  return days.map((day) => positionItemsForDay(items, day, cellHeight));
 }
 
-function sortEventsForCollisionDetection(events: EventCollectionItem[]) {
-  return [...events].sort((a, b) => {
+function sortItemsForCollisionDetection(items: InlineDisplayItem[]) {
+  return [...items].sort((a, b) => {
     if (isBefore(a.start, b.start)) {
       return -1;
     }
@@ -351,4 +355,11 @@ function sortEventsForCollisionDetection(events: EventCollectionItem[]) {
 
     return bDuration - aDuration;
   });
+}
+
+/**
+ * Filter DisplayItems to only inline items
+ */
+export function filterInlineItems(items: DisplayItem[]): InlineDisplayItem[] {
+  return items.filter(isInlineItem);
 }

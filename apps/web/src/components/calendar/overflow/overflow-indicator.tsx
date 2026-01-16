@@ -9,19 +9,18 @@ import { Temporal } from "temporal-polyfill";
 import { isSameDay, toDate } from "@repo/temporal";
 
 import { calendarSettingsAtom } from "@/atoms/calendar-settings";
-import { EventItem } from "@/components/calendar/event/event-item";
+import { DisplayItemComponent } from "@/components/calendar/display-item/display-item";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import type { CalendarEvent } from "@/lib/interfaces";
+import { InlineDisplayItem, isEvent } from "@/lib/display-item";
 import { cn } from "@/lib/utils";
-import { EventCollectionItem } from "../hooks/event-collection";
 import { useSelectAction } from "../hooks/use-optimistic-mutations";
 
 interface OverflowIndicatorProps {
-  items: EventCollectionItem[];
+  items: InlineDisplayItem[];
   date: Temporal.PlainDate;
 
   gridColumn?: string;
@@ -39,9 +38,11 @@ export function OverflowIndicator({
   const timeZone = useAtomValue(calendarSettingsAtom).defaultTimeZone;
 
   const selectAction = useSelectAction();
-  const onEventClick = React.useCallback(
-    (event: CalendarEvent) => {
-      selectAction(event);
+  const onItemClick = React.useCallback(
+    (item: InlineDisplayItem) => {
+      if (isEvent(item)) {
+        selectAction(item.event);
+      }
       setOpen(false);
     },
     [selectAction],
@@ -92,34 +93,28 @@ export function OverflowIndicator({
           </button>
         </div>
 
-        <div className="max-h-96 overflow-auto px-2 pb-2">
-          {items.length === 0 ? (
-            <div className="py-2 text-sm text-muted-foreground">No events</div>
-          ) : (
-            <div className="space-y-2">
-              {items.map((item) => (
-                <OverflowEvent
-                  key={item.event.id}
-                  item={item}
-                  date={date}
-                  onEventClick={onEventClick}
-                />
-              ))}
-            </div>
-          )}
+        <div className="max-h-96 space-y-2 overflow-auto px-2 pb-2">
+          {items.map((item) => (
+            <OverflowItem
+              key={item.id}
+              item={item}
+              date={date}
+              onItemClick={onItemClick}
+            />
+          ))}
         </div>
       </PopoverContent>
     </Popover>
   );
 }
 
-interface OverflowEventsProps {
-  item: EventCollectionItem;
+interface OverflowItemProps {
+  item: InlineDisplayItem;
   date: Temporal.PlainDate;
-  onEventClick: (event: CalendarEvent) => void;
+  onItemClick: (item: InlineDisplayItem) => void;
 }
 
-function OverflowEvent({ item, date, onEventClick }: OverflowEventsProps) {
+function OverflowItem({ item, date, onItemClick }: OverflowItemProps) {
   const { defaultTimeZone } = useAtomValue(calendarSettingsAtom);
 
   const isFirstDay = isSameDay(date, item.start, { timeZone: defaultTimeZone });
@@ -127,11 +122,11 @@ function OverflowEvent({ item, date, onEventClick }: OverflowEventsProps) {
 
   return (
     <div
-      key={item.event.id}
+      key={item.id}
       className="cursor-pointer"
-      onClick={() => onEventClick(item.event)}
+      onClick={() => onItemClick(item)}
     >
-      <EventItem
+      <DisplayItemComponent
         item={item}
         view="agenda"
         isFirstDay={isFirstDay}

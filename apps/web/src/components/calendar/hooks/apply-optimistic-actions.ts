@@ -1,11 +1,11 @@
 import { isBefore } from "@repo/temporal";
 
+import { EventDisplayItem, createEventDisplayItem } from "@/lib/display-item";
 import { insertIntoSorted } from "@/lib/sorted-actions";
-import { EventCollectionItem, convertEventToItem } from "./event-collection";
 import { OptimisticAction } from "./optimistic-actions";
 
 interface ApplyOptimisticActionsOptions {
-  items: EventCollectionItem[];
+  items: EventDisplayItem[];
   timeZone: string;
   optimisticActions: Record<string, OptimisticAction>;
 }
@@ -21,7 +21,7 @@ export function applyOptimisticActions({
 
   for (const action of Object.values(optimisticActions)) {
     if (action.type === "update") {
-      const item = convertEventToItem(action.event, timeZone);
+      const item = createEventDisplayItem(action.event, timeZone);
 
       optimisticItems = insertIntoSorted(optimisticItems, item, (a) =>
         isBefore(a.start, action.event.start, {
@@ -33,14 +33,15 @@ export function applyOptimisticActions({
         (event) => event.event.id !== action.eventId,
       );
     } else if (action.type === "create") {
-      const item = convertEventToItem(action.event, timeZone);
+      const item = createEventDisplayItem(action.event, timeZone);
+
       optimisticItems = insertIntoSorted(optimisticItems, item, (a) =>
         isBefore(a.start, action.event.start, {
           timeZone,
         }),
       );
     } else if (action.type === "draft") {
-      const item = convertEventToItem(action.event, timeZone);
+      const item = createEventDisplayItem(action.event, timeZone);
 
       optimisticItems = insertIntoSorted(optimisticItems, item, (a) =>
         isBefore(a.start, action.event.start, {
