@@ -52,7 +52,7 @@
     "@repo/temporal": "workspace:*",
     "@repo/timezone-coordinates": "workspace:*",
     "@sentry/nextjs": "^10.32.1",
-    "@simpleanalytics/next": "https://pkg.pr.new/simpleanalytics/next/@simpleanalytics/next@d059322",
+    "@simpleanalytics/next": "^1.1.1",
     "@tailwindcss/typography": "^0.5.16",
     "@tanstack/query-async-storage-persister": "^5.90.15",
     "@tanstack/react-form": "^1.27.6",

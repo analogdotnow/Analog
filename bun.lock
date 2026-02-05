@@ -57,7 +57,7 @@
         "@repo/temporal": "workspace:*",
         "@repo/timezone-coordinates": "workspace:*",
         "@sentry/nextjs": "^10.32.1",
-        "@simpleanalytics/next": "https://pkg.pr.new/simpleanalytics/next/@simpleanalytics/next@d059322",
+        "@simpleanalytics/next": "^1.1.1",
         "@tailwindcss/typography": "^0.5.16",
         "@tanstack/query-async-storage-persister": "^5.90.15",
         "@tanstack/react-form": "^1.27.6",
@@ -1451,7 +1451,7 @@
 
     "@sentry/webpack-plugin": ["@sentry/webpack-plugin@4.6.1", "", { "dependencies": { "@sentry/bundler-plugin-core": "4.6.1", "unplugin": "1.0.1", "uuid": "^9.0.0" }, "peerDependencies": { "webpack": ">=4.40.0" } }, "sha512-CJgT/t2pQWsPsMx9VJ86goU/orCQhL2HhDj5ZYBol6fPPoEGeTqKOPCnv/xsbCAfGSp1uHpyRLTA/Gx96u7VVA=="],
 
-    "@simpleanalytics/next": ["@simpleanalytics/next@https://pkg.pr.new/simpleanalytics/next/@simpleanalytics/next@d059322", { "dependencies": { "server-only": "^0.0.1" }, "peerDependencies": { "next": ">= 13", "react": "^18 || ^19" }, "optionalPeers": ["next", "react"] }],
+    "@simpleanalytics/next": ["@simpleanalytics/next@1.1.1", "", { "dependencies": { "server-only": "^0.0.1" }, "peerDependencies": { "next": ">= 13", "react": "^18 || ^19" }, "optionalPeers": ["next", "react"] }, "sha512-m5O8MksfgBvajkul0l4y6Wb35hiI04tThHmsTkQF1wNbMaZm0PmgtwN592ANp2uOAEO4NDAwM4GjhJXPEOvqLA=="],
 
     "@standard-schema/spec": ["@standard-schema/spec@1.0.0", "", {}, "sha512-m2bOd0f2RT9k8QJx1JN85cZYyH1RqFBdlwtkSlf4tBDYLCiiZnv1fIIwacK6cqwXavOydf0NPToMQgpKq+dVlA=="],
 
