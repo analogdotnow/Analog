@@ -15,6 +15,8 @@ import {
 import { DeleteQueueContext } from "./delete-queue-provider";
 
 export function DeleteEventAttendeeDialog() {
+  "use memo";
+
   const actorRef = DeleteQueueContext.useActorRef();
   const open = DeleteQueueContext.useSelector((snapshot) =>
     snapshot.matches("askNotifyAttendee"),

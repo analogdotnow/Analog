@@ -3,9 +3,7 @@ import { redirect } from "next/navigation";
 
 import { auth } from "@repo/auth/server";
 
-import { CalendarLayout } from "@/components/calendar-layout";
-import { DateProvider } from "@/components/calendar/context/date-provider";
-import { ZonedDateTimeProvider } from "@/components/calendar/context/datetime-provider";
+import { PageContent } from "./page-content";
 
 export default async function CalendarPage() {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -14,11 +12,5 @@ export default async function CalendarPage() {
     redirect("/login");
   }
 
-  return (
-    <ZonedDateTimeProvider>
-      <DateProvider>
-        <CalendarLayout />
-      </DateProvider>
-    </ZonedDateTimeProvider>
-  );
+  return <PageContent />;
 }

@@ -8,7 +8,7 @@ import {
   SettingsSectionDescription,
   SettingsSectionHeader,
   SettingsSectionTitle,
-} from "../settings-page";
+} from "@/components/settings-dialog/settings-page";
 import { IntegrationsList } from "./connected-accounts/integrations-list";
 
 export function ConnectedAccounts() {

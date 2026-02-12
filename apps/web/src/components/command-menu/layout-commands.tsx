@@ -1,13 +1,14 @@
-import { useAtomValue, useSetAtom } from "jotai";
-
-import { commandMenuOpenAtom, commandMenuPageAtom } from "@/atoms/command-menu";
-import { calendarViewAtom } from "@/atoms/view-preferences";
 import { CommandGroup, CommandItem } from "@/components/ui/command";
+import {
+  useCommandMenuPage,
+  useSetCalendarView,
+  useSetCommandMenuOpen,
+} from "@/store/hooks";
 
 export function LayoutCommands() {
-  const setView = useSetAtom(calendarViewAtom);
-  const page = useAtomValue(commandMenuPageAtom);
-  const setOpen = useSetAtom(commandMenuOpenAtom);
+  const setView = useSetCalendarView();
+  const page = useCommandMenuPage();
+  const setOpen = useSetCommandMenuOpen();
 
   if (page) {
     return null;

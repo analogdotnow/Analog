@@ -1,75 +1,76 @@
 "use client";
 
-import * as React from "react";
-import { useAtom } from "jotai";
 import { ChevronDownIcon } from "lucide-react";
 
-import {
-  ViewPreferences,
-  calendarViewAtom,
-  viewPreferencesAtom,
-} from "@/atoms/view-preferences";
+import { CalendarView } from "@/components/calendar/interfaces";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuSeparator,
-  DropdownMenuShortcut,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Key } from "@/components/ui/keyboard-shortcut";
-import { CalendarView } from "../interfaces";
+import {
+  Menu,
+  MenuCheckboxItem,
+  MenuPopup,
+  MenuRadioGroup,
+  MenuRadioItem,
+  MenuSeparator,
+  MenuShortcut,
+  MenuSub,
+  MenuSubPopup,
+  MenuSubTrigger,
+  MenuTrigger,
+} from "@/components/ui/menu";
+import { useCalendarStore } from "@/providers/calendar-store-provider";
+import type { ViewPreferences } from "@/store/calendar-store";
+import {
+  useCalendarView,
+  useSetCalendarView,
+  useSetViewPreferences,
+  useViewPreferences,
+} from "@/store/hooks";
 
 function CalendarViewPreferences() {
-  const [preferences, setPreferences] = useAtom(viewPreferencesAtom);
+  "use memo";
 
-  const handlePreferenceChange = (
-    key: keyof ViewPreferences,
-    value: boolean,
-  ) => {
-    setPreferences({
-      ...preferences,
-      [key]: value,
-    });
+  const preferences = useViewPreferences();
+  const setViewPreferences = useSetViewPreferences();
+
+  const onPreferenceChange = (key: keyof ViewPreferences, value: boolean) => {
+    setViewPreferences({ [key]: value });
   };
 
   return (
     <>
-      <DropdownMenuCheckboxItem
+      <MenuCheckboxItem
         checked={preferences.showWeekends}
         onCheckedChange={(checked) =>
-          handlePreferenceChange("showWeekends", checked)
+          onPreferenceChange("showWeekends", checked)
         }
       >
         Show weekends
-      </DropdownMenuCheckboxItem>
-      <DropdownMenuCheckboxItem
+      </MenuCheckboxItem>
+      <MenuCheckboxItem
         checked={preferences.showWeekNumbers}
         onCheckedChange={(checked) =>
-          handlePreferenceChange("showWeekNumbers", checked)
+          onPreferenceChange("showWeekNumbers", checked)
         }
       >
         Show week numbers
-      </DropdownMenuCheckboxItem>
-      <DropdownMenuCheckboxItem
+      </MenuCheckboxItem>
+      <MenuCheckboxItem
         checked={preferences.showDeclinedEvents}
         onCheckedChange={(checked) =>
-          handlePreferenceChange("showDeclinedEvents", checked)
+          onPreferenceChange("showDeclinedEvents", checked)
         }
       >
         Show declined events
-      </DropdownMenuCheckboxItem>
-      <DropdownMenuCheckboxItem
+      </MenuCheckboxItem>
+      <MenuCheckboxItem
         checked={preferences.showPastEvents}
         onCheckedChange={(checked) =>
-          handlePreferenceChange("showPastEvents", checked)
+          onPreferenceChange("showPastEvents", checked)
         }
       >
         Show past events
-      </DropdownMenuCheckboxItem>
+      </MenuCheckboxItem>
     </>
   );
 }
@@ -81,65 +82,85 @@ const VIEW_OPTIONS = [
   { value: "agenda" as const, label: "Agenda", shortcut: "A" },
 ];
 
-interface CalendarViewMenuProps {
-  currentView: CalendarView;
-  onViewChange: (view: CalendarView) => void;
-}
+const DAYS_OPTIONS = [1, 2, 3, 4, 5, 6, 7] as const;
 
-function CalendarViewOptions({
-  currentView,
-  onViewChange,
-}: CalendarViewMenuProps) {
-  const handleViewChange = React.useCallback(
-    (view: CalendarView) => {
-      onViewChange(view);
-    },
-    [onViewChange],
+function NumberOfDaysSubmenu() {
+  "use memo";
+
+  const weekViewNumberOfDays = useCalendarStore(
+    (s) => s.viewPreferences.weekViewNumberOfDays,
   );
+  const setViewPreferences = useSetViewPreferences();
+
+  const onDaysChange = (days: string) => {
+    setViewPreferences({ weekViewNumberOfDays: parseInt(days, 10) });
+  };
 
   return (
-    <DropdownMenuRadioGroup
-      value={currentView}
-      onValueChange={(value) => handleViewChange(value as CalendarView)}
-    >
-      {VIEW_OPTIONS.map(({ value, label, shortcut }) => (
-        <DropdownMenuRadioItem key={value} value={value}>
-          {label}
-          <DropdownMenuShortcut className="min-w-6 justify-center text-center">
-            <Key>{shortcut}</Key>
-          </DropdownMenuShortcut>
-        </DropdownMenuRadioItem>
-      ))}
-    </DropdownMenuRadioGroup>
+    <MenuSub>
+      <MenuSubTrigger inset>Number of days</MenuSubTrigger>
+      <MenuSubPopup className="min-w-48">
+        <MenuRadioGroup
+          value={String(weekViewNumberOfDays ?? 7)}
+          onValueChange={onDaysChange}
+        >
+          {DAYS_OPTIONS.map((days) => (
+            <MenuRadioItem key={days} value={String(days)}>
+              {days} {days === 1 ? "day" : "days"}
+            </MenuRadioItem>
+          ))}
+        </MenuRadioGroup>
+      </MenuSubPopup>
+    </MenuSub>
   );
 }
 
 export function CalendarViewMenu() {
-  const [view, setView] = useAtom(calendarViewAtom);
-  const viewDisplayName = view.charAt(0).toUpperCase() + view.slice(1);
+  "use memo";
+
+  const view = useCalendarView();
+  const setView = useSetCalendarView();
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="h-8 gap-1.5">
-          <span>
-            <span className="@min-md/header:hidden" aria-hidden="true">
-              {view.charAt(0).toUpperCase()}
+    <Menu>
+      <MenuTrigger
+        render={
+          <Button variant="outline" className="h-8 gap-1.5">
+            <span>
+              <span className="@min-md/header:hidden" aria-hidden="true">
+                {view.charAt(0).toUpperCase()}
+              </span>
+              <span className="@max-md/header:sr-only">
+                {view.charAt(0).toUpperCase() + view.slice(1)}
+              </span>
             </span>
-            <span className="@max-md/header:sr-only">{viewDisplayName}</span>
-          </span>
-          <ChevronDownIcon
-            className="-me-1 opacity-60"
-            size={16}
-            aria-hidden="true"
-          />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="min-w-64">
-        <CalendarViewOptions currentView={view} onViewChange={setView} />
-        <DropdownMenuSeparator />
+            <ChevronDownIcon
+              className="-me-1 opacity-60"
+              size={16}
+              aria-hidden="true"
+            />
+          </Button>
+        }
+      />
+      <MenuPopup align="end" className="min-w-64">
+        <MenuRadioGroup
+          value={view}
+          onValueChange={(value: CalendarView) => setView(value)}
+        >
+          {VIEW_OPTIONS.map(({ value, label, shortcut }) => (
+            <MenuRadioItem key={value} value={value}>
+              {label}
+              <MenuShortcut className="min-w-4 justify-center text-center">
+                <Key>{shortcut}</Key>
+              </MenuShortcut>
+            </MenuRadioItem>
+          ))}
+        </MenuRadioGroup>
+        <MenuSeparator />
+        <NumberOfDaysSubmenu />
+        <MenuSeparator />
         <CalendarViewPreferences />
-      </DropdownMenuContent>
-    </DropdownMenu>
+      </MenuPopup>
+    </Menu>
   );
 }

@@ -3,10 +3,8 @@
 import * as React from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { parseDate } from "chrono-node";
-import { useAtomValue } from "jotai";
 import { Temporal } from "temporal-polyfill";
 
-import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import {
   Combobox,
   ComboboxInput,
@@ -15,6 +13,7 @@ import {
   ComboboxPopover,
 } from "@/components/ui/combobox";
 import { formatTime } from "@/lib/utils/format";
+import { useCalendarStore } from "@/providers/calendar-store-provider";
 import { TimeInputValue, useTimeSuggestions } from "./use-time-suggestions";
 
 interface TimeInputListItemProps {
@@ -69,7 +68,8 @@ export function TimeInput({
   open,
   onOpenChange,
 }: TimeInputProps) {
-  const { use12Hour, locale } = useAtomValue(calendarSettingsAtom);
+  const use12Hour = useCalendarStore((s) => s.calendarSettings.use12Hour);
+  const locale = useCalendarStore((s) => s.calendarSettings.locale);
   const [input, setInput] = React.useState(
     formatTime({ value, use12Hour, locale }),
   );

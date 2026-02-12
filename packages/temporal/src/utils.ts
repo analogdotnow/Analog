@@ -157,10 +157,17 @@ export function startOfMonth(
   value: Temporal.ZonedDateTime,
 ): Temporal.ZonedDateTime;
 export function startOfMonth(value: Temporal.PlainDate): Temporal.PlainDate;
+export function startOfMonth(
+  value: Temporal.PlainYearMonth,
+): Temporal.PlainDate;
 
-export function startOfMonth<
-  T extends Temporal.ZonedDateTime | Temporal.PlainDate,
->(value: T) {
+export function startOfMonth(
+  value: Temporal.ZonedDateTime | Temporal.PlainDate | Temporal.PlainYearMonth,
+) {
+  if (value instanceof Temporal.PlainYearMonth) {
+    return value.toPlainDate({ day: 1 });
+  }
+
   if (value instanceof Temporal.PlainDate) {
     return value.with({ day: 1 });
   }

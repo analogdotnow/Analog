@@ -42,6 +42,8 @@ interface UserAvatarProps {
   user: RouterOutputs["user"]["me"];
 }
 function UserAvatar({ user }: UserAvatarProps) {
+  "use memo";
+
   return (
     <Avatar className="h-8 w-8 rounded-lg">
       <AvatarImage src={user.image ?? undefined} alt={user.name} />
@@ -56,6 +58,8 @@ function UserAvatar({ user }: UserAvatarProps) {
   );
 }
 export function NavUser() {
+  "use memo";
+
   const router = useRouter();
   const queryClient = useQueryClient();
 
@@ -162,6 +166,8 @@ export function NavUser() {
 }
 
 function NavUserSkeleton() {
+  "use memo";
+
   return (
     <SidebarMenu>
       <SidebarMenuItem>

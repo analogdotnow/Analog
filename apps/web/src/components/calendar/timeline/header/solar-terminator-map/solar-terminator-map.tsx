@@ -3,7 +3,6 @@
 import * as React from "react";
 import { geoEquirectangular } from "d3-geo";
 import { line } from "d3-shape";
-import { useAtomValue } from "jotai";
 import {
   ComposableMap,
   Geographies,
@@ -15,8 +14,8 @@ import { Temporal } from "temporal-polyfill";
 
 import { TIMEZONE_LOCATIONS } from "@repo/timezone-coordinates";
 
-import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { useZonedDateTime } from "@/components/calendar/context/datetime-provider";
+import { useDefaultTimeZone } from "@/store/hooks";
 import WorldMap from "./land-110m.json";
 
 interface UseTerminatorProps {
@@ -222,7 +221,7 @@ interface TimeZoneMarkersProps {
 }
 
 function TimeZoneMarkers({ timeZoneId }: TimeZoneMarkersProps) {
-  const { defaultTimeZone } = useAtomValue(calendarSettingsAtom);
+  const defaultTimeZone = useDefaultTimeZone();
 
   if (timeZoneId === defaultTimeZone) {
     const coordinates = TIMEZONE_LOCATIONS[defaultTimeZone];

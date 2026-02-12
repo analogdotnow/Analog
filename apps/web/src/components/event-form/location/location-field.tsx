@@ -3,6 +3,7 @@
 import * as React from "react";
 import { LoaderCircle } from "lucide-react";
 
+import { usePlacesSearch } from "@/components/event-form/location/use-places-search";
 import type { FormConference } from "@/components/event-form/utils/schema";
 import { GoogleMeet } from "@/components/icons";
 import {
@@ -17,7 +18,6 @@ import {
   AutocompletePositioner,
   AutocompleteStatus,
 } from "@/components/ui/autocomplete";
-import { usePlacesSearch } from "@/hooks/use-places-search";
 import { cn } from "@/lib/utils";
 import { ConferenceFieldDropdown } from "./conference-field-dropdown";
 import { LocationFieldDropdown } from "./location-field-dropdown";

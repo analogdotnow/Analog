@@ -1,16 +1,12 @@
 import type {
   Attendee,
   Calendar,
-  CalendarEvent as ProviderCalendarEvent,
+  CalendarEvent,
 } from "@repo/providers/interfaces";
-
-export type CalendarEvent = ProviderCalendarEvent & {
-  type?: "draft" | "event";
-};
 
 export type DraftEvent = Partial<CalendarEvent> &
   Required<Pick<CalendarEvent, "id" | "start" | "end">> & {
     type: "draft";
   };
 
-export type { Calendar, Attendee };
+export type { Calendar, Attendee, CalendarEvent };

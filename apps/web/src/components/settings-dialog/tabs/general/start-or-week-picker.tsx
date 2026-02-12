@@ -1,9 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useAtom } from "jotai";
 
-import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -12,6 +10,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useCalendarStore } from "@/providers/calendar-store-provider";
+import { useSetCalendarSettings } from "@/store/hooks";
 
 const weekDays = [
   "monday",
@@ -26,17 +26,17 @@ const weekDays = [
 type WeekDay = (typeof weekDays)[number];
 
 export function StartOfWeekPicker() {
-  const [calendarSettings, setCalendarSettings] = useAtom(calendarSettingsAtom);
-  const value = weekDays[calendarSettings.weekStartsOn - 1];
+  const weekStartsOn = useCalendarStore((s) => s.calendarSettings.weekStartsOn);
+  const setCalendarSettings = useSetCalendarSettings();
+  const value = weekDays[weekStartsOn - 1];
 
   const onValueChange = React.useCallback(
     (value: WeekDay) => {
       const weekStartsOn = weekDays.indexOf(value) + 1;
 
-      setCalendarSettings((prev) => ({
-        ...prev,
+      setCalendarSettings({
         weekStartsOn: weekStartsOn as 1 | 2 | 3 | 4 | 5 | 6 | 7,
-      }));
+      });
     },
     [setCalendarSettings],
   );

@@ -118,7 +118,7 @@ function DefaultCalendarPickerItem({
   const style = React.useMemo(() => {
     return {
       "--calendar-color": color ?? "#3B82F6",
-    } as React.CSSProperties;
+    };
   }, [color]);
 
   return (

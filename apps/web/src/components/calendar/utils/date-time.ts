@@ -8,19 +8,12 @@
  * - Miscellaneous helpers
  */
 
-import { format } from "date-fns";
 import { Temporal } from "temporal-polyfill";
 
-import {
-  eachDayOfInterval,
-  endOfWeek,
-  isSameMonth,
-  startOfWeek,
-  toDate,
-} from "@repo/temporal";
+import { eachDayOfInterval, endOfWeek, startOfWeek } from "@repo/temporal";
 
-import { AgendaDaysToShow } from "../constants";
-import { CalendarView } from "../interfaces";
+import { AGENDA_DAYS_TO_DISPLAY } from "@/components/calendar/constants";
+import { CalendarView } from "@/components/calendar/interfaces";
 
 export function navigateToPrevious(
   currentDate: Temporal.PlainDate,
@@ -34,7 +27,7 @@ export function navigateToPrevious(
     case "day":
       return currentDate.subtract({ days: 1 });
     case "agenda":
-      return currentDate.subtract({ days: AgendaDaysToShow });
+      return currentDate.subtract({ days: AGENDA_DAYS_TO_DISPLAY });
     default:
       return currentDate;
   }
@@ -52,98 +45,9 @@ export function navigateToNext(
     case "day":
       return currentDate.add({ days: 1 });
     case "agenda":
-      return currentDate.add({ days: AgendaDaysToShow });
+      return currentDate.add({ days: AGENDA_DAYS_TO_DISPLAY });
     default:
       return currentDate;
-  }
-}
-
-function getMonthTitle(date: Temporal.PlainDate, timeZone: string) {
-  const value = toDate(date, { timeZone });
-  return {
-    full: format(value, "MMMM yyyy"),
-    medium: "",
-    short: format(value, "MMM yyyy"),
-  };
-}
-
-interface GetWeekTitleOptions {
-  timeZone: string;
-  weekStartsOn: 1 | 2 | 3 | 4 | 5 | 6 | 7;
-}
-
-function getWeekTitle(date: Temporal.PlainDate, options: GetWeekTitleOptions) {
-  const start = startOfWeek(date, {
-    weekStartsOn: options.weekStartsOn,
-  });
-  const end = endOfWeek(date, { weekStartsOn: options.weekStartsOn });
-
-  if (isSameMonth(start, end)) {
-    return getMonthTitle(start, options.timeZone);
-  }
-
-  const startValue = toDate(start, { timeZone: options.timeZone });
-  const endValue = toDate(end, { timeZone: options.timeZone });
-
-  return {
-    full: `${format(startValue, "MMM")} - ${format(endValue, "MMM yyyy")}`,
-    medium: "",
-    short: `${format(startValue, "MMM")} - ${format(endValue, "MMM")}`,
-  };
-}
-
-function getDayTitle(date: Temporal.PlainDate, timeZone: string) {
-  const value = toDate(date, { timeZone });
-
-  return {
-    full: format(value, "EEE MMMM d, yyyy"),
-    medium: format(value, "MMMM d, yyyy"),
-    short: format(value, "MMM d, yyyy"),
-  };
-}
-
-function getAgendaTitle(date: Temporal.PlainDate, timeZone: string) {
-  const start = date;
-  const end = date.add({ days: AgendaDaysToShow - 1 });
-
-  if (isSameMonth(start, end)) {
-    return getMonthTitle(start, timeZone);
-  }
-
-  const startValue = toDate(start, { timeZone });
-  const endValue = toDate(end, { timeZone });
-
-  return {
-    full: `${format(startValue, "MMM")} - ${format(endValue, "MMM yyyy")}`,
-    medium: "",
-    short: `${format(startValue, "MMM")} - ${format(endValue, "MMM")}`,
-  };
-}
-
-interface GetViewTitleDataOptions {
-  view: CalendarView;
-  timeZone: string;
-  weekStartsOn: 1 | 2 | 3 | 4 | 5 | 6 | 7;
-}
-
-export function getViewTitleData(
-  currentDate: Temporal.PlainDate,
-  options: GetViewTitleDataOptions,
-) {
-  switch (options.view) {
-    case "month":
-      return getMonthTitle(currentDate, options.timeZone);
-    case "week":
-      return getWeekTitle(currentDate, {
-        timeZone: options.timeZone,
-        weekStartsOn: options.weekStartsOn,
-      });
-    case "day":
-      return getDayTitle(currentDate, options.timeZone);
-    case "agenda":
-      return getAgendaTitle(currentDate, options.timeZone);
-    default:
-      return getMonthTitle(currentDate, options.timeZone);
   }
 }
 

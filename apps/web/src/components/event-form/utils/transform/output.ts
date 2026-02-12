@@ -1,5 +1,8 @@
+import type {
+  FormAttendee,
+  FormValues,
+} from "@/components/event-form/utils/schema";
 import type { Calendar, CalendarEvent, DraftEvent } from "@/lib/interfaces";
-import type { FormAttendee, FormValues } from "../schema";
 
 interface ToCalendarEvent {
   values: FormValues;
@@ -19,10 +22,7 @@ function toResponse(attendees: FormAttendee[]) {
   };
 }
 
-export function toCalendarEvent({
-  values,
-  event,
-}: ToCalendarEvent): CalendarEvent {
+export function toCalendarEvent({ values, event }: ToCalendarEvent) {
   return {
     ...event,
     type: "event",
@@ -42,5 +42,5 @@ export function toCalendarEvent({
     response: toResponse(values.attendees),
     conference: values.conference,
     visibility: values.visibility,
-  };
+  } as CalendarEvent;
 }

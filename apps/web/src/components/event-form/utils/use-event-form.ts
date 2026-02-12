@@ -3,21 +3,28 @@
 import * as React from "react";
 import { useAtom, useAtomValue } from "jotai";
 
-import { calendarSettingsAtom } from "@/atoms/calendar-settings";
-import { selectedEventIdsAtom } from "@/atoms/selected-events";
 import { EventFormStateContext } from "@/components/calendar/flows/event-form/event-form-state-provider";
 import {
   useFormAction,
   useSaveAction,
 } from "@/components/calendar/flows/event-form/use-form-action";
-import { useDefaultCalendar } from "@/components/calendar/hooks/use-default-calendar";
+import {
+  defaultValuesAtom,
+  formAtom,
+  isPristineAtom,
+} from "@/components/event-form/atoms/form";
 import { getDefaultEvent } from "@/components/event-form/utils/defaults";
+import { useDefaultCalendar } from "@/hooks/calendar/use-default-calendar";
 import { getEventById } from "@/lib/db";
 import {
   requiresAttendeeConfirmation,
   requiresRecurrenceConfirmation,
 } from "@/lib/utils/events";
-import { defaultValuesAtom, formAtom, isPristineAtom } from "../atoms/form";
+import {
+  useDefaultEventDuration,
+  useDefaultTimeZone,
+  useSelectedEventList,
+} from "@/store/hooks";
 import { defaultFormMeta } from "./defaults";
 import { useAppForm } from "./form";
 import { FormValues, formSchema } from "./schema";
@@ -32,8 +39,9 @@ function requiresConfirmation(values: FormValues) {
 
 export function useEventForm() {
   const actorRef = EventFormStateContext.useActorRef();
-  const settings = useAtomValue(calendarSettingsAtom);
-  const selectedEventId = useAtomValue(selectedEventIdsAtom)[0] ?? null;
+  const defaultTimeZone = useDefaultTimeZone();
+  const defaultEventDuration = useDefaultEventDuration();
+  const selectedEventId = useSelectedEventList()[0] ?? null;
 
   const defaultCalendar = useDefaultCalendar();
 
@@ -146,7 +154,11 @@ export function useEventForm() {
       return;
     }
 
-    const event = getDefaultEvent({ settings, defaultCalendar });
+    const event = getDefaultEvent({
+      defaultCalendar,
+      defaultTimeZone,
+      defaultEventDuration,
+    });
 
     formAction(event);
     // eslint-disable-next-line react-hooks/exhaustive-deps

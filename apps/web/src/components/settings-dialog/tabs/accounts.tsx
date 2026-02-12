@@ -6,7 +6,7 @@ import {
   SettingsSectionDescription,
   SettingsSectionHeader,
   SettingsSectionTitle,
-} from "../settings-page";
+} from "@/components/settings-dialog/settings-page";
 import { AddAccountButton } from "./accounts/add-account-button";
 import { ConnectedAccountsList } from "./accounts/connected-accounts-list";
 import { DefaultCalendarPicker } from "./accounts/default-calendar-picker";

@@ -4,7 +4,7 @@ import { useSetAtom } from "jotai";
 import {
   addOptimisticActionAtom,
   generateOptimisticId,
-} from "../../hooks/optimistic-actions";
+} from "@/hooks/calendar/optimistic-actions";
 import type { DeleteQueueItem, DeleteQueueRequest } from "./delete-queue";
 import { DeleteQueueContext } from "./delete-queue-provider";
 

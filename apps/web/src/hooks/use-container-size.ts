@@ -8,43 +8,44 @@ interface ContainerSize {
 export function useContainerSize(
   containerRef: React.RefObject<HTMLElement | null>,
 ): ContainerSize {
-  const observerRef = React.useRef<ResizeObserver | null>(null);
   const [size, setSize] = React.useState<ContainerSize>({
     width: 0,
     height: 0,
   });
 
-  const measure = React.useCallback(() => {
-    if (!containerRef.current) {
+  // Track the current element to detect when ref.current changes
+  const [element, setElement] = React.useState<HTMLElement | null>(null);
+
+  // Sync element state with ref on every render
+  React.useLayoutEffect(() => {
+    setElement(containerRef.current);
+  });
+
+  // Observe the element when it changes
+  React.useLayoutEffect(() => {
+    if (!element) {
       return;
     }
 
-    const { width, height } = containerRef.current.getBoundingClientRect();
+    const { width, height } = element.getBoundingClientRect();
 
     setSize({ width, height });
-  }, [containerRef]);
 
-  React.useLayoutEffect(() => {
-    if (!containerRef.current) {
-      return;
-    }
+    const observer = new ResizeObserver((entries) => {
+      const entry = entries[0];
 
-    measure();
-
-    if (!observerRef.current) {
-      observerRef.current = new ResizeObserver(() => {
-        measure();
-      });
-    }
-
-    observerRef.current.observe(containerRef.current);
-
-    return () => {
-      if (observerRef.current) {
-        observerRef.current.disconnect();
+      if (entry) {
+        setSize({
+          width: entry.contentRect.width,
+          height: entry.contentRect.height,
+        });
       }
-    };
-  }, [containerRef, measure]);
+    });
+
+    observer.observe(element);
+
+    return () => observer.disconnect();
+  }, [element]);
 
   return size;
 }

@@ -19,7 +19,7 @@ function ComboboxInput({
     <Ariakit.Combobox
       className={cn(
         "flex h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1 text-base font-medium shadow-xs transition-colors outline-none selection:bg-primary selection:text-primary-foreground file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground/70 disabled:pointer-events-none disabled:opacity-50 md:text-sm dark:bg-input/30",
-        "focus:bg-accent/80 focus-visible:bg-accent/80 dark:focus:bg-accent/80 dark:focus-visible:bg-accent/80",
+        "focus:bg-accent-light focus-visible:bg-accent-light dark:focus:bg-accent-light dark:focus-visible:bg-accent-light",
         "focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0",
         "aria-invalid:border-destructive",
         className,
@@ -63,7 +63,7 @@ function ComboboxItem({
   return (
     <Ariakit.ComboboxItem
       className={cn(
-        "relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm font-medium outline-hidden select-none hover:bg-accent/80 focus:bg-accent/80 focus:text-accent-foreground data-disabled:pointer-events-none data-disabled:opacity-50 data-inset:pl-8 data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive/10 data-[variant=destructive]:focus:text-destructive dark:data-[variant=destructive]:focus:bg-destructive/20 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground data-[variant=destructive]:*:[svg]:text-destructive!",
+        "relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm font-medium outline-hidden select-none hover:bg-accent-light focus:bg-accent-light focus:text-accent-foreground data-disabled:pointer-events-none data-disabled:opacity-50 data-inset:pl-8 data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive/10 data-[variant=destructive]:focus:text-destructive dark:data-[variant=destructive]:focus:bg-destructive/20 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground data-[variant=destructive]:*:[svg]:text-destructive!",
         className,
       )}
       {...props}

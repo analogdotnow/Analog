@@ -2,8 +2,8 @@ import * as React from "react";
 import { createActorContext } from "@xstate/react";
 import { useSetAtom } from "jotai";
 
-import { removeOptimisticActionAtom } from "@/components/calendar/hooks/optimistic-actions";
-import { useUpdateEventMutation } from "@/components/calendar/hooks/use-event-mutations";
+import { removeOptimisticActionAtom } from "@/hooks/calendar/optimistic-actions";
+import { useUpdateEventMutation } from "@/hooks/calendar/use-event-mutations";
 import { getEventById } from "@/lib/db";
 import { createUpdateQueueMachine, type UpdateQueueItem } from "./update-queue";
 import { buildUpdateEvent, buildUpdateSeries } from "./utils";

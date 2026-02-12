@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { useAtom, useAtomValue } from "jotai";
 import {
   CloudFogIcon,
   CloudIcon,
@@ -14,7 +13,6 @@ import {
 } from "lucide-react";
 import * as motion from "motion/react-client";
 
-import { temperatureUnitAtom } from "@/atoms/weather-unit";
 import {
   MorphingPopover,
   MorphingPopoverContent,
@@ -22,6 +20,7 @@ import {
 } from "@/components/ui/morphing-popover";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
+import { useCalendarStore } from "@/providers/calendar-store-provider";
 import { Cloudy } from "./weather/cloudy";
 import { toFahrenheit } from "./weather/utils";
 
@@ -194,7 +193,7 @@ export function WeatherSmall({
   data,
   ...props
 }: WeatherDisplayProps) {
-  const unit = useAtomValue(temperatureUnitAtom);
+  const unit = useCalendarStore((s) => s.temperatureUnit);
 
   return (
     <div
@@ -222,12 +221,12 @@ export function WeatherMedium({
   data,
   ...props
 }: WeatherDisplayProps) {
-  const unit = useAtomValue(temperatureUnitAtom);
+  const unit = useCalendarStore((s) => s.temperatureUnit);
 
   return (
     <div
       className={cn(
-        "relative flex w-fit items-center gap-x-2 rounded-md bg-linear-to-b from-[#2879C4] to-[#6E99C0] py-1.5 ps-2 pe-3 before:pointer-events-none before:absolute before:inset-0 before:rounded-md before:border-1 before:border-white/20 dark:from-[#2879C4]/40 dark:to-[#6E99C0]/40 dark:before:border-white/5",
+        "relative flex w-fit items-center gap-x-2 rounded-md bg-linear-to-b from-[#2879C4] to-[#6E99C0] py-1.5 ps-2 pe-3 before:pointer-events-none before:absolute before:inset-0 before:rounded-md before:border before:border-white/20 dark:from-[#2879C4]/40 dark:to-[#6E99C0]/40 dark:before:border-white/5",
         className,
         "transition-colors duration-150 hover:from-[#2879C4]/80 hover:to-[#6E99C0]/80 hover:before:border-white/20",
       )}
@@ -278,7 +277,8 @@ export function WeatherMedium({
 }
 
 function WeatherUnitToggle() {
-  const [unit, setUnit] = useAtom(temperatureUnitAtom);
+  const unit = useCalendarStore((s) => s.temperatureUnit);
+  const setUnit = useCalendarStore((s) => s.setTemperatureUnit);
 
   const toggleUnit = React.useCallback(
     (nextUnit: string) => {
@@ -288,7 +288,10 @@ function WeatherUnitToggle() {
   );
 
   return (
-    <ToggleGroup type="single" value={unit} onValueChange={toggleUnit}>
+    <ToggleGroup
+      value={[unit]}
+      onValueChange={(value: string[]) => toggleUnit(value[0]!)}
+    >
       <ToggleGroupItem value="C">C</ToggleGroupItem>
       <ToggleGroupItem value="F">F</ToggleGroupItem>
     </ToggleGroup>
@@ -300,8 +303,8 @@ export function WeatherLarge({
   data,
   ...props
 }: WeatherDisplayProps) {
-  const forecastItems = data.forecast.hourly.slice(0, 5);
-  const unit = useAtomValue(temperatureUnitAtom);
+  const forecastItems = data.forecast.hourly.slice(0, 8);
+  const unit = useCalendarStore((s) => s.temperatureUnit);
 
   return (
     <div
@@ -311,7 +314,7 @@ export function WeatherLarge({
       )}
       {...props}
     >
-      <div className="flex items-stretch gap-x-2">
+      <div className="flex w-full items-stretch justify-between gap-x-2">
         <div className="flex flex-col items-start justify-between gap-x-4">
           {/* <NavigationIcon className="size-2.5 fill-white stroke-white" /> */}
           <motion.p
@@ -356,7 +359,7 @@ export function WeatherLarge({
           </p>
         </div>
       </div>
-      <div className="flex items-center gap-x-4">
+      <div className="flex w-full items-center justify-between gap-x-4">
         {forecastItems.map((forecast) => (
           <div
             key={forecast.hour}
@@ -429,6 +432,7 @@ export function Weather2({
   const [open, setOpen] = React.useState(false);
 
   const weatherData = data ?? FALLBACK_WEATHER_DATA;
+
   if (variant === "large") {
     return (
       <WeatherLarge

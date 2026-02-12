@@ -1,12 +1,17 @@
 import type { Temporal } from "temporal-polyfill";
 
-export interface CalendarEvent {
+type EventTime = Temporal.PlainDate | Temporal.Instant | Temporal.ZonedDateTime;
+
+type TimeFields<TTime extends EventTime> = TTime extends Temporal.PlainDate
+  ? { allDay: true; start: TTime; end: TTime }
+  : TTime extends Temporal.Instant | Temporal.ZonedDateTime
+    ? { allDay: false; start: TTime; end: TTime }
+    : never;
+
+export type CalendarEvent<TTime extends EventTime = EventTime> = {
   id: string;
   title?: string;
   description?: string;
-  start: Temporal.PlainDate | Temporal.Instant | Temporal.ZonedDateTime;
-  end: Temporal.PlainDate | Temporal.Instant | Temporal.ZonedDateTime;
-  allDay?: boolean;
   location?: string;
   status?: string;
   availability?: "busy" | "free";
@@ -33,7 +38,53 @@ export interface CalendarEvent {
   conference?: Conference | null;
   recurrence?: Recurrence | null;
   recurringEventId?: string;
-}
+  type?: "draft" | "event";
+} & TimeFields<TTime>;
+
+export type AllDayEvent = CalendarEvent<Temporal.PlainDate>;
+export type TimedInstantEvent = CalendarEvent<Temporal.Instant>;
+export type TimedZonedEvent = CalendarEvent<Temporal.ZonedDateTime>;
+
+// export type CalendarEvent = {
+//   id: string;
+//   title?: string;
+//   description?: string;
+//   allDay?: boolean;
+//   location?: string;
+//   status?: string;
+//   availability?: "busy" | "free";
+//   attendees?: Attendee[];
+//   url?: string;
+//   etag?: string;
+//   color?: string | null;
+//   visibility?: "default" | "public" | "private" | "confidential";
+//   readOnly: boolean;
+//   calendar: {
+//     id: string;
+//     provider: {
+//       id: "google" | "microsoft";
+//       accountId: string;
+//     };
+//   };
+//   createdAt?: Temporal.Instant;
+//   updatedAt?: Temporal.Instant;
+//   response?: {
+//     status: AttendeeStatus;
+//     comment?: string | null;
+//   };
+//   metadata?: Record<string, unknown>;
+//   conference?: Conference | null;
+//   recurrence?: Recurrence | null;
+//   recurringEventId?: string;
+// } & (
+//   | { allDay: true; start: Temporal.PlainDate; end: Temporal.PlainDate }
+//   | { allDay: false; start: Temporal.Instant; end: Temporal.Instant }
+//   | {
+//       allDay: false;
+//       start: Temporal.ZonedDateTime;
+//       end: Temporal.ZonedDateTime;
+//     }
+// );
 
 export type CalendarEventSyncItem =
   | {

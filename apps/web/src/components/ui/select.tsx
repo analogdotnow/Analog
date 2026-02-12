@@ -34,8 +34,8 @@ function SelectTrigger({
     <SelectPrimitive.Trigger
       data-slot="select-trigger"
       className={cn(
-        "flex h-8 w-full items-center justify-between gap-2 rounded-md px-3 py-2 text-sm text-foreground transition-colors outline-none focus:bg-accent/80 focus-visible:bg-accent/80 disabled:opacity-50 aria-invalid:border-destructive data-placeholder:text-muted-foreground *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 data-[state=open]:bg-accent/80 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&>span]:line-clamp-1",
-        "hover:bg-accent/80 focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0 aria-expanded:bg-accent/80",
+        "flex h-8 w-full items-center justify-between gap-2 rounded-md px-3 py-2 text-sm text-foreground transition-colors outline-none focus:bg-accent-light focus-visible:bg-accent-light disabled:opacity-50 aria-invalid:border-destructive data-placeholder:text-muted-foreground *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 data-[state=open]:bg-accent-light [&_svg]:pointer-events-none [&_svg]:shrink-0 [&>span]:line-clamp-1",
+        "hover:bg-accent-light focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0 aria-expanded:bg-accent-light",
         className,
       )}
       {...props}
@@ -110,7 +110,7 @@ function SelectItem({
     <SelectPrimitive.Item
       data-slot="select-item"
       className={cn(
-        "relative flex w-full cursor-default items-center rounded py-1.5 ps-8 pe-2 text-sm outline-hidden select-none hover:bg-accent/80 focus:bg-accent/80 focus:text-foreground data-disabled:pointer-events-none data-disabled:opacity-50 data-[state=checked]:bg-accent/80 data-[state=checked]:text-foreground",
+        "relative flex w-full cursor-default items-center rounded py-1.5 ps-8 pe-2 text-sm outline-hidden select-none hover:bg-accent-light focus:bg-accent-light focus:text-foreground data-disabled:pointer-events-none data-disabled:opacity-50 data-[state=checked]:bg-accent-light data-[state=checked]:text-foreground",
         className,
       )}
       {...props}

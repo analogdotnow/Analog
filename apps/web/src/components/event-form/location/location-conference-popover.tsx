@@ -2,13 +2,13 @@
 
 import * as React from "react";
 
+import type { FormConference } from "@/components/event-form/utils/schema";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import type { FormConference } from "../utils/schema";
 import { ConferenceDetails } from "./conference-details";
 
 interface LocationConferencePopoverProps {

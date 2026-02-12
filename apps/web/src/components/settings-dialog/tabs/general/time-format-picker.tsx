@@ -2,9 +2,7 @@
 
 import * as React from "react";
 import { format } from "@formkit/tempo";
-import { useAtom } from "jotai";
 
-import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -13,18 +11,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useCalendarStore } from "@/providers/calendar-store-provider";
+import { useSetCalendarSettings } from "@/store/hooks";
 
 export function TimeFormatPicker() {
-  const [calendarSettings, setCalendarSettings] = useAtom(calendarSettingsAtom);
+  const use12Hour = useCalendarStore((s) => s.calendarSettings.use12Hour);
+  const setCalendarSettings = useSetCalendarSettings();
 
   const time = React.useMemo(() => new Date(), []);
 
   const onValueChange = React.useCallback(
     (value: string) => {
-      setCalendarSettings((prev) => ({
-        ...prev,
-        use12Hour: value === "12h",
-      }));
+      setCalendarSettings({ use12Hour: value === "12h" });
     },
     [setCalendarSettings],
   );
@@ -34,10 +32,7 @@ export function TimeFormatPicker() {
       <Label htmlFor="settings-time-format" className="sr-only">
         Time format
       </Label>
-      <Select
-        value={calendarSettings.use12Hour ? "12h" : "24h"}
-        onValueChange={onValueChange}
-      >
+      <Select value={use12Hour ? "12h" : "24h"} onValueChange={onValueChange}>
         <SelectTrigger id="settings-time-format">
           <SelectValue />
         </SelectTrigger>

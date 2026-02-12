@@ -2,12 +2,11 @@
 
 import * as React from "react";
 import { parseDate } from "chrono-node";
-import { useAtomValue } from "jotai";
 import { matchSorter } from "match-sorter";
 import { Temporal } from "temporal-polyfill";
 
-import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { formatTime } from "@/lib/utils/format";
+import { useCalendarSettings, useDefaultTimeZone } from "@/store/hooks";
 
 export interface TimeInputValue {
   key: string;
@@ -73,19 +72,21 @@ function generateList({ locale, timeZone, use12Hour }: GenerateListOptions) {
 }
 
 export function useTimeSuggestionsList() {
-  const settings = useAtomValue(calendarSettingsAtom);
+  const settings = useCalendarSettings();
+  const defaultTimeZone = useDefaultTimeZone();
 
   return React.useMemo(() => {
     return generateList({
       locale: settings.locale,
-      timeZone: settings.defaultTimeZone,
+      timeZone: defaultTimeZone,
       use12Hour: settings.use12Hour,
     });
-  }, [settings.locale, settings.defaultTimeZone, settings.use12Hour]);
+  }, [settings.locale, defaultTimeZone, settings.use12Hour]);
 }
 
 export function useTimeSuggestions(searchValue: string) {
-  const settings = useAtomValue(calendarSettingsAtom);
+  const settings = useCalendarSettings();
+  const defaultTimeZone = useDefaultTimeZone();
   const list = useTimeSuggestionsList();
 
   return React.useMemo(() => {
@@ -114,17 +115,11 @@ export function useTimeSuggestions(searchValue: string) {
 
     const parsedTime = createItem({
       key: `suggestion-${parsedDate.getTime()}`,
-      time: instant.toZonedDateTimeISO(settings.defaultTimeZone),
+      time: instant.toZonedDateTimeISO(defaultTimeZone),
       locale: settings.locale,
       use12Hour: settings.use12Hour,
     });
 
     return [parsedTime].concat(matches);
-  }, [
-    list,
-    searchValue,
-    settings.defaultTimeZone,
-    settings.locale,
-    settings.use12Hour,
-  ]);
+  }, [list, searchValue, defaultTimeZone, settings.locale, settings.use12Hour]);
 }

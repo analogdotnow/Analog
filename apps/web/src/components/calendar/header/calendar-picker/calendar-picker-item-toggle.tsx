@@ -22,11 +22,9 @@ export function CalendarPickerItemToggle({
   return (
     <CheckboxPrimitive.Root
       data-slot="checkbox"
-      style={
-        {
-          "--calendar-color": `var(${calendarColorVariable(calendar.provider.accountId, calendar.id)}, var(--color-muted-foreground))`,
-        } as React.CSSProperties
-      }
+      style={{
+        "--calendar-color": `var(${calendarColorVariable(calendar.provider.accountId, calendar.id)}, var(--color-muted-foreground))`,
+      }}
       className={cn(
         "peer size-3 shrink-0 rounded-[4px] shadow-xs transition-shadow dark:border-neutral-700",
         "focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50",

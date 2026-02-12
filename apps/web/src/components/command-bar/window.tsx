@@ -1,6 +1,7 @@
 import * as React from "react";
 import { motion } from "motion/react";
 
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 
 type WindowProps = React.ComponentProps<typeof motion.div>;
@@ -59,7 +60,7 @@ export function WindowTitle({
   );
 }
 
-type WindowContentProps = React.ComponentProps<"div">;
+type WindowContentProps = React.ComponentProps<typeof ScrollArea>;
 
 export function WindowContent({
   children,
@@ -67,9 +68,9 @@ export function WindowContent({
   ...props
 }: WindowContentProps) {
   return (
-    <div className={cn("grow", className)} {...props}>
+    <ScrollArea className={cn("grow px-1", className)} scrollFade {...props}>
       {children}
-    </div>
+    </ScrollArea>
   );
 }
 

@@ -3,16 +3,15 @@
 import * as React from "react";
 import { format } from "@formkit/tempo";
 import { parseDate as parseLegacyDate } from "chrono-node";
-import { useAtomValue } from "jotai";
 import { Temporal } from "temporal-polyfill";
 
 import { toDate } from "@repo/temporal";
 
-import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { useCalendarStore } from "@/providers/calendar-store-provider";
 
 function parseDate(input: string) {
   const date = parseLegacyDate(input);
@@ -71,7 +70,7 @@ export function DateInput({
   onChange,
   disabled,
 }: DateInputProps) {
-  const { locale } = useAtomValue(calendarSettingsAtom);
+  const locale = useCalendarStore((s) => s.calendarSettings.locale);
   const [open, setOpen] = React.useState(false);
   const inputRef = React.useRef<HTMLInputElement>(null);
 

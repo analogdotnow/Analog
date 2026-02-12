@@ -15,6 +15,8 @@ import {
 import { UpdateQueueContext } from "./update-queue-provider";
 
 export function UpdateEventAttendeeDialog() {
+  "use memo";
+
   const actorRef = UpdateQueueContext.useActorRef();
   const open = UpdateQueueContext.useSelector((snapshot) =>
     snapshot.matches("askNotifyAttendee"),

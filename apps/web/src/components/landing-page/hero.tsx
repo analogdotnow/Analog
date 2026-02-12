@@ -4,13 +4,13 @@ import { ArrowRight, StarIcon } from "lucide-react";
 
 import PreviewDark from "@/assets/dark-preview.png";
 import PreviewLight from "@/assets/preview.png";
+import { GitHub } from "@/components/icons";
 import { AnimatedGroup } from "@/components/ui/animated-group";
 import {
   delayedTransitionVariants,
   transitionVariants,
 } from "@/lib/transitions";
 import { URLS } from "@/lib/urls";
-import { GitHub } from "../icons";
 
 export function Hero() {
   return (

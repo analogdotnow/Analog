@@ -165,7 +165,7 @@ export function mapEventQuery(row: EventRow): CalendarEvent {
     end,
     createdAt,
     updatedAt,
-  };
+  } as CalendarEvent;
 }
 
 export function mapCalendarQueryInput(calendar: Calendar): CalendarRow {

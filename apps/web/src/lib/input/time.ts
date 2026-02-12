@@ -1,6 +1,6 @@
 import { Temporal } from "temporal-polyfill";
 
-import { formatTime } from "../utils/format";
+import { formatTime } from "@/lib/utils/format";
 
 /**
  * Configuration for generating time suggestions

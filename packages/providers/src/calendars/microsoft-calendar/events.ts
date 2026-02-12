@@ -165,7 +165,7 @@ export function parseMicrosoftEvent({
         : {}),
       onlineMeeting: event.onlineMeeting,
     },
-  };
+  } as CalendarEvent;
 }
 
 export function toMicrosoftEvent(

@@ -50,9 +50,20 @@ interface ToInstantOptions {
   timeZone: string;
 }
 
+export function toInstant(date: Temporal.Instant): Temporal.Instant;
+export function toInstant(date: Temporal.ZonedDateTime): Temporal.Instant;
+export function toInstant(
+  date: Temporal.PlainDate,
+  options: ToInstantOptions,
+): Temporal.Instant;
 export function toInstant(
   date: TemporalConvertible,
-  options: ToInstantOptions,
+  options?: ToInstantOptions,
+): Temporal.Instant;
+
+export function toInstant(
+  date: TemporalConvertible,
+  options?: ToInstantOptions,
 ): Temporal.Instant {
   if (date instanceof Temporal.Instant) {
     return date;
@@ -60,6 +71,10 @@ export function toInstant(
 
   if (date instanceof Temporal.ZonedDateTime) {
     return date.toInstant();
+  }
+
+  if (!options) {
+    throw new Error("options with timeZone required for PlainDate");
   }
 
   // PlainDate - convert to start of day in the specified timezone
@@ -71,6 +86,11 @@ interface ToPlainDateOptions {
 }
 
 export function toPlainDate(date: Temporal.PlainDate): Temporal.PlainDate;
+export function toPlainDate(date: Temporal.ZonedDateTime): Temporal.PlainDate;
+export function toPlainDate(
+  date: Temporal.Instant,
+  options: ToPlainDateOptions,
+): Temporal.PlainDate;
 export function toPlainDate(
   date: Temporal.PlainDate | Temporal.ZonedDateTime | Temporal.Instant,
   options: ToPlainDateOptions,
@@ -84,7 +104,11 @@ export function toPlainDate(
   }
 
   if (date instanceof Temporal.ZonedDateTime) {
-    return date.withTimeZone(options!.timeZone).toPlainDate();
+    if (options?.timeZone) {
+      return date.withTimeZone(options.timeZone).toPlainDate();
+    }
+
+    return date.toPlainDate();
   }
 
   return date.toZonedDateTimeISO(options!.timeZone).toPlainDate();
@@ -113,4 +137,59 @@ export function toDateWeekStartsOn(
   weekStartsOn: number,
 ): 0 | 1 | 2 | 3 | 4 | 5 | 6 {
   return weekStartsOn === 7 ? 0 : (weekStartsOn as 0 | 1 | 2 | 3 | 4 | 5 | 6);
+}
+
+interface ToPlainYearMonthOptions {
+  timeZone: string;
+}
+
+export function toPlainYearMonth(
+  v: Temporal.PlainYearMonth,
+): Temporal.PlainYearMonth;
+export function toPlainYearMonth(
+  v: Temporal.PlainDate,
+): Temporal.PlainYearMonth;
+export function toPlainYearMonth(
+  v: Temporal.ZonedDateTime,
+): Temporal.PlainYearMonth;
+export function toPlainYearMonth(
+  v: Temporal.Instant,
+  options: ToPlainYearMonthOptions,
+): Temporal.PlainYearMonth;
+export function toPlainYearMonth(
+  v:
+    | Temporal.PlainDate
+    | Temporal.ZonedDateTime
+    | Temporal.Instant
+    | Temporal.PlainYearMonth,
+  options?: ToPlainYearMonthOptions,
+): Temporal.PlainYearMonth;
+
+export function toPlainYearMonth(
+  v:
+    | Temporal.PlainDate
+    | Temporal.ZonedDateTime
+    | Temporal.Instant
+    | Temporal.PlainYearMonth,
+  options?: ToPlainYearMonthOptions,
+): Temporal.PlainYearMonth {
+  if (v instanceof Temporal.PlainYearMonth) {
+    return v;
+  }
+
+  if (v instanceof Temporal.Instant) {
+    if (!options) {
+      throw new Error(
+        "options with timeZone required when converting Instant types",
+      );
+    }
+
+    return toPlainDate(v, options).toPlainYearMonth();
+  }
+
+  if (v instanceof Temporal.ZonedDateTime) {
+    return v.toPlainDate().toPlainYearMonth();
+  }
+
+  return v.toPlainYearMonth();
 }

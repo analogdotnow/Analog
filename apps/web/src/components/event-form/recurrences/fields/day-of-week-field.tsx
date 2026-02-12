@@ -31,9 +31,9 @@ export function DayOfWeekField({ value, onValueChange }: DayOfWeekFieldProps) {
   return (
     <ToggleGroup
       variant="outline"
-      type="multiple"
+      multiple
       value={value ?? []}
-      onValueChange={(v) => onValueChange(v as Weekday[])}
+      onValueChange={(v: Weekday[]) => onValueChange(v)}
       className="w-full"
     >
       {daysOfWeek.map((day) => (

@@ -1,20 +1,22 @@
 "use client";
 
 import * as React from "react";
-import { useAtomValue } from "jotai";
 import { useHotkeys } from "react-hotkeys-hook";
 import { Temporal } from "temporal-polyfill";
 
-import { calendarSettingsAtom } from "@/atoms/calendar-settings";
-import { selectedEventIdsAtom } from "@/atoms/selected-events";
 import { useDeleteAction } from "@/components/calendar/flows/delete-event/use-delete-action";
+import { DeleteEventConfirmation } from "@/components/dialogs/delete-event-confirmation";
 import {
   useCreateDraftAction,
   useUnselectAllAction,
-} from "@/components/calendar/hooks/use-optimistic-mutations";
-import { DeleteEventConfirmation } from "@/components/dialogs/delete-event-confirmation";
-import { createDraftEvent } from "@/lib/utils/calendar";
-import { getEventById } from "../db";
+} from "@/hooks/calendar/use-optimistic-mutations";
+import { getEventById } from "@/lib/db";
+import { isOnlineMeeting } from "@/lib/utils/events";
+import {
+  useDefaultEventDuration,
+  useDefaultTimeZone,
+  useSelectedEventList,
+} from "@/store/hooks";
 
 const KEYBOARD_SHORTCUTS = {
   CREATE_EVENT: "c",
@@ -24,8 +26,9 @@ const KEYBOARD_SHORTCUTS = {
 } as const;
 
 export function EventHotkeys() {
-  const settings = useAtomValue(calendarSettingsAtom);
-  const selectedEventIds = useAtomValue(selectedEventIdsAtom);
+  const defaultTimeZone = useDefaultTimeZone();
+  const defaultEventDuration = useDefaultEventDuration();
+  const selectedEventIds = useSelectedEventList();
 
   const createDraftAction = useCreateDraftAction();
 
@@ -34,13 +37,11 @@ export function EventHotkeys() {
   useHotkeys(
     KEYBOARD_SHORTCUTS.CREATE_EVENT,
     () => {
-      const start = Temporal.Now.zonedDateTimeISO(settings.defaultTimeZone);
+      const start = Temporal.Now.zonedDateTimeISO(defaultTimeZone);
 
-      const end = start.add({ minutes: settings.defaultEventDuration });
+      const end = start.add({ minutes: defaultEventDuration });
 
-      const event = createDraftEvent({ start, end });
-
-      createDraftAction(event);
+      createDraftAction({ start, end });
     },
     { scopes: ["event"] },
   );
@@ -54,10 +55,7 @@ export function EventHotkeys() {
 
       const event = await getEventById(selectedEventIds[0]);
 
-      if (
-        event?.conference?.type !== "conference" ||
-        !event?.conference?.video?.joinUrl
-      ) {
+      if (!event || !isOnlineMeeting(event)) {
         return;
       }
 

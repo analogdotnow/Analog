@@ -1,8 +1,8 @@
 import { atom } from "jotai";
 
+import { initialValues } from "@/components/event-form/utils/defaults";
+import type { FormValues } from "@/components/event-form/utils/schema";
 import type { CalendarEvent } from "@/lib/interfaces";
-import { initialValues } from "../utils/defaults";
-import type { FormValues } from "../utils/schema";
 
 interface Form {
   event: CalendarEvent | undefined;

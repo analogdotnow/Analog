@@ -5,8 +5,8 @@ import type {
   ConferenceEntryPoint,
 } from "@repo/providers/interfaces";
 
+import { CopyButton } from "@/components/copy-button";
 import { cn } from "@/lib/utils";
-import { CopyButton } from "../../copy-button";
 
 function ConferenceItem({ className, ...props }: React.ComponentProps<"div">) {
   return (

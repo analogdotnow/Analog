@@ -1,13 +1,14 @@
-import { ChevronUpIcon, TrashIcon } from "@heroicons/react/16/solid";
-import { useAtomValue } from "jotai";
+"use client";
 
-import { selectedEventIdsAtom } from "@/atoms/selected-events";
+import { ChevronUpIcon, TrashIcon } from "@heroicons/react/16/solid";
+
+import { ActionButton, ActionShortcut } from "@/components/command-bar/actions";
+import { Window } from "@/components/command-bar/window";
 import { Key } from "@/components/ui/keyboard-shortcut";
-import { ActionButton, ActionShortcut } from "../actions";
-import { Window } from "../window";
+import { useSelectedEventList } from "@/store/hooks";
 
 export function BulkActionWindow() {
-  const selectedEvents = useAtomValue(selectedEventIdsAtom);
+  const selectedEvents = useSelectedEventList();
 
   return (
     <Window className="min-h-12 w-lg max-w-screen overflow-hidden">

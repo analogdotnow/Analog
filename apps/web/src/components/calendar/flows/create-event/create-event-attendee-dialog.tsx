@@ -15,6 +15,8 @@ import {
 import { CreateQueueContext } from "./create-queue-provider";
 
 export function CreateEventAttendeeDialog() {
+  "use memo";
+
   const actorRef = CreateQueueContext.useActorRef();
   const open = CreateQueueContext.useSelector((snapshot) =>
     snapshot.matches("askNotifyAttendee"),

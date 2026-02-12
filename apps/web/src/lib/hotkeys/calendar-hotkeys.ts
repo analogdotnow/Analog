@@ -1,15 +1,17 @@
 "use client";
 
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useHotkeys } from "react-hotkeys-hook";
 import { Temporal } from "temporal-polyfill";
 
-import { calendarSettingsAtom } from "@/atoms/calendar-settings";
-import { calendarViewAtom, currentDateAtom } from "@/atoms/view-preferences";
 import {
   navigateToNext,
   navigateToPrevious,
 } from "@/components/calendar/utils/date-time";
+import {
+  getCalendarStore,
+  useCalendarStore,
+} from "@/providers/calendar-store-provider";
+import { useDefaultTimeZone } from "@/store/hooks";
 
 const KEYBOARD_SHORTCUTS = {
   MONTH: "m",
@@ -23,25 +25,30 @@ const KEYBOARD_SHORTCUTS = {
 } as const;
 
 export function CalendarHotkeys() {
-  const { defaultTimeZone } = useAtomValue(calendarSettingsAtom);
-  const [view, setView] = useAtom(calendarViewAtom);
-  const setCurrentDate = useSetAtom(currentDateAtom);
+  const defaultTimeZone = useDefaultTimeZone();
+  const view = useCalendarStore((s) => s.calendarView);
+  const setView = useCalendarStore((s) => s.setCalendarView);
+  const navigateTo = useCalendarStore((s) => s.navigateTo);
 
   useHotkeys(KEYBOARD_SHORTCUTS.MONTH, () => setView("month"), {
     scopes: ["calendar"],
   });
+
   useHotkeys(KEYBOARD_SHORTCUTS.WEEK, () => setView("week"), {
     scopes: ["calendar"],
   });
+
   useHotkeys(KEYBOARD_SHORTCUTS.DAY, () => setView("day"), {
     scopes: ["calendar"],
   });
+
   useHotkeys(KEYBOARD_SHORTCUTS.AGENDA, () => setView("agenda"), {
     scopes: ["calendar"],
   });
+
   useHotkeys(
     KEYBOARD_SHORTCUTS.TODAY,
-    () => setCurrentDate(Temporal.Now.plainDateISO(defaultTimeZone)),
+    () => navigateTo(Temporal.Now.plainDateISO(defaultTimeZone)),
     {
       scopes: ["calendar"],
     },
@@ -49,13 +56,21 @@ export function CalendarHotkeys() {
 
   useHotkeys(
     KEYBOARD_SHORTCUTS.NEXT_PERIOD,
-    () => setCurrentDate((prevDate) => navigateToNext(prevDate, view)),
+    () => {
+      const prevDate = getCalendarStore().getState().currentDate;
+
+      navigateTo(navigateToNext(prevDate, view));
+    },
     { scopes: ["calendar"] },
   );
 
   useHotkeys(
     KEYBOARD_SHORTCUTS.PREVIOUS_PERIOD,
-    () => setCurrentDate((prevDate) => navigateToPrevious(prevDate, view)),
+    () => {
+      const prevDate = getCalendarStore().getState().currentDate;
+
+      navigateTo(navigateToPrevious(prevDate, view));
+    },
     { scopes: ["calendar"] },
   );
 

@@ -5,7 +5,7 @@ import {
   addOptimisticActionAtom,
   generateOptimisticId,
   removeDraftOptimisticActionsByEventIdAtom,
-} from "../../hooks/optimistic-actions";
+} from "@/hooks/calendar/optimistic-actions";
 import type { CreateQueueItem, CreateQueueRequest } from "./create-queue";
 import { CreateQueueContext } from "./create-queue-provider";
 

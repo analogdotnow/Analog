@@ -1,32 +1,34 @@
 "use client";
 
 import * as React from "react";
-import { format } from "@formkit/tempo";
-import { useAtomValue } from "jotai";
 import { Temporal } from "temporal-polyfill";
 
 import { isToday } from "@repo/temporal";
 
-import { calendarSettingsAtom } from "@/atoms/calendar-settings";
-import { eventOverlapsDay } from "@/components/calendar/utils/positioning";
-import { EventCollectionItem } from "../hooks/event-collection";
-import { AgendaViewEvent } from "./agenda-view-event";
+import { DisplayItem } from "@/lib/display-item";
+import { cn } from "@/lib/utils";
+import { format } from "@/lib/utils/format";
+import { useDefaultTimeZone } from "@/store/hooks";
+import { displayItemOverlapsDay } from "../utils/positioning/inline-items";
+import { AgendaViewItem } from "./agenda-view-item";
 
 interface AgendaViewDayHeaderProps {
   day: Temporal.PlainDate;
 }
 
 export function AgendaViewDayHeader({ day }: AgendaViewDayHeaderProps) {
-  const settings = useAtomValue(calendarSettingsAtom);
+  "use memo";
+
+  const defaultTimeZone = useDefaultTimeZone();
 
   return (
     <span
-      className="absolute -top-3.5 left-0 flex h-6 items-center bg-background pe-4 text-[10px] text-muted-foreground data-today:font-medium sm:pe-4 sm:text-xs"
-      data-today={
-        isToday(day, { timeZone: settings.defaultTimeZone }) || undefined
-      }
+      className={cn(
+        "absolute top-8 left-0 flex h-6 items-center bg-background pe-4 text-3xs text-muted-foreground sm:pe-4 sm:text-xs",
+        isToday(day, { timeZone: defaultTimeZone }) && "font-medium",
+      )}
     >
-      {format(day.toString(), "ddd, D MMM")}
+      {format(day, "ddd, D MMM", defaultTimeZone)}
     </span>
   );
 }
@@ -36,7 +38,9 @@ interface AgendaViewDayContentProps {
 }
 
 function AgendaViewDayContent({ children }: AgendaViewDayContentProps) {
-  return <div className="mt-6 space-y-2">{children}</div>;
+  "use memo";
+
+  return <div className="mt-14 space-y-2 pb-8">{children}</div>;
 }
 
 interface AgendaViewDayContainerProps {
@@ -44,19 +48,23 @@ interface AgendaViewDayContainerProps {
 }
 
 function AgendaViewDayContainer({ children }: AgendaViewDayContainerProps) {
+  "use memo";
+
   return (
-    <div className="relative my-12 border-t border-border/70">{children}</div>
+    <div className="relative border-t border-border/70 pt-4">{children}</div>
   );
 }
 
 interface AgendaViewDayProps {
   day: Temporal.PlainDate;
-  items: EventCollectionItem[];
+  items: DisplayItem[];
 }
 
 export function AgendaViewDay({ day, items }: AgendaViewDayProps) {
+  "use memo";
+
   const events = React.useMemo(() => {
-    return items.filter((item) => eventOverlapsDay(item, day));
+    return items.filter((item) => displayItemOverlapsDay(item, day));
   }, [day, items]);
 
   if (events.length === 0) {
@@ -68,7 +76,7 @@ export function AgendaViewDay({ day, items }: AgendaViewDayProps) {
       <AgendaViewDayHeader day={day} />
       <AgendaViewDayContent>
         {events.map((event) => (
-          <AgendaViewEvent key={event.event.id} item={event} />
+          <AgendaViewItem key={event.id} item={event} />
         ))}
       </AgendaViewDayContent>
     </AgendaViewDayContainer>

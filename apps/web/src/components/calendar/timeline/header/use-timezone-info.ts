@@ -58,6 +58,20 @@ interface TimeZoneDisplayValue {
   };
 }
 
+export function timeZoneAbbreviation(
+  timeZoneId: string,
+  date: Temporal.PlainDate,
+): string {
+  const timeZoneMeta = TIME_ZONES.find((tz) => tz.name === timeZoneId);
+  const dateTime = date.toZonedDateTime(timeZoneId);
+
+  if (timeZoneMeta?.abbreviation) {
+    return timeZoneMeta.abbreviation;
+  }
+
+  return getShortName(timeZoneId, dateTime).replace("GMT", "UTC");
+}
+
 interface UseTimeZoneDisplayOptions {
   date: Temporal.PlainDate;
   timeZoneId: string;

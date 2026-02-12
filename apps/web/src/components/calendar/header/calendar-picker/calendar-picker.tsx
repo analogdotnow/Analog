@@ -2,12 +2,7 @@
 
 import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useAtom } from "jotai";
 
-import {
-  calendarPreferencesAtom,
-  getCalendarPreference,
-} from "@/atoms/calendar-preferences";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -25,6 +20,8 @@ import { calendarColorVariable } from "@/lib/css";
 import { Calendar } from "@/lib/interfaces";
 import { useTRPC } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
+import { useCalendarStore } from "@/providers/calendar-store-provider";
+import { getCalendarPreference } from "@/store/calendar-store";
 import {
   CalendarPickerItem,
   CalendarPickerItemActionsMenu,
@@ -50,11 +47,9 @@ function VisibleCalendarItem({
         "size-4 rounded-full bg-(--calendar-color) ring-2 ring-background group-hover/trigger:ring-border",
         className,
       )}
-      style={
-        {
-          "--calendar-color": `var(${calendarColorVariable(calendar.provider.accountId, calendar.id)}, var(--color-muted-foreground))`,
-        } as React.CSSProperties
-      }
+      style={{
+        "--calendar-color": `var(${calendarColorVariable(calendar.provider.accountId, calendar.id)}, var(--color-muted-foreground))`,
+      }}
     />
   );
 }
@@ -84,10 +79,12 @@ function VisibleCalendars({ className, calendars }: VisibleCalendarProps) {
 }
 
 function CalendarPickerContent() {
+  "use memo";
+
   const trpc = useTRPC();
   const { data } = useQuery(trpc.calendars.list.queryOptions());
   const [open, setOpen] = React.useState(false);
-  const [calendarPreferences] = useAtom(calendarPreferencesAtom);
+  const calendarPreferences = useCalendarStore((s) => s.calendarPreferences);
   const { isActionMenuOpen } = useCalendarPickerContext();
 
   const visibleCalendars = React.useMemo(() => {
@@ -172,6 +169,8 @@ function CalendarPickerContent() {
 }
 
 export function CalendarPicker() {
+  "use memo";
+
   return (
     <CalendarPickerProvider>
       <CalendarPickerContent />

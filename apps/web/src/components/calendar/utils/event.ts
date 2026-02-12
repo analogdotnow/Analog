@@ -1,21 +1,12 @@
 import { Temporal } from "temporal-polyfill";
 
-import { isAfter, isSameDay } from "@repo/temporal";
+import { isSameDay } from "@repo/temporal";
 
-import { EventCollectionItem } from "../hooks/event-collection";
+import { DisplayItem } from "@/lib/display-item";
 
-export function filterPastEvents(
-  events: EventCollectionItem[],
-  timeZone: string,
-) {
-  const now = Temporal.Now.zonedDateTimeISO(timeZone);
-
-  return events.filter((event) => isAfter(event.end, now));
-}
-
-export function eventsStartingOn(
-  events: EventCollectionItem[],
+export function itemsStartingOn<T extends DisplayItem>(
+  items: T[],
   day: Temporal.PlainDate,
-) {
-  return events.filter((event) => isSameDay(event.start.toPlainDate(), day));
+): T[] {
+  return items.filter((item) => isSameDay(item.date.start, day));
 }

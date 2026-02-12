@@ -18,11 +18,15 @@ export function TimeZoneAwareGlobeIcon({
   offset,
   className,
 }: TimeZoneAwareGlobeIconProps) {
+  "use memo";
+
+  // Americas: UTC-11 to UTC-3 (Hawaii to Brazil)
   if (offset >= -11 && offset <= -3) {
-    // Americas: UTC-11 to UTC-3 (Hawaii to Brazil)
     return <GlobeAmericasIcon className={className} />;
-  } else if (offset >= 4 && offset <= 14) {
-    // Asia/Australia: UTC+4 to UTC+14 (Middle East to Pacific)
+  }
+
+  // Asia/Australia: UTC+4 to UTC+14 (Middle East to Pacific)
+  if (offset >= 4 && offset <= 14) {
     return <GlobeAsiaAustraliaIcon className={className} />;
   }
 

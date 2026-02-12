@@ -1,7 +1,7 @@
-import * as React from "react";
-import { useAtomValue } from "jotai";
+"use client";
 
-import { calendarSettingsAtom } from "@/atoms/calendar-settings";
+import * as React from "react";
+
 import { DatePicker } from "@/components/date-picker";
 import { SubwaySurfers } from "@/components/easter-eggs/subway-surfers";
 import { NavUser } from "@/components/nav-user";
@@ -12,9 +12,16 @@ import {
   SidebarGroup,
   SidebarGroupContent,
 } from "@/components/ui/sidebar";
+import { useCalendarStore } from "@/providers/calendar-store-provider";
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const calendarSettings = useAtomValue(calendarSettingsAtom);
+type AppSidebarProps = React.ComponentProps<typeof Sidebar>;
+
+export function AppSidebar(props: AppSidebarProps) {
+  "use memo";
+
+  const easterEggsEnabled = useCalendarStore(
+    (s) => s.calendarSettings.easterEggsEnabled,
+  );
 
   return (
     <Sidebar {...props}>
@@ -23,7 +30,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarGroup className="pt-3.75">
           <SidebarGroupContent className="items-center px-1.5">
             <DatePicker />
-            {calendarSettings.easterEggsEnabled && <SubwaySurfers />}
+            {easterEggsEnabled && <SubwaySurfers />}
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>

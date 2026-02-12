@@ -44,6 +44,13 @@
   }
 }
 
+@utility cq-size {
+  container-type: size;
+}
+
+@custom-variant data-first-day (&[data-first-day]);
+@custom-variant data-last-day (&[data-last-day]);
+
 @utility inset-fade-shadow {
   box-shadow:
     0 4px 4px 0 rgba(255, 255, 255, 0.02) inset,
@@ -63,7 +70,7 @@
   &::before {
     content: "";
     border-radius: inherit;
-    @apply pointer-events-none absolute -inset-[1px] border-t border-foreground/5;
+    @apply pointer-events-none absolute -inset-px border-t border-foreground/5;
   }
 }
 
@@ -114,6 +121,9 @@
   --input-focus: var(--color-neutral-200);
   --column-weekend: var(--color-neutral-100);
   --column-background: var(--color-neutral-50);
+
+  --journey: oklch(0.65 0.19 250);
+  --journey-stripe: oklch(0.55 0.19 250);
 }
 
 .dark {
@@ -183,9 +193,17 @@
     var(--color-neutral-900)
   );
   --input-focus: var(--color-neutral-800);
+
+  --journey: oklch(0.65 0.19 250);
+  --journey-stripe: oklch(0.55 0.19 250);
 }
 
 @theme inline {
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: calc(1 / 0.6875);
+  --text-3xs: 0.625rem;
+  --text-3xs--line-height: calc(1 / 0.625);
+
   --color-background-landing: var(--background-landing);
   --font-satoshi: var(--font-satoshi);
   --font-sans: var(--font-geist-sans);
@@ -234,6 +252,14 @@
 
   --color-column: var(--column-background);
 
+  --color-journey: var(--journey);
+  --color-journey-stripe: var(--journey-stripe);
+
+  --color-accent-light: color-mix(
+    in oklab,
+    var(--color-accent),
+    var(--color-background) 70%
+  );
   --background-color-event: color-mix(
     in oklab,
     var(--background),
@@ -365,6 +391,16 @@
   }
 }
 
+@utility bg-stripe {
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--item-color),
+    var(--item-color) 2px,
+    transparent 2px,
+    transparent 4px
+  );
+}
+
 @keyframes shimmer {
   0% {
     transform: translateX(-100%);
@@ -400,4 +436,13 @@
     rgba(115, 115, 115, 0.35),
     transparent
   );
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
 }

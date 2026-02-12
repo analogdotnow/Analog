@@ -1,19 +1,23 @@
-import { useAtomValue } from "jotai";
+"use client";
+
 import { Temporal } from "temporal-polyfill";
 
-import { currentDateAtom } from "@/atoms/view-preferences";
-import { useCurrentTimeIndicator } from "./use-current-time-indicator";
+import { isToday } from "@repo/temporal";
+
+import { useDefaultTimeZone } from "@/store/hooks";
+import { useTimeIndicatorPosition } from "./use-time-indicator-position";
 
 interface TimeIndicatorProps {
   date: Temporal.PlainDate;
 }
 
 export function TimeIndicator({ date }: TimeIndicatorProps) {
-  const indicator = useCurrentTimeIndicator({
-    date,
-  });
+  "use memo";
 
-  if (!indicator.visible) {
+  const indicator = useTimeIndicatorPosition();
+  const defaultTimeZone = useDefaultTimeZone();
+
+  if (!isToday(date, { timeZone: defaultTimeZone })) {
     return null;
   }
 
@@ -33,19 +37,19 @@ export function TimeIndicator({ date }: TimeIndicatorProps) {
 }
 
 export function TimeIndicatorBackground() {
-  const date = useAtomValue(currentDateAtom);
-  const indicator = useCurrentTimeIndicator({
-    date,
-  });
+  "use memo";
+
+  const indicator = useTimeIndicatorPosition();
 
   return (
     <div
       className="pointer-events-none absolute right-0 left-0 select-none"
       style={{ top: `${indicator.position}px` }}
+      suppressHydrationWarning
     >
       <div className="relative flex items-center">
         <div className="absolute flex h-4 w-(--timeline-container-width) items-center justify-end">
-          <div className="pe-1 text-[10px] font-medium text-red-500/80 tabular-nums sm:pe-3 sm:text-xs">
+          <div className="pe-1 text-3xs font-medium text-red-500/80 tabular-nums sm:pe-3 sm:text-xs">
             <div className="rounded-sm bg-background/20 px-1 backdrop-blur-md">
               {indicator.label}
             </div>

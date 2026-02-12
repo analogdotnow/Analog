@@ -117,7 +117,7 @@ export function TimeSelector({ items, command, ref }: TimeSelectorProps) {
                   data-state={
                     item.value === selectedValue ? "selected" : "unselected"
                   }
-                  className="w-full rounded-sm px-2 text-left text-sm hover:bg-accent/80 data-[state=selected]:bg-accent/80"
+                  className="w-full rounded-sm px-2 text-left text-sm hover:bg-accent-light data-[state=selected]:bg-accent-light"
                 >
                   {item.label}
                 </button>

@@ -1,18 +1,17 @@
 import { useCommandState } from "cmdk";
-import { useAtomValue, useSetAtom } from "jotai";
 
-import { calendarSettingsAtom } from "@/atoms/calendar-settings";
-import {
-  commandMenuOpenAtom,
-  commandMenuPageAtom,
-  commandMenuPagesAtom,
-} from "@/atoms/command-menu";
 import { CommandGroup, CommandItem } from "@/components/ui/command";
+import {
+  useCommandMenuPage,
+  usePushCommandMenuPage,
+  useSetCalendarSettings,
+  useSetCommandMenuOpen,
+} from "@/store/hooks";
 
 export function LocalizationCommands() {
   const search = useCommandState((state) => state.search);
-  const page = useAtomValue(commandMenuPageAtom);
-  const setPages = useSetAtom(commandMenuPagesAtom);
+  const page = useCommandMenuPage();
+  const pushCommandMenuPage = usePushCommandMenuPage();
 
   if (page && page !== "time-format") {
     return null;
@@ -28,9 +27,7 @@ export function LocalizationCommands() {
 
   return (
     <CommandGroup heading="Localization">
-      <CommandItem
-        onSelect={() => setPages((pages) => [...pages, "time-format"])}
-      >
+      <CommandItem onSelect={() => pushCommandMenuPage("time-format")}>
         Change time format
       </CommandItem>
       {search?.trim() ? (
@@ -47,8 +44,8 @@ interface LocalizationCommandsContentProps {
 function LocalizationCommandsContent({
   prefixWith,
 }: LocalizationCommandsContentProps) {
-  const setCalendarSettings = useSetAtom(calendarSettingsAtom);
-  const setOpen = useSetAtom(commandMenuOpenAtom);
+  const setCalendarSettings = useSetCalendarSettings();
+  const setOpen = useSetCommandMenuOpen();
   const prefix = prefixWith ? `${prefixWith} > ` : "";
 
   return (
@@ -56,11 +53,7 @@ function LocalizationCommandsContent({
       <CommandItem
         keywords={["24 hour clock", "24h clock"]}
         onSelect={() => {
-          setCalendarSettings((p) => ({
-            ...p,
-            use12Hour: false,
-          }));
-
+          setCalendarSettings({ use12Hour: false });
           setOpen(false);
         }}
       >
@@ -69,11 +62,7 @@ function LocalizationCommandsContent({
       <CommandItem
         keywords={["12 hour clock", "12h clock"]}
         onSelect={() => {
-          setCalendarSettings((p) => ({
-            ...p,
-            use12Hour: true,
-          }));
-
+          setCalendarSettings({ use12Hour: true });
           setOpen(false);
         }}
       >

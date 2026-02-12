@@ -1,12 +1,7 @@
 import * as React from "react";
-import { useAtom, useSetAtom } from "jotai";
 import { useQueryState } from "nuqs";
 import { useHotkeys, useHotkeysContext } from "react-hotkeys-hook";
 
-import {
-  commandMenuOpenAtom,
-  commandMenuPagesAtom,
-} from "@/atoms/command-menu";
 import {
   Command,
   CommandDialog,
@@ -14,6 +9,7 @@ import {
   CommandInput,
   CommandList,
 } from "@/components/ui/command";
+import { useCalendarStore } from "@/providers/calendar-store-provider";
 import { AppearanceCommands } from "./appearance-commands";
 import { CalendarNavigationCommands } from "./calendar-navigation-commands";
 import { EventSearchCommands } from "./event-search-commands";
@@ -23,8 +19,11 @@ import { PreferencesCommands } from "./preferences-commands";
 import { StartOfWeekCommands } from "./start-of-week-commands";
 
 export function AppCommandMenu() {
-  const [open, setOpen] = useAtom(commandMenuOpenAtom);
-  const [pages, setPages] = useAtom(commandMenuPagesAtom);
+  const open = useCalendarStore((s) => s.commandMenuOpen);
+  const setOpen = useCalendarStore((s) => s.setCommandMenuOpen);
+  const pages = useCalendarStore((s) => s.commandMenuPages);
+  const resetPages = useCalendarStore((s) => s.resetCommandMenuPages);
+  const popPage = useCalendarStore((s) => s.popCommandMenuPage);
   const { disableScope, enableScope } = useHotkeysContext();
   const [search, setSearch] = useQueryState("search");
 
@@ -55,24 +54,24 @@ export function AppCommandMenu() {
       return;
     }
 
-    setPages([]);
-  }, [open, search, setPages]);
+    resetPages();
+  }, [open, search, resetPages]);
 
-  const onOpenChange = (open: boolean) => {
-    if (!open && !search && pages.length > 0) {
-      setPages((pages) => pages.slice(0, -1));
+  const onOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen && !search && pages.length > 0) {
+      popPage();
 
       return;
     }
 
-    setOpen(open);
+    setOpen(nextOpen);
 
-    if (!open) {
+    if (!nextOpen) {
       setSearch(null);
     }
   };
 
-  useHotkeys("mod+k", () => setOpen((open) => !open), {
+  useHotkeys("mod+k", () => setOpen(!open), {
     preventDefault: true,
   });
 
@@ -92,12 +91,12 @@ export function AppCommandMenu() {
 
 function CommandContent() {
   const [search, setSearch] = useQueryState("search");
-  const setPages = useSetAtom(commandMenuPagesAtom);
+  const popPage = useCalendarStore((s) => s.popCommandMenuPage);
 
   useHotkeys(
     "backspace",
     () => {
-      setPages((pages) => pages.slice(0, -1));
+      popPage();
     },
     {
       preventDefault: true,

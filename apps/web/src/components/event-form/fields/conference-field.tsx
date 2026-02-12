@@ -2,6 +2,8 @@
 
 import * as React from "react";
 
+import { ConferenceDetails } from "@/components/event-form/location/conference-details";
+import { FormConference } from "@/components/event-form/utils/schema";
 import { GoogleMeet } from "@/components/icons";
 import {
   DropdownMenu,
@@ -9,8 +11,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ConferenceDetails } from "../location/conference-details";
-import { FormConference } from "../utils/schema";
 
 interface ConferenceFieldProps {
   value?: FormConference | null;
@@ -73,7 +73,7 @@ function ConferenceSelect({
     <div className="group/conference-select h-8">
       <DropdownMenu>
         <DropdownMenuTrigger
-          className="flex h-8 w-full items-center justify-start gap-2 rounded-md border-none bg-transparent ps-8 text-sm text-muted-foreground/70 shadow-none ring-0 focus:bg-accent/80 focus:ring-0 focus:ring-offset-0 focus-visible:bg-accent/80 enabled:hover:bg-accent/80 disabled:opacity-60 data-[state=open]:bg-accent/80 dark:bg-transparent dark:focus:bg-accent/80 dark:focus-visible:bg-accent/80 dark:enabled:hover:bg-accent/80 data-[state=open]:dark:bg-accent/80"
+          className="flex h-8 w-full items-center justify-start gap-2 rounded-md border-none bg-transparent ps-8 text-sm text-muted-foreground/70 shadow-none ring-0 focus:bg-accent-light focus:ring-0 focus:ring-offset-0 focus-visible:bg-accent-light enabled:hover:bg-accent-light disabled:opacity-60 data-[state=open]:bg-accent-light dark:bg-transparent dark:focus:bg-accent-light dark:focus-visible:bg-accent-light dark:enabled:hover:bg-accent-light data-[state=open]:dark:bg-accent-light"
           disabled={disabled}
         >
           Conference

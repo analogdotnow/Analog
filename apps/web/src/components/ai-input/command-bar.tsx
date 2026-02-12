@@ -15,8 +15,8 @@ import {
 import { AnimatePresence, motion } from "motion/react";
 import { toast } from "sonner";
 
+import { Window } from "@/components/command-bar/window";
 import { cn } from "@/lib/utils";
-import { Window } from "../command-bar/window";
 import { createEventInputSuggestions } from "./create-event-input-suggestions";
 
 interface Mention {

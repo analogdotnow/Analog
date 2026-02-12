@@ -148,7 +148,7 @@ export const BranchPrevious = ({
       aria-label="Previous branch"
       className={cn(
         "size-7 shrink-0 rounded-full text-muted-foreground transition-colors",
-        "hover:bg-accent/80 hover:text-foreground",
+        "hover:bg-accent-light hover:text-foreground",
         "disabled:pointer-events-none disabled:opacity-50",
         className,
       )}
@@ -178,7 +178,7 @@ export const BranchNext = ({
       aria-label="Next branch"
       className={cn(
         "size-7 shrink-0 rounded-full text-muted-foreground transition-colors",
-        "hover:bg-accent/80 hover:text-foreground",
+        "hover:bg-accent-light hover:text-foreground",
         "disabled:pointer-events-none disabled:opacity-50",
         className,
       )}

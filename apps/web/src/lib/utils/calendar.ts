@@ -1,6 +1,6 @@
 import { Temporal } from "temporal-polyfill";
 
-import { CalendarEvent, DraftEvent } from "../interfaces";
+import { CalendarEvent, DraftEvent } from "@/lib/interfaces";
 
 export function roundTo15Minutes(
   date: Temporal.ZonedDateTime,
@@ -18,7 +18,7 @@ export function createDraftEvent(options: CreateDraftEventOptions): DraftEvent {
     ...options,
     id: createEventId(),
     type: "draft",
-  };
+  } as DraftEvent;
 }
 
 export function isDraftEvent(

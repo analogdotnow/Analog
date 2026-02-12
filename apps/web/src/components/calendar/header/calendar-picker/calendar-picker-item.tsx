@@ -7,16 +7,10 @@ import {
   TrashIcon,
 } from "@heroicons/react/16/solid";
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
-import { useAtom } from "jotai";
 import { CheckIcon } from "lucide-react";
 
 import { COLORS } from "@repo/providers/lib";
 
-import {
-  calendarPreferencesAtom,
-  getCalendarPreference,
-  setCalendarPreference,
-} from "@/atoms/calendar-preferences";
 import { Button } from "@/components/ui/button";
 import { CommandItem } from "@/components/ui/command";
 import {
@@ -28,6 +22,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { useCalendarStore } from "@/providers/calendar-store-provider";
+import { getCalendarPreference } from "@/store/calendar-store";
 import {
   CalendarPickerItemProvider,
   useCalendarPickerItem,
@@ -58,7 +54,7 @@ function CalendarColorRadioItem({
         disabled && "bg-(--calendar-color)/50",
         className,
       )}
-      style={{ "--calendar-color": value } as React.CSSProperties}
+      style={{ "--calendar-color": value }}
       disabled={disabled}
       value={value}
       {...props}
@@ -81,8 +77,9 @@ function CalendarColorPicker() {
   "use memo";
 
   const { calendar } = useCalendarPickerItem();
-  const [calendarPreferences, setCalendarPreferences] = useAtom(
-    calendarPreferencesAtom,
+  const calendarPreferences = useCalendarStore((s) => s.calendarPreferences);
+  const setCalendarPreference = useCalendarStore(
+    (s) => s.setCalendarPreference,
   );
 
   const currentPreference = getCalendarPreference(
@@ -94,11 +91,9 @@ function CalendarColorPicker() {
   const currentColor = currentPreference?.color ?? calendar.color;
 
   const onColorChange = (newColor: string) => {
-    setCalendarPreferences((prev) =>
-      setCalendarPreference(prev, calendar.provider.accountId, calendar.id, {
-        color: newColor,
-      }),
-    );
+    setCalendarPreference(calendar.provider.accountId, calendar.id, {
+      color: newColor,
+    });
   };
 
   return (
@@ -120,8 +115,9 @@ function useCalendarVisibility() {
   "use memo";
 
   const { calendar } = useCalendarPickerItem();
-  const [calendarPreferences, setCalendarPreferences] = useAtom(
-    calendarPreferencesAtom,
+  const calendarPreferences = useCalendarStore((s) => s.calendarPreferences);
+  const setCalendarPreference = useCalendarStore(
+    (s) => s.setCalendarPreference,
   );
 
   const preference = getCalendarPreference(
@@ -134,13 +130,11 @@ function useCalendarVisibility() {
 
   const setVisible = React.useCallback(
     (visible: boolean) => {
-      setCalendarPreferences((prev) =>
-        setCalendarPreference(prev, calendar.provider.accountId, calendar.id, {
-          hidden: !visible,
-        }),
-      );
+      setCalendarPreference(calendar.provider.accountId, calendar.id, {
+        hidden: !visible,
+      });
     },
-    [setCalendarPreferences, calendar.provider.accountId, calendar.id],
+    [setCalendarPreference, calendar.provider.accountId, calendar.id],
   );
 
   return { visible, setVisible };

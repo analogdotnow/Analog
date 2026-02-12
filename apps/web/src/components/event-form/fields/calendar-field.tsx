@@ -79,7 +79,7 @@ export function CalendarField({
             id={id}
             variant="ghost"
             className={cn(
-              "flex h-8 w-full grow items-center justify-start gap-2 text-sm font-medium hover:bg-accent/80 focus:bg-accent/80 focus:ring-0 focus:ring-offset-0 focus-visible:bg-accent/80 focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=open]:bg-accent/80 dark:hover:bg-accent/80 dark:focus:bg-accent/80 dark:focus-visible:bg-accent/80 data-[state=open]:dark:bg-accent/80",
+              "flex h-8 w-full grow items-center justify-start gap-2 text-sm font-medium hover:bg-accent-light focus:bg-accent-light focus:ring-0 focus:ring-offset-0 focus-visible:bg-accent-light focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=open]:bg-accent-light dark:hover:bg-accent-light dark:focus:bg-accent-light dark:focus-visible:bg-accent-light data-[state=open]:dark:bg-accent-light",
               className,
             )}
             disabled={disabled}
@@ -122,11 +122,9 @@ export function CalendarColorIndicator({
           primary && "outline-2 outline-offset-2 outline-(--calendar-color)",
           disabled && "opacity-50",
         )}
-        style={
-          {
-            "--calendar-color": color,
-          } as React.CSSProperties
-        }
+        style={{
+          "--calendar-color": color,
+        }}
       />
     </div>
   );

@@ -1,9 +1,11 @@
 import { Temporal } from "temporal-polyfill";
 
-import type { CalendarSettings } from "@/atoms/calendar-settings";
+import type {
+  FormAttendee,
+  FormValues,
+} from "@/components/event-form/utils/schema";
 import type { Calendar, CalendarEvent, DraftEvent } from "@/lib/interfaces";
 import { createEventId, isDraftEvent } from "@/lib/utils/calendar";
-import type { FormAttendee, FormValues } from "../schema";
 
 interface ParseDateTimeOptions {
   defaultTimeZone: string;
@@ -43,19 +45,19 @@ export function parseAttendees(
 interface ParseDraftEventOptions {
   event: DraftEvent;
   defaultCalendar: Calendar;
-  settings: CalendarSettings;
+  defaultTimeZone: string;
 }
 
 export function parseDraftEvent({
   event,
   defaultCalendar,
-  settings,
+  defaultTimeZone,
 }: ParseDraftEventOptions): FormValues {
-  const defaultTimeZone = defaultCalendar.timeZone ?? settings.defaultTimeZone;
+  const timeZone = defaultCalendar.timeZone ?? defaultTimeZone;
 
-  const start = parseDateTime(event.start, { defaultTimeZone });
+  const start = parseDateTime(event.start, { defaultTimeZone: timeZone });
 
-  const end = parseDateTime(event.end, { defaultTimeZone });
+  const end = parseDateTime(event.end, { defaultTimeZone: timeZone });
 
   return {
     id: event?.id ?? createEventId(),
@@ -81,16 +83,16 @@ export function parseDraftEvent({
 
 interface ParseCalendarEventOptions {
   event: CalendarEvent;
-  settings: CalendarSettings;
+  defaultTimeZone: string;
 }
 
 export function parseCalendarEvent({
   event,
-  settings,
+  defaultTimeZone,
 }: ParseCalendarEventOptions): FormValues {
-  const start = parseDateTime(event.start, settings);
+  const start = parseDateTime(event.start, { defaultTimeZone });
 
-  const end = parseDateTime(event.end, settings);
+  const end = parseDateTime(event.end, { defaultTimeZone });
 
   return {
     id: event.id,
@@ -114,11 +116,11 @@ export function parseCalendarEvent({
 export function parseFormValues(
   event: CalendarEvent,
   defaultCalendar: Calendar,
-  settings: CalendarSettings,
+  defaultTimeZone: string,
 ): FormValues {
   if (isDraftEvent(event)) {
-    return parseDraftEvent({ event, defaultCalendar, settings });
+    return parseDraftEvent({ event, defaultCalendar, defaultTimeZone });
   }
 
-  return parseCalendarEvent({ event, settings });
+  return parseCalendarEvent({ event, defaultTimeZone });
 }

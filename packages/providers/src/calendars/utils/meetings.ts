@@ -1,7 +1,6 @@
-import type { CalendarEvent } from "../../interfaces";
+import type { Attendee, CalendarEvent } from "../../interfaces";
 
-type Meeting = Omit<CalendarEvent, "attendees"> &
-  Required<Pick<CalendarEvent, "attendees">>;
+type Meeting = CalendarEvent & { attendees: Attendee[] };
 
 export function isMeeting(event: CalendarEvent): event is Meeting {
   return !!event.attendees && event.attendees.length > 1;

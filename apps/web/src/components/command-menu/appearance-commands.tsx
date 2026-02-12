@@ -1,18 +1,17 @@
 import { useCommandState } from "cmdk";
-import { useAtomValue, useSetAtom } from "jotai";
 import { useTheme } from "next-themes";
 
-import {
-  commandMenuOpenAtom,
-  commandMenuPageAtom,
-  commandMenuPagesAtom,
-} from "@/atoms/command-menu";
 import { CommandGroup, CommandItem } from "@/components/ui/command";
+import {
+  useCommandMenuPage,
+  usePushCommandMenuPage,
+  useSetCommandMenuOpen,
+} from "@/store/hooks";
 
 export function AppearanceCommands() {
   const search = useCommandState((state) => state.search);
-  const page = useAtomValue(commandMenuPageAtom);
-  const setPages = useSetAtom(commandMenuPagesAtom);
+  const page = useCommandMenuPage();
+  const pushPage = usePushCommandMenuPage();
 
   if (page && page !== "theme") {
     return null;
@@ -28,9 +27,7 @@ export function AppearanceCommands() {
 
   return (
     <CommandGroup heading="Appearance">
-      <CommandItem onSelect={() => setPages((pages) => [...pages, "theme"])}>
-        Change theme
-      </CommandItem>
+      <CommandItem onSelect={() => pushPage("theme")}>Change theme</CommandItem>
       {search?.trim() ? (
         <AppearanceCommandsContent prefixWith="Change theme" />
       ) : null}
@@ -46,7 +43,7 @@ function AppearanceCommandsContent({
   prefixWith,
 }: AppearanceCommandsContentProps) {
   const { setTheme } = useTheme();
-  const setOpen = useSetAtom(commandMenuOpenAtom);
+  const setOpen = useSetCommandMenuOpen();
   const prefix = prefixWith ? `${prefixWith} > ` : "";
 
   return (

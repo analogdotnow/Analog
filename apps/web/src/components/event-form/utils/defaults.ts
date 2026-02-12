@@ -1,6 +1,5 @@
 import { Temporal } from "temporal-polyfill";
 
-import type { CalendarSettings } from "@/atoms/calendar-settings";
 import type { Calendar, CalendarEvent } from "@/lib/interfaces";
 import { createEventId, roundTo15Minutes } from "@/lib/utils/calendar";
 import { FormMeta } from "./form";
@@ -39,21 +38,23 @@ export const initialValues: FormValues = {
   visibility: "default",
 };
 
-interface CreateDefaultEvent {
-  settings: CalendarSettings;
+interface CreateDefaultEventOptions {
   defaultCalendar: Calendar;
+  defaultTimeZone: string;
+  defaultEventDuration: number;
 }
 
 export function getDefaultValues({
-  settings,
   defaultCalendar,
-}: CreateDefaultEvent): FormValues {
-  const timeZone = defaultCalendar?.timeZone ?? settings.defaultTimeZone;
+  defaultTimeZone,
+  defaultEventDuration,
+}: CreateDefaultEventOptions): FormValues {
+  const timeZone = defaultCalendar?.timeZone ?? defaultTimeZone;
   const now = Temporal.Now.zonedDateTimeISO(timeZone);
 
   const start = roundTo15Minutes(now);
   const duration = Temporal.Duration.from({
-    minutes: settings.defaultEventDuration,
+    minutes: defaultEventDuration,
   });
 
   return {
@@ -76,10 +77,15 @@ export function getDefaultValues({
 }
 
 export function getDefaultEvent({
-  settings,
   defaultCalendar,
-}: CreateDefaultEvent): CalendarEvent {
-  const values = getDefaultValues({ settings, defaultCalendar });
+  defaultTimeZone,
+  defaultEventDuration,
+}: CreateDefaultEventOptions): CalendarEvent {
+  const values = getDefaultValues({
+    defaultCalendar,
+    defaultTimeZone,
+    defaultEventDuration,
+  });
 
   return toCalendarEvent({ values });
 }

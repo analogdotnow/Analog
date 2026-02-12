@@ -1,18 +1,17 @@
 import { useCommandState } from "cmdk";
-import { useAtomValue, useSetAtom } from "jotai";
 
-import { calendarSettingsAtom } from "@/atoms/calendar-settings";
-import {
-  commandMenuOpenAtom,
-  commandMenuPageAtom,
-  commandMenuPagesAtom,
-} from "@/atoms/command-menu";
 import { CommandGroup, CommandItem } from "@/components/ui/command";
+import {
+  useCommandMenuPage,
+  usePushCommandMenuPage,
+  useSetCalendarSettings,
+  useSetCommandMenuOpen,
+} from "@/store/hooks";
 
 export function StartOfWeekCommands() {
   const search = useCommandState((state) => state.search);
-  const page = useAtomValue(commandMenuPageAtom);
-  const setPages = useSetAtom(commandMenuPagesAtom);
+  const page = useCommandMenuPage();
+  const pushCommandMenuPage = usePushCommandMenuPage();
 
   if (page && page !== "start-of-week") {
     return null;
@@ -28,9 +27,7 @@ export function StartOfWeekCommands() {
 
   return (
     <CommandGroup heading="Calendar">
-      <CommandItem
-        onSelect={() => setPages((pages) => [...pages, "start-of-week"])}
-      >
+      <CommandItem onSelect={() => pushCommandMenuPage("start-of-week")}>
         Change start of week
       </CommandItem>
       {search?.trim() ? (
@@ -47,8 +44,8 @@ interface StartOfWeekCommandsContentProps {
 function StartOfWeekCommandsContent({
   prefixWith,
 }: StartOfWeekCommandsContentProps) {
-  const setCalendarSettings = useSetAtom(calendarSettingsAtom);
-  const setOpen = useSetAtom(commandMenuOpenAtom);
+  const setCalendarSettings = useSetCalendarSettings();
+  const setOpen = useSetCommandMenuOpen();
 
   const prefix = prefixWith ? `${prefixWith} > ` : "";
 
@@ -58,7 +55,7 @@ function StartOfWeekCommandsContent({
         value="start-of-week-monday"
         keywords={["Monday"]}
         onSelect={() => {
-          setCalendarSettings((p) => ({ ...p, weekStartsOn: 1 }));
+          setCalendarSettings({ weekStartsOn: 1 });
           setOpen(false);
         }}
       >
@@ -68,7 +65,7 @@ function StartOfWeekCommandsContent({
         value="start-of-week-tuesday"
         keywords={["Tuesday"]}
         onSelect={() => {
-          setCalendarSettings((p) => ({ ...p, weekStartsOn: 2 }));
+          setCalendarSettings({ weekStartsOn: 2 });
           setOpen(false);
         }}
       >
@@ -78,7 +75,7 @@ function StartOfWeekCommandsContent({
         value="start-of-week-wednesday"
         keywords={["Wednesday"]}
         onSelect={() => {
-          setCalendarSettings((p) => ({ ...p, weekStartsOn: 3 }));
+          setCalendarSettings({ weekStartsOn: 3 });
           setOpen(false);
         }}
       >
@@ -88,7 +85,7 @@ function StartOfWeekCommandsContent({
         value="start-of-week-thursday"
         keywords={["Thursday"]}
         onSelect={() => {
-          setCalendarSettings((p) => ({ ...p, weekStartsOn: 4 }));
+          setCalendarSettings({ weekStartsOn: 4 });
           setOpen(false);
         }}
       >
@@ -98,7 +95,7 @@ function StartOfWeekCommandsContent({
         value="start-of-week-friday"
         keywords={["Friday"]}
         onSelect={() => {
-          setCalendarSettings((p) => ({ ...p, weekStartsOn: 5 }));
+          setCalendarSettings({ weekStartsOn: 5 });
           setOpen(false);
         }}
       >
@@ -108,7 +105,7 @@ function StartOfWeekCommandsContent({
         value="start-of-week-saturday"
         keywords={["Saturday"]}
         onSelect={() => {
-          setCalendarSettings((p) => ({ ...p, weekStartsOn: 6 }));
+          setCalendarSettings({ weekStartsOn: 6 });
           setOpen(false);
         }}
       >
@@ -118,7 +115,7 @@ function StartOfWeekCommandsContent({
         value="start-of-week-sunday"
         keywords={["Sunday"]}
         onSelect={() => {
-          setCalendarSettings((p) => ({ ...p, weekStartsOn: 7 }));
+          setCalendarSettings({ weekStartsOn: 7 });
           setOpen(false);
         }}
       >

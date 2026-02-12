@@ -1,5 +1,3 @@
-"use client";
-
 import * as React from "react";
 import { useRender } from "@base-ui/react/use-render";
 import { cva, type VariantProps } from "class-variance-authority";
@@ -15,15 +13,16 @@ const buttonVariants = cva(
         destructive:
           "border border-destructive/10 bg-destructive/10 text-destructive hover:bg-destructive/20 hover:text-destructive focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40",
         outline:
-          "border bg-background mac:bg-white dark:mac:bg-white/5 dark:mac:border-white/5 mac:text-primary/90 hover:bg-accent/80 hover:text-accent-foreground dark:bg-input/30 dark:border-input/50 dark:hover:bg-input/50",
+          "border bg-background mac:bg-white dark:mac:bg-white/5 dark:mac:border-white/5 mac:text-primary/90 hover:bg-accent-light hover:text-accent-foreground dark:bg-input/30 dark:border-input/50 dark:hover:bg-input/50",
         secondary:
           "bg-foreground/5 text-secondary-foreground hover:bg-foreground/10",
         ghost:
-          "hover:bg-accent/80 hover:text-accent-foreground dark:hover:bg-accent/80",
+          "hover:bg-accent-light hover:text-accent-foreground dark:hover:bg-accent-light",
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",
+        xs: "h-7 rounded-md gap-1.5 px-2 text-xs",
         sm: "h-8 rounded-md gap-1.5 px-3",
         lg: "h-10 rounded-md px-6 has-[>svg]:px-4",
         icon: "size-9",

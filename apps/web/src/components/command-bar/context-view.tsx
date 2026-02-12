@@ -1,27 +1,18 @@
 "use client";
 
 import * as React from "react";
-import { useAtomValue } from "jotai";
 import { Temporal } from "temporal-polyfill";
 
-import { calendarSettingsAtom } from "@/atoms/calendar-settings";
-import { useSelectAction } from "@/components/calendar/hooks/use-optimistic-mutations";
 import { Button } from "@/components/ui/button";
 import { KeyboardShortcut } from "@/components/ui/keyboard-shortcut";
-import { useRelativeTime } from "@/hooks/use-relative-time";
-import { calendarColorVariable } from "@/lib/css";
+import { useSelectAction } from "@/hooks/calendar/use-optimistic-mutations";
+import { useRelativeTime } from "@/hooks/time/use-relative-time";
+import { eventColorVariable } from "@/lib/css";
 import { useOngoingEvent, useUpcomingEvent } from "@/lib/db";
-import { CalendarEvent } from "@/lib/interfaces";
 import { cn } from "@/lib/utils";
 import { isOnlineMeeting } from "@/lib/utils/events";
 import { format, formatTime } from "@/lib/utils/format";
-
-// TODO: instead use the common function that's already used across the project
-function eventColor(event: CalendarEvent) {
-  return {
-    "--calendar-color": `var(${calendarColorVariable(event.calendar.provider.accountId, event.calendar.id)}, var(--color-muted-foreground))`,
-  } as React.CSSProperties;
-}
+import { useCalendarSettings, useDefaultTimeZone } from "@/store/hooks";
 
 interface ContextViewProps {
   className?: string;
@@ -38,6 +29,8 @@ export function ContextView({ className }: ContextViewProps) {
 }
 
 function useDisplayEvent() {
+  "use memo";
+
   const ongoing = useOngoingEvent();
   const upcoming = useUpcomingEvent();
 
@@ -77,7 +70,9 @@ export function EventPreview({ className }: EventPreviewProps) {
       <Button variant="ghost" size="sm" className="ps-1 pe-2" onClick={onClick}>
         <div
           className="h-6 w-1 rounded-full bg-(--calendar-color) opacity-60"
-          style={eventColor(event)}
+          style={{
+            "--calendar-color": `var(${eventColorVariable(event)}, var(--color-muted-foreground))`,
+          }}
         />
         <span className="text-sm font-medium">
           {event.title ?? "(untitled)"}
@@ -85,7 +80,7 @@ export function EventPreview({ className }: EventPreviewProps) {
         <RelativeTime value={event.start} />
       </Button>
 
-      {isOnlineMeeting(event) && (
+      {isOnlineMeeting(event) ? (
         <Button
           variant="ghost"
           size="sm"
@@ -104,7 +99,7 @@ export function EventPreview({ className }: EventPreviewProps) {
             </a>
           )}
         />
-      )}
+      ) : null}
 
       {/* <div className="flex flex-1 flex-col gap-2">
         <div className="flex h-16 items-center justify-start gap-2 py-1 ps-1">
@@ -146,8 +141,9 @@ interface TimeProps {
 function Time({ className, value }: TimeProps) {
   "use memo";
 
-  const { defaultTimeZone, use12Hour, locale } =
-    useAtomValue(calendarSettingsAtom);
+  const defaultTimeZone = useDefaultTimeZone();
+  const calendarSettings = useCalendarSettings();
+  const { use12Hour, locale } = calendarSettings;
 
   if (value instanceof Temporal.PlainDate) {
     return (

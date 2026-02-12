@@ -5,14 +5,14 @@ import { Temporal } from "temporal-polyfill";
 import { jotaiStore } from "@/atoms/store";
 import { formAtom, isPristineAtom } from "@/components/event-form/atoms/form";
 import { useUpdateFormState } from "@/components/event-form/utils/use-update-form-state";
-import { getEventById } from "@/lib/db";
-import { CalendarEvent } from "@/lib/interfaces";
 import {
   addOptimisticActionAtom,
   generateOptimisticId,
   optimisticActionsByEventIdAtom,
   removeDraftOptimisticActionsByEventIdAtom,
-} from "../../hooks/optimistic-actions";
+} from "@/hooks/calendar/optimistic-actions";
+import { getEventById } from "@/lib/db";
+import { CalendarEvent } from "@/lib/interfaces";
 import type {
   ReplaceQueueRequest,
   UpdateQueueItem,
@@ -45,7 +45,7 @@ async function constructEvent(req: UpdateQueueRequest) {
     ...event,
     ...req.changes,
     updatedAt: Temporal.Now.instant(),
-  };
+  } as CalendarEvent;
 }
 
 function useOptimisticUpdateAction() {

@@ -1,4 +1,4 @@
-// Utilities for working with CSS custom properties and identifiers
+import { CalendarEvent } from "./interfaces";
 
 /**
  * Sanitizes an arbitrary string to be safe for use as a segment in a CSS custom property name.
@@ -7,23 +7,26 @@
  * - Collapses consecutive '-' characters
  * - Trims leading/trailing '-'
  */
-function sanitizeAsCssIdentifierSegment(input: string): string {
-  const lowerCased = String(input).toLowerCase();
-  const replaced = lowerCased.replace(/[^a-z0-9_-]/g, "-");
-  const collapsed = replaced.replace(/-+/g, "-");
-  return collapsed.replace(/^-+/, "").replace(/-+$/, "");
+function sanitize(input: string): string {
+  return String(input)
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
 }
 
-/**
- * Builds the CSS custom property name used to store a calendar's color.
- * Uses both accountId and calendarId to ensure uniqueness across accounts.
- * Example output: `--calendar-color-account-123-my-calendar-id`
- */
 export function calendarColorVariable(
   accountId: string,
   calendarId: string,
 ): `--calendar-color-${string}` {
-  const sanitizedAccountId = sanitizeAsCssIdentifierSegment(accountId);
-  const sanitizedCalendarId = sanitizeAsCssIdentifierSegment(calendarId);
-  return `--calendar-color-${sanitizedAccountId}-${sanitizedCalendarId}`;
+  return `--calendar-color-${sanitize(accountId)}-${sanitize(calendarId)}`;
+}
+
+export function eventColorVariable(
+  event: CalendarEvent,
+): `--calendar-color-${string}` {
+  return calendarColorVariable(
+    event.calendar.provider.accountId,
+    event.calendar.id,
+  );
 }

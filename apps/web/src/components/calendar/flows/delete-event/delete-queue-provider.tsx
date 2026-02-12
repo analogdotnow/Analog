@@ -2,8 +2,8 @@ import * as React from "react";
 import { createActorContext } from "@xstate/react";
 import { useSetAtom } from "jotai";
 
-import { removeOptimisticActionAtom } from "@/components/calendar/hooks/optimistic-actions";
-import { useDeleteEventMutation } from "@/components/calendar/hooks/use-event-mutations";
+import { removeOptimisticActionAtom } from "@/hooks/calendar/optimistic-actions";
+import { useDeleteEventMutation } from "@/hooks/calendar/use-event-mutations";
 import { getEventById } from "@/lib/db";
 import { createDeleteQueueMachine, type DeleteQueueItem } from "./delete-queue";
 

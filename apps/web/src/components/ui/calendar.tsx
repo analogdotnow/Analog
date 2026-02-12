@@ -70,6 +70,8 @@ function Calendar({
   components,
   ...props
 }: CalendarProps) {
+  "use memo";
+
   const [navView, setNavView] = React.useState<NavView>("days");
   const [displayYears, setDisplayYears] = React.useState<{
     from: number;
@@ -143,16 +145,16 @@ function Calendar({
           props.dayButtonClassName,
         ),
         range_start: cn(
-          "bg-accent/80 [&>button]:bg-primary [&>button]:text-primary-foreground [&>button]:hover:bg-primary [&>button]:hover:text-primary-foreground",
+          "bg-accent-light [&>button]:bg-primary [&>button]:text-primary-foreground [&>button]:hover:bg-primary [&>button]:hover:text-primary-foreground",
           "day-range-start rounded-s-md",
           props.rangeStartClassName,
         ),
         range_middle: cn(
-          "bg-accent/80 !text-foreground [&>button]:bg-transparent [&>button]:!text-foreground [&>button]:hover:bg-transparent [&>button]:hover:!text-foreground",
+          "bg-accent-light !text-foreground [&>button]:bg-transparent [&>button]:!text-foreground [&>button]:hover:bg-transparent [&>button]:hover:!text-foreground",
           props.rangeMiddleClassName,
         ),
         range_end: cn(
-          "bg-accent/80 [&>button]:bg-primary [&>button]:text-primary-foreground [&>button]:hover:bg-primary [&>button]:hover:text-primary-foreground day-range-end rounded-e-md",
+          "bg-accent-light [&>button]:bg-primary [&>button]:text-primary-foreground [&>button]:hover:bg-primary [&>button]:hover:text-primary-foreground day-range-end rounded-e-md",
           props.rangeEndClassName,
         ),
         selected: cn(
@@ -160,11 +162,11 @@ function Calendar({
           props.selectedClassName,
         ),
         today: cn(
-          "[&>button]:bg-accent/80 [&>button]:text-accent-foreground",
+          "[&>button]:bg-accent-light [&>button]:text-accent-foreground",
           props.todayClassName,
         ),
         outside: cn(
-          "day-outside text-muted-foreground opacity-50 aria-selected:bg-accent/80 aria-selected:text-muted-foreground aria-selected:opacity-30",
+          "day-outside text-muted-foreground opacity-50 aria-selected:bg-accent-light aria-selected:text-muted-foreground aria-selected:opacity-30",
           props.outsideClassName,
         ),
         disabled: cn(
@@ -243,6 +245,7 @@ function DayButton({
   className?: string;
   modifiers: Modifiers;
 } & React.ButtonHTMLAttributes<HTMLButtonElement>) {
+  "use memo";
   const { goToMonth, select } = useDayPicker<{ mode: "single" }>();
 
   const handleClick = React.useCallback(
@@ -291,6 +294,7 @@ function Nav({
   onPrevClick?: (date: Date) => void;
   onNextClick?: (date: Date) => void;
 }) {
+  "use memo";
   const { nextMonth, previousMonth, goToMonth } = useDayPicker();
 
   const isPreviousDisabled = (() => {
@@ -434,6 +438,7 @@ function CaptionLabel({
   setNavView: React.Dispatch<React.SetStateAction<NavView>>;
   displayYears: { from: number; to: number };
 } & React.HTMLAttributes<HTMLSpanElement>) {
+  "use memo";
   if (!showYearSwitcher) return <span {...props}>{children}</span>;
   return (
     <Button
@@ -467,6 +472,7 @@ function MonthGrid({
   navView: NavView;
   setNavView: React.Dispatch<React.SetStateAction<NavView>>;
 } & React.TableHTMLAttributes<HTMLTableElement>) {
+  "use memo";
   if (navView === "years") {
     return (
       <YearGrid
@@ -503,6 +509,7 @@ function YearGrid({
   setNavView: React.Dispatch<React.SetStateAction<NavView>>;
   navView: NavView;
 } & React.HTMLAttributes<HTMLDivElement>) {
+  "use memo";
   const { goToMonth, selected } = useDayPicker();
 
   return (
@@ -529,7 +536,7 @@ function YearGrid({
               className={cn(
                 "h-7 w-full text-sm font-normal text-foreground",
                 displayYears.from + i === new Date().getFullYear() &&
-                  "bg-accent/80 font-medium text-accent-foreground",
+                  "bg-accent-light font-medium text-accent-foreground",
               )}
               variant="ghost"
               onClick={() => {

@@ -1,10 +1,10 @@
 import * as React from "react";
 
+import { useCreateAction } from "@/components/calendar/flows/create-event/use-create-action";
+import { useUpdateAction } from "@/components/calendar/flows/update-event/use-update-action";
 import { FormValues } from "@/components/event-form/utils/schema";
 import { toCalendarEvent } from "@/components/event-form/utils/transform/output";
 import type { CalendarEvent } from "@/lib/interfaces";
-import { useCreateAction } from "../create-event/use-create-action";
-import { useUpdateAction } from "../update-event/use-update-action";
 import { EventFormStateContext } from "./event-form-state-provider";
 
 export function useFormAction() {

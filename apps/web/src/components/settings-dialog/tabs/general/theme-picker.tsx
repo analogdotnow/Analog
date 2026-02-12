@@ -48,11 +48,10 @@ export function ThemePicker() {
 
   return (
     <ToggleGroup
-      type="single"
       variant="outline"
       className="gap-x-4 data-[variant=outline]:shadow-none"
-      value={theme ?? "system"}
-      onValueChange={onValueChange}
+      value={[theme ?? "system"]}
+      onValueChange={(value: string[]) => onValueChange(value[0]!)}
     >
       {themes.map((theme) => (
         <ThemePickerItem key={theme.value} theme={theme} />

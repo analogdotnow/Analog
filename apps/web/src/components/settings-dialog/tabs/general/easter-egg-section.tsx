@@ -1,20 +1,23 @@
 "use client";
 
 import * as React from "react";
-import { useAtom } from "jotai";
 import { useHotkeys } from "react-hotkeys-hook";
 
-import { calendarSettingsAtom } from "@/atoms/calendar-settings";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import {
   SettingsSectionDescription,
   SettingsSectionHeader,
   SettingsSectionTitle,
-} from "../../settings-page";
+} from "@/components/settings-dialog/settings-page";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { useCalendarStore } from "@/providers/calendar-store-provider";
+import { useSetCalendarSettings } from "@/store/hooks";
 
 export function EasterEggSelector() {
-  const [calendarSettings, setCalendarSettings] = useAtom(calendarSettingsAtom);
+  const easterEggsEnabled = useCalendarStore(
+    (s) => s.calendarSettings.easterEggsEnabled,
+  );
+  const setCalendarSettings = useSetCalendarSettings();
   const [easterEggSettingsVisible, setEasterEggSettingsVisible] =
     React.useState(false);
 
@@ -33,13 +36,10 @@ export function EasterEggSelector() {
   );
 
   const onCheckedChange = React.useCallback(() => {
-    setCalendarSettings((prev) => ({
-      ...prev,
-      easterEggsEnabled: !prev.easterEggsEnabled,
-    }));
-  }, [setCalendarSettings]);
+    setCalendarSettings({ easterEggsEnabled: !easterEggsEnabled });
+  }, [setCalendarSettings, easterEggsEnabled]);
 
-  if (!easterEggSettingsVisible && !calendarSettings.easterEggsEnabled) {
+  if (!easterEggSettingsVisible && !easterEggsEnabled) {
     return null;
   }
 
@@ -57,7 +57,7 @@ export function EasterEggSelector() {
         </Label>
         <Checkbox
           id="settings-easter-eggs"
-          checked={calendarSettings.easterEggsEnabled}
+          checked={easterEggsEnabled}
           onCheckedChange={onCheckedChange}
         />
       </div>

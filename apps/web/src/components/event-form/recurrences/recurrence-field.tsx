@@ -1,10 +1,8 @@
 import * as React from "react";
-import { useAtomValue } from "jotai";
 import { Temporal } from "temporal-polyfill";
 
 import { Recurrence } from "@repo/providers/interfaces";
 
-import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { Button } from "@/components/ui/button";
 import { DialogTrigger } from "@/components/ui/dialog";
 import {
@@ -17,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { useCalendarStore } from "@/providers/calendar-store-provider";
 import { RecurrenceDialog } from "./recurrence-dialog";
 import { generateRecurrenceSuggestions } from "./recurrence-suggestions";
 import { useRecurrence } from "./use-recurrence";
@@ -43,7 +42,7 @@ export function RecurrenceField({
   disabled,
   recurringEventId,
 }: RecurrenceFieldProps) {
-  const { locale } = useAtomValue(calendarSettingsAtom);
+  const locale = useCalendarStore((s) => s.calendarSettings.locale);
   const options = generateRecurrenceSuggestions({ date, locale });
   const baseEvent = useRecurringEvent(recurringEventId);
 
@@ -78,7 +77,7 @@ export function RecurrenceField({
             variant="ghost"
             disabled={disabled || !!recurringEventId}
             className={cn(
-              "flex h-8 w-full justify-start focus:bg-accent/80 focus-visible:bg-accent/80 data-[state=open]:bg-accent/80 data-[state=open]:dark:bg-accent/80",
+              "flex h-8 w-full justify-start focus:bg-accent-light focus-visible:bg-accent-light data-[state=open]:bg-accent-light data-[state=open]:dark:bg-accent-light",
               className,
             )}
             onBlur={onBlur}
@@ -113,7 +112,7 @@ export function RecurrenceField({
               {option.items.map((item) => (
                 <DropdownMenuItem
                   className={cn(
-                    item.rrule === recurrence.rrule && "bg-accent/80",
+                    item.rrule === recurrence.rrule && "bg-accent-light",
                   )}
                   key={item.id}
                   onSelect={() => {

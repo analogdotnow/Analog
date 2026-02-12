@@ -1,13 +1,16 @@
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
-
-import { commandMenuOpenAtom, commandMenuPageAtom } from "@/atoms/command-menu";
-import { viewPreferencesAtom } from "@/atoms/view-preferences";
 import { CommandGroup, CommandItem } from "@/components/ui/command";
+import {
+  useCommandMenuPage,
+  useSetCommandMenuOpen,
+  useSetViewPreferences,
+  useViewPreferences,
+} from "@/store/hooks";
 
 export function PreferencesCommands() {
-  const [preferences, setPreferences] = useAtom(viewPreferencesAtom);
-  const page = useAtomValue(commandMenuPageAtom);
-  const setOpen = useSetAtom(commandMenuOpenAtom);
+  const preferences = useViewPreferences();
+  const setViewPreferences = useSetViewPreferences();
+  const page = useCommandMenuPage();
+  const setOpen = useSetCommandMenuOpen();
 
   if (page) {
     return null;
@@ -17,11 +20,7 @@ export function PreferencesCommands() {
     <CommandGroup heading="Preferences">
       <CommandItem
         onSelect={() => {
-          setPreferences((p) => ({
-            ...p,
-            showWeekends: !p.showWeekends,
-          }));
-
+          setViewPreferences({ showWeekends: !preferences.showWeekends });
           setOpen(false);
         }}
       >
@@ -29,11 +28,7 @@ export function PreferencesCommands() {
       </CommandItem>
       <CommandItem
         onSelect={() => {
-          setPreferences((p) => ({
-            ...p,
-            showWeekNumbers: !p.showWeekNumbers,
-          }));
-
+          setViewPreferences({ showWeekNumbers: !preferences.showWeekNumbers });
           setOpen(false);
         }}
       >
@@ -43,11 +38,9 @@ export function PreferencesCommands() {
       </CommandItem>
       <CommandItem
         onSelect={() => {
-          setPreferences((p) => ({
-            ...p,
-            showDeclinedEvents: !p.showDeclinedEvents,
-          }));
-
+          setViewPreferences({
+            showDeclinedEvents: !preferences.showDeclinedEvents,
+          });
           setOpen(false);
         }}
       >

@@ -2,14 +2,11 @@
 
 import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useAtomValue } from "jotai";
 
-import {
-  calendarPreferencesAtom,
-  getCalendarPreference,
-} from "@/atoms/calendar-preferences";
 import { calendarColorVariable } from "@/lib/css";
 import { useTRPC } from "@/lib/trpc/client";
+import { useCalendarStore } from "@/providers/calendar-store-provider";
+import { getCalendarPreference } from "@/store/calendar-store";
 
 type CalendarColorsProviderProps = React.ComponentProps<"div">;
 
@@ -18,7 +15,7 @@ export function CalendarColorsProvider({
 }: CalendarColorsProviderProps) {
   const trpc = useTRPC();
   const { data } = useQuery(trpc.calendars.list.queryOptions());
-  const calendarPreferences = useAtomValue(calendarPreferencesAtom);
+  const calendarPreferences = useCalendarStore((s) => s.calendarPreferences);
 
   React.useEffect(() => {
     const calendars = data?.accounts.flatMap((a) => a.calendars) ?? [];

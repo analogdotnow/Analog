@@ -34,7 +34,7 @@ function AutocompletePopup({
     <AutocompletePrimitive.Popup
       data-slot="autocomplete-popup"
       className={cn(
-        "relative z-50 max-h-[min(var(--available-height),23rem)] w-(--anchor-width) max-w-(--available-width) scroll-pt-2 scroll-pb-2 overflow-hidden overflow-y-auto overscroll-contain rounded-md border border-input bg-popover text-popover-foreground shadow-lg outline-hidden data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:bg-accent/80 data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95",
+        "relative max-h-[min(var(--available-height),23rem)] w-(--anchor-width) max-w-(--available-width) scroll-pt-2 scroll-pb-2 overflow-hidden overflow-y-auto overscroll-contain rounded-md border border-input bg-popover text-popover-foreground shadow-lg outline-hidden data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:bg-accent-light data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95",
         "focus:ring-0 focus:ring-offset-0",
         className,
       )}
@@ -44,6 +44,7 @@ function AutocompletePopup({
 }
 
 function AutocompletePositioner({
+  className,
   sideOffset = 4,
   ...props
 }: React.ComponentProps<typeof AutocompletePrimitive.Positioner>) {
@@ -52,6 +53,7 @@ function AutocompletePositioner({
       <AutocompletePrimitive.Positioner
         sideOffset={sideOffset}
         data-slot="autocomplete-positioner"
+        className={cn("z-50", className)}
         {...props}
       />
     </AutocompletePrimitive.Portal>
@@ -95,7 +97,7 @@ function AutocompleteItem({
     <AutocompletePrimitive.Item
       data-slot="autocomplete-item"
       className={cn(
-        "relative flex w-full cursor-default items-center rounded px-3 py-1.5 text-sm text-foreground outline-hidden transition-colors select-none data-disabled:pointer-events-none data-disabled:opacity-50 data-highlighted:bg-accent/80 data-highlighted:text-foreground",
+        "relative flex w-full cursor-default items-center rounded px-3 py-1.5 text-sm text-foreground outline-hidden transition-colors select-none data-disabled:pointer-events-none data-disabled:opacity-50 data-highlighted:bg-accent-light data-highlighted:text-foreground",
         className,
       )}
       {...props}
@@ -198,8 +200,8 @@ function AutocompleteTrigger({
     <AutocompletePrimitive.Trigger
       data-slot="autocomplete-trigger"
       className={cn(
-        "flex h-8 w-full items-center justify-between gap-2 rounded-md px-3 text-sm text-foreground transition-colors outline-none focus:bg-accent/80 focus-visible:bg-accent/80 disabled:opacity-50 aria-expanded:bg-accent/80 data-placeholder:text-muted-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0",
-        "hover:bg-accent/80 focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0",
+        "flex h-8 w-full items-center justify-between gap-2 rounded-md px-3 text-sm text-foreground transition-colors outline-none focus:bg-accent-light focus-visible:bg-accent-light disabled:opacity-50 aria-expanded:bg-accent-light data-placeholder:text-muted-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0",
+        "hover:bg-accent-light focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0",
         className,
       )}
       render={<Button variant="outline" size="sm" />}

@@ -1,9 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useAtom } from "jotai";
 
-import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -12,13 +10,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useCalendarStore } from "@/providers/calendar-store-provider";
+import { useSetCalendarSettings } from "@/store/hooks";
 
 export function DateFormatPicker() {
-  const [calendarSettings, setCalendarSettings] = useAtom(calendarSettingsAtom);
+  const locale = useCalendarStore((s) => s.calendarSettings.locale);
+  const setCalendarSettings = useSetCalendarSettings();
 
   const onValueChange = React.useCallback(
     (value: string) => {
-      setCalendarSettings((prev) => ({ ...prev, locale: value }));
+      setCalendarSettings({ locale: value });
     },
     [setCalendarSettings],
   );
@@ -29,7 +30,7 @@ export function DateFormatPicker() {
         <Label htmlFor="settings-date-format" className="sr-only">
           Date format
         </Label>
-        <Select value={calendarSettings.locale} onValueChange={onValueChange}>
+        <Select value={locale} onValueChange={onValueChange}>
           <SelectTrigger id="settings-date-format">
             <SelectValue />
           </SelectTrigger>

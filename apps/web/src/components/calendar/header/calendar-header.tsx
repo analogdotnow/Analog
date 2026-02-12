@@ -1,5 +1,7 @@
 "use client";
 
+import * as React from "react";
+
 import { CalendarPicker } from "@/components/calendar/header/calendar-picker";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
@@ -9,18 +11,13 @@ import { CalendarViewTitle } from "./calendar-view-title";
 
 type CalendarHeaderProps = React.ComponentProps<"header">;
 
-export function CalendarHeader({
-  className,
-  ref,
-  ...props
-}: CalendarHeaderProps) {
+export function CalendarHeader({ className, ...props }: CalendarHeaderProps) {
   return (
     <header
       className={cn(
         "@container/header flex h-12 items-center justify-between gap-2 p-2 ps-4 select-none",
         className,
       )}
-      ref={ref}
       {...props}
     >
       <div className="flex flex-1 items-center gap-0 sm:gap-3">
@@ -36,3 +33,5 @@ export function CalendarHeader({
     </header>
   );
 }
+
+export const MemoizedCalendarHeader = React.memo(CalendarHeader);

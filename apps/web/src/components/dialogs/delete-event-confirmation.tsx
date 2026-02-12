@@ -22,6 +22,8 @@ export function DeleteEventConfirmation({
   open,
   onOpenChange,
 }: DeleteEventConfirmationProps) {
+  "use memo";
+
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>

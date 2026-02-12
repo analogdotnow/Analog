@@ -1,11 +1,10 @@
 import * as React from "react";
-import { useAtomValue } from "jotai";
 
-import { activeLayoutAtom } from "@/atoms/active-layout";
+import { useCalendarStore } from "@/providers/calendar-store-provider";
 import type { Form } from "./use-event-form";
 
 export function useSubmitOnClickOutside(form: Form) {
-  const activeLayout = useAtomValue(activeLayoutAtom);
+  const activeLayout = useCalendarStore((s) => s.activeLayout);
 
   React.useEffect(() => {
     if (activeLayout === "form") {

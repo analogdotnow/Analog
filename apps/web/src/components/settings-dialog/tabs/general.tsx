@@ -6,7 +6,7 @@ import {
   SettingsSectionDescription,
   SettingsSectionHeader,
   SettingsSectionTitle,
-} from "../settings-page";
+} from "@/components/settings-dialog/settings-page";
 import { EasterEggSelector } from "./general/easter-egg-section";
 import { StartOfWeekPicker } from "./general/start-or-week-picker";
 import { ThemePicker } from "./general/theme-picker";

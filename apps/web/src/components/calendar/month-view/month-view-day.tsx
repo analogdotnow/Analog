@@ -1,164 +1,127 @@
 "use client";
 
 import * as React from "react";
-import { format } from "date-fns";
-import { useAtomValue } from "jotai";
 import { Temporal } from "temporal-polyfill";
 
-import { isSameMonth, isToday, isWeekend, toDate } from "@repo/temporal";
+import { isSameMonth, isToday, isWeekend } from "@repo/temporal";
 
-import { calendarSettingsAtom } from "@/atoms/calendar-settings";
-import { viewPreferencesAtom } from "@/atoms/view-preferences";
-import { useDoubleClickToCreate } from "@/components/calendar/hooks/drag-and-drop/use-double-click-to-create";
-import type { UseMultiDayOverflowResult } from "@/components/calendar/hooks/use-multi-day-overflow";
-import { OverflowIndicator } from "@/components/calendar/overflow/overflow-indicator";
-import { eventsStartingOn } from "@/components/calendar/utils/event";
+import { OverflowPopover } from "@/components/calendar/overflow/overflow-popover";
+import { itemsStartingOn } from "@/components/calendar/utils/event";
+import { useCreateDefaultEventAction } from "@/hooks/calendar/drag-and-drop/use-double-click-to-create";
+import type { InlineDisplayItem } from "@/lib/display-item";
 import { cn } from "@/lib/utils";
+import { format } from "@/lib/utils/format";
+import { useCalendarStore } from "@/providers/calendar-store-provider";
+import { useDefaultTimeZone } from "@/store/hooks";
 
 interface MonthViewDayProps {
-  day: Temporal.PlainDate;
-  dayIndex: number;
-  overflow: UseMultiDayOverflowResult;
+  children?: React.ReactNode;
+  date: Temporal.PlainDate;
   overflowRef: React.RefObject<HTMLDivElement | null>;
-  currentDate: Temporal.PlainDate;
 }
 
 export function MonthViewDay({
-  day,
-  dayIndex,
-  overflow,
+  children,
+  date,
   overflowRef,
-  currentDate,
 }: MonthViewDayProps) {
-  return (
-    <MemorizedMonthViewCell
-      day={day}
-      currentDate={currentDate}
-      dayIndex={dayIndex}
-    >
-      <MemorizedMonthViewDayHeader day={day} />
+  "use memo";
 
+  return (
+    <MemorizedMonthViewDayContainer date={date}>
+      <MemorizedMonthViewDayHeader date={date} />
       <div
         className="flex grow flex-col justify-end place-self-stretch"
         ref={overflowRef}
       />
-
-      <MemorizedMonthViewDayOverflow overflow={overflow} day={day} />
-    </MemorizedMonthViewCell>
+      {children}
+    </MemorizedMonthViewDayContainer>
   );
 }
 
 export const MemoizedMonthViewDay = React.memo(MonthViewDay);
 
 interface MonthViewDayHeaderProps {
-  day: Temporal.PlainDate;
+  date: Temporal.PlainDate;
 }
 
-function MonthViewDayHeader({ day }: MonthViewDayHeaderProps) {
-  const timeZone = useAtomValue(calendarSettingsAtom).defaultTimeZone;
+function MonthViewDayHeader({ date }: MonthViewDayHeaderProps) {
+  "use memo";
 
-  const { label, today } = React.useMemo(() => {
-    const date = toDate(day, { timeZone });
-
-    return {
-      label: format(date, "d"),
-      today: isToday(day, { timeZone }) || undefined,
-    };
-  }, [day, timeZone]);
+  const defaultTimeZone = useDefaultTimeZone();
 
   return (
     <div
       className={cn(
         "relative mt-1 ml-0.5 inline-flex size-6 items-center justify-center rounded-sm text-sm",
-        today &&
+        isToday(date, { timeZone: defaultTimeZone }) &&
           "border border-blue-600 bg-linear-to-b from-blue-500 to-blue-600 text-blue-50",
       )}
     >
-      {label}
+      {format(date, "D", defaultTimeZone)}
     </div>
   );
 }
 
 const MemorizedMonthViewDayHeader = React.memo(MonthViewDayHeader);
 
-interface MonthViewCellProps {
+interface MonthViewDayContainerProps {
   children: React.ReactNode;
-  className?: string;
-  day: Temporal.PlainDate;
-  currentDate: Temporal.PlainDate;
-  dayIndex: number;
+  date: Temporal.PlainDate;
 }
 
-function MonthViewCell({
-  children,
-  day,
-  currentDate,
-  dayIndex,
-}: MonthViewCellProps) {
-  const viewPreferences = useAtomValue(viewPreferencesAtom);
+function MonthViewDayContainer({ children, date }: MonthViewDayContainerProps) {
+  "use memo";
 
-  const onDoubleClick = useDoubleClickToCreate({
-    date: day,
-  });
+  // const currentDate = useCalendarStore((s) => s.currentDate);
+  const showWeekends = useCalendarStore((s) => s.viewPreferences.showWeekends);
 
-  const isCurrentMonth = React.useMemo(
-    () => isSameMonth(day, currentDate),
-    [day, currentDate],
-  );
+  const createDefaultEventAction = useCreateDefaultEventAction();
 
-  const isDayVisible = React.useMemo(
-    () => viewPreferences.showWeekends || !isWeekend(day),
-    [viewPreferences.showWeekends, day],
-  );
-
-  // Determine if this day is in the last visible column
-  const isLastVisibleColumn = viewPreferences.showWeekends
-    ? dayIndex === 6 // Saturday is last when weekends shown
-    : dayIndex === 5; // Friday is last when weekends hidden
+  if (!showWeekends && isWeekend(date)) {
+    return null;
+  }
 
   return (
     <div
       className={cn(
-        "group relative min-w-0 border-b border-border/70 data-outside-cell:bg-muted/25 data-outside-cell:text-muted-foreground/70",
-        !isLastVisibleColumn && "border-r",
-        !isDayVisible && "hidden w-0",
+        "group relative flex min-w-0 flex-col justify-between gap-0.5 border-r border-b border-border/70 last:border-r-0",
+        // !isSameMonth(date, currentDate) &&
+        //   "text-muted-foreground/70",
       )}
-      data-outside-cell={!isCurrentMonth || undefined}
+      onDoubleClick={() =>
+        createDefaultEventAction({ start: date, allDay: false })
+      }
     >
-      <div
-        id={`month-cell-${day.toString()}`}
-        onDoubleClick={onDoubleClick}
-        className="flex h-full flex-col justify-between gap-0.5"
-      >
-        {children}
-      </div>
+      {children}
     </div>
   );
 }
 
-const MemorizedMonthViewCell = React.memo(MonthViewCell);
+const MemorizedMonthViewDayContainer = React.memo(MonthViewDayContainer);
 
 interface MonthViewDayOverflowProps {
-  overflow: UseMultiDayOverflowResult;
-  day: Temporal.PlainDate;
+  items: InlineDisplayItem[];
+  date: Temporal.PlainDate;
 }
 
-function MonthViewDayOverflow({ overflow, day }: MonthViewDayOverflowProps) {
-  // Filter overflow events to only show those that start on this day
-  const dayOverflowEvents = React.useMemo(
-    () => eventsStartingOn(overflow.overflowEvents, day),
-    [overflow.overflowEvents, day],
-  );
+export function MonthViewDayOverflow({
+  items,
+  date,
+}: MonthViewDayOverflowProps) {
+  "use memo";
 
-  if (dayOverflowEvents.length === 0) {
+  const dayOverflowItems = itemsStartingOn(items, date);
+
+  if (dayOverflowItems.length === 0) {
     return null;
   }
 
   return (
     <div className="pointer-events-auto z-10 flex flex-col items-center place-self-stretch pb-1">
-      <OverflowIndicator items={dayOverflowEvents} date={day} />
+      <OverflowPopover items={dayOverflowItems} date={date} />
     </div>
   );
 }
 
-const MemorizedMonthViewDayOverflow = React.memo(MonthViewDayOverflow);
+export const MemoizedMonthViewDayOverflow = React.memo(MonthViewDayOverflow);

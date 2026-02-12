@@ -185,7 +185,7 @@ export function parseGoogleCalendarEvent({
         ? { recurringEventId: event.recurringEventId }
         : {}),
     },
-  };
+  } as CalendarEvent;
 }
 
 function toGoogleCalenderResponseStatus(status: AttendeeStatus) {

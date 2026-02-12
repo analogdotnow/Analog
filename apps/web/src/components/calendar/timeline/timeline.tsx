@@ -1,45 +1,47 @@
+"use client";
+
 import * as React from "react";
-import { useAtomValue } from "jotai";
 import { Temporal } from "temporal-polyfill";
 
 import { startOfDay } from "@repo/temporal";
 
-import { calendarSettingsAtom } from "@/atoms/calendar-settings";
-import { timeZonesAtom } from "@/atoms/timezones";
-import { currentDateAtom } from "@/atoms/view-preferences";
-import { cn, range } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { formatTime } from "@/lib/utils/format";
+import { useCalendarStore } from "@/providers/calendar-store-provider";
+import { useDefaultTimeZone, useTimeZoneList } from "@/store/hooks";
+import { HOURS } from "./constants";
 
 export function Timeline() {
-  const timeZones = useAtomValue(timeZonesAtom);
-  const currentDate = useAtomValue(currentDateAtom);
+  "use memo";
+
+  const timeZones = useTimeZoneList();
 
   return (
     <div
       className={cn(
-        "grid grid-cols-[repeat(auto-fill,3rem)] grid-rows-1 border-r border-border/70 select-none sm:grid-cols-[repeat(auto-fill,4rem)]",
+        "grid grid-cols-[repeat(auto-fill,3rem)] grid-rows-1 select-none sm:grid-cols-[repeat(auto-fill,4rem)]",
         timeZones.length > 1 &&
           "grid-cols-[3rem_repeat(auto-fill,2.5rem)] sm:grid-cols-[4rem_repeat(auto-fill,3rem)]",
       )}
     >
       {timeZones.map((timeZone) => (
-        <TimelineColumn
-          key={timeZone.id}
-          currentDate={currentDate}
-          timeZone={timeZone.id}
-        />
+        <TimelineColumn key={timeZone.id} timeZone={timeZone.id} />
       ))}
     </div>
   );
 }
 
-const HOURS = range(0, 23).map((hour) => Temporal.PlainTime.from({ hour }));
+export const MemoizedTimeline = React.memo(Timeline);
 
-export function useHours(currentDate: Temporal.PlainDate, timeZone: string) {
-  const { use12Hour, defaultTimeZone } = useAtomValue(calendarSettingsAtom);
+function useHours(timeZone: string) {
+  const use12Hour = useCalendarStore((s) => s.calendarSettings.use12Hour);
+  const defaultTimeZone = useDefaultTimeZone();
 
   return React.useMemo(() => {
-    const start = startOfDay(currentDate, { timeZone: defaultTimeZone });
+    // TODO: do we need the current date here?
+    const date = Temporal.Now.plainDateISO();
+
+    const start = startOfDay(date, { timeZone: defaultTimeZone });
 
     const hours = HOURS.map((time) => {
       return start.add({ hours: time.hour }).withTimeZone(timeZone);
@@ -53,16 +55,17 @@ export function useHours(currentDate: Temporal.PlainDate, timeZone: string) {
       }),
       value: hour,
     }));
-  }, [currentDate, timeZone, use12Hour, defaultTimeZone]);
+  }, [timeZone, use12Hour, defaultTimeZone]);
 }
 
 interface TimelineColumnProps {
-  currentDate: Temporal.PlainDate;
   timeZone: string;
 }
 
-export function TimelineColumn({ currentDate, timeZone }: TimelineColumnProps) {
-  const hours = useHours(currentDate, timeZone);
+function TimelineColumn({ timeZone }: TimelineColumnProps) {
+  "use memo";
+
+  const hours = useHours(timeZone);
 
   return (
     <div className="grid auto-cols-fr select-none">
@@ -72,7 +75,7 @@ export function TimelineColumn({ currentDate, timeZone }: TimelineColumnProps) {
           className="relative min-h-(--week-cells-height) border-b border-transparent last:border-b-0"
         >
           {index > 0 ? (
-            <span className="absolute -top-3 left-0 flex h-6 w-20 max-w-full items-center justify-end bg-background/0 pe-2 text-[10px] font-medium text-muted-foreground/70 tabular-nums sm:pe-4 sm:text-xs">
+            <span className="absolute -top-3 left-0 flex h-6 w-20 max-w-full items-center justify-end bg-background/0 pe-2 text-3xs font-medium text-muted-foreground/70 tabular-nums sm:pe-4 sm:text-xs">
               {hour.label}
             </span>
           ) : null}
@@ -82,5 +85,3 @@ export function TimelineColumn({ currentDate, timeZone }: TimelineColumnProps) {
     </div>
   );
 }
-
-export const MemoizedTimeline = React.memo(TimelineColumn);

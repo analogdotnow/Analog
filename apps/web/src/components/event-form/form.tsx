@@ -21,26 +21,26 @@ export function FormRow({
 }
 
 interface FormRowIconProps {
-  icon: React.ComponentType<{ className?: string }>;
+  children: React.ReactNode;
   className?: string;
   disabled?: boolean;
 }
 
 export function FormRowIcon({
-  icon: Icon,
+  children,
   className,
   disabled,
 }: FormRowIconProps) {
   return (
     <div className="pointer-events-none absolute inset-0 z-10 grid grid-cols-(--grid-event-form) items-start gap-2 pt-2">
-      <div className="col-start-1 ps-2">
-        <Icon
-          className={cn(
-            "size-4 text-muted-foreground/60",
-            disabled && "opacity-50",
-            className,
-          )}
-        />
+      <div
+        className={cn(
+          "col-start-1 ps-2 [&>svg]:size-4 [&>svg]:text-muted-foreground/60",
+          disabled && "[&>svg]:opacity-50",
+          className,
+        )}
+      >
+        {children}
       </div>
     </div>
   );

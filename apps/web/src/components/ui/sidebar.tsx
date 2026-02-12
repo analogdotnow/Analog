@@ -261,15 +261,13 @@ function SidebarProvider({
       <TooltipProvider delayDuration={0}>
         <div
           data-slot="sidebar-wrapper"
-          style={
-            {
-              "--sidebar-width": SIDEBAR_WIDTH,
-              "--sidebar-width-left": widthLeft,
-              "--sidebar-width-right": widthRight,
-              "--sidebar-width-icon": SIDEBAR_WIDTH_ICON,
-              ...style,
-            } as React.CSSProperties
-          }
+          style={{
+            "--sidebar-width": SIDEBAR_WIDTH,
+            "--sidebar-width-left": widthLeft,
+            "--sidebar-width-right": widthRight,
+            "--sidebar-width-icon": SIDEBAR_WIDTH_ICON,
+            ...style,
+          }}
           className={cn(
             "group/sidebar-wrapper flex min-h-svh w-full",
             className,
@@ -315,11 +313,9 @@ function Sidebar({
             "flex h-full w-[var(--sidebar-width)] flex-col text-sidebar-foreground",
             className,
           )}
-          style={
-            {
-              "--sidebar-width": width,
-            } as React.CSSProperties
-          }
+          style={{
+            "--sidebar-width": width,
+          }}
           {...props}
         >
           {children}
@@ -337,11 +333,9 @@ function Sidebar({
             data-slot="sidebar"
             data-mobile="true"
             className="w-[var(--sidebar-width)] bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden"
-            style={
-              {
-                "--sidebar-width": SIDEBAR_WIDTH_MOBILE,
-              } as React.CSSProperties
-            }
+            style={{
+              "--sidebar-width": SIDEBAR_WIDTH_MOBILE,
+            }}
             side={side}
           >
             <SheetHeader className="sr-only">
@@ -364,11 +358,9 @@ function Sidebar({
         data-variant={variant}
         data-side={side}
         data-slot="sidebar"
-        style={
-          {
-            "--sidebar-width": width,
-          } as React.CSSProperties
-        }
+        style={{
+          "--sidebar-width": width,
+        }}
       >
         <div
           data-slot="sidebar-gap"
@@ -825,11 +817,9 @@ function SidebarMenuSkeleton({
       <Skeleton
         className="h-4 max-w-(--skeleton-width) flex-1"
         data-sidebar="menu-skeleton-text"
-        style={
-          {
-            "--skeleton-width": width,
-          } as React.CSSProperties
-        }
+        style={{
+          "--skeleton-width": width,
+        }}
       />
     </div>
   );

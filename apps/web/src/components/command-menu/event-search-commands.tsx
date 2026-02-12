@@ -1,56 +1,53 @@
-import { format } from "@formkit/tempo";
+"use client";
+
 import { useCommandState } from "cmdk";
-import { useAtomValue, useSetAtom } from "jotai";
 import { matchSorter } from "match-sorter";
 
-import { toDate } from "@repo/temporal";
-
-import { calendarSettingsAtom } from "@/atoms/calendar-settings";
-import { commandMenuOpenAtom } from "@/atoms/command-menu";
-import { currentDateAtom } from "@/atoms/view-preferences";
 import { CommandGroup, CommandItem } from "@/components/ui/command";
-import { calendarColorVariable } from "@/lib/css";
-import { useEventsForDisplay } from "../calendar/hooks/use-events";
-import { useSelectAction } from "../calendar/hooks/use-optimistic-mutations";
+import { useEventsForDisplay } from "@/hooks/calendar/use-events";
+import { useSelectAction } from "@/hooks/calendar/use-optimistic-mutations";
+import { eventColorVariable } from "@/lib/css";
+import { EventDisplayItem, isEvent } from "@/lib/display-item";
+import { format } from "@/lib/utils/format";
+import { useCalendarStore } from "@/providers/calendar-store-provider";
 
 export function EventSearchCommands() {
   const search = useCommandState((state) => state.search);
   const { data } = useEventsForDisplay();
-  const setCurrentDate = useSetAtom(currentDateAtom);
+  const setCurrentDate = useCalendarStore((s) => s.setCurrentDate);
   const selectAction = useSelectAction();
-  const { use12Hour } = useAtomValue(calendarSettingsAtom);
-  const setOpen = useSetAtom(commandMenuOpenAtom);
+  const use12Hour = useCalendarStore((s) => s.calendarSettings.use12Hour);
+  const setOpen = useCalendarStore((s) => s.setCommandMenuOpen);
 
   if (!search || !data?.events || data.events.length === 0) {
     return null;
   }
 
-  const searchResults = matchSorter(data.events, search, {
-    keys: [
-      (item) => item.event.title ?? "",
-      // TODO: Add location-based search
-      // (item) => item.event.location ?? "",
-    ],
-    threshold: matchSorter.rankings.CONTAINS,
-  })
+  const searchResults = matchSorter(
+    data.events.filter(isEvent) as EventDisplayItem[],
+    search,
+    {
+      keys: [
+        (item) => item.event.title ?? "",
+        // TODO: Add location-based search
+        // (item) => item.event.location ?? "",
+      ],
+      threshold: matchSorter.rankings.CONTAINS,
+    },
+  )
     .slice(0, 10)
     .map((item) => {
-      const date = toDate(item.start);
       const label = item.event.allDay
-        ? format(date, "MMMM D, YYYY")
+        ? format(item.start, "MMMM D, YYYY")
         : format(
-            date,
+            item.start,
             use12Hour ? "MMMM D, YYYY h:mm a" : "MMMM D, YYYY HH:mm",
           );
-
-      const color =
-        item.event.color ??
-        `var(${calendarColorVariable(item.event.calendar.provider.accountId, item.event.calendar.id)}, var(--color-muted-foreground))`;
 
       return {
         ...item,
         label,
-        color,
+        color: `var(${eventColorVariable(item.event)}, var(--color-muted-foreground))`,
       };
     });
 
@@ -65,7 +62,7 @@ export function EventSearchCommands() {
           key={item.event.id}
           value={item.event.id}
           onSelect={() => {
-            setCurrentDate(item.start.toPlainDate());
+            setCurrentDate(item.date.start);
             selectAction(item.event);
             setOpen(false);
           }}
@@ -73,12 +70,10 @@ export function EventSearchCommands() {
         >
           <div className="w-1 shrink-0 self-stretch py-0.75">
             <div
-              className="h-full w-full rounded bg-[color-mix(in_oklab,var(--background),var(--calendar-color)_90%)]"
-              style={
-                {
-                  "--calendar-color": item.color,
-                } as React.CSSProperties
-              }
+              className="h-full w-full rounded bg-event-selected-hover"
+              style={{
+                "--calendar-color": item.color,
+              }}
             />
           </div>
           <div className="flex flex-col items-start gap-1">

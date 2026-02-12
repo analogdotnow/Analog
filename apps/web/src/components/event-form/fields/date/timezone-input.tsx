@@ -119,7 +119,7 @@ export function TimezoneInput({
               role="combobox"
               aria-expanded={open}
               className={cn(
-                "w-full justify-start gap-2 px-2 data-[state=open]:bg-accent/80",
+                "w-full justify-start gap-2 px-2 data-[state=open]:bg-accent-light",
                 className,
               )}
               disabled={disabled}

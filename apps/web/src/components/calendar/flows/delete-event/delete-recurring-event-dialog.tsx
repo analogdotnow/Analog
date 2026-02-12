@@ -15,6 +15,8 @@ import {
 import { DeleteQueueContext } from "./delete-queue-provider";
 
 export function DeleteRecurringEventDialog() {
+  "use memo";
+
   const actorRef = DeleteQueueContext.useActorRef();
   const open = DeleteQueueContext.useSelector((snapshot) =>
     snapshot.matches("askRecurringScope"),

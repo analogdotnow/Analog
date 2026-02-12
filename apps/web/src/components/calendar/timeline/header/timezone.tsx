@@ -1,14 +1,13 @@
 "use client";
 
 import * as React from "react";
-import { useAtomValue } from "jotai";
 import { Temporal } from "temporal-polyfill";
 
-import { calendarSettingsAtom } from "@/atoms/calendar-settings";
 import { useZonedDateTime } from "@/components/calendar/context/datetime-provider";
 import { TimeZoneAwareGlobeIcon } from "@/components/timezone-aware-globe-icon";
 import { cn } from "@/lib/utils";
 import { format, formatTime } from "@/lib/utils/format";
+import { useCalendarStore } from "@/providers/calendar-store-provider";
 import { useTimeZoneDisplay } from "./use-timezone-info";
 
 interface TimeZoneDetailsProps {
@@ -22,6 +21,8 @@ export function TimeZoneDetails({
   timeZoneId,
   date,
 }: TimeZoneDetailsProps) {
+  "use memo";
+
   const displayValue = useTimeZoneDisplay({ date, timeZoneId });
 
   return (
@@ -51,47 +52,17 @@ export function TimeZoneDetails({
   );
 }
 
-interface OffsetDisplayProps {
-  timeZoneId: string;
-}
-
-function OffsetDisplay({ timeZoneId }: OffsetDisplayProps) {
-  const now = useZonedDateTime();
-
-  const offset = React.useMemo(() => {
-    const offsetInMinutes = Temporal.Duration.from({
-      nanoseconds:
-        now.withTimeZone(timeZoneId).offsetNanoseconds - now.offsetNanoseconds,
-    }).total({ unit: "minute" });
-
-    const isEarlier = offsetInMinutes < 0;
-
-    if (offsetInMinutes === 0) {
-      return null;
-    }
-
-    return `${isEarlier ? "-" : "+"}${Math.trunc(Math.abs(offsetInMinutes) / 60)}h${Math.abs(offsetInMinutes) % 60 > 0 ? `and ${(Math.abs(offsetInMinutes) % 60).toFixed(0)} m` : ""}`;
-  }, [now, timeZoneId]);
-
-  if (timeZoneId === now.timeZoneId || !offset) {
-    return null;
-  }
-
-  return (
-    <span className="text-xs font-medium text-muted-foreground/70">
-      ({offset})
-    </span>
-  );
-}
-
 interface TimeDisplayProps {
   className?: string;
   timeZoneId: string;
 }
 
 function TimeDisplay({ className, timeZoneId }: TimeDisplayProps) {
+  "use memo";
+
   const currentTime = useZonedDateTime();
-  const { use12Hour, locale } = useAtomValue(calendarSettingsAtom);
+  const use12Hour = useCalendarStore((s) => s.calendarSettings.use12Hour);
+  const locale = useCalendarStore((s) => s.calendarSettings.locale);
 
   const time = React.useMemo(() => {
     return currentTime.withTimeZone(timeZoneId);

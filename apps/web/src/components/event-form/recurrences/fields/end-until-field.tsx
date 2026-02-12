@@ -1,8 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { sameYear } from "@formkit/tempo";
-import { format } from "date-fns";
+import { format, sameYear } from "@formkit/tempo";
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -16,7 +15,7 @@ import { cn } from "@/lib/utils";
 function formatDate(date: Date) {
   return format(
     date,
-    sameYear(date, new Date()) ? "EEE MMM dd, yyyy" : "EEE MMM dd",
+    sameYear(date, new Date()) ? "ddd MMM DD, YYYY" : "ddd MMM DD",
   );
 }
 

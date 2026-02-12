@@ -13,8 +13,11 @@
   "aliases": {
     "components": "@/components",
     "utils": "@/lib/utils",
-    "hooks": "@/hooks",
+    "ui": "@/components/ui",
     "lib": "@/lib",
-    "ui": "@/components/ui"
+    "hooks": "@/hooks"
+  },
+  "registries": {
+    "@coss": "https://coss.com/ui/r/{name}.json"
   }
 }

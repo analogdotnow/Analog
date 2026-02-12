@@ -1,17 +1,17 @@
 /**
- * MULTI-DAY EVENT LAYOUT UTILITIES
+ * MULTI-DAY DISPLAY ITEM LAYOUT UTILITIES
  *
  * ## Interval Convention
- * Events use inclusive intervals [startDay, endDay]:
- * - 1-day event on Monday: start=Mon, end=Mon
+ * Items use inclusive intervals [startDay, endDay]:
+ * - 1-day item on Monday: start=Mon, end=Mon
  * - 3-day Mon-Wed: start=Mon, end=Wed
  *
- * Note: EventCollectionItem.end is made inclusive upstream by subtracting
+ * Note: DisplayItem.end is made inclusive upstream by subtracting
  * 1 second from the exclusive end. This module then works entirely with
  * inclusive day ranges.
  *
  * ## Algorithm: Greedy Interval Partitioning
- * Events are assigned to horizontal "lanes" to avoid overlap.
+ * Items are assigned to horizontal "lanes" to avoid overlap.
  * A min-heap tracks the soonest-ending lane, achieving O(log k)
  * per insertion where k = number of concurrent lanes.
  *
@@ -19,32 +19,40 @@
  * The LanePacker class supports incremental insertions.
  * When infinite scroll is implemented:
  * 1. Maintain a single LanePacker instance per scroll container
- * 2. Call insertEvents() with newly-visible events on scroll
- * 3. Call evictBefore() to free memory as events scroll out
+ * 2. Call insertItems() with newly-visible items on scroll
+ * 3. Call evictBefore() to free memory as items scroll out
  */
 import { Temporal } from "temporal-polyfill";
 
 import { isAfter, isBefore, startOfDay } from "@repo/temporal";
 
-import { EventCollectionItem } from "@/components/calendar/hooks/event-collection";
-import { CachedEvent, lanePacker } from "./lane-packer";
+import { InlineDisplayItem } from "@/lib/display-item";
+import { CachedDisplayItem, lanePacker } from "./lane-packer";
+
+interface DisplayItemCapacityInfo {
+  totalLanes: number;
+  visibleLanes: InlineDisplayItem[][];
+  overflowLanes: InlineDisplayItem[][];
+}
 
 // ============================================================================
 // CACHING & SORTING HELPERS
 // ============================================================================
 
-/** Convert events to cached format with precomputed epoch values */
-function cacheEventMetadata(events: EventCollectionItem[], timeZone: string) {
-  return events.map((item) => {
-    const start = item.start.toPlainDate();
-    const end = item.end.toPlainDate();
+/** Convert items to cached format with precomputed epoch values */
+function cacheItemMetadata(
+  items: InlineDisplayItem[],
+  timeZone: string,
+): CachedDisplayItem[] {
+  return items.map((item) => {
+    const { start, end } = item.date;
 
     const startEpoch = startOfDay(start, { timeZone }).toInstant()
       .epochMilliseconds;
     const endEpoch = startOfDay(end, { timeZone }).toInstant()
       .epochMilliseconds;
 
-    // +1 so a 1-day event has durationDays === 1
+    // +1 so a 1-day item has durationDays === 1
     const durationDays = start.until(end).total({ unit: "days" }) + 1;
 
     return { item, startEpoch, endEpoch, durationDays };
@@ -52,7 +60,7 @@ function cacheEventMetadata(events: EventCollectionItem[], timeZone: string) {
 }
 
 /** Sort: earliest start first, longer duration first on ties, then by id for stability */
-function sortByStartThenDuration(cached: CachedEvent[]) {
+function sortByStartThenDuration(cached: CachedDisplayItem[]) {
   return cached.slice().sort((a, b) => {
     if (a.startEpoch !== b.startEpoch) {
       return a.startEpoch - b.startEpoch;
@@ -62,7 +70,7 @@ function sortByStartThenDuration(cached: CachedEvent[]) {
       return b.durationDays - a.durationDays;
     }
 
-    return a.item.event.id.localeCompare(b.item.event.id);
+    return a.item.id.localeCompare(b.item.id);
   });
 }
 
@@ -70,21 +78,47 @@ function sortByStartThenDuration(cached: CachedEvent[]) {
 // MAIN LANE PLACEMENT FUNCTION
 // ============================================================================
 
+export interface PositionedLaneItem {
+  item: InlineDisplayItem;
+  startIndex: number;
+  span: number;
+}
+
 /**
- * Place multi-day events into lanes to avoid overlaps.
- * Returns an array of lanes, where each lane contains non-overlapping events.
+ * Place multi-day items into lanes to avoid overlaps.
+ * Returns an array of lanes, where each lane contains non-overlapping items with precomputed grid positions.
  *
  * @complexity O(n log n) for sorting + O(n log k) for placement = O(n log n)
  */
-function placeIntoLanes(events: EventCollectionItem[], timeZone: string) {
-  if (events.length === 0) {
+export function placeIntoLanes(
+  items: InlineDisplayItem[],
+  timeZone: string,
+  range?: { start: Temporal.PlainDate; end: Temporal.PlainDate },
+  baseIndex: number = 0,
+): PositionedLaneItem[][] {
+  if (items.length === 0) {
     return [];
   }
 
-  const cached = cacheEventMetadata(events, timeZone);
+  const cached = cacheItemMetadata(items, timeZone);
   const sorted = sortByStartThenDuration(cached);
+  const lanes = lanePacker(sorted).getLanes();
 
-  return lanePacker(sorted).getLanes();
+  return lanes.map((lane) =>
+    lane.map((item) => {
+      if (!range) {
+        return { item, startIndex: 0, span: 0 };
+      }
+
+      const { colStart, span } = getGridPosition(item, range);
+
+      return {
+        item,
+        startIndex: baseIndex + colStart,
+        span,
+      };
+    }),
+  );
 }
 
 // ============================================================================
@@ -96,51 +130,44 @@ interface GridPosition {
   span: number;
 }
 
-export interface EventCapacityInfo {
-  totalLanes: number;
-  visibleLanes: EventCollectionItem[][];
-  overflowLanes: EventCollectionItem[][];
-}
-
 /**
- * Calculate the maximum number of event lanes that can fit in the available space
+ * Calculate the maximum number of item lanes that can fit in the available space
  */
-function calculateEventCapacity(
+function calculateItemCapacity(
   availableHeight: number,
-  eventHeight: number = 24,
-  eventGap: number = 4,
+  itemHeight: number = 24,
+  itemGap: number = 4,
   minVisibleLanes: number = 2,
 ) {
   if (availableHeight <= 0) {
     return minVisibleLanes;
   }
 
-  const eventSpacePerLane = eventHeight + eventGap;
-  const calculatedLanes = Math.floor(availableHeight / eventSpacePerLane);
+  const itemSpacePerLane = itemHeight + itemGap;
+  const calculatedLanes = Math.floor(availableHeight / itemSpacePerLane);
 
-  // Always show at least minVisibleLanes, even if it overflows
   return Math.max(calculatedLanes, minVisibleLanes);
 }
 
-interface OrganizeEventsWithOverflowOptions {
-  events: EventCollectionItem[];
+interface OrganizeItemsWithOverflowOptions {
+  items: InlineDisplayItem[];
   availableHeight: number;
   timeZone: string;
-  eventHeight?: number;
-  eventGap?: number;
+  itemHeight?: number;
+  itemGap?: number;
 }
 
 /**
- * Organize events into visible and overflow lanes based on available space
+ * Organize items into visible and overflow lanes based on available space
  */
-export function organizeEventsWithOverflow({
-  events,
+export function organizeItemsWithOverflow({
+  items,
   availableHeight,
   timeZone,
-  eventHeight = 24,
-  eventGap = 4,
-}: OrganizeEventsWithOverflowOptions): EventCapacityInfo {
-  if (events.length === 0) {
+  itemHeight = 24,
+  itemGap = 4,
+}: OrganizeItemsWithOverflowOptions): DisplayItemCapacityInfo {
+  if (items.length === 0) {
     return {
       totalLanes: 0,
       visibleLanes: [],
@@ -148,52 +175,55 @@ export function organizeEventsWithOverflow({
     };
   }
 
-  // Calculate all lanes
-  const allLanes = placeIntoLanes(events, timeZone);
+  const allLanes = placeIntoLanes(items, timeZone);
   const totalLanes = allLanes.length;
 
-  // Step 1: How many event lanes *could* fit given the available space?
-  const maxVisibleLanes = calculateEventCapacity(
+  const maxVisibleLanes = calculateItemCapacity(
     availableHeight,
-    eventHeight,
-    eventGap,
+    itemHeight,
+    itemGap,
   );
 
-  // Step 2: Slice lanes based on the initial capacity.
   const overflowLanes = allLanes.slice(maxVisibleLanes);
 
-  // Step 3: If there is any overflow we need to reserve one lane for the
-  // "+X more" button. We do this by reducing the visible lane count by one.
   if (overflowLanes.length === 0) {
-    return { totalLanes, visibleLanes: allLanes, overflowLanes: [] };
+    return {
+      totalLanes,
+      visibleLanes: allLanes.map((lane) => lane.map((p) => p.item)),
+      overflowLanes: [],
+    };
   }
 
   return {
     totalLanes,
-    visibleLanes: allLanes.slice(0, maxVisibleLanes - 1),
-    overflowLanes: allLanes.slice(maxVisibleLanes - 1),
+    visibleLanes: allLanes
+      .slice(0, maxVisibleLanes - 1)
+      .map((lane) => lane.map((p) => p.item)),
+    overflowLanes: allLanes
+      .slice(maxVisibleLanes - 1)
+      .map((lane) => lane.map((p) => p.item)),
   };
 }
 
 /**
- * Calculate the grid position for a multi-day event within a week row
+ * Calculate the grid position for a multi-day item within a week row
  */
 export function getGridPosition(
-  item: EventCollectionItem,
-  weekStart: Temporal.PlainDate,
-  weekEnd: Temporal.PlainDate,
+  item: InlineDisplayItem,
+  range: {
+    start: Temporal.PlainDate;
+    end: Temporal.PlainDate;
+  },
 ): GridPosition {
-  const startDate = item.start.toPlainDate();
-  const endDate = item.end.toPlainDate();
+  const startDate = item.date.start;
+  const endDate = item.date.end;
 
-  // Clamp the event to the week's visible range
-  const clampedStart = isBefore(startDate, weekStart) ? weekStart : startDate;
-  const clampedEnd = isAfter(endDate, weekEnd) ? weekEnd : endDate;
+  const clampedStart = isBefore(startDate, range.start)
+    ? range.start
+    : startDate;
+  const clampedEnd = isAfter(endDate, range.end) ? range.end : endDate;
 
-  // Calculate column start (0-based index)
-  const colStart = weekStart.until(clampedStart).total({ unit: "days" });
-
-  // Calculate span (number of days the event covers in this week)
+  const colStart = range.start.until(clampedStart).total({ unit: "days" });
   const span = clampedStart.until(clampedEnd).total({ unit: "days" }) + 1;
 
   return { colStart, span };

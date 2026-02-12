@@ -1,50 +1,24 @@
-const EventHeight = 24;
+const EVENT_HEIGHT = 24;
 
 // Vertical gap between events in pixels - controls spacing in month view
-const EventGap = 4;
+const EVENT_GAP = 4;
 
-// Height of hour cells in week and day views - controls the scale of time display
-const WeekCellsHeight = 64;
+const AGENDA_DAYS_TO_DISPLAY = 30;
 
-// Number of days to show in the agenda view
-const AgendaDaysToShow = 30;
-
-// Time constants
 const HOURS_IN_DAY = 24;
 const MINUTES_IN_HOUR = 60;
 const TOTAL_MINUTES_IN_DAY = HOURS_IN_DAY * MINUTES_IN_HOUR;
 
-// Start and end hours for the week and day views
-const StartHour = 0;
-const EndHour = 24;
-
-// Default start and end times
-const DefaultStartHour = 9;
-const DefaultEndHour = 10;
-
-const CALENDAR_CONFIG = {
-  TIME_RANGE_DAYS_PAST: 30,
-  TIME_RANGE_DAYS_FUTURE: 60,
-  WEEK_STARTS_ON: 0, // Sunday
-} as const;
-
 const TIME_INTERVALS = {
-  SNAP_TO_MINUTES: 15,
   SNAP_THRESHOLD: 7.5,
   DEFAULT_EVENT_DURATION_HOURS: 1,
 } as const;
 
-const TOAST_CONFIG = {
-  POSITION: "bottom-left",
-} as const;
-
 export {
-  EventHeight,
-  EventGap,
-  AgendaDaysToShow,
-  HOURS_IN_DAY,
+  EVENT_HEIGHT,
+  EVENT_GAP,
+  AGENDA_DAYS_TO_DISPLAY,
   MINUTES_IN_HOUR,
   TOTAL_MINUTES_IN_DAY,
-  DefaultStartHour,
   TIME_INTERVALS,
 };
