@@ -92,10 +92,14 @@ export function MonthEventItem({
     selectAction(item.event);
   };
 
+  const onMouseDown = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
+
   return (
     <MemoizedEventItemContainer
       onClick={onClick}
-      onMouseDown={onClick}
+      onMouseDown={onMouseDown}
       className={cn(
         "@container/event mt-(--calendar-color-gap) flex h-(--calendar-color-height) items-center gap-x-1.5 py-1 ps-1 pe-2 text-3xs sm:text-xs",
         isSelected &&
@@ -157,6 +161,10 @@ export function WeekEventItem({
     selectAction(item.event);
   };
 
+  const onMouseDown = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
+
   const defaultTimeZone = useDefaultTimeZone();
   const { locale, use12Hour } = useCalendarSettings();
 
@@ -173,7 +181,7 @@ export function WeekEventItem({
   return (
     <MemoizedEventItemContainer
       onClick={onClick}
-      onMouseDown={onClick}
+      onMouseDown={onMouseDown}
       className={cn(
         "@container/event @container relative flex gap-x-1.5 py-1 ps-1 pe-2 text-xs ring-1 ring-background/80",
         isSelected &&

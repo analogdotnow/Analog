@@ -135,7 +135,7 @@ export function DraggableWeekEvent({
         timelineWidth,
       });
 
-      if (!columnIndex) {
+      if (columnIndex === null) {
         return;
       }
 

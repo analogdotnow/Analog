@@ -11,7 +11,7 @@ function AgendaViewEmpty() {
   "use memo";
 
   return (
-    <div className="absolute inset-0 flex flex-col items-center justify-center py-16 text-center">
+    <div className="absolute inset-0 hidden flex-col items-center justify-center py-16 text-center only:flex">
       <CalendarIcon className="mb-2 text-muted-foreground/50" />
       <h3 className="text-lg font-medium">No items found</h3>
       <p className="text-muted-foreground">
