@@ -33,7 +33,7 @@ See `package.json` scripts. Summary:
 
 ### Authentication
 
-Google OAuth (`GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`) is required to actually sign in. Without it, the app loads the landing page and login page but sign-in won't complete.
+Google OAuth (`GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`) is required to actually sign in. Without it, the app loads the landing page and login page but sign-in won't complete. These are injected as environment secrets — when present, write them into `.env` before starting the dev server. A test Google account (added as a test user in the OAuth consent screen) is needed to complete the sign-in flow.
 
 ### Notes
 
