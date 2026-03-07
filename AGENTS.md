@@ -35,6 +35,10 @@ See `package.json` scripts. Summary:
 
 Google OAuth (`GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`) is required to actually sign in. Without it, the app loads the landing page and login page but sign-in won't complete. These are injected as environment secrets — when present, write them into `.env` before starting the dev server. A test Google account (added as a test user in the OAuth consent screen) is needed to complete the sign-in flow.
 
+### Composio API key gotcha
+
+`COMPOSIO_API_KEY` is marked optional in the env schema, but `packages/ai/src/lib/composio.ts` eagerly instantiates `new Composio(...)` at module load time. This module is imported by the tRPC root router, so if the key is missing, **all** tRPC API calls (`calendars.list`, `user.me`, `events.list`) crash with 500. Set `COMPOSIO_API_KEY=placeholder` in `.env` to prevent this. The placeholder won't enable AI features, but it lets the tRPC router load.
+
 ### Notes
 
 - The project uses `bun` as package manager (lockfile: `bun.lock`, config: `bunfig.toml` with hoisted linker). The user prefers `bun` commands except for `install` at the root.
