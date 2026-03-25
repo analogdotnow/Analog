@@ -10,15 +10,15 @@
     "type-check": "tsc --noEmit"
   },
   "peerDependencies": {
-    "@formkit/tempo": "^1.0.0",
-    "temporal-polyfill": "^0.3.0",
-    "zod": "^4.2.1"
+    "@formkit/tempo": "catalog:",
+    "temporal-polyfill": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
-    "@types/node": "^24.10.4",
-    "eslint": "^9.39.2",
-    "typescript": "^5.9.2"
+    "@types/node": "catalog:",
+    "eslint": "catalog:",
+    "typescript": "catalog:"
   }
 }
