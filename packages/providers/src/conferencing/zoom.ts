@@ -1,6 +1,7 @@
 import { Temporal } from "temporal-polyfill";
 
 import type { Conference, ConferencingProvider } from "../interfaces";
+import type { ConferencingProviderCreateConferenceOptions } from "../interfaces/providers";
 import { ProviderError } from "../lib/provider-error";
 
 interface ZoomProviderOptions {
@@ -19,17 +20,15 @@ export class ZoomProvider implements ConferencingProvider {
   /**
    * Create a Zoom meeting and return the details in the generic `Conference` format.
    *
-   * The `calendarId` and `eventId` parameters are accepted to satisfy the
-   * `ConferencingProvider` interface, however Zoom does not need them so they
-   * are ignored. They are forwarded inside the `context` object that is passed
-   * to the error-handler for easier debugging.
+   * `calendarId` and `eventId` on the options object are accepted to satisfy the
+   * `ConferencingProvider` interface; Zoom does not use them.
    */
-  async createConference(
-    agenda: string,
-    startTime: string,
-    endTime: string,
+  async createConference({
+    agenda,
+    startTime,
+    endTime,
     timeZone = "UTC",
-  ): Promise<Conference> {
+  }: ConferencingProviderCreateConferenceOptions): Promise<Conference> {
     return this.withErrorHandler("createConferencing", async () => {
       // Default 60-minute duration
       let duration = 60;

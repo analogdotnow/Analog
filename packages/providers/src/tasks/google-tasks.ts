@@ -1,12 +1,14 @@
 import { GoogleTasks } from "@repo/google-tasks";
-import type { CreateTaskInput, UpdateTaskInput } from "@repo/schemas";
 
 import type {
-  Task,
-  TaskCollection,
-  TaskCollectionWithTasks,
-} from "../interfaces";
-import type { TaskProvider } from "../interfaces/providers";
+  TaskProvider,
+  TaskProviderCollections,
+  TaskProviderCreateTaskOptions,
+  TaskProviderDeleteTaskOptions,
+  TaskProviderTasks,
+  TaskProviderTasksForTaskCollectionOptions,
+  TaskProviderUpdateTaskOptions,
+} from "../interfaces/providers";
 import { ProviderError } from "../lib/provider-error";
 import { parseGoogleTask, toGoogleTask } from "./google-tasks/utils";
 
@@ -15,19 +17,13 @@ interface GoogleTasksProviderOptions {
   providerAccountId: string;
 }
 
-export class GoogleTasksProvider implements TaskProvider {
-  public readonly providerId = "google" as const;
-  public readonly providerAccountId: string;
-  private client: GoogleTasks;
+class GoogleTasksCollections implements TaskProviderCollections {
+  constructor(
+    private client: GoogleTasks,
+    private providerAccountId: string,
+  ) {}
 
-  constructor({ accessToken, providerAccountId }: GoogleTasksProviderOptions) {
-    this.providerAccountId = providerAccountId;
-    this.client = new GoogleTasks({
-      accessToken,
-    });
-  }
-
-  async taskCollections(): Promise<TaskCollection[]> {
+  async list() {
     return this.withErrorHandler("taskCollections", async () => {
       const { items: taskCollections } =
         await this.client.tasks.v1.users.me.lists.list();
@@ -44,7 +40,45 @@ export class GoogleTasksProvider implements TaskProvider {
         }));
     });
   }
-  async tasks(): Promise<TaskCollectionWithTasks[]> {
+
+  async tasks({ taskCollectionId }: TaskProviderTasksForTaskCollectionOptions) {
+    return this.withErrorHandler("tasksForTaskCollection", async () => {
+      const { items: tasks } =
+        await this.client.tasks.v1.lists.tasks.list(taskCollectionId);
+      return (
+        tasks?.map((task) =>
+          parseGoogleTask({
+            task,
+            collectionId: taskCollectionId,
+            providerAccountId: this.providerAccountId,
+          }),
+        ) ?? []
+      );
+    });
+  }
+
+  private async withErrorHandler<T>(
+    operation: string,
+    fn: () => Promise<T> | T,
+    context?: Record<string, unknown>,
+  ): Promise<T> {
+    try {
+      return await Promise.resolve(fn());
+    } catch (error: unknown) {
+      console.error(`Failed to ${operation}:`, error);
+
+      throw new ProviderError(error as Error, operation, context);
+    }
+  }
+}
+
+class GoogleTasksTasks implements TaskProviderTasks {
+  constructor(
+    private client: GoogleTasks,
+    private providerAccountId: string,
+  ) {}
+
+  async list() {
     return this.withErrorHandler("tasks", async () => {
       const { items: taskCollections } =
         await this.client.tasks.v1.users.me.lists.list();
@@ -74,7 +108,7 @@ export class GoogleTasksProvider implements TaskProvider {
     });
   }
 
-  createTask(task: CreateTaskInput): Promise<Task> {
+  create({ task }: TaskProviderCreateTaskOptions) {
     return this.withErrorHandler("createTask", async () => {
       const createdTask = await this.client.tasks.v1.lists.tasks.create(
         task.taskCollectionId,
@@ -88,23 +122,7 @@ export class GoogleTasksProvider implements TaskProvider {
     });
   }
 
-  tasksForTaskCollection(taskCollectionId: string): Promise<Task[]> {
-    return this.withErrorHandler("tasksForTaskCollection", async () => {
-      const { items: tasks } =
-        await this.client.tasks.v1.lists.tasks.list(taskCollectionId);
-      return (
-        tasks?.map((task) =>
-          parseGoogleTask({
-            task,
-            collectionId: taskCollectionId,
-            providerAccountId: this.providerAccountId,
-          }),
-        ) ?? []
-      );
-    });
-  }
-
-  updateTask(task: UpdateTaskInput): Promise<Task> {
+  update({ task }: TaskProviderUpdateTaskOptions) {
     return this.withErrorHandler("updateTask", async () => {
       const updatedTask = await this.client.tasks.v1.lists.tasks.update(
         task.id,
@@ -118,7 +136,7 @@ export class GoogleTasksProvider implements TaskProvider {
     });
   }
 
-  deleteTask(taskCollectionId: string, taskId: string): Promise<void> {
+  delete({ taskCollectionId, taskId }: TaskProviderDeleteTaskOptions) {
     return this.withErrorHandler("deleteTask", async () => {
       await this.client.tasks.v1.lists.tasks.delete(taskId, {
         tasklist: taskCollectionId,
@@ -138,5 +156,25 @@ export class GoogleTasksProvider implements TaskProvider {
 
       throw new ProviderError(error as Error, operation, context);
     }
+  }
+}
+
+export class GoogleTasksProvider implements TaskProvider {
+  public readonly providerId = "google" as const;
+  public readonly providerAccountId: string;
+  private client: GoogleTasks;
+  public readonly collections: GoogleTasksCollections;
+  public readonly tasks: GoogleTasksTasks;
+
+  constructor({ accessToken, providerAccountId }: GoogleTasksProviderOptions) {
+    this.providerAccountId = providerAccountId;
+    this.client = new GoogleTasks({
+      accessToken,
+    });
+    this.collections = new GoogleTasksCollections(
+      this.client,
+      providerAccountId,
+    );
+    this.tasks = new GoogleTasksTasks(this.client, providerAccountId);
   }
 }

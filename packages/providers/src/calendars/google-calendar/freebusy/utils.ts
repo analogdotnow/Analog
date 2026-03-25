@@ -1,10 +1,10 @@
 import { Temporal } from "temporal-polyfill";
 
-import type { CalendarFreeBusy, FreeBusySlot } from "../../interfaces";
+import type { CalendarFreeBusy, FreeBusySlot } from "../../../interfaces";
 import type {
   GoogleCalendarFreeBusyResponse,
   GoogleCalendarFreeBusyResponseCalendars,
-} from "./interfaces";
+} from "../interfaces";
 
 function parseGoogleCalendarFreeBusySlot(
   calendar: GoogleCalendarFreeBusyResponseCalendars,

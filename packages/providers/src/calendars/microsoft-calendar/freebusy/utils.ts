@@ -1,6 +1,6 @@
 import type { ScheduleItem } from "@microsoft/microsoft-graph-types";
 
-import { parseDateTime } from "./utils";
+import { parseDateTime } from "../utils";
 
 export function parseScheduleItemStatus(status: ScheduleItem["status"]) {
   // TODO: Handle additional statuses

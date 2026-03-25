@@ -36,7 +36,7 @@ export const conferencingRouter = createTRPCRouter({
 
       const { client } = provider;
 
-      const calendar = (await client.calendars()).find(
+      const calendar = (await client.calendars.list()).find(
         (c) => c.id === input.calendarId,
       );
 
@@ -67,14 +67,14 @@ export const conferencingRouter = createTRPCRouter({
             input.providerId as "google" | "zoom",
           );
 
-          conference = await conferencingProvider.createConference(
-            input.agenda,
-            input.startTime,
-            input.endTime,
-            input.timeZone,
-            input.calendarId,
-            input.eventId,
-          );
+          conference = await conferencingProvider.createConference({
+            agenda: input.agenda,
+            startTime: input.startTime,
+            endTime: input.endTime,
+            timeZone: input.timeZone,
+            calendarId: input.calendarId,
+            eventId: input.eventId,
+          });
         } catch (error) {
           throw new TRPCError({
             code: "PRECONDITION_FAILED",
@@ -90,17 +90,21 @@ export const conferencingRouter = createTRPCRouter({
       const start = startInstant.toZonedDateTimeISO(tz);
       const end = endInstant.toZonedDateTimeISO(tz);
 
-      const event = await client.updateEvent(calendar, input.eventId, {
-        id: input.eventId,
-        title: input.agenda,
-        calendar: {
-          id: calendar.id,
-          provider: calendar.provider,
+      const event = await client.events.update({
+        calendar,
+        eventId: input.eventId,
+        event: {
+          id: input.eventId,
+          title: input.agenda,
+          calendar: {
+            id: calendar.id,
+            provider: calendar.provider,
+          },
+          readOnly: calendar.readOnly,
+          start,
+          end,
+          conference,
         },
-        readOnly: calendar.readOnly,
-        start,
-        end,
-        conference,
       });
 
       return { conference: event.conference };

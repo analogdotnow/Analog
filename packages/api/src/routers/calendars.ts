@@ -26,17 +26,19 @@ export const calendarsRouter = createTRPCRouter({
         });
       }
 
-      const calendar = await provider.client.createCalendar({
-        name: input.name,
-        description: input.description,
-        timeZone: input.timeZone,
+      const calendar = await provider.client.calendars.create({
+        calendar: {
+          name: input.name,
+          description: input.description,
+          timeZone: input.timeZone,
+        },
       });
 
       return { calendar };
     }),
   sync: calendarProcedure.query(async ({ ctx }) => {
     const promises = ctx.providers.map(async ({ client }) => {
-      return client.calendars();
+      return client.calendars.list();
     });
 
     const results = await Promise.all(promises);
@@ -45,7 +47,7 @@ export const calendarsRouter = createTRPCRouter({
   }),
   list: calendarProcedure.query(async ({ ctx }) => {
     const promises = ctx.providers.map(async ({ client, account }) => {
-      const calendars = await client.calendars();
+      const calendars = await client.calendars.list();
 
       return {
         id: account.id,
@@ -83,8 +85,12 @@ export const calendarsRouter = createTRPCRouter({
       calendars: account.calendars
         .sort((a, b) => {
           // Primary calendars come first
-          if (a.primary && !b.primary) return -1;
-          if (!a.primary && b.primary) return 1;
+          if (a.primary && !b.primary) {
+            return -1;
+          }
+          if (!a.primary && b.primary) {
+            return 1;
+          }
 
           // Otherwise maintain alphabetical order by name
           return a.name.localeCompare(b.name);
@@ -130,7 +136,9 @@ export const calendarsRouter = createTRPCRouter({
         });
       }
 
-      const calendar = await provider.client.calendar(input.calendarId);
+      const calendar = await provider.client.calendars.get({
+        calendarId: input.calendarId,
+      });
 
       return { calendar };
     }),
@@ -158,7 +166,7 @@ export const calendarsRouter = createTRPCRouter({
         });
       }
 
-      const calendars = await provider.client.calendars();
+      const calendars = await provider.client.calendars.list();
       const calendar = calendars.find((c) => c.id === input.id);
 
       if (!calendar) {
@@ -175,9 +183,12 @@ export const calendarsRouter = createTRPCRouter({
         });
       }
 
-      const updated = await provider.client.updateCalendar(input.id, {
-        name: input.name,
-        timeZone: input.timeZone,
+      const updated = await provider.client.calendars.update({
+        calendarId: input.id,
+        calendar: {
+          name: input.name,
+          timeZone: input.timeZone,
+        },
       });
 
       return { calendar: updated };
@@ -204,7 +215,7 @@ export const calendarsRouter = createTRPCRouter({
         });
       }
 
-      const calendars = await provider.client.calendars();
+      const calendars = await provider.client.calendars.list();
       const calendar = calendars.find((c) => c.id === input.calendarId);
 
       if (!calendar) {
@@ -221,7 +232,9 @@ export const calendarsRouter = createTRPCRouter({
         });
       }
 
-      await provider.client.deleteCalendar(input.calendarId);
+      await provider.client.calendars.delete({
+        calendarId: input.calendarId,
+      });
 
       return { success: true };
     }),
@@ -249,7 +262,7 @@ export const calendarsRouter = createTRPCRouter({
         });
       }
 
-      const calendars = await account.client.calendars();
+      const calendars = await account.client.calendars.list();
       const calendar = calendars.find(
         (calendar) => calendar.id === input.calendarId,
       );

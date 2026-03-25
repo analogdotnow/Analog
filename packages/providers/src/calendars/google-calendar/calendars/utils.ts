@@ -1,5 +1,5 @@
-import type { Calendar } from "../../interfaces";
-import type { GoogleCalendarCalendarListEntry } from "./interfaces";
+import type { Calendar } from "../../../interfaces";
+import type { GoogleCalendarCalendarListEntry } from "../interfaces";
 
 interface ParsedGoogleCalendarCalendarListEntryOptions {
   providerAccountId: string;

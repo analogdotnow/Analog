@@ -18,7 +18,11 @@ export const freeBusyRouter = createTRPCRouter({
           return [];
         }
 
-        return client.freeBusy(input.schedules, input.timeMin, input.timeMax);
+        return client.freeBusy.query({
+          schedules: input.schedules,
+          timeMin: input.timeMin,
+          timeMax: input.timeMax,
+        });
       });
 
       const freeBusy = await Promise.all(promises);

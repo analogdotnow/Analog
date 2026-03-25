@@ -19,13 +19,13 @@ export const tasksRouter = createTRPCRouter({
         });
       }
 
-      const task = await provider.client.createTask(input);
+      const task = await provider.client.tasks.create({ task: input });
 
       return { task };
     }),
   list: taskProcedure.query(async ({ ctx }) => {
     const promises = ctx.providers.map(async ({ client, account }) => {
-      const tasks = await client.tasks();
+      const tasks = await client.tasks.list();
 
       return {
         id: account.id,
