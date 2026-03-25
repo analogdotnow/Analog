@@ -8,10 +8,9 @@ import type {
   Calendar,
   CalendarEvent,
   Recurrence,
-} from "../../interfaces";
-import { toRecurrenceProperties } from "../../lib/recurrences/export";
-import { parseTextRecurrence } from "../../lib/recurrences/parse";
-import { parseConferenceData, toConferenceData } from "./conferences";
+} from "../../../interfaces";
+import { toRecurrenceProperties } from "../../../lib/recurrences/export";
+import { parseTextRecurrence } from "../../../lib/recurrences/parse";
 import type {
   GoogleCalendarDate,
   GoogleCalendarDateTime,
@@ -20,7 +19,8 @@ import type {
   GoogleCalendarEventAttendeeResponseStatus,
   GoogleCalendarEventCreateParams,
   GoogleCalendarEventUpdateParams,
-} from "./interfaces";
+} from "../interfaces";
+import { parseConferenceData, toConferenceData } from "./conferences/utils";
 
 export function toGoogleCalendarDate(
   value: Temporal.PlainDate | Temporal.Instant | Temporal.ZonedDateTime,

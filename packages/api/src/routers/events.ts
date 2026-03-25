@@ -24,7 +24,7 @@ export const eventsRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const results = await Promise.all(
         ctx.providers.map(async ({ client }) => {
-          const calendars = await client.calendars();
+          const calendars = await client.calendars.list();
 
           const requestedCalendars =
             input.calendarIds.length === 0
@@ -33,12 +33,13 @@ export const eventsRouter = createTRPCRouter({
 
           const providerEvents = await Promise.all(
             requestedCalendars.map(async (calendar) => {
-              const { events, recurringMasterEvents } = await client.events(
-                calendar,
-                input.timeMin,
-                input.timeMax,
-                input.defaultTimeZone,
-              );
+              const { events, recurringMasterEvents } =
+                await client.events.list({
+                  calendar,
+                  timeMin: input.timeMin,
+                  timeMax: input.timeMax,
+                  timeZone: input.defaultTimeZone,
+                });
 
               return {
                 events,
@@ -98,7 +99,7 @@ export const eventsRouter = createTRPCRouter({
         });
       }
 
-      const calendars = await provider.client.calendars();
+      const calendars = await provider.client.calendars.list();
 
       const calendar = calendars.find((c) => c.id === input.calendar.id);
 
@@ -109,7 +110,7 @@ export const eventsRouter = createTRPCRouter({
         });
       }
 
-      const { changes, syncToken, status } = await provider.client.sync({
+      const { changes, syncToken, status } = await provider.client.events.sync({
         calendar,
         initialSyncToken: input.calendar.syncToken,
         timeMin: input.timeMin,
@@ -150,7 +151,7 @@ export const eventsRouter = createTRPCRouter({
         });
       }
 
-      const calendars = await provider.client.calendars();
+      const calendars = await provider.client.calendars.list();
 
       const calendar = calendars.find((c) => c.id === input.calendar.id);
 
@@ -161,11 +162,11 @@ export const eventsRouter = createTRPCRouter({
         });
       }
 
-      const event = await provider.client.event(
+      const event = await provider.client.events.get({
         calendar,
-        input.eventId,
-        input.timeZone,
-      );
+        eventId: input.eventId,
+        timeZone: input.timeZone,
+      });
 
       return { event };
     }),
@@ -184,7 +185,7 @@ export const eventsRouter = createTRPCRouter({
         });
       }
 
-      const calendars = await provider.client.calendars();
+      const calendars = await provider.client.calendars.list();
 
       const calendar = calendars.find((c) => c.id === input.calendar.id);
 
@@ -195,7 +196,10 @@ export const eventsRouter = createTRPCRouter({
         });
       }
 
-      const event = await provider.client.createEvent(calendar, input);
+      const event = await provider.client.events.create({
+        calendar,
+        event: input,
+      });
 
       return { event };
     }),
@@ -240,7 +244,7 @@ export const eventsRouter = createTRPCRouter({
           });
         }
 
-        const calendars = await provider.client.calendars();
+        const calendars = await provider.client.calendars.list();
         const calendar = calendars.find((c) => c.id === data.calendar.id);
 
         if (!calendar) {
@@ -250,11 +254,11 @@ export const eventsRouter = createTRPCRouter({
           });
         }
 
-        const event = await provider.client.updateEvent(
+        const event = await provider.client.events.update({
           calendar,
-          data.id,
-          data,
-        );
+          eventId: data.id,
+          event: data,
+        });
 
         return { event };
       }
@@ -271,8 +275,8 @@ export const eventsRouter = createTRPCRouter({
       );
 
       const [sourceCalendars, destinationCalendars] = await Promise.all([
-        sourceProvider.client.calendars(),
-        destinationProvider.client.calendars(),
+        sourceProvider.client.calendars.list(),
+        destinationProvider.client.calendars.list(),
       ]);
 
       const sourceCalendar = findCalendarOrThrow(
@@ -290,11 +294,11 @@ export const eventsRouter = createTRPCRouter({
           move.destination.provider.accountId &&
         move.source.id === move.destination.id
       ) {
-        const event = await sourceProvider.client.updateEvent(
-          sourceCalendar,
-          data.id,
-          data,
-        );
+        const event = await sourceProvider.client.events.update({
+          calendar: sourceCalendar,
+          eventId: data.id,
+          event: data,
+        });
         return { event };
       }
 
@@ -313,30 +317,30 @@ export const eventsRouter = createTRPCRouter({
       if (
         move.source.provider.accountId === move.destination.provider.accountId
       ) {
-        const moved = await sourceProvider.client.moveEvent(
+        const moved = await sourceProvider.client.events.move({
           sourceCalendar,
           destinationCalendar,
-          data.id,
-          data.response?.sendUpdate ?? true,
-        );
+          eventId: data.id,
+          sendUpdate: data.response?.sendUpdate ?? true,
+        });
 
-        const updated = await destinationProvider.client.updateEvent(
-          destinationCalendar,
-          moved.id,
-          {
+        const updated = await destinationProvider.client.events.update({
+          calendar: destinationCalendar,
+          eventId: moved.id,
+          event: {
             ...data,
             id: moved.id,
             calendar: move.destination,
           },
-        );
+        });
 
         return { event: updated };
       }
 
       // Different Google accounts → clone then delete
-      const created = await destinationProvider.client.createEvent(
-        destinationCalendar,
-        {
+      const created = await destinationProvider.client.events.create({
+        calendar: destinationCalendar,
+        event: {
           ...data,
           id: crypto.randomUUID(),
           calendar: {
@@ -344,13 +348,13 @@ export const eventsRouter = createTRPCRouter({
             provider: move.destination.provider,
           },
         },
-      );
+      });
 
-      await sourceProvider.client.deleteEvent(
-        sourceCalendar.id,
-        data.id,
-        data.response?.sendUpdate ?? true,
-      );
+      await sourceProvider.client.events.delete({
+        calendarId: sourceCalendar.id,
+        eventId: data.id,
+        sendUpdate: data.response?.sendUpdate ?? true,
+      });
 
       return { event: created };
     }),
@@ -381,11 +385,11 @@ export const eventsRouter = createTRPCRouter({
         });
       }
 
-      await provider.client.deleteEvent(
-        input.calendar.id,
-        input.eventId,
-        input.sendUpdate,
-      );
+      await provider.client.events.delete({
+        calendarId: input.calendar.id,
+        eventId: input.eventId,
+        sendUpdate: input.sendUpdate,
+      });
 
       return { success: true };
     }),
@@ -421,8 +425,8 @@ export const eventsRouter = createTRPCRouter({
       );
 
       const [sourceCalendars, destinationCalendars] = await Promise.all([
-        sourceProvider.client.calendars(),
-        destinationProvider.client.calendars(),
+        sourceProvider.client.calendars.list(),
+        destinationProvider.client.calendars.list(),
       ]);
 
       const sourceCalendar = findCalendarOrThrow(
@@ -439,37 +443,37 @@ export const eventsRouter = createTRPCRouter({
       if (
         input.source.provider.accountId === input.destination.provider.accountId
       ) {
-        const event = await sourceProvider.client.moveEvent(
+        const event = await sourceProvider.client.events.move({
           sourceCalendar,
           destinationCalendar,
-          input.eventId,
-          input.sendUpdate,
-        );
+          eventId: input.eventId,
+          sendUpdate: input.sendUpdate,
+        });
 
         return { event };
       }
 
       // Different Google accounts → clone then delete
-      const sourceEvent = await sourceProvider.client.event(
-        sourceCalendar,
-        input.eventId,
-      );
+      const sourceEvent = await sourceProvider.client.events.get({
+        calendar: sourceCalendar,
+        eventId: input.eventId,
+      });
 
       // TODO: what happens to attendees?
-      const created = await destinationProvider.client.createEvent(
-        destinationCalendar,
-        {
+      const created = await destinationProvider.client.events.create({
+        calendar: destinationCalendar,
+        event: {
           ...sourceEvent,
           id: crypto.randomUUID(),
           calendar: input.destination,
         },
-      );
+      });
 
-      await sourceProvider.client.deleteEvent(
-        sourceCalendar.id,
-        input.eventId,
-        input.sendUpdate,
-      );
+      await sourceProvider.client.events.delete({
+        calendarId: sourceCalendar.id,
+        eventId: input.eventId,
+        sendUpdate: input.sendUpdate,
+      });
 
       return { event: created };
     }),
@@ -504,10 +508,14 @@ export const eventsRouter = createTRPCRouter({
         });
       }
 
-      await provider.client.responseToEvent(input.calendar.id, input.eventId, {
-        status: input.response.status,
-        comment: input.response.comment,
-        sendUpdate: input.response.sendUpdate,
+      await provider.client.events.respond({
+        calendarId: input.calendar.id,
+        eventId: input.eventId,
+        response: {
+          status: input.response.status,
+          comment: input.response.comment,
+          sendUpdate: input.response.sendUpdate,
+        },
       });
 
       return { success: true };

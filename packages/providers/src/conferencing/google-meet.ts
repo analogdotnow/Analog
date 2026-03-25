@@ -1,7 +1,8 @@
-import GoogleCalendar from "@repo/google-calendar";
+import { GoogleCalendar } from "@repo/google-calendar";
 
-import { parseConferenceData } from "../calendars/google-calendar/conferences";
+import { parseConferenceData } from "../calendars/google-calendar/events/conferences/utils";
 import type { Conference, ConferencingProvider } from "../interfaces";
+import type { ConferencingProviderCreateConferenceOptions } from "../interfaces/providers";
 import { ProviderError } from "../lib/provider-error";
 
 interface GoogleMeetProviderOptions {
@@ -21,14 +22,10 @@ export class GoogleMeetProvider implements ConferencingProvider {
     });
   }
 
-  async createConference(
-    agenda: string,
-    startTime: string,
-    endTime: string,
-    timeZone?: string,
-    calendarId?: string,
-    eventId?: string,
-  ): Promise<Conference> {
+  async createConference({
+    calendarId,
+    eventId,
+  }: ConferencingProviderCreateConferenceOptions): Promise<Conference> {
     return this.withErrorHandler("createConferencing", async () => {
       if (!eventId || !calendarId) {
         throw new Error("Google Meet requires a calendarId and eventId");

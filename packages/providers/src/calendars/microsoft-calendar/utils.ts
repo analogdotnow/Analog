@@ -28,3 +28,50 @@ export function parseDateTime(dateTime: string, timeZone: string) {
     parseTimeZone(timeZone) ?? "UTC",
   );
 }
+
+export function calendarPath(calendarId: string) {
+  return calendarId === "primary"
+    ? "/me/calendar"
+    : `/me/calendars/${calendarId}`;
+}
+
+interface ToMicrosoftDateOptions {
+  value: Temporal.PlainDate | Temporal.Instant | Temporal.ZonedDateTime;
+  originalTimeZone?: {
+    raw: string;
+    parsed?: string;
+  };
+}
+
+export function toMicrosoftDate({
+  value,
+  originalTimeZone,
+}: ToMicrosoftDateOptions) {
+  if (value instanceof Temporal.PlainDate) {
+    return {
+      dateTime: value.toString(),
+      timeZone: originalTimeZone?.raw ?? "UTC",
+    };
+  }
+
+  // These events were created using another provider.
+  if (value instanceof Temporal.Instant) {
+    const dateTime = value
+      .toZonedDateTimeISO("UTC")
+      .toPlainDateTime()
+      .toString();
+
+    return {
+      dateTime,
+      timeZone: "UTC",
+    };
+  }
+
+  return {
+    dateTime: value.toInstant().toString(),
+    timeZone:
+      originalTimeZone?.parsed === value.timeZoneId
+        ? originalTimeZone?.raw
+        : value.timeZoneId,
+  };
+}

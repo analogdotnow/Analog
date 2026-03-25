@@ -1,15 +1,15 @@
 import { detectMeetingLink } from "@analog/meeting-links";
 
-import type { Conference } from "../../interfaces";
+import type { Conference } from "../../../../interfaces";
 import type {
   GoogleCalendarEvent,
   GoogleCalendarEventConferenceData,
-} from "./interfaces";
+} from "../../interfaces";
 
-function extractUrls(text: string): string[] {
+function extractUrls(text: string) {
   const urlRegex = /https?:\/\/[^\s<>"'{}|\\^`[\]]+/gi;
 
-  return text.match(urlRegex) || [];
+  return text.match(urlRegex) ?? [];
 }
 
 function parseMeetingLink(url: string): Conference | undefined {

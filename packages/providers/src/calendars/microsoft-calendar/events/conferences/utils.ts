@@ -1,7 +1,7 @@
 import { detectMeetingLink } from "@analog/meeting-links";
 import type { Event as MicrosoftEvent } from "@microsoft/microsoft-graph-types";
 
-import type { Conference } from "../../interfaces";
+import type { Conference } from "../../../../interfaces";
 
 export function toMicrosoftConferenceData(conference: Conference) {
   if (conference.type !== "create") {

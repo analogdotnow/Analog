@@ -16,53 +16,12 @@ import type {
   AttendeeStatus,
   Calendar,
   CalendarEvent,
-} from "../../interfaces";
+} from "../../../interfaces";
+import { parseDateTime, parseTimeZone, toMicrosoftDate } from "../utils";
 import {
   parseMicrosoftConference,
   toMicrosoftConferenceData,
-} from "./conferences";
-import { parseDateTime, parseTimeZone } from "./utils";
-
-interface ToMicrosoftDateOptions {
-  value: Temporal.PlainDate | Temporal.Instant | Temporal.ZonedDateTime;
-  originalTimeZone?: {
-    raw: string;
-    parsed?: string;
-  };
-}
-
-export function toMicrosoftDate({
-  value,
-  originalTimeZone,
-}: ToMicrosoftDateOptions) {
-  if (value instanceof Temporal.PlainDate) {
-    return {
-      dateTime: value.toString(),
-      timeZone: originalTimeZone?.raw ?? "UTC",
-    };
-  }
-
-  // These events were created using another provider.
-  if (value instanceof Temporal.Instant) {
-    const dateTime = value
-      .toZonedDateTimeISO("UTC")
-      .toPlainDateTime()
-      .toString();
-
-    return {
-      dateTime,
-      timeZone: "UTC",
-    };
-  }
-
-  return {
-    dateTime: value.toInstant().toString(),
-    timeZone:
-      originalTimeZone?.parsed === value.timeZoneId
-        ? originalTimeZone?.raw
-        : value.timeZoneId,
-  };
-}
+} from "./conferences/utils";
 
 function parseDate(date: string) {
   return Temporal.PlainDate.from(date);
