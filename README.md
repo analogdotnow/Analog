@@ -108,8 +108,8 @@ The application should now be accessible in your browser at [http://localhost:30
 
 ## Tech Stack
 
-- **Web**: Next.js, TypeScript, Tailwind v4, Bun, tRPC, TanStack Query, shadcn/ui, Vercel API SDK
-- **Database**: Drizzle with PostgreSQL
+- **Web**: Next.js, TypeScript, Tailwind v4, Bun, tRPC, TanStack Query, shadcn/ui, Vercel AI SDK
+- **Database**: Drizzle with PostgreSQL, Redis
 - **Authentication**: Better Auth
 
 ## Contributing
