@@ -89,7 +89,6 @@ Analog uses PostgreSQL with Drizzle ORM. You can run the database using Docker:
     ```
 
     This command uses `docker-compose.yml` to spin up a PostgreSQL container.
-    If you are upgrading an existing local setup from PostgreSQL 15 to 18, recreate the local volume with `bun run docker:clean` first, or migrate the data with PostgreSQL's upgrade tooling before starting the new container.
 
 2.  **Initialize the database**:
     Once the database container is running and healthy, initialize the database:
