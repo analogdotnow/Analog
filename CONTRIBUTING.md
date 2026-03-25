@@ -5,7 +5,7 @@ Thank you for your interest in contributing to Analog! We aim to make the contri
 ## Getting Started
 
 1. **Fork the repository**
-   - Visit [Analog repository](https://github.com/jeanmeijer/analog)
+   - Visit [Analog repository](https://github.com/analogdotnow/analog)
    - Click the "Fork" button in the top right
    - Clone your fork locally:
 
@@ -17,7 +17,7 @@ Thank you for your interest in contributing to Analog! We aim to make the contri
    - Add upstream remote:
 
      ```bash
-     git remote add upstream https://github.com/jeanmeijer/analog.git
+     git remote add upstream https://github.com/analogdotnow/analog.git
      ```
 
 2. **Install dependencies**:
