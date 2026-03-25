@@ -16,22 +16,22 @@
     "db:studio": "drizzle-kit studio"
   },
   "peerDependencies": {
-    "drizzle-orm": "^0.45.1"
+    "drizzle-orm": "catalog:"
   },
   "dependencies": {
     "@repo/env": "workspace:*",
     "postgres": "^3.4.7",
-    "server-only": "^0.0.1",
-    "superjson": "^2.2.6",
-    "superjson-temporal": "^0.4.0",
-    "temporal-polyfill": "^0.3.0"
+    "server-only": "catalog:",
+    "superjson": "catalog:",
+    "superjson-temporal": "catalog:",
+    "temporal-polyfill": "catalog:"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
-    "@types/node": "^24.10.4",
+    "@types/node": "catalog:",
     "drizzle-kit": "^0.31.8",
-    "eslint": "^9.39.2",
-    "typescript": "^5.9.2"
+    "eslint": "catalog:",
+    "typescript": "catalog:"
   }
 }
