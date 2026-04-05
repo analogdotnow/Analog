@@ -39,7 +39,7 @@
         "BROWSERBASE_API_KEY"
       ],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
+      "outputs": ["dist/**", ".output/**", ".next/**", "!.next/cache/**"]
     },
     "dev": {
       "persistent": true,

@@ -1,5 +1,5 @@
 {
-  "projectName": "start-app",
+  "projectName": "app",
   "mode": "file-router",
   "typescript": true,
   "tailwind": true,

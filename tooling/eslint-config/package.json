@@ -6,7 +6,8 @@
   "exports": {
     "./base": "./base.js",
     "./next": "./next.js",
-    "./react": "./react.js"
+    "./react": "./react.js",
+    "./start": "./start.js"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
