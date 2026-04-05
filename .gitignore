@@ -42,3 +42,16 @@ yarn-error.log*
 .idea
 .vscode
 .turbo
+
+# tanstack start
+dist
+dist-ssr
+*.local
+count.txt
+.nitro
+.tanstack
+.wrangler
+.output
+.vinxi
+__unconfig*
+todos.json
