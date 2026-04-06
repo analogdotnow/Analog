@@ -1,5 +1,3 @@
-import "server-only";
-
 import * as Sentry from "@sentry/node";
 import { TRPCError, initTRPC } from "@trpc/server";
 import { Ratelimit } from "@upstash/ratelimit";

@@ -14,8 +14,7 @@
   },
   "peerDependencies": {
     "better-auth": "catalog:",
-    "drizzle-orm": "catalog:",
-    "server-only": "catalog:"
+    "drizzle-orm": "catalog:"
   },
   "dependencies": {
     "@repo/db": "workspace:*",
