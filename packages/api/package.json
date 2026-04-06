@@ -19,7 +19,6 @@
     "drizzle-orm": "catalog:",
     "remeda": "catalog:",
     "next": "catalog:",
-    "server-only": "catalog:",
     "superjson": "catalog:",
     "superjson-temporal": "catalog:",
     "temporal-polyfill": "catalog:",

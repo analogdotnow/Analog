@@ -37,7 +37,6 @@
     "eslint": "^9.39.2",
     "next": "16.1.1",
     "remeda": "^2.30.0",
-    "server-only": "^0.0.1",
     "superjson": "^2.2.6",
     "superjson-temporal": "^0.4.0",
     "temporal-polyfill": "^0.3.0",

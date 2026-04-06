@@ -1,5 +1,3 @@
-import "server-only";
-
 import { locationSchema } from "@repo/schemas";
 
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";

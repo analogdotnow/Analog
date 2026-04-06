@@ -1,5 +1,3 @@
-import "server-only";
-
 import { accountsRouter } from "./routers/accounts";
 import { apiKeysRouter } from "./routers/api-keys";
 import { calendarsRouter } from "./routers/calendars";
