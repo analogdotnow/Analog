@@ -1,5 +1,3 @@
-import "server-only";
-
 import { Client } from "@microsoft/microsoft-graph-client";
 
 import type { CalendarProvider } from "../interfaces/providers";

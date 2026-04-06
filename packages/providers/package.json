@@ -17,7 +17,6 @@
   "peerDependencies": {
     "@trpc/server": "catalog:",
     "better-auth": "catalog:",
-    "server-only": "catalog:",
     "temporal-polyfill": "catalog:",
     "temporal-zod": "catalog:",
     "zod": "catalog:"

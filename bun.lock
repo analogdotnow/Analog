@@ -262,7 +262,6 @@
         "drizzle-orm": "catalog:",
         "next": "catalog:",
         "remeda": "catalog:",
-        "server-only": "catalog:",
         "superjson": "catalog:",
         "superjson-temporal": "catalog:",
         "temporal-polyfill": "catalog:",
@@ -292,7 +291,6 @@
       "peerDependencies": {
         "better-auth": "catalog:",
         "drizzle-orm": "catalog:",
-        "server-only": "catalog:",
       },
     },
     "packages/db": {
@@ -301,7 +299,6 @@
       "dependencies": {
         "@repo/env": "workspace:*",
         "postgres": "^3.4.7",
-        "server-only": "catalog:",
         "superjson": "catalog:",
         "superjson-temporal": "catalog:",
         "temporal-polyfill": "catalog:",
@@ -416,7 +413,6 @@
       "peerDependencies": {
         "@trpc/server": "catalog:",
         "better-auth": "catalog:",
-        "server-only": "catalog:",
         "temporal-polyfill": "catalog:",
         "temporal-zod": "catalog:",
         "zod": "catalog:",
@@ -502,7 +498,6 @@
     "eslint": "^9.39.2",
     "next": "16.1.1",
     "remeda": "^2.30.0",
-    "server-only": "^0.0.1",
     "superjson": "^2.2.6",
     "superjson-temporal": "^0.4.0",
     "temporal-polyfill": "^0.3.0",

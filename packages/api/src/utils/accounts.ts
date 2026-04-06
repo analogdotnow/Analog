@@ -1,5 +1,3 @@
-import "server-only";
-
 import { auth, type Account, type User } from "@repo/auth/server";
 import { db } from "@repo/db";
 

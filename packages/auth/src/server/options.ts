@@ -1,5 +1,3 @@
-import "server-only";
-
 import type { BetterAuthOptions } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { apiKey, mcp } from "better-auth/plugins";

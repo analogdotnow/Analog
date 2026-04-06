@@ -1,5 +1,3 @@
-import "server-only";
-
 import { betterAuth } from "better-auth";
 
 import type { account as accountTable } from "@repo/db/schema";

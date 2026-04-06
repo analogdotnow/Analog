@@ -21,7 +21,6 @@
   "dependencies": {
     "@repo/env": "workspace:*",
     "postgres": "^3.4.7",
-    "server-only": "catalog:",
     "superjson": "catalog:",
     "superjson-temporal": "catalog:",
     "temporal-polyfill": "catalog:"
