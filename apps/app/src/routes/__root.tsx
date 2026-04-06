@@ -1,11 +1,20 @@
 import { TanStackDevtools } from "@tanstack/react-devtools";
-import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router";
+import type { QueryClient } from "@tanstack/react-query";
+import {
+  HeadContent,
+  Scripts,
+  createRootRouteWithContext,
+} from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 
 import { TooltipProvider } from "@/components/ui/tooltip";
 import appCss from "@/styles.css?url";
 
-export const Route = createRootRoute({
+export interface RootRouteContext {
+  queryClient: QueryClient;
+}
+
+export const Route = createRootRouteWithContext<RootRouteContext>()({
   head: () => ({
     meta: [
       {
@@ -29,7 +38,11 @@ export const Route = createRootRoute({
   shellComponent: RootDocument,
 });
 
-function RootDocument({ children }: { children: React.ReactNode }) {
+export interface RootDocumentProps {
+  children: React.ReactNode;
+}
+
+function RootDocument({ children }: RootDocumentProps) {
   return (
     <html lang="en">
       <head>
