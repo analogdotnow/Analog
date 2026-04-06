@@ -4,7 +4,10 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@tanstack/query-async-storage-persister": ["../../node_modules/@tanstack/query-async-storage-persister"],
+      "@tanstack/react-query": ["../../node_modules/@tanstack/react-query"],
+      "@tanstack/react-query-persist-client": ["../../node_modules/@tanstack/react-query-persist-client"]
     }
   }
 }

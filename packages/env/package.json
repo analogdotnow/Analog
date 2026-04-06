@@ -4,7 +4,9 @@
   "private": true,
   "exports": {
     "./client": "./src/client.ts",
-    "./server": "./src/server.ts"
+    "./server": "./src/server.ts",
+    "./tanstack/client": "./src/tanstack/client.ts",
+    "./tanstack/server": "./src/tanstack/server.ts"
   },
   "scripts": {
     "lint": "eslint .",
@@ -14,6 +16,7 @@
     "zod": "catalog:"
   },
   "dependencies": {
+    "@t3-oss/env-core": "^0.13.11",
     "@t3-oss/env-nextjs": "^0.13.10"
   },
   "devDependencies": {
