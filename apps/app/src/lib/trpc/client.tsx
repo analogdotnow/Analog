@@ -1,12 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
-import type { QueryClient } from "@tanstack/react-query";
-import {
-  PersistQueryClientProvider,
-  removeOldestQuery,
-} from "@tanstack/react-query-persist-client";
+import { QueryClientProvider, type QueryClient } from "@tanstack/react-query";
 import {
   createTRPCClient,
   httpBatchStreamLink,
@@ -36,14 +31,6 @@ function getUrl() {
 
   return `${base}/api/trpc`;
 }
-
-const persister = createAsyncStoragePersister({
-  storage: typeof window !== "undefined" ? window.localStorage : null,
-  throttleTime: 1000,
-  retry: removeOldestQuery,
-  serialize: (data) => superjson.stringify(data),
-  deserialize: (data) => superjson.parse(data),
-});
 
 interface TRPCReactProviderProps {
   children: React.ReactNode;
@@ -105,13 +92,10 @@ export function TRPCReactProvider({
   );
 
   return (
-    <PersistQueryClientProvider
-      client={queryClient}
-      persistOptions={{ persister, buster: "06-04-2026" }}
-    >
+    <QueryClientProvider client={queryClient}>
       <TRPCProvider trpcClient={trpcClient} queryClient={queryClient}>
         {children}
       </TRPCProvider>
-    </PersistQueryClientProvider>
+    </QueryClientProvider>
   );
 }

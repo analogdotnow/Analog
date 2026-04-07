@@ -1,6 +1,6 @@
 import type { BetterAuthOptions } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { apiKey, mcp } from "better-auth/plugins";
+import { apiKey, magicLink, mcp } from "better-auth/plugins";
 
 import { db } from "@repo/db";
 import { env } from "@repo/env/server";
@@ -102,6 +102,11 @@ export function createAuthOptions() {
     plugins: [
       apiKey({
         enableMetadata: true,
+      }),
+      magicLink({
+        sendMagicLink: async ({ url }) => {
+          console.log(url);
+        },
       }),
       mcp({
         loginPage: "/login",
