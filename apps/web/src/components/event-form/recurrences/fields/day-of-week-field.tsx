@@ -33,7 +33,7 @@ export function DayOfWeekField({ value, onValueChange }: DayOfWeekFieldProps) {
       variant="outline"
       multiple
       value={value ?? []}
-      onValueChange={(v: Weekday[]) => onValueChange(v)}
+      onValueChange={(v) => onValueChange(v as Weekday[])}
       className="w-full"
     >
       {daysOfWeek.map((day) => (
