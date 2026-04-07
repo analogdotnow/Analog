@@ -9,11 +9,18 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as RivetRouteImport } from './routes/rivet'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiTrpcSplatRouteImport } from './routes/api/trpc/$'
+import { Route as ApiRivetSplatRouteImport } from './routes/api/rivet/$'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
+const RivetRoute = RivetRouteImport.update({
+  id: '/rivet',
+  path: '/rivet',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -29,6 +36,11 @@ const ApiTrpcSplatRoute = ApiTrpcSplatRouteImport.update({
   path: '/api/trpc/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiRivetSplatRoute = ApiRivetSplatRouteImport.update({
+  id: '/api/rivet/$',
+  path: '/api/rivet/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -38,39 +50,67 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/rivet': typeof RivetRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/rivet/$': typeof ApiRivetSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/rivet': typeof RivetRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/rivet/$': typeof ApiRivetSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/rivet': typeof RivetRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/rivet/$': typeof ApiRivetSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/api/auth/$' | '/api/trpc/$'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/rivet'
+    | '/api/auth/$'
+    | '/api/rivet/$'
+    | '/api/trpc/$'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/api/auth/$' | '/api/trpc/$'
-  id: '__root__' | '/' | '/login' | '/api/auth/$' | '/api/trpc/$'
+  to: '/' | '/login' | '/rivet' | '/api/auth/$' | '/api/rivet/$' | '/api/trpc/$'
+  id:
+    | '__root__'
+    | '/'
+    | '/login'
+    | '/rivet'
+    | '/api/auth/$'
+    | '/api/rivet/$'
+    | '/api/trpc/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRoute
+  RivetRoute: typeof RivetRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiRivetSplatRoute: typeof ApiRivetSplatRoute
   ApiTrpcSplatRoute: typeof ApiTrpcSplatRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/rivet': {
+      id: '/rivet'
+      path: '/rivet'
+      fullPath: '/rivet'
+      preLoaderRoute: typeof RivetRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -92,6 +132,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiTrpcSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/rivet/$': {
+      id: '/api/rivet/$'
+      path: '/api/rivet/$'
+      fullPath: '/api/rivet/$'
+      preLoaderRoute: typeof ApiRivetSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -105,7 +152,9 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
+  RivetRoute: RivetRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiRivetSplatRoute: ApiRivetSplatRoute,
   ApiTrpcSplatRoute: ApiTrpcSplatRoute,
 }
 export const routeTree = rootRouteImport
