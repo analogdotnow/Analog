@@ -16,6 +16,7 @@
         "MODE",
         "NEXT_PUBLIC_GOOGLE_MAPS_API_KEY",
         "VERCEL_URL",
+        "VERCEL_ENV",
         "VITE_GOOGLE_MAPS_API_KEY",
         "VITE_VERCEL_ENV",
         "VITE_VERCEL_URL",
@@ -39,6 +40,10 @@
         "UNKEY_ROOT_KEY",
         "NEXT_RUNTIME",
         "COMPOSIO_API_KEY",
+        "OPENROUTER_API_KEY",
+        "OPENAI_API_KEY",
+        "CEREBRAS_API_KEY",
+        "GROQ_API_KEY",
         "FIRECRAWL_API_KEY",
         "BROWSERBASE_API_KEY"
       ],
@@ -60,6 +65,7 @@
         "MODE",
         "NEXT_PUBLIC_GOOGLE_MAPS_API_KEY",
         "VERCEL_URL",
+        "VERCEL_ENV",
         "VITE_GOOGLE_MAPS_API_KEY",
         "VITE_VERCEL_ENV",
         "VITE_VERCEL_URL",
@@ -83,6 +89,10 @@
         "UNKEY_ROOT_KEY",
         "NEXT_RUNTIME",
         "COMPOSIO_API_KEY",
+        "OPENROUTER_API_KEY",
+        "OPENAI_API_KEY",
+        "CEREBRAS_API_KEY",
+        "GROQ_API_KEY",
         "FIRECRAWL_API_KEY",
         "BROWSERBASE_API_KEY"
       ]
