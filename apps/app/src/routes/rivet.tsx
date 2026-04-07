@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import { createRivetKit } from "@rivetkit/react";
 import { ClientOnly, createFileRoute } from "@tanstack/react-router";
 
+import type { Registry } from "@repo/actors/registry";
+
 import { Button } from "@/components/ui/button";
-import type { AppRegistry } from "@/lib/rivet";
 
 export const Route = createFileRoute("/rivet")({
   component: RivetPage,
@@ -25,12 +26,13 @@ function RivetPage() {
   );
 }
 
+const { useActor } = createRivetKit<Registry>(
+  `${window.location.origin}/api/rivet`,
+);
+
 function CounterTester() {
-  const [rivet] = useState(() =>
-    createRivetKit<AppRegistry>(`${window.location.origin}/api/rivet`),
-  );
   const [count, setCount] = useState(0);
-  const counter = rivet.useActor({
+  const counter = useActor({
     name: "counter",
     key: ["my-counter"],
   });

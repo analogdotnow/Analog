@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { registry } from "@/lib/rivet";
+import { registry } from "@repo/actors/registry";
 
 export const Route = createFileRoute("/api/rivet/$")({
   server: {
