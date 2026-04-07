@@ -9,13 +9,20 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ToolCallingRouteImport } from './routes/tool-calling'
 import { Route as RivetRouteImport } from './routes/rivet'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiTrpcSplatRouteImport } from './routes/api/trpc/$'
 import { Route as ApiRivetSplatRouteImport } from './routes/api/rivet/$'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as ApiAiChatRouteImport } from './routes/api/ai/chat'
 
+const ToolCallingRoute = ToolCallingRouteImport.update({
+  id: '/tool-calling',
+  path: '/tool-calling',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RivetRoute = RivetRouteImport.update({
   id: '/rivet',
   path: '/rivet',
@@ -46,11 +53,18 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAiChatRoute = ApiAiChatRouteImport.update({
+  id: '/api/ai/chat',
+  path: '/api/ai/chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/rivet': typeof RivetRoute
+  '/tool-calling': typeof ToolCallingRoute
+  '/api/ai/chat': typeof ApiAiChatRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/rivet/$': typeof ApiRivetSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
@@ -59,6 +73,8 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/rivet': typeof RivetRoute
+  '/tool-calling': typeof ToolCallingRoute
+  '/api/ai/chat': typeof ApiAiChatRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/rivet/$': typeof ApiRivetSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
@@ -68,6 +84,8 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/rivet': typeof RivetRoute
+  '/tool-calling': typeof ToolCallingRoute
+  '/api/ai/chat': typeof ApiAiChatRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/rivet/$': typeof ApiRivetSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
@@ -78,16 +96,28 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/rivet'
+    | '/tool-calling'
+    | '/api/ai/chat'
     | '/api/auth/$'
     | '/api/rivet/$'
     | '/api/trpc/$'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/rivet' | '/api/auth/$' | '/api/rivet/$' | '/api/trpc/$'
+  to:
+    | '/'
+    | '/login'
+    | '/rivet'
+    | '/tool-calling'
+    | '/api/ai/chat'
+    | '/api/auth/$'
+    | '/api/rivet/$'
+    | '/api/trpc/$'
   id:
     | '__root__'
     | '/'
     | '/login'
     | '/rivet'
+    | '/tool-calling'
+    | '/api/ai/chat'
     | '/api/auth/$'
     | '/api/rivet/$'
     | '/api/trpc/$'
@@ -97,6 +127,8 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRoute
   RivetRoute: typeof RivetRoute
+  ToolCallingRoute: typeof ToolCallingRoute
+  ApiAiChatRoute: typeof ApiAiChatRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiRivetSplatRoute: typeof ApiRivetSplatRoute
   ApiTrpcSplatRoute: typeof ApiTrpcSplatRoute
@@ -104,6 +136,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/tool-calling': {
+      id: '/tool-calling'
+      path: '/tool-calling'
+      fullPath: '/tool-calling'
+      preLoaderRoute: typeof ToolCallingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/rivet': {
       id: '/rivet'
       path: '/rivet'
@@ -146,6 +185,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/ai/chat': {
+      id: '/api/ai/chat'
+      path: '/api/ai/chat'
+      fullPath: '/api/ai/chat'
+      preLoaderRoute: typeof ApiAiChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -153,6 +199,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
   RivetRoute: RivetRoute,
+  ToolCallingRoute: ToolCallingRoute,
+  ApiAiChatRoute: ApiAiChatRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiRivetSplatRoute: ApiRivetSplatRoute,
   ApiTrpcSplatRoute: ApiTrpcSplatRoute,

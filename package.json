@@ -24,6 +24,9 @@
   },
   "packageManager": "bun@1.3.0",
   "catalog": {
+    "@ai-sdk/cerebras": "^2.0.44",
+    "@ai-sdk/openai": "^3.0.51",
+    "@ai-sdk/react": "^3.0.151",
     "@composio/core": "^0.2.6",
     "@formkit/tempo": "^1.0.0",
     "@microsoft/microsoft-graph-client": "^3.0.7",
@@ -31,7 +34,7 @@
     "@trpc/server": "^11.8.1",
     "@types/node": "^24.10.4",
     "@upstash/redis": "^1.36.0",
-    "ai": "^5.0.116",
+    "ai": "^6.0.149",
     "better-auth": "^1.4.9",
     "drizzle-orm": "^0.45.1",
     "eslint": "^9.39.2",

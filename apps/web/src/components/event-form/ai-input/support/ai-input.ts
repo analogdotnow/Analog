@@ -1,6 +1,6 @@
 import { createOpenAI } from "@ai-sdk/openai";
 import type { KeyboardEventPredicate } from "@react-hookz/web";
-import { generateObject } from "ai";
+import { Output, generateText } from "ai";
 import { Temporal } from "temporal-polyfill";
 
 import { aiInputSchema } from "@/lib/schemas/event-form";
@@ -21,9 +21,11 @@ export const generateEventFormData = async (
   const openai = createOpenAI({
     apiKey,
   });
-  const { object } = await generateObject({
+  const { output } = await generateText({
     model: openai("gpt-4.1-mini"),
-    schema: aiInputSchema,
+    output: Output.object({
+      schema: aiInputSchema,
+    }),
     system: `You are helping users create calendar events from natural language input.
 
 KEY REQUIREMENTS:
@@ -42,7 +44,7 @@ CURRENT TIME: ${currentTimeString}
 Analyze the user's request and extract event details accordingly.`,
     prompt: `The user's input: '${userInput}'`,
   });
-  return object;
+  return output;
 };
 
 export const aiInputPredicate: KeyboardEventPredicate = (e) => {

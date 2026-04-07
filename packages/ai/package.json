@@ -14,6 +14,7 @@
     "zod": "catalog:"
   },
   "dependencies": {
+    "@ai-sdk/cerebras": "catalog:",
     "@browserbasehq/sdk": "^2.6.0",
     "@composio/core": "catalog:",
     "@composio/vercel": "^0.2.18",
