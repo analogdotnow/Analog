@@ -3,10 +3,7 @@
   "extends": "./react.json",
   "compilerOptions": {
     "allowImportingTsExtensions": true,
-    "verbatimModuleSyntax": true,
     "types": ["vite/client"],
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
     "allowJs": true,
