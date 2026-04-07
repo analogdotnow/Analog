@@ -13,6 +13,7 @@
   "dependencies": {
     "@base-ui/react": "^1.3.0",
     "@fontsource-variable/geist": "^5.2.8",
+    "@repo/actors": "workspace:*",
     "@repo/api": "workspace:*",
     "@repo/auth": "workspace:*",
     "@repo/env": "workspace:*",
@@ -40,7 +41,7 @@
     "nitro": "latest",
     "react": "catalog:",
     "react-dom": "catalog:",
-    "rivetkit": "2.2.0",
+    "rivetkit": "catalog:",
     "shadcn": "^4.1.2",
     "sonner": "^2.0.7",
     "superjson": "catalog:",

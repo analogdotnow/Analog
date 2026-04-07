@@ -1,6 +1,6 @@
-import { actor, event, setup } from "rivetkit";
+import { actor, event } from "rivetkit";
 
-const counter = actor({
+export const counter = actor({
   state: { count: 0 },
   events: { newCount: event<number>() },
   actions: {
@@ -11,9 +11,3 @@ const counter = actor({
     },
   },
 });
-
-export const registry = setup({
-  use: { counter },
-});
-
-export type AppRegistry = typeof registry;
