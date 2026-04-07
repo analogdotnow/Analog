@@ -48,7 +48,7 @@ function RootDocument({ children }: RootDocumentProps) {
       <head>
         <HeadContent />
       </head>
-      <body>
+      <body className="antialiased">
         <TooltipProvider>{children}</TooltipProvider>
         <TanStackDevtools
           config={{

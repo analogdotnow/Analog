@@ -7,5 +7,6 @@ const options = createAuthOptions();
 
 export const auth = betterAuth({
   ...options,
+  trustedOrigins: ["http://localhost:3001"],
   plugins: [...options.plugins, tanstackStartCookies()],
 });
