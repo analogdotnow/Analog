@@ -1,9 +1,4 @@
 import { Temporal } from "temporal-polyfill";
-import {
-  zInstantInstance,
-  zPlainDateInstance,
-  zZonedDateTimeInstance,
-} from "temporal-zod";
 import * as z from "zod";
 
 const conferenceEntryPointSchema = z.object({
@@ -116,9 +111,9 @@ const googleMetadataSchema = z.object({
 });
 
 export const dateInputSchema = z.union([
-  zPlainDateInstance,
-  zInstantInstance,
-  zZonedDateTimeInstance,
+  z.instanceof(Temporal.PlainDate),
+  z.instanceof(Temporal.Instant),
+  z.instanceof(Temporal.ZonedDateTime),
 ]);
 
 const attendeeSchema = z.object({

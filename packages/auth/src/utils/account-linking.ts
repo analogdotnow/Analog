@@ -1,5 +1,5 @@
 import {
-  GenericEndpointContext,
+  AuthContext,
   Account as HookAccountRecord,
 } from "better-auth";
 import { APIError, createAuthMiddleware } from "better-auth/api";
@@ -11,7 +11,7 @@ import { getCalendarProvider } from "@repo/providers";
 
 export const createProviderHandler = async (
   account: HookAccountRecord,
-  ctx: GenericEndpointContext | null,
+  context: AuthContext | null,
 ) => {
   if (!account.accessToken || !account.refreshToken) {
     throw new APIError("INTERNAL_SERVER_ERROR", {
@@ -19,7 +19,7 @@ export const createProviderHandler = async (
     });
   }
 
-  const provider = ctx?.context.socialProviders.find(
+  const provider = context?.socialProviders.find(
     (p) => p.id === account.providerId,
   );
 
@@ -51,11 +51,11 @@ export const createProviderHandler = async (
     })
     .where(eq(accountTable.id, account.id));
 
-  if (ctx?.context.session?.user?.defaultAccountId) {
+  if (context?.session?.user?.defaultAccountId) {
     return;
   }
 
-  await ctx?.context.internalAdapter.updateUser(account.userId, {
+  await context?.internalAdapter.updateUser(account.userId, {
     defaultAccountId: account.id,
   });
 };

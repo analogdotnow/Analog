@@ -17,6 +17,7 @@
     "drizzle-orm": "catalog:"
   },
   "dependencies": {
+    "@better-auth/api-key": "^1.6.3",
     "@repo/db": "workspace:*",
     "@repo/env": "workspace:*",
     "@repo/providers": "workspace:*",

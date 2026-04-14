@@ -13,7 +13,7 @@
     "type-check": "tsc --noEmit"
   },
   "peerDependencies": {
-    "@sentry/node": "^10.32.1",
+    "@sentry/node": "^10.48.0",
     "@trpc/server": "catalog:",
     "better-auth": "catalog:",
     "drizzle-orm": "catalog:",
@@ -41,7 +41,7 @@
     "@repo/providers": "workspace:*",
     "@repo/schemas": "workspace:*",
     "@repo/temporal": "workspace:*",
-    "@upstash/ratelimit": "^2.0.7",
+    "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "catalog:"
   },
   "devDependencies": {

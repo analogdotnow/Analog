@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@t3-oss/env-core": "^0.13.11",
-    "@t3-oss/env-nextjs": "^0.13.10"
+    "@t3-oss/env-nextjs": "^0.13.11"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",

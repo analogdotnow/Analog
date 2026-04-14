@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "@repo/env": "workspace:*",
-    "postgres": "^3.4.7",
+    "postgres": "^3.4.9",
     "superjson": "catalog:",
     "superjson-temporal": "catalog:",
     "temporal-polyfill": "catalog:"
@@ -29,7 +29,7 @@
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@types/node": "catalog:",
-    "drizzle-kit": "^0.31.8",
+    "drizzle-kit": "^0.31.10",
     "eslint": "catalog:",
     "typescript": "catalog:"
   }
