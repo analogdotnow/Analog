@@ -3,10 +3,7 @@
   "include": ["**/*.ts", "**/*.tsx", "eslint.config.js", "prettier.config.js", "vite.config.js"],
   "compilerOptions": {
     "paths": {
-      "@/*": ["./src/*"],
-      "@tanstack/query-async-storage-persister": ["../../node_modules/@tanstack/query-async-storage-persister"],
-      "@tanstack/react-query": ["../../node_modules/@tanstack/react-query"],
-      "@tanstack/react-query-persist-client": ["../../node_modules/@tanstack/react-query-persist-client"]
+      "@/*": ["./src/*"]
     }
   }
 }
