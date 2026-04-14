@@ -1,6 +1,7 @@
+import { apiKey } from "@better-auth/api-key";
 import type { BetterAuthOptions } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { apiKey, magicLink, mcp } from "better-auth/plugins";
+import { magicLink, mcp } from "better-auth/plugins";
 
 import { db } from "@repo/db";
 import { env } from "@repo/env/server";
@@ -73,7 +74,9 @@ export function createAuthOptions() {
     databaseHooks: {
       account: {
         create: {
-          after: createProviderHandler,
+          after: async (account, context) => {
+            await createProviderHandler(account, context?.context);
+          },
         },
       },
     },

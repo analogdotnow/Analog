@@ -15,10 +15,10 @@
   },
   "dependencies": {
     "@ai-sdk/cerebras": "catalog:",
-    "@browserbasehq/sdk": "^2.6.0",
+    "@browserbasehq/sdk": "^2.10.0",
     "@composio/core": "catalog:",
-    "@composio/vercel": "^0.2.18",
-    "@mendable/firecrawl-js": "^4.10.0",
+    "@composio/vercel": "^0.6.10",
+    "@mendable/firecrawl-js": "^4.18.2",
     "@repo/env": "workspace:*"
   },
   "devDependencies": {

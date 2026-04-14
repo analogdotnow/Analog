@@ -2,7 +2,6 @@
   "extends": "@repo/typescript-config/start.json",
   "include": ["**/*.ts", "**/*.tsx", "eslint.config.js", "prettier.config.js", "vite.config.js"],
   "compilerOptions": {
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
       "@tanstack/query-async-storage-persister": ["../../node_modules/@tanstack/query-async-storage-persister"],
