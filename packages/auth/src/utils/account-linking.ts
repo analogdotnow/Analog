@@ -1,7 +1,4 @@
-import {
-  AuthContext,
-  Account as HookAccountRecord,
-} from "better-auth";
+import { AuthContext, Account as HookAccountRecord } from "better-auth";
 import { APIError, createAuthMiddleware } from "better-auth/api";
 import { eq } from "drizzle-orm";
 
