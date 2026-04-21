@@ -1,3 +1,4 @@
+import * as React from "react";
 import { createRouter as createTanStackRouter } from "@tanstack/react-router";
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
 
@@ -11,6 +12,7 @@ interface RootDocumentProps {
 
 export function getRouter() {
   const queryClient = getQueryClient();
+
   const router = createTanStackRouter({
     routeTree,
     context: { queryClient },
@@ -34,6 +36,8 @@ export function getRouter() {
 
   return router;
 }
+
+export type AppRouter = ReturnType<typeof getRouter>;
 
 declare module "@tanstack/react-router" {
   interface Register {

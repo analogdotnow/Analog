@@ -2,11 +2,11 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { Button } from "@/components/ui/button";
 
-export const Route = createFileRoute("/")({ component: App });
+export const Route = createFileRoute("/_app/")({ component: App });
 
 function App() {
   return (
-    <div className="flex min-h-svh p-6">
+    <div className="flex h-full p-6">
       <div className="flex max-w-md min-w-0 flex-col gap-4 text-sm leading-loose">
         <div>
           <h1 className="font-medium">Project ready!</h1>

@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useState } from "react";
+import * as React from "react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import type { UIMessage } from "ai";
@@ -48,111 +48,116 @@ const renderToolPart = (
   return <Tool key={`${part.type}-${index}`} toolPart={part as ToolPart} />;
 };
 
-export const MessageComponent = memo(
-  ({ message, isLastMessage }: MessageComponentProps) => {
-    const isAssistant = message?.role === "assistant";
+export function MessageComponent({
+  message,
+  isLastMessage,
+}: MessageComponentProps) {
+  const isAssistant = message?.role === "assistant";
 
-    return (
-      <Message
-        className={cn(
-          "mx-auto flex w-full max-w-3xl flex-col gap-2 px-2 md:px-10",
-          isAssistant ? "items-start" : "items-end",
-        )}
-      >
-        {isAssistant ? (
-          <div className="group flex w-full flex-col gap-0 space-y-2">
-            <div className="w-full">
-              {message?.parts
-                .filter((part) => part.type?.startsWith("tool-"))
-                .map((part, index) => renderToolPart(part, index))}
-            </div>
-            <MessageContent
-              className="prose w-full min-w-0 flex-1 rounded-lg bg-transparent p-0 text-foreground"
-              markdown
-            >
-              {message?.parts
-                .filter((part) => part.type === "text")
-                .map((part) => (part.type === "text" ? part.text : ""))
-                .join("")}
-            </MessageContent>
+  return (
+    <Message
+      className={cn(
+        "mx-auto flex w-full max-w-3xl flex-col gap-2 px-2 md:px-10",
+        isAssistant ? "items-start" : "items-end",
+      )}
+    >
+      {isAssistant ? (
+        <div className="group flex w-full flex-col gap-0 space-y-2">
+          <div className="w-full">
+            {message?.parts
+              .filter((part) => part.type?.startsWith("tool-"))
+              .map((part, index) => renderToolPart(part, index))}
+          </div>
+          <MessageContent
+            className="prose w-full min-w-0 flex-1 rounded-lg bg-transparent p-0 text-foreground"
+            markdown
+          >
+            {message?.parts
+              .filter((part) => part.type === "text")
+              .map((part) => (part.type === "text" ? part.text : ""))
+              .join("")}
+          </MessageContent>
 
-            <MessageActions
-              className={cn(
-                "-ml-2.5 flex gap-0 opacity-0 transition-opacity duration-150 group-hover:opacity-100",
-                isLastMessage && "opacity-100",
-              )}
-            >
-              <MessageAction tooltip="Copy">
-                <Button variant="ghost" size="icon" className="rounded-full">
-                  <Copy />
-                </Button>
-              </MessageAction>
-              <MessageAction tooltip="Upvote">
-                <Button variant="ghost" size="icon" className="rounded-full">
-                  <ThumbsUp />
-                </Button>
-              </MessageAction>
-              <MessageAction tooltip="Downvote">
-                <Button variant="ghost" size="icon" className="rounded-full">
-                  <ThumbsDown />
-                </Button>
-              </MessageAction>
-            </MessageActions>
-          </div>
-        ) : (
-          <div className="group flex w-full flex-col items-end gap-1">
-            <MessageContent className="max-w-[85%] rounded-3xl bg-muted px-5 py-2.5 whitespace-pre-wrap text-primary sm:max-w-[75%]">
-              {message?.parts
-                .map((part) => (part.type === "text" ? part.text : ""))
-                .join("")}
-            </MessageContent>
-            <MessageActions
-              className={cn(
-                "flex gap-0 opacity-0 transition-opacity duration-150 group-hover:opacity-100",
-              )}
-            >
-              <MessageAction tooltip="Copy">
-                <Button variant="ghost" size="icon" className="rounded-full">
-                  <Copy />
-                </Button>
-              </MessageAction>
-            </MessageActions>
-          </div>
-        )}
-      </Message>
-    );
-  },
-);
+          <MessageActions
+            className={cn(
+              "-ml-2.5 flex gap-0 opacity-0 transition-opacity duration-150 group-hover:opacity-100",
+              isLastMessage && "opacity-100",
+            )}
+          >
+            <MessageAction tooltip="Copy">
+              <Button variant="ghost" size="icon" className="rounded-full">
+                <Copy />
+              </Button>
+            </MessageAction>
+            <MessageAction tooltip="Upvote">
+              <Button variant="ghost" size="icon" className="rounded-full">
+                <ThumbsUp />
+              </Button>
+            </MessageAction>
+            <MessageAction tooltip="Downvote">
+              <Button variant="ghost" size="icon" className="rounded-full">
+                <ThumbsDown />
+              </Button>
+            </MessageAction>
+          </MessageActions>
+        </div>
+      ) : (
+        <div className="group flex w-full flex-col items-end gap-1">
+          <MessageContent className="max-w-[85%] rounded-3xl bg-muted px-5 py-2.5 whitespace-pre-wrap text-primary sm:max-w-[75%]">
+            {message?.parts
+              .map((part) => (part.type === "text" ? part.text : ""))
+              .join("")}
+          </MessageContent>
+          <MessageActions
+            className={cn(
+              "flex gap-0 opacity-0 transition-opacity duration-150 group-hover:opacity-100",
+            )}
+          >
+            <MessageAction tooltip="Copy">
+              <Button variant="ghost" size="icon" className="rounded-full">
+                <Copy />
+              </Button>
+            </MessageAction>
+          </MessageActions>
+        </div>
+      )}
+    </Message>
+  );
+}
 
 MessageComponent.displayName = "MessageComponent";
 
-const LoadingMessage = memo(() => (
-  <Message className="mx-auto flex w-full max-w-3xl flex-col items-start gap-2 px-2 md:px-10">
-    <div className="group flex w-full flex-col gap-0">
-      <div className="prose w-full min-w-0 flex-1 rounded-lg bg-transparent p-0 text-foreground">
-        <DotsLoader />
+function LoadingMessage() {
+  return (
+    <Message className="mx-auto flex w-full max-w-3xl flex-col items-start gap-2 px-2 md:px-10">
+      <div className="group flex w-full flex-col gap-0">
+        <div className="prose w-full min-w-0 flex-1 rounded-lg bg-transparent p-0 text-foreground">
+          <DotsLoader />
+        </div>
       </div>
-    </div>
-  </Message>
-));
+    </Message>
+  );
+}
 
 LoadingMessage.displayName = "LoadingMessage";
 
-const ErrorMessage = memo(({ error }: { error: Error }) => (
-  <Message className="not-prose mx-auto flex w-full max-w-3xl flex-col items-start gap-2 px-0 md:px-10">
-    <div className="group flex w-full flex-col items-start gap-0">
-      <div className="flex min-w-0 flex-1 flex-row items-center gap-2 rounded-lg border-2 border-red-300 bg-red-300/20 px-2 py-1 text-primary">
-        <AlertTriangle size={16} className="text-red-500" />
-        <p className="text-red-500">{error.message}</p>
+function ErrorMessage({ error }: { error: Error }) {
+  return (
+    <Message className="not-prose mx-auto flex w-full max-w-3xl flex-col items-start gap-2 px-0 md:px-10">
+      <div className="group flex w-full flex-col items-start gap-0">
+        <div className="flex min-w-0 flex-1 flex-row items-center gap-2 rounded-lg border-2 border-red-300 bg-red-300/20 px-2 py-1 text-primary">
+          <AlertTriangle size={16} className="text-red-500" />
+          <p className="text-red-500">{error.message}</p>
+        </div>
       </div>
-    </div>
-  </Message>
-));
+    </Message>
+  );
+}
 
 ErrorMessage.displayName = "ErrorMessage";
 
-function ToolCallingChatbot() {
-  const [input, setInput] = useState("");
+function ThreadChatbot() {
+  const [input, setInput] = React.useState("");
 
   const { messages, sendMessage, status, error } = useChat<ChatMessage>({
     transport: new DefaultChatTransport({
@@ -168,7 +173,7 @@ function ToolCallingChatbot() {
   };
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden">
+    <div className="flex h-full flex-col overflow-hidden">
       <ChatContainerRoot className="relative flex-1 space-y-0 overflow-y-auto">
         <ChatContainerContent className="space-y-12 px-4 py-12">
           {messages.length === 0 && (
@@ -241,4 +246,4 @@ function ToolCallingChatbot() {
   );
 }
 
-export { ToolCallingChatbot };
+export { ThreadChatbot };

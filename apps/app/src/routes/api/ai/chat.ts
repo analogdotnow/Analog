@@ -10,7 +10,7 @@ const openai = createOpenAI({
   apiKey: env.OPENAI_API_KEY,
 });
 
-interface ToolCallingRequest {
+interface ThreadRequest {
   messages: ChatMessage[];
 }
 
@@ -18,7 +18,7 @@ export const Route = createFileRoute("/api/ai/chat")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const { messages }: ToolCallingRequest = await request.json();
+        const { messages }: ThreadRequest = await request.json();
 
         const result = streamText({
           model: openai("gpt-5-mini"),

@@ -9,34 +9,45 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as ToolCallingRouteImport } from './routes/tool-calling'
-import { Route as RivetRouteImport } from './routes/rivet'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppRouteImport } from './routes/_app'
+import { Route as AppIndexRouteImport } from './routes/_app.index'
+import { Route as AppThreadRouteImport } from './routes/_app.thread'
+import { Route as AppRivetRouteImport } from './routes/_app.rivet'
+import { Route as AppInboxRouteImport } from './routes/_app.inbox'
 import { Route as ApiTrpcSplatRouteImport } from './routes/api/trpc/$'
 import { Route as ApiRivetSplatRouteImport } from './routes/api/rivet/$'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiAiChatRouteImport } from './routes/api/ai/chat'
 
-const ToolCallingRoute = ToolCallingRouteImport.update({
-  id: '/tool-calling',
-  path: '/tool-calling',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RivetRoute = RivetRouteImport.update({
-  id: '/rivet',
-  path: '/rivet',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
+const AppRoute = AppRouteImport.update({
+  id: '/_app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AppRoute,
+} as any)
+const AppThreadRoute = AppThreadRouteImport.update({
+  id: '/thread',
+  path: '/thread',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppRivetRoute = AppRivetRouteImport.update({
+  id: '/rivet',
+  path: '/rivet',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppInboxRoute = AppInboxRouteImport.update({
+  id: '/inbox',
+  path: '/inbox',
+  getParentRoute: () => AppRoute,
 } as any)
 const ApiTrpcSplatRoute = ApiTrpcSplatRouteImport.update({
   id: '/api/trpc/$',
@@ -60,20 +71,22 @@ const ApiAiChatRoute = ApiAiChatRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/': typeof AppIndexRoute
   '/login': typeof LoginRoute
-  '/rivet': typeof RivetRoute
-  '/tool-calling': typeof ToolCallingRoute
+  '/inbox': typeof AppInboxRoute
+  '/rivet': typeof AppRivetRoute
+  '/thread': typeof AppThreadRoute
   '/api/ai/chat': typeof ApiAiChatRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/rivet/$': typeof ApiRivetSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
   '/login': typeof LoginRoute
-  '/rivet': typeof RivetRoute
-  '/tool-calling': typeof ToolCallingRoute
+  '/inbox': typeof AppInboxRoute
+  '/rivet': typeof AppRivetRoute
+  '/thread': typeof AppThreadRoute
+  '/': typeof AppIndexRoute
   '/api/ai/chat': typeof ApiAiChatRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/rivet/$': typeof ApiRivetSplatRoute
@@ -81,10 +94,12 @@ export interface FileRoutesByTo {
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
+  '/_app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
-  '/rivet': typeof RivetRoute
-  '/tool-calling': typeof ToolCallingRoute
+  '/_app/inbox': typeof AppInboxRoute
+  '/_app/rivet': typeof AppRivetRoute
+  '/_app/thread': typeof AppThreadRoute
+  '/_app/': typeof AppIndexRoute
   '/api/ai/chat': typeof ApiAiChatRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/rivet/$': typeof ApiRivetSplatRoute
@@ -95,28 +110,32 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
+    | '/inbox'
     | '/rivet'
-    | '/tool-calling'
+    | '/thread'
     | '/api/ai/chat'
     | '/api/auth/$'
     | '/api/rivet/$'
     | '/api/trpc/$'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/'
     | '/login'
+    | '/inbox'
     | '/rivet'
-    | '/tool-calling'
+    | '/thread'
+    | '/'
     | '/api/ai/chat'
     | '/api/auth/$'
     | '/api/rivet/$'
     | '/api/trpc/$'
   id:
     | '__root__'
-    | '/'
+    | '/_app'
     | '/login'
-    | '/rivet'
-    | '/tool-calling'
+    | '/_app/inbox'
+    | '/_app/rivet'
+    | '/_app/thread'
+    | '/_app/'
     | '/api/ai/chat'
     | '/api/auth/$'
     | '/api/rivet/$'
@@ -124,10 +143,8 @@ export interface FileRouteTypes {
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
+  AppRoute: typeof AppRouteWithChildren
   LoginRoute: typeof LoginRoute
-  RivetRoute: typeof RivetRoute
-  ToolCallingRoute: typeof ToolCallingRoute
   ApiAiChatRoute: typeof ApiAiChatRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiRivetSplatRoute: typeof ApiRivetSplatRoute
@@ -136,20 +153,6 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/tool-calling': {
-      id: '/tool-calling'
-      path: '/tool-calling'
-      fullPath: '/tool-calling'
-      preLoaderRoute: typeof ToolCallingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/rivet': {
-      id: '/rivet'
-      path: '/rivet'
-      fullPath: '/rivet'
-      preLoaderRoute: typeof RivetRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -157,12 +160,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
+    '/_app': {
+      id: '/_app'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_app/': {
+      id: '/_app/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/thread': {
+      id: '/_app/thread'
+      path: '/thread'
+      fullPath: '/thread'
+      preLoaderRoute: typeof AppThreadRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/rivet': {
+      id: '/_app/rivet'
+      path: '/rivet'
+      fullPath: '/rivet'
+      preLoaderRoute: typeof AppRivetRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/inbox': {
+      id: '/_app/inbox'
+      path: '/inbox'
+      fullPath: '/inbox'
+      preLoaderRoute: typeof AppInboxRouteImport
+      parentRoute: typeof AppRoute
     }
     '/api/trpc/$': {
       id: '/api/trpc/$'
@@ -195,11 +226,25 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AppRouteChildren {
+  AppInboxRoute: typeof AppInboxRoute
+  AppRivetRoute: typeof AppRivetRoute
+  AppThreadRoute: typeof AppThreadRoute
+  AppIndexRoute: typeof AppIndexRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppInboxRoute: AppInboxRoute,
+  AppRivetRoute: AppRivetRoute,
+  AppThreadRoute: AppThreadRoute,
+  AppIndexRoute: AppIndexRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  AppRoute: AppRouteWithChildren,
   LoginRoute: LoginRoute,
-  RivetRoute: RivetRoute,
-  ToolCallingRoute: ToolCallingRoute,
   ApiAiChatRoute: ApiAiChatRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiRivetSplatRoute: ApiRivetSplatRoute,
