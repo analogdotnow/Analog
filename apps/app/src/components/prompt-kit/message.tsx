@@ -1,3 +1,4 @@
+import * as React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Tooltip,
@@ -92,7 +93,7 @@ const MessageActions = ({
 export type MessageActionProps = {
   className?: string;
   tooltip: React.ReactNode;
-  children: React.ReactNode;
+  children: React.ReactElement;
   side?: "top" | "bottom" | "left" | "right";
 } & React.ComponentProps<typeof Tooltip>;
 
@@ -106,7 +107,7 @@ const MessageAction = ({
   return (
     <TooltipProvider>
       <Tooltip {...props}>
-        <TooltipTrigger>{children}</TooltipTrigger>
+        <TooltipTrigger render={children} />
         <TooltipContent side={side} className={className}>
           {tooltip}
         </TooltipContent>

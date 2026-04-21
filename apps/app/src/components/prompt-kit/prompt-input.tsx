@@ -1,12 +1,6 @@
 "use client";
 
-import React, {
-  createContext,
-  useContext,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from "react";
+import * as React from "react";
 
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -27,7 +21,7 @@ type PromptInputContextType = {
   textareaRef: React.RefObject<HTMLTextAreaElement | null>;
 };
 
-const PromptInputContext = createContext<PromptInputContextType>({
+const PromptInputContext = React.createContext<PromptInputContextType>({
   isLoading: false,
   value: "",
   setValue: () => {},
@@ -38,7 +32,7 @@ const PromptInputContext = createContext<PromptInputContextType>({
 });
 
 function usePromptInput() {
-  return useContext(PromptInputContext);
+  return React.useContext(PromptInputContext);
 }
 
 export type PromptInputProps = {
@@ -64,8 +58,8 @@ function PromptInput({
   onClick,
   ...props
 }: PromptInputProps) {
-  const [internalValue, setInternalValue] = useState(value || "");
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [internalValue, setInternalValue] = React.useState(value || "");
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
   const handleChange = (newValue: string) => {
     setInternalValue(newValue);
@@ -136,7 +130,7 @@ function PromptInputTextarea({
     adjustHeight(el);
   };
 
-  useLayoutEffect(() => {
+  React.useLayoutEffect(() => {
     if (!textareaRef.current || disableAutosize) return;
 
     const el = textareaRef.current;

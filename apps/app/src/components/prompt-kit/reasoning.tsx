@@ -1,11 +1,4 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from "react";
+import * as React from "react";
 import { ChevronDownIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -16,12 +9,12 @@ type ReasoningContextType = {
   onOpenChange: (open: boolean) => void;
 };
 
-const ReasoningContext = createContext<ReasoningContextType | undefined>(
+const ReasoningContext = React.createContext<ReasoningContextType | undefined>(
   undefined,
 );
 
 function useReasoningContext() {
-  const context = useContext(ReasoningContext);
+  const context = React.useContext(ReasoningContext);
   if (!context) {
     throw new Error(
       "useReasoningContext must be used within a Reasoning provider",
@@ -44,8 +37,8 @@ function Reasoning({
   onOpenChange,
   isStreaming,
 }: ReasoningProps) {
-  const [internalOpen, setInternalOpen] = useState(false);
-  const [wasAutoOpened, setWasAutoOpened] = useState(false);
+  const [internalOpen, setInternalOpen] = React.useState(false);
+  const [wasAutoOpened, setWasAutoOpened] = React.useState(false);
 
   const isControlled = open !== undefined;
   const isOpen = isControlled ? open : internalOpen;
@@ -57,9 +50,8 @@ function Reasoning({
     onOpenChange?.(newOpen);
   };
 
-  useLayoutEffect(() => {
+  React.useLayoutEffect(() => {
     if (isStreaming && !wasAutoOpened) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- sync internal state with streaming prop
       if (!isControlled) setInternalOpen(true);
       setWasAutoOpened(true);
     }
@@ -127,12 +119,12 @@ function ReasoningContent({
   markdown = false,
   ...props
 }: ReasoningContentProps) {
-  const contentRef = useRef<HTMLDivElement>(null);
-  const innerRef = useRef<HTMLDivElement>(null);
+  const contentRef = React.useRef<HTMLDivElement>(null);
+  const innerRef = React.useRef<HTMLDivElement>(null);
   const { isOpen } = useReasoningContext();
-  const [maxHeight, setMaxHeight] = useState<string>("0px");
+  const [maxHeight, setMaxHeight] = React.useState<string>("0px");
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (!contentRef.current || !innerRef.current) return;
 
     const observer = new ResizeObserver(() => {

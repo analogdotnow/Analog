@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import * as React from "react";
 import { codeToHtml } from "shiki";
 
 import { cn } from "@/lib/utils";
@@ -37,9 +37,11 @@ function CodeBlockCode({
   className,
   ...props
 }: CodeBlockCodeProps) {
-  const [highlightedHtml, setHighlightedHtml] = useState<string | null>(null);
+  const [highlightedHtml, setHighlightedHtml] = React.useState<string | null>(
+    null,
+  );
 
-  useEffect(() => {
+  React.useEffect(() => {
     async function highlight() {
       if (!code) {
         setHighlightedHtml("<pre><code></code></pre>");

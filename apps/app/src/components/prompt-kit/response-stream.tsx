@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -37,24 +37,24 @@ function useTextStream({
   characterChunkSize,
   onError,
 }: UseTextStreamOptions): UseTextStreamResult {
-  const [displayedText, setDisplayedText] = useState("");
-  const [isComplete, setIsComplete] = useState(false);
-  const [segments, setSegments] = useState<{ text: string; index: number }[]>(
-    [],
-  );
+  const [displayedText, setDisplayedText] = React.useState("");
+  const [isComplete, setIsComplete] = React.useState(false);
+  const [segments, setSegments] = React.useState<
+    { text: string; index: number }[]
+  >([]);
 
-  const speedRef = useRef(speed);
-  const modeRef = useRef(mode);
-  const currentIndexRef = useRef(0);
-  const animationRef = useRef<number | null>(null);
-  const fadeDurationRef = useRef(fadeDuration);
-  const segmentDelayRef = useRef(segmentDelay);
-  const characterChunkSizeRef = useRef(characterChunkSize);
-  const streamRef = useRef<AbortController | null>(null);
-  const completedRef = useRef(false);
-  const onCompleteRef = useRef(onComplete);
+  const speedRef = React.useRef(speed);
+  const modeRef = React.useRef(mode);
+  const currentIndexRef = React.useRef(0);
+  const animationRef = React.useRef<number | null>(null);
+  const fadeDurationRef = React.useRef(fadeDuration);
+  const segmentDelayRef = React.useRef(segmentDelay);
+  const characterChunkSizeRef = React.useRef(characterChunkSize);
+  const streamRef = React.useRef<AbortController | null>(null);
+  const completedRef = React.useRef(false);
+  const onCompleteRef = React.useRef(onComplete);
 
-  useEffect(() => {
+  React.useEffect(() => {
     speedRef.current = speed;
     modeRef.current = mode;
     fadeDurationRef.current = fadeDuration;
@@ -62,11 +62,11 @@ function useTextStream({
     characterChunkSizeRef.current = characterChunkSize;
   }, [speed, mode, fadeDuration, segmentDelay, characterChunkSize]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     onCompleteRef.current = onComplete;
   }, [onComplete]);
 
-  const getChunkSize = useCallback(() => {
+  const getChunkSize = React.useCallback(() => {
     if (typeof characterChunkSizeRef.current === "number") {
       return Math.max(1, characterChunkSizeRef.current);
     }
@@ -83,7 +83,7 @@ function useTextStream({
     return 1;
   }, []);
 
-  const getProcessingDelay = useCallback(() => {
+  const getProcessingDelay = React.useCallback(() => {
     if (typeof segmentDelayRef.current === "number") {
       return Math.max(0, segmentDelayRef.current);
     }
@@ -92,7 +92,7 @@ function useTextStream({
     return Math.max(1, Math.round(100 / Math.sqrt(normalizedSpeed)));
   }, []);
 
-  const getFadeDuration = useCallback(() => {
+  const getFadeDuration = React.useCallback(() => {
     if (typeof fadeDurationRef.current === "number")
       return Math.max(10, fadeDurationRef.current);
 
@@ -100,7 +100,7 @@ function useTextStream({
     return Math.round(1000 / Math.sqrt(normalizedSpeed));
   }, []);
 
-  const getSegmentDelay = useCallback(() => {
+  const getSegmentDelay = React.useCallback(() => {
     if (typeof segmentDelayRef.current === "number")
       return Math.max(0, segmentDelayRef.current);
 
@@ -108,7 +108,7 @@ function useTextStream({
     return Math.max(1, Math.round(100 / Math.sqrt(normalizedSpeed)));
   }, []);
 
-  const updateSegments = useCallback(
+  const updateSegments = React.useCallback(
     (text: string) => {
       if (modeRef.current === "fade") {
         try {
@@ -139,7 +139,7 @@ function useTextStream({
     [onError],
   );
 
-  const markComplete = useCallback(() => {
+  const markComplete = React.useCallback(() => {
     if (!completedRef.current) {
       completedRef.current = true;
       setIsComplete(true);
@@ -147,7 +147,7 @@ function useTextStream({
     }
   }, []);
 
-  const reset = useCallback(() => {
+  const reset = React.useCallback(() => {
     currentIndexRef.current = 0;
     setDisplayedText("");
     setSegments([]);
@@ -160,7 +160,7 @@ function useTextStream({
     }
   }, []);
 
-  const processStringTypewriter = useCallback(
+  const processStringTypewriter = React.useCallback(
     (text: string) => {
       let lastFrameTime = 0;
 
@@ -203,7 +203,7 @@ function useTextStream({
     [getProcessingDelay, getChunkSize, updateSegments, markComplete],
   );
 
-  const processAsyncIterable = useCallback(
+  const processAsyncIterable = React.useCallback(
     async (stream: AsyncIterable<string>) => {
       const controller = new AbortController();
       streamRef.current = controller;
@@ -229,7 +229,7 @@ function useTextStream({
     [updateSegments, markComplete, onError],
   );
 
-  const startStreaming = useCallback(() => {
+  const startStreaming = React.useCallback(() => {
     reset();
 
     if (typeof textStream === "string") {
@@ -239,20 +239,20 @@ function useTextStream({
     }
   }, [textStream, reset, processStringTypewriter, processAsyncIterable]);
 
-  const pause = useCallback(() => {
+  const pause = React.useCallback(() => {
     if (animationRef.current) {
       cancelAnimationFrame(animationRef.current);
       animationRef.current = null;
     }
   }, []);
 
-  const resume = useCallback(() => {
+  const resume = React.useCallback(() => {
     if (typeof textStream === "string" && !isComplete) {
       processStringTypewriter(textStream);
     }
   }, [textStream, isComplete, processStringTypewriter]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     startStreaming();
 
     return () => {
@@ -301,7 +301,7 @@ function ResponseStream({
   segmentDelay,
   characterChunkSize,
 }: ResponseStreamProps) {
-  const animationEndRef = useRef<(() => void) | null>(null);
+  const animationEndRef = React.useRef<(() => void) | null>(null);
 
   const {
     displayedText,
@@ -319,11 +319,11 @@ function ResponseStream({
     characterChunkSize,
   });
 
-  useEffect(() => {
+  React.useEffect(() => {
     animationEndRef.current = onComplete ?? null;
   }, [onComplete]);
 
-  const handleLastSegmentAnimationEnd = useCallback(() => {
+  const handleLastSegmentAnimationEnd = React.useCallback(() => {
     if (animationEndRef.current && isComplete) {
       animationEndRef.current();
     }

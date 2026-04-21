@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import * as React from "react";
 import {
   CheckCircle,
   ChevronDown,
@@ -37,7 +37,7 @@ export type ToolProps = {
 };
 
 const Tool = ({ toolPart, defaultOpen = false, className }: ToolProps) => {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
+  const [isOpen, setIsOpen] = React.useState(defaultOpen);
 
   const { state, input, output, toolCallId } = toolPart;
 
