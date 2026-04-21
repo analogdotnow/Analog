@@ -1,0 +1,12 @@
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.2",
+  "base_commit_sha": "06bff317c22b7f2fc5c3cc6071de957b66c49e75",
+  "prompts": {},
+  "humans": {
+    "h_e2431fa0952ce3": {
+      "author": "Jean P.D. Meijer"
+    }
+  }
+}
