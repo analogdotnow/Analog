@@ -1,18 +1,21 @@
-import { useEffect, useState } from "react";
+import * as React from "react";
 import { createRivetKit } from "@rivetkit/react";
 import { ClientOnly, createFileRoute } from "@tanstack/react-router";
 
 import type { Registry } from "@repo/actors/registry";
 
 import { Button } from "@/components/ui/button";
+import { useRegisterTab } from "@/hooks/use-register-tab";
 
-export const Route = createFileRoute("/rivet")({
+export const Route = createFileRoute("/_app/rivet")({
   component: RivetPage,
 });
 
 function RivetPage() {
+  useRegisterTab({ type: "rivet", title: "Rivet", url: "/rivet" });
+
   return (
-    <div className="flex min-h-svh p-6">
+    <div className="flex h-full p-6">
       <ClientOnly
         fallback={
           <div className="text-sm text-muted-foreground">
@@ -31,7 +34,7 @@ const { useActor } = createRivetKit<Registry>(
 );
 
 function CounterTester() {
-  const [count, setCount] = useState(0);
+  const [count, setCount] = React.useState(0);
   const counter = useActor({
     name: "counter",
     key: ["my-counter"],
@@ -39,7 +42,7 @@ function CounterTester() {
 
   counter.useEvent("newCount", setCount);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (!counter.connection) {
       return;
     }
