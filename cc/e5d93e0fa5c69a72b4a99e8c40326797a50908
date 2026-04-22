@@ -1,0 +1,64 @@
+apps/app/src/lib/ai/registry.tsx
+  h_e2431fa0952ce3 26,58-70,147,150-152,156-161,163,165,167,169,171-175,209-220
+packages/ai/src/lib/upstash.ts
+  h_e2431fa0952ce3 1-8
+packages/ai/src/lib/executor/executor.ts
+  h_e2431fa0952ce3 1-158
+apps/web/src/components/tool-ui/github/schema.ts
+  h_e2431fa0952ce3 1-4,6-35,37-67,69-112,114-128,130-158
+apps/app/src/components/connect-dropdown.tsx
+  h_e2431fa0952ce3 1-204
+apps/app/src/components/github/repository-list-item.tsx
+  h_e2431fa0952ce3 1-165
+packages/ai/src/agents/interaction-agent.ts
+  h_e2431fa0952ce3 1-108
+packages/ai/src/lib/executor/index.ts
+  h_e2431fa0952ce3 1-3
+packages/ai/src/agents/reflexes/emails/delivery.ts
+  h_e2431fa0952ce3 1-73
+apps/web/src/components/tool-ui/chart/schema.ts
+  h_e2431fa0952ce3 1-7,9-28,30-122
+packages/ai/src/agents/post-execution-agent.ts
+  h_e2431fa0952ce3 1-109
+packages/ai/src/lib/executor/mcp-servers.ts
+  h_e2431fa0952ce3 1-107
+packages/ai/src/agents/execution-agent.ts
+  h_e2431fa0952ce3 1-87
+packages/ai/src/lib/catalog-plan.ts
+  h_e2431fa0952ce3 1-29
+packages/ai/src/lib/providers.ts
+  h_e2431fa0952ce3 1-50
+apps/web/src/components/tool-ui/parameter-slider/schema.ts
+  h_e2431fa0952ce3 1-8,11-30,32-85,87-90
+packages/ai/src/lib/gen-ui/render-tool.ts
+  h_e2431fa0952ce3 1-115
+apps/app/src/routes/api/executor/mcp/oauth/start.ts
+  h_e2431fa0952ce3 1-72
+packages/ai/src/lib/executor/executor-json-render.ts
+  h_e2431fa0952ce3 1-176
+packages/ai/src/agents/reflexes/emails/flight-reservation.ts
+  h_e2431fa0952ce3 1-74
+packages/ai/src/lib/executor/tools.ts
+  h_e2431fa0952ce3 1-146
+packages/ai/src/agents/generate-ui-agent.ts
+  h_e2431fa0952ce3 1-2,6,8-10,12-24,26-33,35-51,53-57,60-66,73,76-77,81,85,91-100,104
+packages/ai/src/agents/reflexes/email-classification.ts
+  h_e2431fa0952ce3 1-159
+packages/ai/src/lib/agents/compaction.ts
+  h_e2431fa0952ce3 1-78
+apps/web/src/lib/ai/registry.tsx
+  h_e2431fa0952ce3 6
+apps/app/src/routes/api/executor/mcp/oauth/callback.ts
+  h_e2431fa0952ce3 1-130
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.2",
+  "base_commit_sha": "cce5d93e0fa5c69a72b4a99e8c40326797a50908",
+  "prompts": {},
+  "humans": {
+    "h_e2431fa0952ce3": {
+      "author": "Jean P.D. Meijer"
+    }
+  }
+}
