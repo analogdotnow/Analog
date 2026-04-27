@@ -1,0 +1,49 @@
+packages/ai/src/agents/generate-ui-agent.ts
+  h_e2431fa0952ce3 1-2,6,8-10,12-24,26-33,35-51,53-57,60-66,73,76-77,81,85,91-100,104
+packages/ai/src/lib/executor/index.ts
+  h_e2431fa0952ce3 1-3
+apps/app/src/lib/ai/registry.tsx
+  h_e2431fa0952ce3 1-220
+apps/app/src/routes/api/executor/mcp/oauth/callback.ts
+  h_e2431fa0952ce3 1-130
+packages/ai/src/agents/reflexes/emails/flight-reservation.ts
+  h_e2431fa0952ce3 1-74
+packages/ai/src/lib/catalog-plan.ts
+  h_e2431fa0952ce3 1-28
+packages/ai/src/lib/gen-ui/catalog.ts
+  h_e2431fa0952ce3 1-4,16,18,20,22,24-46,50-51,67,69,100-101,104,109-119
+packages/ai/src/lib/providers.ts
+  h_e2431fa0952ce3 1-53
+packages/ai/src/lib/executor/mcp-servers.ts
+  h_e2431fa0952ce3 1-107
+packages/ai/src/agents/reflexes/emails/delivery.ts
+  h_e2431fa0952ce3 1-73
+packages/ai/src/lib/executor/tools.ts
+  h_e2431fa0952ce3 3-4,6-8,10,24,28,30-45,47-48,51,58,60-80,83,88-91,93-141,143,148-161
+packages/ai/src/agents/execution-agent.ts
+  h_e2431fa0952ce3 1-8,10-85
+packages/ai/src/agents/interaction-agent.ts
+  h_e2431fa0952ce3 1-5,9-14,16-45,48-53,55-106
+packages/ai/src/lib/executor/executor.ts
+  h_e2431fa0952ce3 1-16,18-42,44-104,106-156
+apps/app/src/components/connect-dropdown.tsx
+  h_e2431fa0952ce3 1-204
+packages/ai/src/agents/post-execution-agent.ts
+  h_e2431fa0952ce3 1-6,8-57
+packages/ai/src/lib/upstash.ts
+  h_e2431fa0952ce3 1-8
+apps/app/src/components/github/repository-list-item.tsx
+  h_e2431fa0952ce3 1-165
+packages/ai/src/lib/agents/compaction.ts
+  h_e2431fa0952ce3 1-78
+packages/ai/src/agents/reflexes/email-classification.ts
+  h_e2431fa0952ce3 1-154
+apps/app/src/routes/api/executor/mcp/oauth/start.ts
+  h_e2431fa0952ce3 1-56,58-72
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "344642b0537206bfa3e2edaf4cd497770f4b4f46",
+  "prompts": {}
+}
