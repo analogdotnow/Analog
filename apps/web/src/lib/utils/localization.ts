@@ -47,9 +47,7 @@ interface LocaleWithNonStandardWeekInfo extends Intl.Locale {
 }
 
 interface LocaleWithGetWeekInfo extends Intl.Locale {
-  getWeekInfo: () => {
-    firstDay: number;
-  };
+  getWeekInfo: () => Intl.WeekInfo;
 }
 
 export function getWeekStartsOn(): number {
