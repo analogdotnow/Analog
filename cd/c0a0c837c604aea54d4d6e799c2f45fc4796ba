@@ -1,0 +1,16 @@
+apps/app/src/components/prompt-kit/markdown.tsx
+  h_2169b0bd9b5c87 57-58,60-61,66,78-79,94
+apps/app/src/components/prompt-kit/message.tsx
+  h_2169b0bd9b5c87 1,96,110
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "cdc0a0c837c604aea54d4d6e799c2f45fc4796ba",
+  "prompts": {},
+  "humans": {
+    "h_2169b0bd9b5c87": {
+      "author": "Jean P.D. Meijer <jean@analoginterface.io>"
+    }
+  }
+}
