@@ -1,0 +1,24 @@
+apps/web/src/lib/utils/localization.ts
+  ai_agent 50
+apps/web/tsconfig.json
+  ai_agent 9,16
+tooling/typescript-config/base.json
+  ai_agent 18
+packages/auth/src/utils/account-linking.ts
+  ai_agent 11
+package.json
+  ai_agent 52
+bun.lock
+  ai_agent 561,4115,4875
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "b6cb2005efe1972bfd1f2be2332620b5cd054e4c",
+  "prompts": {},
+  "humans": {
+    "h_2169b0bd9b5c87": {
+      "author": "Jean P.D. Meijer <jean@analoginterface.io>"
+    }
+  }
+}
