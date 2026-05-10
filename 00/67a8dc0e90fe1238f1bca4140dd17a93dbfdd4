@@ -1,0 +1,34 @@
+apps/app/src/types/rivetkit-react.d.ts
+  s_f9eb2d861e14f2::t_6a2956aef77aa4 11-34
+  h_2169b0bd9b5c87 1
+  s_7cc7eb06c28feb::t_a6074c89681ded 3-10,35-80
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "0067a8dc0e90fe1238f1bca4140dd17a93dbfdd4",
+  "prompts": {},
+  "humans": {
+    "h_2169b0bd9b5c87": {
+      "author": "Jean P.D. Meijer <jean@analoginterface.io>"
+    }
+  },
+  "sessions": {
+    "s_7cc7eb06c28feb": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "d5065e10-ee20-4adb-86e9-e0e6bf798c5c",
+        "model": "gpt-5.5"
+      },
+      "human_author": null
+    },
+    "s_f9eb2d861e14f2": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "a8ba70a0-831b-4204-9148-bb1870c5e1ba",
+        "model": "gpt-5.5"
+      },
+      "human_author": null
+    }
+  }
+}
