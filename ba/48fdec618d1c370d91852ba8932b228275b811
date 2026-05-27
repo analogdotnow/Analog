@@ -1,0 +1,14 @@
+.gitignore
+  h_2169b0bd9b5c87 58-64
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "ba48fdec618d1c370d91852ba8932b228275b811",
+  "prompts": {},
+  "humans": {
+    "h_2169b0bd9b5c87": {
+      "author": "Jean P.D. Meijer <jean@analoginterface.io>"
+    }
+  }
+}
