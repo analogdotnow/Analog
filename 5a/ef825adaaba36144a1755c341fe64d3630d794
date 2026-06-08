@@ -1,0 +1,16 @@
+packages/actors/src/agent.ts
+  h_2169b0bd9b5c87 2-8,10-13
+packages/actors/src/registry.ts
+  h_2169b0bd9b5c87 6
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "5aef825adaaba36144a1755c341fe64d3630d794",
+  "prompts": {},
+  "humans": {
+    "h_2169b0bd9b5c87": {
+      "author": "Jean P.D. Meijer <jean@analoginterface.io>"
+    }
+  }
+}
