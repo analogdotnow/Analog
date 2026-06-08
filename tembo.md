@@ -55,7 +55,8 @@ bun run dev                 # Start all development servers (Next.js on :3000)
 bun run build               # Build all packages and apps
 bun run lint                # Run ESLint across monorepo
 bun run type-check          # Run TypeScript type checking
-bun run format              # Format code with Prettier
+bun run format              # Format code with Oxfmt
+bun run format:check        # Check formatting with Oxfmt
 ```
 
 ## Environment Variables
@@ -122,7 +123,7 @@ bun run format              # Format code with Prettier
 
 ### Import Order
 
-Follow the Prettier import sort configuration:
+Follow the Oxfmt import sort configuration:
 
 1. Built-in Node.js modules
 2. React and Next.js imports
@@ -134,7 +135,7 @@ Follow the Prettier import sort configuration:
 
 ### Formatting
 
-- **Use Prettier** - Run `bun run format` before committing
+- **Use Oxfmt** - Run `bun run format` before committing
 - **Follow conventional commits** - Format: `type(scope): message`
   - Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
   - Examples: `feat(calendar): add recurring event support`, `fix(auth): resolve token refresh issue`

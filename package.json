@@ -1,12 +1,14 @@
 {
   "name": "analog",
   "private": true,
+  "type": "module",
   "scripts": {
     "build": "dotenv -- turbo run build",
     "dev": "dotenv -- turbo run dev",
     "lint": "turbo run lint",
     "type-check": "turbo run type-check",
-    "format": "prettier --write \"**/*.{ts,tsx,css,md}\"",
+    "format": "oxfmt \"**/*.{ts,tsx,css,md}\"",
+    "format:check": "oxfmt --check \"**/*.{ts,tsx,css,md}\"",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
     "docker:clean": "docker compose down -v",
@@ -16,10 +18,8 @@
     "db:studio": "dotenv -- turbo run db:studio"
   },
   "devDependencies": {
-    "@ianvs/prettier-plugin-sort-imports": "^4.7.1",
     "dotenv-cli": "^11.0.0",
-    "prettier": "^3.8.3",
-    "prettier-plugin-tailwindcss": "^0.7.4",
+    "oxfmt": "^0.54.0",
     "turbo": "^2.9.16"
   },
   "packageManager": "bun@1.3.0",
