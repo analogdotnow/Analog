@@ -1,0 +1,28 @@
+apps/web/package.json
+  h_2169b0bd9b5c87 15-16,18,20,22-44,54,56-68,70,72,78,84,86,93,96-99,104,107,119,126,129,131,139,142,144,149-150
+tooling/eslint-config/package.json
+  s_a4298d2964b8db::t_e264c8d09720d9 14,19-22,24
+package.json
+  s_a4298d2964b8db::t_e264c8d09720d9 21-23,27-30,32,35-39,43-45,47,53,55
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "2d4a3b25994876c08c100a3d23a4da5923cf1548",
+  "prompts": {},
+  "humans": {
+    "h_2169b0bd9b5c87": {
+      "author": "Jean P.D. Meijer <jean@analoginterface.io>"
+    }
+  },
+  "sessions": {
+    "s_a4298d2964b8db": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ea802-decd-7322-9bf4-7174e0dd4568",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Jean P.D. Meijer <jean@analoginterface.io>"
+    }
+  }
+}
