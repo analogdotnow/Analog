@@ -23,5 +23,5 @@ jobs:
       - name: Install dependencies
         run: bun install -D --frozen-lockfile
 
-      - name: Run Prettier to check formatting
+      - name: Run type check
         run: bun run type-check
