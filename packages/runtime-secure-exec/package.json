@@ -13,8 +13,8 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@executor-js/codemode-core": "^0.1.0",
-    "ajv": "^8.17.1",
+    "@executor-js/codemode-core": "^1.4.33",
+    "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
     "effect": "catalog:",
     "secure-exec": "^0.2.1",

@@ -11,16 +11,16 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
-    "@next/eslint-plugin-next": "^16.2.3",
+    "@next/eslint-plugin-next": "^16.2.7",
     "eslint": "catalog:",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-only-warn": "^1.2.1",
     "eslint-plugin-react": "^7.37.5",
-    "eslint-plugin-react-hooks": "^7.0.1",
-    "eslint-plugin-turbo": "^2.9.6",
-    "eslint-plugin-zod": "^3.5.4",
-    "globals": "^17.5.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-turbo": "^2.9.16",
+    "eslint-plugin-zod": "^3.12.1",
+    "globals": "^17.6.0",
     "typescript": "catalog:",
-    "typescript-eslint": "^8.58.2"
+    "typescript-eslint": "^8.60.1"
   }
 }

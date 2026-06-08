@@ -13,7 +13,7 @@
     "type-check": "tsc --noEmit"
   },
   "peerDependencies": {
-    "@sentry/node": "^10.48.0",
+    "@sentry/node": "^10.56.0",
     "@trpc/server": "catalog:",
     "better-auth": "catalog:",
     "drizzle-orm": "catalog:",
