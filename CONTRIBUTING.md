@@ -4,8 +4,12 @@ Thank you for your interest in contributing to Analog! We aim to make the contri
 
 ## Getting Started
 
+### Prerequisites
+
+Ensure you have Bun and Docker Desktop installed.
+
 1. **Fork the repository**
-   - Visit [Analog repository](https://github.com/jeanmeijer/analog)
+   - Visit [Analog repository](https://github.com/analogdotnow/analog)
    - Click the "Fork" button in the top right
    - Clone your fork locally:
 
@@ -17,7 +21,7 @@ Thank you for your interest in contributing to Analog! We aim to make the contri
    - Add upstream remote:
 
      ```bash
-     git remote add upstream https://github.com/jeanmeijer/analog.git
+     git remote add upstream https://github.com/analogdotnow/analog.git
      ```
 
 2. **Install dependencies**:
@@ -67,6 +71,9 @@ Thank you for your interest in contributing to Analog! We aim to make the contri
 7. **Initialize the application**
 
 ```bash
+# Start the database
+bun run docker:up
+
 # Initialize the database
 bun run db:push
 
