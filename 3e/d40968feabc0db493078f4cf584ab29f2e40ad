@@ -1,0 +1,14 @@
+apps/web/next-env.d.ts
+  h_2169b0bd9b5c87 3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "3ed40968feabc0db493078f4cf584ab29f2e40ad",
+  "prompts": {},
+  "humans": {
+    "h_2169b0bd9b5c87": {
+      "author": "Jean P.D. Meijer <jean@analoginterface.io>"
+    }
+  }
+}
