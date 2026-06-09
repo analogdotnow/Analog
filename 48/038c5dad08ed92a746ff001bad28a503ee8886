@@ -1,0 +1,14 @@
+apps/app/vite.config.ts
+  h_2169b0bd9b5c87 10-12
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "48038c5dad08ed92a746ff001bad28a503ee8886",
+  "prompts": {},
+  "humans": {
+    "h_2169b0bd9b5c87": {
+      "author": "Jean P.D. Meijer <jean@analoginterface.io>"
+    }
+  }
+}
