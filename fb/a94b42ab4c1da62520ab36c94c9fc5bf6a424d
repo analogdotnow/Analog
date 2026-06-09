@@ -1,0 +1,24 @@
+CONTRIBUTING.md
+  s_b958eb743473bc::t_a949b693b7f812 7-10,12,24,74-76
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "fba94b42ab4c1da62520ab36c94c9fc5bf6a424d",
+  "prompts": {},
+  "humans": {
+    "h_2169b0bd9b5c87": {
+      "author": "Jean P.D. Meijer <jean@analoginterface.io>"
+    }
+  },
+  "sessions": {
+    "s_b958eb743473bc": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ead23-530c-7753-ac67-04093fc8e786",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Jean P.D. Meijer <jean@analoginterface.io>"
+    }
+  }
+}
