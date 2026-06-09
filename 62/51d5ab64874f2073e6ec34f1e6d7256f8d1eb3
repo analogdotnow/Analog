@@ -1,0 +1,14 @@
+LICENSE
+  h_2169b0bd9b5c87 3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "6251d5ab64874f2073e6ec34f1e6d7256f8d1eb3",
+  "prompts": {},
+  "humans": {
+    "h_2169b0bd9b5c87": {
+      "author": "Jean P.D. Meijer <jean@analoginterface.io>"
+    }
+  }
+}
