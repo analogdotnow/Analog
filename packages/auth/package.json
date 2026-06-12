@@ -24,7 +24,6 @@
     "@upstash/redis": "catalog:"
   },
   "devDependencies": {
-    "@microsoft/microsoft-graph-types": "catalog:",
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@types/node": "catalog:",

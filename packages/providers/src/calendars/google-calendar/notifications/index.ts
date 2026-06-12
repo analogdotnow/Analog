@@ -1,6 +1,6 @@
 import { Temporal } from "temporal-polyfill";
 
-import type { GoogleCalendar } from "@repo/google-calendar";
+import type { GoogleCalendar } from "@analog/google-calendar";
 
 import { ProviderError } from "../../../lib/provider-error";
 
@@ -11,7 +11,8 @@ export class GoogleCalendarNotifications {
 
   async subscribe(calendarId: string, webhookUrl: string) {
     return this.withErrorHandler("notifications.subscribe", async () => {
-      const response = await this.client.calendars.events.watch(calendarId, {
+      const response = await this.client.events.watch({
+        calendarId,
         id: crypto.randomUUID(),
         type: "web_hook",
         address: webhookUrl,
@@ -34,7 +35,7 @@ export class GoogleCalendarNotifications {
 
   async unsubscribe(subscriptionId: string, resourceId?: string) {
     return this.withErrorHandler("notifications.unsubscribe", async () => {
-      await this.client.stopWatching.stopWatching({
+      await this.client.channels.stop({
         id: subscriptionId,
         resourceId,
       });

@@ -1,4 +1,4 @@
-import type { GoogleCalendar } from "@repo/google-calendar";
+import type { GoogleCalendar } from "@analog/google-calendar";
 
 import type {
   CalendarProviderFreeBusy,
@@ -16,7 +16,7 @@ export class GoogleCalendarFreeBusy implements CalendarProviderFreeBusy {
     timeMax,
   }: CalendarProviderFreeBusyQueryOptions) {
     return this.withErrorHandler("freeBusy.query", async () => {
-      const response = await this.client.checkFreeBusy.checkFreeBusy({
+      const response = await this.client.freebusy.query({
         timeMin: timeMin.withTimeZone("UTC").toInstant().toString(),
         timeMax: timeMax.withTimeZone("UTC").toInstant().toString(),
         timeZone: "UTC",

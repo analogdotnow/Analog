@@ -1,5 +1,5 @@
 import { detectMeetingLink } from "@analog/meeting-links";
-import type { Event as MicrosoftEvent } from "@microsoft/microsoft-graph-types";
+import type { Event as MicrosoftEvent } from "@analog/microsoft-calendar";
 
 import type { Conference } from "../../../../interfaces";
 

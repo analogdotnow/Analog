@@ -1,5 +1,4 @@
-import { Client } from "@microsoft/microsoft-graph-client";
-import type { ScheduleInformation } from "@microsoft/microsoft-graph-types";
+import type { MicrosoftCalendar } from "@analog/microsoft-calendar";
 
 import type {
   CalendarProviderFreeBusy,
@@ -9,12 +8,8 @@ import { ProviderError } from "../../../lib/provider-error";
 import { toMicrosoftDate } from "../utils";
 import { parseScheduleItem } from "./utils";
 
-interface MicrosoftScheduleResponse {
-  value: ScheduleInformation[];
-}
-
 export class MicrosoftCalendarFreeBusy implements CalendarProviderFreeBusy {
-  constructor(private readonly graphClient: Client) {}
+  constructor(private readonly client: MicrosoftCalendar) {}
 
   async query({
     schedules,
@@ -22,18 +17,15 @@ export class MicrosoftCalendarFreeBusy implements CalendarProviderFreeBusy {
     timeMax,
   }: CalendarProviderFreeBusyQueryOptions) {
     return this.withErrorHandler("freeBusy.query", async () => {
-      const body = {
+      const response = await this.client.users.calendar.getSchedule({
+        userId: "me",
         schedules,
         startTime: toMicrosoftDate({ value: timeMin }),
         endTime: toMicrosoftDate({ value: timeMax }),
-      };
-
-      const response: MicrosoftScheduleResponse = await this.graphClient
-        .api("/me/calendar/getSchedule")
-        .post(body);
+      });
 
       // TODO: Handle errors
-      const data = response.value;
+      const data = response.value ?? [];
 
       return data.map((info) => ({
         scheduleId: info.scheduleId!,

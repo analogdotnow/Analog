@@ -30,13 +30,10 @@
   "dependencies": {
     "@analog/meeting-links": "workspace:*",
     "@composio/core": "catalog:",
-    "@microsoft/microsoft-graph-client": "catalog:",
     "@repo/ai": "workspace:*",
     "@repo/auth": "workspace:*",
     "@repo/db": "workspace:*",
     "@repo/env": "workspace:*",
-    "@repo/google-calendar": "workspace:*",
-    "@repo/google-people": "workspace:*",
     "@repo/google-tasks": "workspace:*",
     "@repo/providers": "workspace:*",
     "@repo/schemas": "workspace:*",
@@ -45,7 +42,6 @@
     "@upstash/redis": "catalog:"
   },
   "devDependencies": {
-    "@microsoft/microsoft-graph-types": "catalog:",
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@types/node": "catalog:",

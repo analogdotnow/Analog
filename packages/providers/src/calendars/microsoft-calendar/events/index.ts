@@ -1,9 +1,18 @@
-import { Client } from "@microsoft/microsoft-graph-client";
+import type {
+  DefaultCalendarCalendarViewDeltaInput,
+  DefaultCalendarCreateEventInput,
+  DefaultCalendarDeleteEventInput,
+  DefaultCalendarGetEventInput,
+  DefaultCalendarListEventInput,
+  DefaultCalendarUpdateEventInput,
+  DeltaCollectionResponse,
+  Event as MicrosoftEvent,
+  MicrosoftCalendar,
+} from "@analog/microsoft-calendar";
 
 import type { CalendarEventSyncItem } from "../../../interfaces";
 import type {
   CalendarProviderEvents,
-  CalendarProviderEventsAcceptOptions,
   CalendarProviderEventsCreateOptions,
   CalendarProviderEventsDeleteOptions,
   CalendarProviderEventsGetOptions,
@@ -15,24 +24,48 @@ import type {
   CalendarProviderSyncResult,
 } from "../../../interfaces/providers";
 import { ProviderError } from "../../../lib/provider-error";
-import type { MicrosoftEvent } from "../interfaces";
-import { calendarPath } from "../utils";
-import {
-  eventResponseStatusPath,
-  parseMicrosoftEvent,
-  toMicrosoftEvent,
-} from "./utils";
+import { parseMicrosoftEvent, toMicrosoftEvent } from "./utils";
 
 const MAX_EVENTS_PER_CALENDAR = 250;
 
-interface MicrosoftEventsResponse {
-  value: MicrosoftEvent[];
-  "@odata.nextLink"?: string | undefined;
-  "@odata.deltaLink"?: string | undefined;
-}
-
 export class MicrosoftCalendarEvents implements CalendarProviderEvents {
-  constructor(private readonly graphClient: Client) {}
+  constructor(private readonly client: MicrosoftCalendar) {}
+
+  // "primary" is an app-level alias for the default calendar, which Graph
+  // addresses via /me/calendar instead of /me/calendars/{id}.
+  private eventsFor(calendarId: string) {
+    if (calendarId === "primary") {
+      return this.client.users.calendar.events;
+    }
+
+    const events = this.client.users.calendars.events;
+
+    return {
+      list: (params: DefaultCalendarListEventInput) =>
+        events.list({ ...params, calendarId }),
+      get: (params: DefaultCalendarGetEventInput) =>
+        events.get({ ...params, calendarId }),
+      create: (params: DefaultCalendarCreateEventInput) =>
+        events.create({ ...params, calendarId }),
+      update: (params: DefaultCalendarUpdateEventInput) =>
+        events.update({ ...params, calendarId }),
+      delete: (params: DefaultCalendarDeleteEventInput) =>
+        events.delete({ ...params, calendarId }),
+    };
+  }
+
+  private calendarViewFor(calendarId: string) {
+    if (calendarId === "primary") {
+      return this.client.users.calendar.calendarView;
+    }
+
+    const calendarView = this.client.users.calendars.calendarView;
+
+    return {
+      delta: (params: DefaultCalendarCalendarViewDeltaInput) =>
+        calendarView.delta({ ...params, calendarId }),
+    };
+  }
 
   async list({
     calendar,
@@ -44,17 +77,18 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
       const startTime = timeMin.withTimeZone("UTC").toInstant().toString();
       const endTime = timeMax.withTimeZone("UTC").toInstant().toString();
 
-      const response: MicrosoftEventsResponse = await this.graphClient
-        .api(`${calendarPath(calendar.id)}/events`)
-        .header("Prefer", `outlook.timezone="${timeZone ?? "UTC"}"`)
-        .filter(
-          `start/dateTime ge '${startTime}' and end/dateTime le '${endTime}'`,
-        )
-        .orderby("start/dateTime")
-        .top(MAX_EVENTS_PER_CALENDAR)
-        .get();
+      const filter = `start/dateTime ge '${startTime}' and end/dateTime le '${endTime}'`;
+      const headers = { Prefer: `outlook.timezone="${timeZone ?? "UTC"}"` };
 
-      const events = response.value.map((event) =>
+      const response = await this.eventsFor(calendar.id).list({
+        userId: "me",
+        filter,
+        orderby: ["start/dateTime"],
+        top: MAX_EVENTS_PER_CALENDAR,
+        headers,
+      });
+
+      const events = (response.value ?? []).map((event) =>
         parseMicrosoftEvent({ event, calendar }),
       );
 
@@ -73,33 +107,40 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
       const startTime = timeMin?.withTimeZone("UTC").toInstant().toString();
       const endTime = timeMax?.withTimeZone("UTC").toInstant().toString();
 
+      const headers = { Prefer: `outlook.timezone="${timeZone}"` };
+
       let syncToken: string | undefined;
       let pageToken: string | undefined;
-
-      const baseUrl = new URL(
-        `${calendarPath(calendar.id)}/calendarView/delta`,
-      );
-
-      if (startTime) {
-        baseUrl.searchParams.set("startDateTime", startTime);
-      }
-
-      if (endTime) {
-        baseUrl.searchParams.set("endDateTime", endTime);
-      }
 
       const changes: CalendarEventSyncItem[] = [];
 
       do {
-        const url = pageToken ?? initialSyncToken ?? baseUrl.toString();
-        const response: MicrosoftEventsResponse = await this.graphClient
-          .api(url)
-          .header("Prefer", `outlook.timezone="${timeZone}"`)
-          .orderby("start/dateTime")
-          .top(MAX_EVENTS_PER_CALENDAR)
-          .get();
+        const link = pageToken ?? initialSyncToken;
 
-        for (const item of response.value) {
+        let response: DeltaCollectionResponse<MicrosoftEvent>;
+
+        if (link) {
+          response = await this.client.get<
+            DeltaCollectionResponse<MicrosoftEvent>
+          >(link, undefined, undefined, headers);
+        } else {
+          if (!startTime || !endTime) {
+            throw new Error(
+              "timeMin and timeMax are required for an initial sync",
+            );
+          }
+
+          response = await this.calendarViewFor(calendar.id).delta({
+            userId: "me",
+            startDateTime: startTime,
+            endDateTime: endTime,
+            orderby: ["start/dateTime"],
+            top: MAX_EVENTS_PER_CALENDAR,
+            headers,
+          });
+        }
+
+        for (const item of response.value ?? []) {
           if (!item?.id) {
             continue;
           }
@@ -128,8 +169,8 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
           });
         }
 
-        pageToken = response["@odata.nextLink"];
-        syncToken = response["@odata.deltaLink"];
+        pageToken = response["@odata.nextLink"] ?? undefined;
+        syncToken = response["@odata.deltaLink"] ?? undefined;
       } while (pageToken);
 
       return {
@@ -142,10 +183,13 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
 
   async get({ calendar, eventId, timeZone }: CalendarProviderEventsGetOptions) {
     return this.withErrorHandler("events.get", async () => {
-      const event: MicrosoftEvent = await this.graphClient
-        .api(`${calendarPath(calendar.id)}/events/${eventId}`)
-        .header("Prefer", `outlook.timezone="${timeZone ?? "UTC"}"`)
-        .get();
+      const headers = { Prefer: `outlook.timezone="${timeZone ?? "UTC"}"` };
+
+      const event = await this.eventsFor(calendar.id).get({
+        userId: "me",
+        eventId,
+        headers,
+      });
 
       return parseMicrosoftEvent({
         event,
@@ -156,9 +200,10 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
 
   async create({ calendar, event }: CalendarProviderEventsCreateOptions) {
     return this.withErrorHandler("events.create", async () => {
-      const createdEvent: MicrosoftEvent = await this.graphClient
-        .api(`${calendarPath(calendar.id)}/events`)
-        .post(toMicrosoftEvent(event));
+      const createdEvent = await this.eventsFor(calendar.id).create({
+        userId: "me",
+        event: toMicrosoftEvent(event),
+      });
 
       return parseMicrosoftEvent({
         event: createdEvent,
@@ -174,24 +219,19 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
   }: CalendarProviderEventsUpdateOptions) {
     return this.withErrorHandler("events.update", async () => {
       // First, perform the regular event update
-      const updatedEvent: MicrosoftEvent = await this.graphClient
-        .api(`${calendarPath(calendar.id)}/events/${eventId}`)
-        // TODO: Handle conflicts gracefully
-        // .headers({
-        //   ...(event.etag ? { "If-Match": event.etag } : {}),
-        // })
-        .patch(toMicrosoftEvent(event));
+      // TODO: Handle conflicts gracefully via If-Match with event.etag
+      const updatedEvent = await this.eventsFor(calendar.id).update({
+        userId: "me",
+        eventId,
+        event: toMicrosoftEvent(event),
+      });
 
       // Then, handle response status update if present (Microsoft-specific approach)
       if (event.response && event.response.status !== "unknown") {
-        await this.graphClient
-          .api(
-            `/me/events/${eventId}/${eventResponseStatusPath(event.response.status)}`,
-          )
-          .post({
-            comment: event.response.comment,
-            sendResponse: event.response.sendUpdate,
-          });
+        await this.respondToEvent(eventId, event.response.status, {
+          comment: event.response.comment,
+          sendResponse: event.response.sendUpdate,
+        });
       }
 
       return parseMicrosoftEvent({
@@ -203,17 +243,7 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
 
   async delete({ calendarId, eventId }: CalendarProviderEventsDeleteOptions) {
     await this.withErrorHandler("events.delete", async () => {
-      await this.graphClient
-        .api(`${calendarPath(calendarId)}/events/${eventId}`)
-        .delete();
-    });
-  }
-
-  async acceptEvent({ eventId }: CalendarProviderEventsAcceptOptions) {
-    return this.withErrorHandler("acceptEvent", async () => {
-      await this.graphClient
-        .api(`/me/events/${eventId}/accept`)
-        .post({ sendResponse: true });
+      await this.eventsFor(calendarId).delete({ userId: "me", eventId });
     });
   }
 
@@ -249,11 +279,45 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
         return;
       }
 
-      await this.graphClient
-        .api(
-          `/me/events/${eventId}/${eventResponseStatusPath(response.status)}`,
-        )
-        .post({ comment: response.comment, sendResponse: response.sendUpdate });
+      await this.respondToEvent(eventId, response.status, {
+        comment: response.comment,
+        sendResponse: response.sendUpdate,
+      });
+    });
+  }
+
+  private async respondToEvent(
+    eventId: string,
+    status: "accepted" | "tentative" | "declined",
+    options: { comment?: string | null; sendResponse?: boolean | null },
+  ): Promise<void> {
+    if (status === "accepted") {
+      await this.client.users.events.accept({
+        userId: "me",
+        eventId,
+        comment: options.comment,
+        sendResponse: options.sendResponse,
+      });
+
+      return;
+    }
+
+    if (status === "tentative") {
+      await this.client.users.events.tentativelyAccept({
+        userId: "me",
+        eventId,
+        comment: options.comment,
+        sendResponse: options.sendResponse,
+      });
+
+      return;
+    }
+
+    await this.client.users.events.decline({
+      userId: "me",
+      eventId,
+      comment: options.comment,
+      sendResponse: options.sendResponse,
     });
   }
 

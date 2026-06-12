@@ -1,4 +1,4 @@
-import type { Calendar as MicrosoftCalendar } from "@microsoft/microsoft-graph-types";
+import type { Calendar as MicrosoftCalendar } from "@analog/microsoft-calendar";
 
 import type { Calendar } from "../../../interfaces";
 

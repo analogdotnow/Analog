@@ -1,4 +1,4 @@
-import { GoogleCalendar } from "@repo/google-calendar";
+import { GoogleCalendar } from "@analog/google-calendar";
 
 import type { CalendarProvider } from "../interfaces/providers";
 import { GoogleCalendarCalendars } from "./google-calendar/calendars";
@@ -27,9 +27,7 @@ export class GoogleCalendarProvider implements CalendarProvider {
     providerAccountId,
   }: GoogleCalendarProviderOptions) {
     this.providerAccountId = providerAccountId;
-    this.client = new GoogleCalendar({
-      accessToken,
-    });
+    this.client = new GoogleCalendar(accessToken);
     this.calendars = new GoogleCalendarCalendars(
       this.client,
       providerAccountId,

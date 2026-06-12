@@ -1,8 +1,8 @@
 import type {
-  Event as MicrosoftEvent,
   Attendee as MicrosoftEventAttendee,
+  Event as MicrosoftEvent,
   ResponseStatus as MicrosoftEventAttendeeResponseStatus,
-} from "@microsoft/microsoft-graph-types";
+} from "@analog/microsoft-calendar";
 import { Temporal } from "temporal-polyfill";
 
 import type {
@@ -86,7 +86,6 @@ export function parseMicrosoftEvent({
     availability: event.showAs === "free" ? "free" : "busy",
     attendees: event.attendees?.map(parseMicrosoftAttendee) ?? [],
     url: event.webLink ?? undefined,
-    // @ts-expect-error -- type from Graph API package is incorrect
     etag: event["@odata.etag"],
     calendar: {
       id: calendar.id,
@@ -152,24 +151,6 @@ export function toMicrosoftEvent(
     ...(event.conference ? toMicrosoftConferenceData(event.conference) : {}),
     showAs: event.availability,
   };
-}
-
-export function eventResponseStatusPath(
-  status: "accepted" | "tentative" | "declined",
-): "accept" | "tentativelyAccept" | "decline" {
-  if (status === "accepted") {
-    return `accept`;
-  }
-
-  if (status === "tentative") {
-    return `tentativelyAccept`;
-  }
-
-  if (status === "declined") {
-    return `decline`;
-  }
-
-  throw new Error("Invalid status");
 }
 
 function parseMicrosoftAttendeeStatus(
