@@ -286,7 +286,7 @@ export function createEventParams(
 export function updateEventParams(
   event: CreateEventInput | UpdateEventInput,
 ): GoogleCalendarEventUpdateParams {
-  return {
+  const params: GoogleCalendarEventUpdateParams = {
     id: event.id,
     summary: event.title,
     description: event.description,
@@ -304,6 +304,13 @@ export function updateEventParams(
     recurringEventId: event.recurringEventId,
     calendarId: event.calendar.id,
   };
+
+  // update() spreads these params over the freshly fetched event before a
+  // full-replace PUT; an undefined value would override the fetched field and
+  // clear it on Google's side (explicit clears use null or [] instead).
+  return Object.fromEntries(
+    Object.entries(params).filter(([, value]) => value !== undefined),
+  ) as GoogleCalendarEventUpdateParams;
 }
 
 export function toGoogleCalendarAttendeeResponseStatus(
@@ -314,6 +321,30 @@ export function toGoogleCalendarAttendeeResponseStatus(
   }
 
   return status;
+}
+
+export function attendeesWithSelfResponse(
+  attendees: GoogleCalendarEventAttendee[] | undefined,
+  status: AttendeeStatus,
+): GoogleCalendarEventAttendee[] {
+  if (!attendees) {
+    throw new Error("Event has no attendees");
+  }
+
+  const selfIndex = attendees.findIndex((attendee) => attendee.self);
+
+  if (selfIndex === -1) {
+    throw new Error("User is not an attendee");
+  }
+
+  const updated = [...attendees];
+
+  updated[selfIndex] = {
+    ...updated[selfIndex],
+    responseStatus: toGoogleCalendarAttendeeResponseStatus(status),
+  };
+
+  return updated;
 }
 
 function parseGoogleCalendarAttendeeStatus(

@@ -1,5 +1,8 @@
-import { Client } from "@microsoft/microsoft-graph-client";
-import type { Calendar as MicrosoftCalendar } from "@microsoft/microsoft-graph-types";
+import type {
+  GetDefaultCalendarInput,
+  MicrosoftCalendar,
+  UpdateDefaultCalendarInput,
+} from "@analog/microsoft-calendar";
 
 import type { Calendar } from "../../../interfaces";
 import type {
@@ -9,24 +12,48 @@ import type {
   CalendarProviderCalendarsUpdateOptions,
 } from "../../../interfaces/providers";
 import { ProviderError } from "../../../lib/provider-error";
-import { calendarPath } from "../utils";
 import { parseMicrosoftCalendar } from "./utils";
 
 export class MicrosoftCalendarCalendars {
   constructor(
-    private readonly graphClient: Client,
+    private readonly client: MicrosoftCalendar,
     private readonly providerAccountId: string,
   ) {}
 
+  // "primary" is an app-level alias for the default calendar, which Graph
+  // addresses via /me/calendar instead of /me/calendars/{id}.
+  private calendarFor(calendarId: string) {
+    if (calendarId === "primary") {
+      return this.client.users.calendar;
+    }
+
+    const calendars = this.client.users.calendars;
+
+    return {
+      get: (params: GetDefaultCalendarInput) =>
+        calendars.get({ ...params, calendarId }),
+      update: (params: UpdateDefaultCalendarInput) =>
+        calendars.update({ ...params, calendarId }),
+    };
+  }
+
   async list(): Promise<Calendar[]> {
     return this.withErrorHandler("calendars.list", async () => {
-      const response: { value: MicrosoftCalendar[] } = await this.graphClient
-        .api(
-          "/me/calendars?$select=id,name,isDefaultCalendar,canEdit,hexColor,isRemovable,owner,calendarPermissions",
-        )
-        .get();
+      const response = await this.client.users.calendars.list({
+        userId: "me",
+        select: [
+          "id",
+          "name",
+          "isDefaultCalendar",
+          "canEdit",
+          "hexColor",
+          "isRemovable",
+          "owner",
+          "calendarPermissions",
+        ],
+      });
 
-      return response.value.map((calendar) =>
+      return (response.value ?? []).map((calendar) =>
         parseMicrosoftCalendar({
           calendar,
           providerAccountId: this.providerAccountId,
@@ -39,12 +66,20 @@ export class MicrosoftCalendarCalendars {
     calendarId,
   }: CalendarProviderCalendarsGetOptions): Promise<Calendar> {
     return this.withErrorHandler("calendars.get", async () => {
-      const calendar: MicrosoftCalendar = await this.graphClient
-        .api(calendarPath(calendarId))
-        .select(
-          "id,name,isDefaultCalendar,canEdit,hexColor,owner,calendarPermissions",
-        )
-        .get();
+      const select = [
+        "id",
+        "name",
+        "isDefaultCalendar",
+        "canEdit",
+        "hexColor",
+        "owner",
+        "calendarPermissions",
+      ];
+
+      const calendar = await this.calendarFor(calendarId).get({
+        userId: "me",
+        select,
+      });
 
       return parseMicrosoftCalendar({
         calendar,
@@ -57,11 +92,12 @@ export class MicrosoftCalendarCalendars {
     calendar,
   }: CalendarProviderCalendarsCreateOptions): Promise<Calendar> {
     return this.withErrorHandler("calendars.create", async () => {
-      const createdCalendar: MicrosoftCalendar = await this.graphClient
-        .api("/me/calendars")
-        .post({
+      const createdCalendar = await this.client.users.calendars.create({
+        userId: "me",
+        calendar: {
           name: calendar.name,
-        });
+        },
+      });
 
       return parseMicrosoftCalendar({
         calendar: createdCalendar,
@@ -75,9 +111,10 @@ export class MicrosoftCalendarCalendars {
     calendar,
   }: CalendarProviderCalendarsUpdateOptions): Promise<Calendar> {
     return this.withErrorHandler("calendars.update", async () => {
-      const updatedCalendar: MicrosoftCalendar = await this.graphClient
-        .api(calendarPath(calendarId))
-        .patch(calendar);
+      const updatedCalendar = await this.calendarFor(calendarId).update({
+        userId: "me",
+        calendar: { name: calendar.name },
+      });
 
       return parseMicrosoftCalendar({
         calendar: updatedCalendar,
@@ -90,7 +127,13 @@ export class MicrosoftCalendarCalendars {
     calendarId,
   }: CalendarProviderCalendarsDeleteOptions): Promise<void> {
     return this.withErrorHandler("calendars.delete", async () => {
-      await this.graphClient.api(calendarPath(calendarId)).delete();
+      // Graph forbids deleting the default calendar (isRemovable: false), so
+      // fail with a clear error instead of sending the literal id "primary".
+      if (calendarId === "primary") {
+        throw new Error("The default calendar cannot be deleted");
+      }
+
+      await this.client.users.calendars.delete({ userId: "me", calendarId });
     });
   }
 

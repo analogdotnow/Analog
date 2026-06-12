@@ -1,4 +1,4 @@
-import type { ScheduleItem } from "@microsoft/microsoft-graph-types";
+import type { ScheduleItem } from "@analog/microsoft-calendar";
 
 import { parseDateTime } from "../utils";
 

@@ -29,12 +29,6 @@ export function parseDateTime(dateTime: string, timeZone: string) {
   );
 }
 
-export function calendarPath(calendarId: string) {
-  return calendarId === "primary"
-    ? "/me/calendar"
-    : `/me/calendars/${calendarId}`;
-}
-
 interface ToMicrosoftDateOptions {
   value: Temporal.PlainDate | Temporal.Instant | Temporal.ZonedDateTime;
   originalTimeZone?: {

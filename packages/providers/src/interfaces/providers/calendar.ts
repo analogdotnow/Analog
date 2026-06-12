@@ -88,11 +88,6 @@ export interface CalendarProviderEventsDeleteOptions {
   sendUpdate: boolean;
 }
 
-export interface CalendarProviderEventsAcceptOptions {
-  calendarId: string;
-  eventId: string;
-}
-
 export interface CalendarProviderEventsRespondOptions {
   calendarId: string;
   eventId: string;
@@ -118,7 +113,6 @@ export interface CalendarProviderEvents {
   create(options: CalendarProviderEventsCreateOptions): Promise<CalendarEvent>;
   update(options: CalendarProviderEventsUpdateOptions): Promise<CalendarEvent>;
   delete(options: CalendarProviderEventsDeleteOptions): Promise<void>;
-  acceptEvent(options: CalendarProviderEventsAcceptOptions): Promise<void>;
   respond(options: CalendarProviderEventsRespondOptions): Promise<void>;
   move(options: CalendarProviderEventsMoveOptions): Promise<CalendarEvent>;
 }

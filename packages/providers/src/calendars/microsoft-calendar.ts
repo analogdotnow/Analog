@@ -1,4 +1,4 @@
-import { Client } from "@microsoft/microsoft-graph-client";
+import { MicrosoftCalendar } from "@analog/microsoft-calendar";
 
 import type { CalendarProvider } from "../interfaces/providers";
 import { MicrosoftCalendarCalendars } from "./microsoft-calendar/calendars";
@@ -13,7 +13,7 @@ interface MicrosoftCalendarProviderOptions {
 export class MicrosoftCalendarProvider implements CalendarProvider {
   public readonly providerId = "microsoft" as const;
   public readonly providerAccountId: string;
-  private graphClient: Client;
+  private client: MicrosoftCalendar;
   public readonly calendars: MicrosoftCalendarCalendars;
   public readonly events: MicrosoftCalendarEvents;
   public readonly freeBusy: MicrosoftCalendarFreeBusy;
@@ -23,16 +23,12 @@ export class MicrosoftCalendarProvider implements CalendarProvider {
     providerAccountId,
   }: MicrosoftCalendarProviderOptions) {
     this.providerAccountId = providerAccountId;
-    this.graphClient = Client.initWithMiddleware({
-      authProvider: {
-        getAccessToken: async () => accessToken,
-      },
-    });
+    this.client = new MicrosoftCalendar(accessToken);
     this.calendars = new MicrosoftCalendarCalendars(
-      this.graphClient,
+      this.client,
       providerAccountId,
     );
-    this.events = new MicrosoftCalendarEvents(this.graphClient);
-    this.freeBusy = new MicrosoftCalendarFreeBusy(this.graphClient);
+    this.events = new MicrosoftCalendarEvents(this.client);
+    this.freeBusy = new MicrosoftCalendarFreeBusy(this.client);
   }
 }

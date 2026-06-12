@@ -1,4 +1,8 @@
-import { APIError, ConflictError, GoogleCalendar } from "@repo/google-calendar";
+import {
+  APIError,
+  ConflictError,
+  GoogleCalendar,
+} from "@analog/google-calendar";
 
 import type {
   Calendar,
@@ -7,7 +11,6 @@ import type {
 } from "../../../interfaces";
 import type {
   CalendarProviderEvents,
-  CalendarProviderEventsAcceptOptions,
   CalendarProviderEventsCreateOptions,
   CalendarProviderEventsDeleteOptions,
   CalendarProviderEventsGetOptions,
@@ -20,9 +23,9 @@ import type {
 } from "../../../interfaces/providers";
 import { ProviderError } from "../../../lib/provider-error";
 import {
+  attendeesWithSelfResponse,
   createEventParams,
   parseGoogleCalendarEvent,
-  toGoogleCalendarAttendeeResponseStatus,
   updateEventParams,
 } from "./utils";
 
@@ -38,7 +41,8 @@ export class GoogleCalendarEvents implements CalendarProviderEvents {
     timeZone,
   }: CalendarProviderEventsListOptions) {
     return this.withErrorHandler("events.list", async () => {
-      const { items } = await this.client.calendars.events.list(calendar.id, {
+      const { items } = await this.client.events.list({
+        calendarId: calendar.id,
         timeMin: timeMin.withTimeZone("UTC").toInstant().toString(),
         timeMax: timeMax.withTimeZone("UTC").toInstant().toString(),
         singleEvents: true,
@@ -89,7 +93,8 @@ export class GoogleCalendarEvents implements CalendarProviderEvents {
 
       do {
         const { items, nextSyncToken, nextPageToken } =
-          await this.client.calendars.events.list(calendar.id, {
+          await this.client.events.list({
+            calendarId: calendar.id,
             singleEvents: true,
             showDeleted: true,
             maxResults: MAX_EVENTS_PER_CALENDAR,
@@ -195,8 +200,9 @@ export class GoogleCalendarEvents implements CalendarProviderEvents {
 
   async get({ calendar, eventId, timeZone }: CalendarProviderEventsGetOptions) {
     return this.withErrorHandler("events.get", async () => {
-      const event = await this.client.calendars.events.retrieve(eventId, {
+      const event = await this.client.events.get({
         calendarId: calendar.id,
+        eventId,
       });
 
       return parseGoogleCalendarEvent({
@@ -210,10 +216,10 @@ export class GoogleCalendarEvents implements CalendarProviderEvents {
   async create({ calendar, event }: CalendarProviderEventsCreateOptions) {
     return this.withErrorHandler("events.create", async () => {
       try {
-        const createdEvent = await this.client.calendars.events.create(
-          calendar.id,
-          createEventParams(event),
-        );
+        const createdEvent = await this.client.events.insert({
+          calendarId: calendar.id,
+          ...createEventParams(event),
+        });
 
         return parseGoogleCalendarEvent({
           calendar,
@@ -240,12 +246,10 @@ export class GoogleCalendarEvents implements CalendarProviderEvents {
     event,
   }: CalendarProviderEventsUpdateOptions) {
     return this.withErrorHandler("events.update", async () => {
-      const existingEvent = await this.client.calendars.events.retrieve(
+      const existingEvent = await this.client.events.get({
+        calendarId: calendar.id,
         eventId,
-        {
-          calendarId: calendar.id,
-        },
-      );
+      });
 
       let eventToUpdate = {
         ...existingEvent,
@@ -254,39 +258,21 @@ export class GoogleCalendarEvents implements CalendarProviderEvents {
 
       // Handle response status update within the same call for Google Calendar
       if (event.response && event.response.status !== "unknown") {
-        if (!existingEvent.attendees) {
-          throw new Error("Event has no attendees");
-        }
-
-        const selfIndex = existingEvent.attendees.findIndex(
-          (attendee) => attendee.self,
-        );
-
-        if (selfIndex === -1) {
-          throw new Error("User is not an attendee");
-        }
-
-        const updatedAttendees = [...existingEvent.attendees];
-        updatedAttendees[selfIndex] = {
-          ...updatedAttendees[selfIndex],
-          responseStatus: toGoogleCalendarAttendeeResponseStatus(
-            event.response.status,
-          ),
-        };
-
         eventToUpdate = {
           ...eventToUpdate,
-          attendees: updatedAttendees,
+          attendees: attendeesWithSelfResponse(
+            existingEvent.attendees,
+            event.response.status,
+          ),
           sendUpdates: event.response.sendUpdate ? "all" : "none",
         };
       }
 
-      const updatedEvent = await this.client.calendars.events.update(
+      // TODO: Handle conflicts gracefully via If-Match with event.etag
+      const updatedEvent = await this.client.events.update({
         eventId,
-        eventToUpdate,
-        // TODO: Handle conflicts gracefully
-        // event.etag ? { headers: { "If-Match": event.etag } } : undefined,
-      );
+        ...eventToUpdate,
+      });
 
       return parseGoogleCalendarEvent({
         calendar,
@@ -301,39 +287,10 @@ export class GoogleCalendarEvents implements CalendarProviderEvents {
     sendUpdate,
   }: CalendarProviderEventsDeleteOptions) {
     return this.withErrorHandler("events.delete", async () => {
-      await this.client.calendars.events.delete(eventId, {
+      await this.client.events.delete({
         calendarId,
+        eventId,
         sendUpdates: sendUpdate ? "all" : "none",
-      });
-    });
-  }
-
-  async acceptEvent({
-    calendarId,
-    eventId,
-  }: CalendarProviderEventsAcceptOptions) {
-    return this.withErrorHandler("acceptEvent", async () => {
-      const event = await this.client.calendars.events.retrieve(eventId, {
-        calendarId,
-      });
-
-      const attendees = event.attendees ?? [];
-      const selfIndex = attendees.findIndex((a) => a.self);
-
-      if (selfIndex >= 0) {
-        attendees[selfIndex] = {
-          ...attendees[selfIndex],
-          responseStatus: "accepted",
-        };
-      } else {
-        attendees.push({ self: true, responseStatus: "accepted" });
-      }
-
-      await this.client.calendars.events.update(eventId, {
-        ...event,
-        calendarId,
-        attendees,
-        sendUpdates: "all",
       });
     });
   }
@@ -345,8 +302,9 @@ export class GoogleCalendarEvents implements CalendarProviderEvents {
     sendUpdate = true,
   }: CalendarProviderEventsMoveOptions) {
     return this.withErrorHandler("events.move", async () => {
-      const moved = await this.client.calendars.events.move(eventId, {
+      const moved = await this.client.events.move({
         calendarId: sourceCalendar.id,
+        eventId,
         destination: destinationCalendar.id,
         sendUpdates: sendUpdate ? "all" : "none",
       });
@@ -368,28 +326,13 @@ export class GoogleCalendarEvents implements CalendarProviderEvents {
         return;
       }
 
-      const event = await this.client.calendars.events.retrieve(eventId, {
-        calendarId,
-      });
+      const event = await this.client.events.get({ calendarId, eventId });
 
-      if (!event.attendees) {
-        throw new Error("Event has no attendees");
-      }
-
-      const selfIndex = event.attendees.findIndex((attendee) => attendee.self);
-
-      if (selfIndex === -1) {
-        throw new Error("User is not an attendee");
-      }
-
-      event.attendees[selfIndex] = {
-        ...event.attendees[selfIndex],
-        responseStatus: toGoogleCalendarAttendeeResponseStatus(response.status),
-      };
-
-      await this.client.calendars.events.update(eventId, {
+      await this.client.events.update({
         ...event,
         calendarId,
+        eventId,
+        attendees: attendeesWithSelfResponse(event.attendees, response.status),
         sendUpdates: response.sendUpdate ? "all" : "none",
       });
     });

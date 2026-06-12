@@ -1,4 +1,4 @@
-import { GoogleCalendar } from "@repo/google-calendar";
+import { GoogleCalendar } from "@analog/google-calendar";
 
 import { parseConferenceData } from "../calendars/google-calendar/events/conferences/utils";
 import type { Conference, ConferencingProvider } from "../interfaces";
@@ -17,9 +17,7 @@ export class GoogleMeetProvider implements ConferencingProvider {
 
   constructor({ accessToken, providerAccountId }: GoogleMeetProviderOptions) {
     this.providerAccountId = providerAccountId;
-    this.client = new GoogleCalendar({
-      accessToken,
-    });
+    this.client = new GoogleCalendar(accessToken);
   }
 
   async createConference({
@@ -31,15 +29,14 @@ export class GoogleMeetProvider implements ConferencingProvider {
         throw new Error("Google Meet requires a calendarId and eventId");
       }
 
-      const existingEvent = await this.client.calendars.events.retrieve(
-        eventId,
-        {
-          calendarId,
-        },
-      );
-
-      const updatedEvent = await this.client.calendars.events.update(eventId, {
+      const existingEvent = await this.client.events.get({
         calendarId,
+        eventId,
+      });
+
+      const updatedEvent = await this.client.events.update({
+        calendarId,
+        eventId,
         ...existingEvent,
         conferenceDataVersion: 1, // This ensures the conference data is created, DO NOT REMOVE
         conferenceData: {

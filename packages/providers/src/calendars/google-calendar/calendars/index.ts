@@ -1,4 +1,4 @@
-import type { GoogleCalendar } from "@repo/google-calendar";
+import type { GoogleCalendar } from "@analog/google-calendar";
 
 import type { Calendar } from "../../../interfaces";
 import type {
@@ -18,7 +18,7 @@ export class GoogleCalendarCalendars {
 
   async list(): Promise<Calendar[]> {
     return this.withErrorHandler("calendars.list", async () => {
-      const { items } = await this.client.users.me.calendarList.list();
+      const { items } = await this.client.calendarList.list({});
 
       if (!items) {
         return [];
@@ -37,8 +37,7 @@ export class GoogleCalendarCalendars {
     calendarId,
   }: CalendarProviderCalendarsGetOptions): Promise<Calendar> {
     return this.withErrorHandler("calendars.get", async () => {
-      const calendar =
-        await this.client.users.me.calendarList.retrieve(calendarId);
+      const calendar = await this.client.calendarList.get({ calendarId });
 
       return parseGoogleCalendarCalendarListEntry({
         providerAccountId: this.providerAccountId,
@@ -51,7 +50,7 @@ export class GoogleCalendarCalendars {
     calendar,
   }: CalendarProviderCalendarsCreateOptions): Promise<Calendar> {
     return this.withErrorHandler("calendars.create", async () => {
-      const createdCalendar = await this.client.calendars.create({
+      const createdCalendar = await this.client.calendars.insert({
         summary: calendar.name,
         description: calendar.description,
         timeZone: calendar.timeZone,
@@ -69,7 +68,8 @@ export class GoogleCalendarCalendars {
     calendar,
   }: CalendarProviderCalendarsUpdateOptions): Promise<Calendar> {
     return this.withErrorHandler("calendars.update", async () => {
-      const updatedCalendar = await this.client.calendars.update(calendarId, {
+      const updatedCalendar = await this.client.calendars.update({
+        calendarId,
         summary: calendar.name,
       });
 
@@ -84,7 +84,7 @@ export class GoogleCalendarCalendars {
     calendarId,
   }: CalendarProviderCalendarsDeleteOptions): Promise<void> {
     return this.withErrorHandler("calendars.delete", async () => {
-      await this.client.calendars.delete(calendarId);
+      await this.client.calendars.delete({ calendarId });
     });
   }
 

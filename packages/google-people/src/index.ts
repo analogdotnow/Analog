@@ -1,22 +1,8 @@
-// File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
-
-export { GooglePeople as default } from "./client";
-
-export { type Uploadable, toFile } from "./core/uploads";
-export { APIPromise } from "./core/api-promise";
-export { GooglePeople, type ClientOptions } from "./client";
-export {
-  GooglePeopleError,
-  APIError,
-  APIConnectionError,
-  APIConnectionTimeoutError,
-  APIUserAbortError,
-  NotFoundError,
-  ConflictError,
-  RateLimitError,
-  BadRequestError,
-  AuthenticationError,
-  InternalServerError,
-  PermissionDeniedError,
-  UnprocessableEntityError,
-} from "./core/error";
+export { GooglePeople } from "./client";
+export * from "./error";
+export type * from "./interfaces";
+export type * from "./contact-groups/interfaces";
+export type * from "./contact-groups/members/interfaces";
+export type * from "./other-contacts/interfaces";
+export type * from "./people/interfaces";
+export type * from "./people/connections/interfaces";

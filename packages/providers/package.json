@@ -22,17 +22,15 @@
     "zod": "catalog:"
   },
   "dependencies": {
+    "@analog/google-calendar": "workspace:*",
     "@analog/meeting-links": "workspace:*",
-    "@microsoft/microsoft-graph-client": "catalog:",
+    "@analog/microsoft-calendar": "workspace:*",
     "@repo/db": "workspace:*",
     "@repo/env": "workspace:*",
-    "@repo/google-calendar": "workspace:*",
-    "@repo/google-people": "workspace:*",
     "@repo/google-tasks": "workspace:*",
     "@repo/temporal": "workspace:*"
   },
   "devDependencies": {
-    "@microsoft/microsoft-graph-types": "catalog:",
     "@repo/schemas": "workspace:*",
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
