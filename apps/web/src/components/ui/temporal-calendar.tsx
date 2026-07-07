@@ -106,8 +106,6 @@ function DayCell({ date, month, timeZone, locale, onSelect }: DayCellProps) {
   );
 }
 
-const MemoizedDayCell = React.memo(DayCell);
-
 interface MonthGridProps {
   month: Temporal.PlainYearMonth;
   onSelect: (date: Temporal.PlainDate) => void;
@@ -157,7 +155,7 @@ function MonthGrid({ month, onSelect }: MonthGridProps) {
       {weeks.map((week, weekIndex) => (
         <div key={weekIndex} role="row" className="grid grid-cols-7">
           {week.map((day) => (
-            <MemoizedDayCell
+            <DayCell
               key={day.toString()}
               date={day}
               month={month}
@@ -171,8 +169,6 @@ function MonthGrid({ month, onSelect }: MonthGridProps) {
     </div>
   );
 }
-
-const MemoizedMonthGrid = React.memo(MonthGrid);
 
 function getWeekdayNames(
   weekStartsOn: 1 | 2 | 3 | 4 | 5 | 6 | 7,
@@ -241,7 +237,7 @@ export function TemporalCalendar({
         <Caption>{caption}</Caption>
         <NavNext onClick={onNextMonth} />
       </div>
-      <MemoizedMonthGrid month={month} onSelect={onDateSelect} />
+      <MonthGrid month={month} onSelect={onDateSelect} />
     </div>
   );
 }

@@ -6,16 +6,18 @@ import * as React from "react";
 
 import { ContainerProvider } from "@/components/calendar/context/container-provider";
 import { TimeIndicatorBackground } from "@/components/calendar/timeline/time-indicator";
-import { MemoizedTimeline } from "@/components/calendar/timeline/timeline";
-import { MemoizedTimelineHeader } from "@/components/calendar/timeline/timeline-header";
+import { Timeline } from "@/components/calendar/timeline/timeline";
+import { TimelineHeader } from "@/components/calendar/timeline/timeline-header";
 import { cn } from "@/lib/utils";
 import { useCalendarStore } from "@/providers/calendar-store-provider";
 import { InfiniteWeekViewAllDaySection } from "./infinite-week-view-all-day";
 import { InfiniteWeekViewAllDayEventProvider } from "./infinite-week-view-all-day-event-provider";
-import { MemoizedInfiniteWeekViewColumn } from "./infinite-week-view-column";
+import { InfiniteWeekViewColumn } from "./infinite-week-view-column";
 import { useInfiniteWeekViewDays } from "./infinite-week-view-day-provider";
 import { InfiniteWeekViewHeader } from "./infinite-week-view-header";
-import { SnapColumns, SnapWeeks } from "./week-view-snap-columns";
+import { WeekViewItem } from "./week-view-item";
+import { WeekViewSideItem } from "./week-view-side-item";
+import { WeekViewSnapColumns, WeekStartSnapGuideline } from "./week-view-snap-columns";
 
 type InfiniteWeekViewProps = React.ComponentProps<"div">;
 const DAYS_IN_WEEK = 7;
@@ -28,7 +30,7 @@ export function InfiniteWeekView({
 
   const timeZoneCount = useCalendarStore((s) => s.timeZones.length);
 
-  const { anchor, days, columns, scrollRef } = useInfiniteWeekViewDays();
+  const { days, columns, scrollRef, trackBase } = useInfiniteWeekViewDays();
 
   const containerRef = React.useRef<HTMLDivElement>(null);
 
@@ -47,6 +49,7 @@ export function InfiniteWeekView({
         style={{
           "--time-columns": timeZoneCount,
           "--columns": columns.count,
+          "--track-base": trackBase,
           "--week-view-width": `calc(5000% - (var(--timeline-container-width) * 50))`,
           "--column-width": `${columns.fraction}%`,
           "--padding-left": `var(--timeline-container-width)`,
@@ -58,7 +61,7 @@ export function InfiniteWeekView({
           <div className="flex border-b border-border/70 bg-background">
             <div className="sticky left-0 z-40 h-0 w-0">
               <div className="sticky left-0 w-(--timeline-container-width) flex-none bg-background pe-px">
-                <MemoizedTimelineHeader />
+                <TimelineHeader />
               </div>
             </div>
             <InfiniteWeekViewHeader items={days} />
@@ -86,7 +89,7 @@ export function InfiniteWeekView({
         <div className="flex w-(--week-view-width) flex-1">
           <div className="sticky left-0 z-20 h-0 w-0">
             <div className="sticky left-0 w-(--timeline-container-width) flex-none border-r border-border/70 bg-background">
-              <MemoizedTimeline />
+              <Timeline />
             </div>
           </div>
           <div
@@ -94,10 +97,9 @@ export function InfiniteWeekView({
             data-slot="week-view-timed-drop-zone"
             className="relative w-(--week-view-width) flex-1"
           >
-            <SnapColumns columnCount={columns.total} />
+            <WeekViewSnapColumns columnCount={columns.total} />
             {columns.count === DAYS_IN_WEEK ? (
-              <SnapWeeks
-                anchor={anchor}
+              <WeekStartSnapGuideline
                 columnCount={columns.total}
                 columnCenter={columns.center}
                 columnFraction={columns.fraction}
@@ -105,18 +107,24 @@ export function InfiniteWeekView({
             ) : null}
 
             {days.map(({ date, index, items, sideItems }) => (
-              <MemoizedInfiniteWeekViewColumn
+              <InfiniteWeekViewColumn
                 key={date.toString()}
-                className="absolute top-0 isolate w-(--column-width)"
+                className="absolute top-0 left-(--column-offset) isolate w-(--column-width) [--column-offset:calc((var(--day-offset)-var(--track-base))*var(--column-width))]"
                 day={date}
-                index={index}
-                items={items}
-                sideItems={sideItems}
-                style={{
-                  left: `${50 + columns.fraction * (index - columns.center)}%`,
-                }}
-                aria-label={date.toString()}
-              />
+                style={{ "--day-offset": index }}
+              >
+                {sideItems.map(({ item, position }) => (
+                  <WeekViewSideItem
+                    key={item.id}
+                    item={item}
+                    position={position}
+                  />
+                ))}
+
+                {items.map(({ item, position }) => (
+                  <WeekViewItem key={item.id} item={item} position={position} />
+                ))}
+              </InfiniteWeekViewColumn>
             ))}
             <TimeIndicatorBackground />
           </div>

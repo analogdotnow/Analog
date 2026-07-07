@@ -3,12 +3,12 @@ import { Temporal } from "temporal-polyfill";
 import { CommandGroup, CommandItem } from "@/components/ui/command";
 import {
   useCommandMenuPage,
+  useNavigateTo,
   useSetCommandMenuOpen,
-  useSetCurrentDate,
 } from "@/store/hooks";
 
 export function CalendarNavigationCommands() {
-  const setCurrentDate = useSetCurrentDate();
+  const navigateTo = useNavigateTo();
   const page = useCommandMenuPage();
   const setOpen = useSetCommandMenuOpen();
 
@@ -21,7 +21,7 @@ export function CalendarNavigationCommands() {
       <CommandItem
         value="today"
         onSelect={() => {
-          setCurrentDate(Temporal.Now.plainDateISO());
+          navigateTo(Temporal.Now.plainDateISO());
           setOpen(false);
         }}
       >

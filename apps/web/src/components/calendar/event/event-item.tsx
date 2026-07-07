@@ -53,8 +53,6 @@ function EventItemContainer({
   );
 }
 
-const MemoizedEventItemContainer = React.memo(EventItemContainer);
-
 interface MonthEventItemProps {
   children?: React.ReactNode;
   className?: string;
@@ -97,7 +95,7 @@ export function MonthEventItem({
   };
 
   return (
-    <MemoizedEventItemContainer
+    <EventItemContainer
       onClick={onClick}
       onMouseDown={onMouseDown}
       className={cn(
@@ -131,7 +129,7 @@ export function MonthEventItem({
           </p>
         }
       </div>
-    </MemoizedEventItemContainer>
+    </EventItemContainer>
   );
 }
 
@@ -179,7 +177,7 @@ export function WeekEventItem({
   const duration = item.start.until(item.end).total({ unit: "minute" });
 
   return (
-    <MemoizedEventItemContainer
+    <EventItemContainer
       onClick={onClick}
       onMouseDown={onMouseDown}
       className={cn(
@@ -205,7 +203,7 @@ export function WeekEventItem({
           </span>
         ) : null}
       </div>
-    </MemoizedEventItemContainer>
+    </EventItemContainer>
   );
 }
 

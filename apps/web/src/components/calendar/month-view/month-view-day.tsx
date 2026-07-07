@@ -28,18 +28,16 @@ export function MonthViewDay({
   "use memo";
 
   return (
-    <MemorizedMonthViewDayContainer date={date}>
-      <MemorizedMonthViewDayHeader date={date} />
+    <MonthViewDayContainer date={date}>
+      <MonthViewDayHeader date={date} />
       <div
         className="flex grow flex-col justify-end place-self-stretch"
         ref={overflowRef}
       />
       {children}
-    </MemorizedMonthViewDayContainer>
+    </MonthViewDayContainer>
   );
 }
-
-export const MemoizedMonthViewDay = React.memo(MonthViewDay);
 
 interface MonthViewDayHeaderProps {
   date: Temporal.PlainDate;
@@ -62,8 +60,6 @@ function MonthViewDayHeader({ date }: MonthViewDayHeaderProps) {
     </div>
   );
 }
-
-const MemorizedMonthViewDayHeader = React.memo(MonthViewDayHeader);
 
 interface MonthViewDayContainerProps {
   children: React.ReactNode;
@@ -98,8 +94,6 @@ function MonthViewDayContainer({ children, date }: MonthViewDayContainerProps) {
   );
 }
 
-const MemorizedMonthViewDayContainer = React.memo(MonthViewDayContainer);
-
 interface MonthViewDayOverflowProps {
   items: InlineDisplayItem[];
   date: Temporal.PlainDate;
@@ -123,5 +117,3 @@ export function MonthViewDayOverflow({
     </div>
   );
 }
-
-export const MemoizedMonthViewDayOverflow = React.memo(MonthViewDayOverflow);

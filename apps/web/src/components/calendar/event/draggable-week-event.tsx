@@ -18,14 +18,11 @@ import {
   isAllDayOrMultiDay,
   isMultiDayItem,
 } from "@/components/calendar/utils/positioning/inline-items";
-import { useInfiniteWeekViewDays } from "@/components/calendar/week-view/infinite-week-view-day-provider";
 import {
-  calculateColumnIndex,
-  calculateDate,
   calculateRelativeOffset,
   calculateTimeFromRelativeOffset,
-  computeTimelineWidth,
 } from "@/components/calendar/week-view/utils";
+import { useWeekViewLayout } from "@/components/calendar/week-view/week-view-layout-context";
 import { ContextMenuTrigger } from "@/components/ui/context-menu";
 import { EventDisplayItem } from "@/lib/display-item";
 import { cn } from "@/lib/utils";
@@ -53,7 +50,7 @@ export function DraggableWeekEvent({
   "use memo";
 
   const { containerRef } = useContainer();
-  const { scrollRef, anchor, columns } = useInfiniteWeekViewDays();
+  const { scrollRef, dateFromPoint } = useWeekViewLayout();
 
   const cellHeight = useCellHeight();
 
@@ -123,30 +120,11 @@ export function DraggableWeekEvent({
 
       setIsDragging(false);
 
-      const timelineWidth = computeTimelineWidth({
-        scrollElement: scrollRef.current,
-      });
-      const columnWidth = scrollRef.current.scrollWidth / columns.total;
+      const date = dateFromPoint(info.point.x, grabOffsetX.get());
 
-      const columnIndex = calculateColumnIndex({
-        scrollLeft: scrollRef.current.scrollLeft,
-        columnWidth,
-        cursorX: info.point.x,
-        timelineWidth,
-      });
-
-      if (columnIndex === null) {
+      if (!date) {
         return;
       }
-
-      const initialColumnOffset = Math.floor(grabOffsetX.get() / columnWidth);
-
-      const date = calculateDate({
-        anchor,
-        columnIndex,
-        columns,
-        initialColumnOffset,
-      });
 
       if (item.event.allDay || isMultiDayItem(item)) {
         moveAllDayEvent({ date });

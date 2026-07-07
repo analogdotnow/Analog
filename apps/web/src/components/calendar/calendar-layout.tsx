@@ -3,7 +3,7 @@
 import * as React from "react";
 
 import { AppSidebar } from "@/components/app-sidebar";
-import { MemoizedCalendarView } from "@/components/calendar/calendar-view";
+import { CalendarView } from "@/components/calendar/calendar-view";
 import { DateProvider } from "@/components/calendar/context/date-provider";
 import { ZonedDateTimeProvider } from "@/components/calendar/context/datetime-provider";
 import { FlowsProvider } from "@/components/calendar/flows/provider";
@@ -20,7 +20,7 @@ export function CalendarLayout() {
           <AppSidebar side="left" className="border-r select-none" />
           <EventHotkeys />
           <SidebarInset className="h-dvh overflow-hidden bg-background select-none mac:bg-background/80">
-            <MemoizedCalendarView className="grow" />
+            <CalendarView className="grow" />
           </SidebarInset>
           <AppCommandMenu />
           <WindowStack />

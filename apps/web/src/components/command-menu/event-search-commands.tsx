@@ -14,7 +14,7 @@ import { useCalendarStore } from "@/providers/calendar-store-provider";
 export function EventSearchCommands() {
   const search = useCommandState((state) => state.search);
   const { data } = useEventsForDisplay();
-  const setCurrentDate = useCalendarStore((s) => s.setCurrentDate);
+  const navigateTo = useCalendarStore((s) => s.navigateTo);
   const selectAction = useSelectAction();
   const use12Hour = useCalendarStore((s) => s.calendarSettings.use12Hour);
   const setOpen = useCalendarStore((s) => s.setCommandMenuOpen);
@@ -62,7 +62,7 @@ export function EventSearchCommands() {
           key={item.event.id}
           value={item.event.id}
           onSelect={() => {
-            setCurrentDate(item.date.start);
+            navigateTo(item.date.start);
             selectAction(item.event);
             setOpen(false);
           }}

@@ -8,10 +8,10 @@ import { isToday } from "@repo/temporal";
 
 import { cn } from "@/lib/utils";
 import { useDefaultTimeZone } from "@/store/hooks";
-import type { VirtualizedDay } from "./infinite-week-view-day-provider";
+import type { DerivedWeekDay } from "./infinite-week-view-day-provider";
 
 interface InfiniteWeekViewHeaderProps {
-  items: readonly VirtualizedDay[];
+  items: readonly DerivedWeekDay[];
 }
 
 export function InfiniteWeekViewHeader({ items }: InfiniteWeekViewHeaderProps) {
@@ -20,11 +20,11 @@ export function InfiniteWeekViewHeader({ items }: InfiniteWeekViewHeaderProps) {
   return (
     <div className="relative h-9 w-(--week-view-width) flex-1 select-none">
       {items.map(({ date, index }) => (
-        <MemoizedInfiniteWeekViewHeaderDay
+        <InfiniteWeekViewHeaderDay
           key={date.toString()}
-          className="absolute top-0 left-(--column-offset) w-(--column-width) [--column-offset:calc(var(--day-offset)*var(--column-width))]"
+          className="absolute top-0 left-(--column-offset) w-(--column-width) [--column-offset:calc((var(--day-offset)-var(--track-base))*var(--column-width))]"
           day={date}
-          index={index}
+          style={{ "--day-offset": index }}
         />
       ))}
     </div>
@@ -33,13 +33,11 @@ export function InfiniteWeekViewHeader({ items }: InfiniteWeekViewHeaderProps) {
 
 interface InfiniteWeekViewHeaderDayProps extends React.ComponentProps<"div"> {
   day: Temporal.PlainDate;
-  index: number;
 }
 
 function InfiniteWeekViewHeaderDay({
   className,
   day,
-  index,
   ...props
 }: InfiniteWeekViewHeaderDayProps) {
   "use memo";
@@ -53,9 +51,6 @@ function InfiniteWeekViewHeaderDay({
         isToday(day, { timeZone: defaultTimeZone }) && "text-foreground",
         className,
       )}
-      style={{
-        "--day-offset": index,
-      }}
       {...props}
     >
       <span
@@ -67,30 +62,6 @@ function InfiniteWeekViewHeaderDay({
       <span className="truncate text-sm @max-md/calendar-view:hidden @lg/calendar-view:text-base">
         {format(day.toString(), "ddd D")}
       </span>
-    </div>
-  );
-}
-
-const MemoizedInfiniteWeekViewHeaderDay = React.memo(InfiniteWeekViewHeaderDay);
-
-interface InfiniteWeekViewHeaderContainerProps extends React.ComponentProps<"div"> {
-  children: React.ReactNode;
-}
-
-export function InfiniteWeekViewHeaderContainer({
-  children,
-  className,
-  ...props
-}: InfiniteWeekViewHeaderContainerProps) {
-  return (
-    <div
-      className={cn(
-        "sticky top-0 z-30 flex w-(--week-view-width) flex-col",
-        className,
-      )}
-      {...props}
-    >
-      {children}
     </div>
   );
 }

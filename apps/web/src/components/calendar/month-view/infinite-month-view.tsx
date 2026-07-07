@@ -6,7 +6,7 @@ import { ContainerProvider } from "@/components/calendar/context/container-provi
 import { useMonthViewGridLayout } from "@/hooks/calendar/use-grid-layout";
 import { cn } from "@/lib/utils";
 import { useInfiniteMonthView } from "./infinite-month-view-provider";
-import { MemoizedInfiniteMonthViewWeek } from "./infinite-month-view-week";
+import { InfiniteMonthViewWeek } from "./infinite-month-view-week";
 import { useInfiniteMonthViewWeeks } from "./infinite-month-view-week-provider";
 import { MonthViewHeader } from "./month-view-header";
 import { SnapMonths, SnapRows } from "./month-view-snap-rows";
@@ -21,7 +21,8 @@ export function InfiniteMonthView({
 
   const containerRef = React.useRef<HTMLDivElement>(null);
 
-  const { weeks, rows, scrollRef } = useInfiniteMonthViewWeeks();
+  const { weeks, rows, range, trackBase, snapTrackBase, scrollRef } =
+    useInfiniteMonthViewWeeks();
   const { view } = useInfiniteMonthView();
 
   const grid = useMonthViewGridLayout();
@@ -41,6 +42,7 @@ export function InfiniteMonthView({
             "calc(5000% - (var(--month-view-header-height) * 50))",
           "--month-view-header-height": "calc(2.25rem)",
           "--row-height": `${rows.fraction}%`,
+          "--track-base": trackBase,
         }}
         {...props}
       >
@@ -54,22 +56,16 @@ export function InfiniteMonthView({
           ref={containerRef}
           className="relative h-(--month-view-height) min-w-0 flex-none"
         >
-          <SnapRows rowCount={rows.total} />
-          <SnapMonths
-            rowCount={rows.total}
-            rowCenter={rows.center}
-            rowFraction={rows.fraction}
-          />
+          <SnapRows rows={rows.total} />
+          <SnapMonths range={range} trackBase={snapTrackBase} />
 
           {weeks.map((week) => (
-            <MemoizedInfiniteMonthViewWeek
+            <InfiniteMonthViewWeek
               key={week.start.toString()}
               data-date={week.start.toString()}
               week={week}
-              className="absolute inset-x-0 h-(--row-height)"
-              style={{
-                top: `${50 + rows.fraction * (week.index - rows.center)}%`,
-              }}
+              className="absolute inset-x-0 top-(--row-offset) h-(--row-height) [--row-offset:calc((var(--week-offset)-var(--track-base))*var(--row-height))]"
+              style={{ "--week-offset": week.index }}
             />
           ))}
         </div>

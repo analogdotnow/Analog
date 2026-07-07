@@ -10,9 +10,8 @@ import {
   type WeekDisplayCollection,
 } from "@/hooks/calendar/use-event-collection";
 import type { DisplayItem } from "@/lib/display-item";
-import { useAnchor, useDisplayedDays } from "@/store/hooks";
-
-export const BUFFER_DAYS = 150;
+import { useCalendarStore } from "@/providers/calendar-store-provider";
+import { useCurrentDate, useDisplayedDays } from "@/store/hooks";
 
 interface InfiniteWeekViewContextValue {
   items: DisplayItem[];
@@ -47,39 +46,34 @@ export function InfiniteWeekViewProvider({
 }: InfiniteWeekViewProviderProps) {
   "use memo";
 
-  const anchor = useAnchor();
+  const currentDate = useCurrentDate();
   const displayedDays = useDisplayedDays();
-
-  const range = React.useMemo(() => {
-    const start = anchor.subtract({ days: BUFFER_DAYS });
-    const end = anchor.add({ days: displayedDays + BUFFER_DAYS - 1 });
-    const days = eachDayOfInterval(start, end);
-
-    return { start, end, days };
-  }, [anchor, displayedDays]);
+  const start = useCalendarStore((s) => s.timeMin);
+  const end = useCalendarStore((s) => s.timeMax);
+  const days = eachDayOfInterval(start, end);
 
   const view = React.useMemo(() => {
     return {
       columns: displayedDays,
       range: {
-        start: anchor,
-        end: anchor.add({ days: displayedDays - 1 }),
+        start: currentDate,
+        end: currentDate.add({ days: displayedDays - 1 }),
       },
     };
-  }, [displayedDays, anchor]);
+  }, [displayedDays, currentDate]);
 
-  const collection = useWeekDisplayCollection(items, range.days, true);
+  const collection = useWeekDisplayCollection(items, days, true);
 
   const value = React.useMemo(
     () => ({
       items,
       collection: {
         items: collection,
-        range,
+        range: { start, end, days },
       },
       view,
     }),
-    [collection, range, view, items],
+    [collection, start, end, days, view, items],
   );
 
   return (

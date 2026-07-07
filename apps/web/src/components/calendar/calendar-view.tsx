@@ -9,7 +9,6 @@ import { isAfter } from "@repo/temporal";
 import { AgendaView } from "@/components/calendar/agenda-view/agenda-view";
 import { EVENT_GAP, EVENT_HEIGHT } from "@/components/calendar/constants";
 import { MemoizedCalendarHeader } from "@/components/calendar/header/calendar-header";
-import { InfiniteWeekViewAllDayEventProvider } from "@/components/calendar/week-view/infinite-week-view-all-day-event-provider";
 import { InfiniteWeekViewDayProvider } from "@/components/calendar/week-view/infinite-week-view-day-provider";
 import { InfiniteWeekViewProvider } from "@/components/calendar/week-view/infinite-week-view-provider";
 import { applyOptimisticActions } from "@/hooks/calendar/apply-optimistic-actions";
@@ -110,9 +109,7 @@ function CalendarViewContent() {
   return (
     <InfiniteWeekViewProvider items={items}>
       <InfiniteWeekViewDayProvider>
-        <InfiniteWeekViewAllDayEventProvider>
-          <InfiniteWeekView />
-        </InfiniteWeekViewAllDayEventProvider>
+        <InfiniteWeekView />
       </InfiniteWeekViewDayProvider>
     </InfiniteWeekViewProvider>
   );
@@ -165,8 +162,6 @@ export function CalendarViewContainer({
     </div>
   );
 }
-
-export const MemoizedCalendarView = React.memo(CalendarView);
 
 function useCalendarViewFocus() {
   "use memo";

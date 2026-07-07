@@ -1,149 +1,79 @@
 import * as React from "react";
 import { Temporal } from "temporal-polyfill";
 
-import { startOfMonth, startOfWeek } from "@repo/temporal";
+import { startOfMonth } from "@repo/temporal";
 
 import { useCalendarStore } from "@/providers/calendar-store-provider";
-
-type WeekStartsOn = 1 | 2 | 3 | 4 | 5 | 6 | 7;
+import { epochWeekOf } from "./infinite-month-view-week-provider";
 
 interface SnapRowsProps {
-  rowCount: number;
+  rows: number;
 }
 
-export function SnapRows({ rowCount }: SnapRowsProps) {
+export function SnapRows({ rows }: SnapRowsProps) {
   "use memo";
 
   return (
     <div className="pointer-events-none absolute inset-0 grid grid-flow-row auto-rows-fr">
-      {Array.from({ length: rowCount }, (_, idx) => (
+      {Array.from({ length: rows }, (_, idx) => (
         <div className="snap-start" key={idx} />
       ))}
     </div>
   );
 }
 
-interface GetMonthStartSnapIndicesOptions {
-  anchor: Temporal.PlainDate;
-  rowCount: number;
-  rowCenter: number;
-  weekStartsOn: WeekStartsOn;
+interface GetMonthStartWeeksOptions {
+  range: {
+    start: Temporal.PlainDate;
+    end: Temporal.PlainDate;
+  };
+  weekStartsOn: 1 | 2 | 3 | 4 | 5 | 6 | 7;
 }
 
-function getMonthStartWeek(
-  date: Temporal.PlainDate,
-  weekStartsOn: WeekStartsOn,
-) {
-  return startOfWeek(startOfMonth(date), { weekStartsOn });
-}
+function getMonthStartWeeks({ range, weekStartsOn }: GetMonthStartWeeksOptions) {
+  const weeks: number[] = [];
 
-function getMonthStartSnapIndices({
-  anchor,
-  rowCount,
-  rowCenter,
-  weekStartsOn,
-}: GetMonthStartSnapIndicesOptions) {
-  if (rowCount <= 0) {
-    return [];
+  let monthStart = startOfMonth(range.start);
+
+  if (Temporal.PlainDate.compare(monthStart, range.start) < 0) {
+    monthStart = monthStart.add({ months: 1 });
   }
 
-  const anchorWeekStart = startOfWeek(anchor, { weekStartsOn });
-  const anchorMonthStartDate = anchorWeekStart.with({ day: 1 });
-  const anchorMonthStartWeek = startOfWeek(anchorMonthStartDate, {
-    weekStartsOn,
-  });
-  const anchorMonthOffsetWeeks = anchorWeekStart.since(anchorMonthStartWeek, {
-    largestUnit: "weeks",
-  }).weeks;
-  const anchorMonthStartIndex = rowCenter - anchorMonthOffsetWeeks;
-
-  const forward: number[] = [];
-  let forwardMonth = anchorMonthStartDate;
-  let forwardMonthWeek = anchorMonthStartWeek;
-  let forwardIndex = anchorMonthStartIndex;
-
-  while (forwardIndex < rowCount - 1) {
-    const nextMonth = forwardMonth.add({ months: 1 });
-    const nextMonthWeek = getMonthStartWeek(nextMonth, weekStartsOn);
-    const step = nextMonthWeek.since(forwardMonthWeek, {
-      largestUnit: "weeks",
-    }).weeks;
-
-    forwardIndex += step;
-    forwardMonth = nextMonth;
-    forwardMonthWeek = nextMonthWeek;
-
-    if (forwardIndex > rowCount - 1) {
-      break;
-    }
-
-    forward.push(forwardIndex);
+  while (Temporal.PlainDate.compare(monthStart, range.end) <= 0) {
+    weeks.push(epochWeekOf(monthStart, weekStartsOn));
+    monthStart = monthStart.add({ months: 1 });
   }
 
-  const backward: number[] = [];
-  let backwardMonth = anchorMonthStartDate;
-  let backwardMonthWeek = anchorMonthStartWeek;
-  let backwardIndex = anchorMonthStartIndex;
-
-  while (backwardIndex > 0) {
-    const prevMonth = backwardMonth.subtract({ months: 1 });
-    const prevMonthWeek = getMonthStartWeek(prevMonth, weekStartsOn);
-    const step = backwardMonthWeek.since(prevMonthWeek, {
-      largestUnit: "weeks",
-    }).weeks;
-
-    backwardIndex -= step;
-    backwardMonth = prevMonth;
-    backwardMonthWeek = prevMonthWeek;
-
-    if (backwardIndex < 0) {
-      break;
-    }
-
-    backward.push(backwardIndex);
-  }
-
-  backward.reverse();
-  backward.push(anchorMonthStartIndex, ...forward);
-  return backward;
+  return weeks;
 }
 
 interface SnapMonthsProps {
-  rowCount: number;
-  rowCenter: number;
-  rowFraction: number;
+  range: {
+    start: Temporal.PlainDate;
+    end: Temporal.PlainDate;
+  };
+  trackBase: number;
 }
 
-export function SnapMonths({
-  rowCount,
-  rowCenter,
-  rowFraction,
-}: SnapMonthsProps) {
+export function SnapMonths({ range, trackBase }: SnapMonthsProps) {
   "use memo";
 
-  const anchor = useCalendarStore((s) => s.anchor);
   const weekStartsOn = useCalendarStore((s) => s.calendarSettings.weekStartsOn);
 
-  const monthStartIndices = React.useMemo(
-    () =>
-      getMonthStartSnapIndices({
-        anchor,
-        rowCount,
-        rowCenter,
-        weekStartsOn,
-      }),
-    [anchor, rowCount, rowCenter, weekStartsOn],
-  );
+  const monthStartWeeks = getMonthStartWeeks({ range, weekStartsOn });
 
+  // Lines are keyed and positioned by slot (not epoch week) so an existing
+  // line never moves in content coordinates when --track-base shifts during a
+  // recenter: under snap-mandatory, a moved snap target licenses the browser
+  // to re-snap, which skips the view by the recenter delta. Slots churn
+  // (unmount/mount) across recenters instead of moving.
   return (
     <div className="pointer-events-none absolute inset-0">
-      {monthStartIndices.map((index) => (
+      {monthStartWeeks.map((week) => (
         <div
-          className="absolute inset-x-0 h-px snap-start snap-always"
-          key={index}
-          style={{
-            top: `${rowFraction * index}%`,
-          }}
+          className="absolute inset-x-0 top-(--row-offset) h-px snap-start snap-always [--row-offset:calc(var(--row-slot)*var(--row-height))]"
+          key={week - trackBase}
+          style={{ "--row-slot": week - trackBase }}
         />
       ))}
     </div>

@@ -64,7 +64,6 @@ export type CalendarActions = Pick<
   | "setDragging"
   | "setResizing"
   | "setDraggingEventId"
-  | "setAnchor"
   | "setVisibleRange"
   | "setSelectedDisplayItemIds"
   | "setSelectedEventIds"
@@ -104,7 +103,7 @@ export const defaultInitState: Omit<CalendarStore, keyof CalendarActions> = {
   // View slice
   calendarView: "week",
   currentDate: now,
-  anchor: now,
+  navigationNonce: 0,
   visibleRange: null,
   selectedDisplayItemIds: [],
   isDragging: false,

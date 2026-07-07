@@ -14,7 +14,7 @@ import type { InlineDisplayItem } from "@/lib/display-item";
 import { useDefaultTimeZone } from "@/store/hooks";
 import {
   useInfiniteWeekViewDays,
-  type VirtualizedDay,
+  type DerivedWeekDay,
 } from "./infinite-week-view-day-provider";
 import { useInfiniteWeekView } from "./infinite-week-view-provider";
 
@@ -59,6 +59,10 @@ export function InfiniteWeekViewAllDayEventProvider({
 
   const value = {
     items,
+    // totalLanes drives the all-day section height, so compute it over the
+    // visible view range only. Widening it to the rendered buffer window makes
+    // the height depend on off-screen days and jitter as the buffer slides;
+    // the tradeoff is brief clipping mid-scroll until the range catches up.
     totalLanes: computeTotalLanes({ items, range: view.range }),
   };
 
@@ -84,8 +88,8 @@ export function useInfiniteWeekViewAllDayEvents() {
 interface ComputedPositionedItemsOptions {
   lanes: PositionedLaneItem[][];
   range: {
-    start: VirtualizedDay;
-    end: VirtualizedDay;
+    start: DerivedWeekDay;
+    end: DerivedWeekDay;
   };
 }
 
@@ -146,8 +150,8 @@ function computeTotalLanes({ items, range }: ComputedTotalLanesOptions) {
 interface ComputedPositionOptions {
   item: InlineDisplayItem;
   range: {
-    start: VirtualizedDay;
-    end: VirtualizedDay;
+    start: DerivedWeekDay;
+    end: DerivedWeekDay;
   };
 }
 

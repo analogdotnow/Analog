@@ -3,30 +3,21 @@
 // Required to ensure the scroll position is reset on fast refresh
 // @refresh reset
 import * as React from "react";
+// Polyfills the scrollend event; remove once scrollend browser support on caniuse.com reaches 90%
+import "scrollyfills";
 import { Temporal } from "temporal-polyfill";
 
-import { isSameDay, startOfWeek } from "@repo/temporal";
+import { startOfWeek } from "@repo/temporal";
 
+import type { PositionedDisplayItem } from "@/components/calendar/utils/positioning/inline-items";
+import type { PositionedSideItem } from "@/components/calendar/utils/positioning/side-items";
+import type { WeekDisplayCollection } from "@/hooks/calendar/use-event-collection";
 import { useIsResizing } from "@/hooks/use-resize";
+import { LRUCache } from "@/lib/data-structures/lru-cache";
 import { useCalendarStore } from "@/providers/calendar-store-provider";
 import { useDisplayedDays, useSetVisibleRange } from "@/store/hooks";
-import {
-  derivedWeekDayBufferReducer,
-  type DerivedWeekDayBufferState,
-} from "./derived-week-day-buffer-reducer";
-import {
-  BUFFER_DAYS,
-  useInfiniteWeekView,
-} from "./infinite-week-view-provider";
-import {
-  DEFAULT_WEEK_DAY_BUFFER_COUNT,
-  deriveWeekDayBufferResult,
-  deriveWeekDayBufferSnapshot,
-  type DerivedWeekDay,
-  type DerivedWeekDayBufferInput,
-} from "./use-derived-week-day-buffer";
-
-export type VirtualizedDay = DerivedWeekDay;
+import { useInfiniteWeekView } from "./infinite-week-view-provider";
+import { WeekViewLayoutContext } from "./week-view-layout-context";
 
 export interface VisualizedColumns {
   count: number;
@@ -35,12 +26,41 @@ export interface VisualizedColumns {
   center: number;
 }
 
-const SCROLL_MULTIPLIER = 50;
-export const BUFFER_COUNT = DEFAULT_WEEK_DAY_BUFFER_COUNT;
-const EDGE_THRESHOLD = 0.1;
-const MAX_SAFE_DRIFT = BUFFER_DAYS - BUFFER_COUNT;
+export interface DerivedWeekDay {
+  date: Temporal.PlainDate;
+  index: number;
+  items: PositionedDisplayItem[];
+  sideItems: PositionedSideItem[];
+}
 
-export function useVisualizedColumns(): VisualizedColumns {
+const SCROLL_MULTIPLIER = 50;
+const EDGE_THRESHOLD = 0.1;
+const DAYS_IN_WEEK = 7;
+const WEEK_DAY_BUFFER_COUNT = 28;
+
+const EPOCH = Temporal.PlainDate.from("1970-01-01");
+
+function epochDayOf(date: Temporal.PlainDate) {
+  return date.since(EPOCH).days;
+}
+
+const dateCache = new LRUCache<number, Temporal.PlainDate>(1024);
+
+function dateFromEpochDay(day: number) {
+  const cached = dateCache.get(day);
+
+  if (cached) {
+    return cached;
+  }
+
+  const date = EPOCH.add({ days: day });
+
+  dateCache.set(day, date);
+
+  return date;
+}
+
+function useVisualizedColumns() {
   "use memo";
 
   const count = useDisplayedDays();
@@ -64,48 +84,82 @@ function exceededThreshold(scrollElement: HTMLElement) {
   return scrollRatio < EDGE_THRESHOLD || scrollRatio > 1 - EDGE_THRESHOLD;
 }
 
-function centerScrollPosition(scrollElement: HTMLElement) {
-  const scrollPaddingStart = Number.parseFloat(
+function scrollPaddingStart(scrollElement: HTMLElement) {
+  const value = Number.parseFloat(
     getComputedStyle(scrollElement).scrollPaddingInlineStart,
   );
 
-  scrollElement.scrollTo({
-    left: Math.max(0, scrollElement.scrollWidth / 2 - scrollPaddingStart),
-    behavior: "instant",
+  if (!Number.isFinite(value)) {
+    return 0;
+  }
+
+  return value;
+}
+
+interface CreateDerivedWeekDaysOptions {
+  windowStart: number;
+  capacity: number;
+  collection: WeekDisplayCollection;
+  collectionStartEpochDay: number;
+}
+
+const derivedWeekDayCache = new WeakMap<
+  WeekDisplayCollection,
+  LRUCache<number, DerivedWeekDay>
+>();
+
+function createDerivedWeekDays({
+  windowStart,
+  capacity,
+  collection,
+  collectionStartEpochDay,
+}: CreateDerivedWeekDaysOptions) {
+  if (!derivedWeekDayCache.has(collection)) {
+    derivedWeekDayCache.set(collection, new LRUCache(256));
+  }
+
+  const entries = derivedWeekDayCache.get(collection)!;
+
+  return Array.from({ length: capacity }, (_, offset) => {
+    const epochDay = windowStart + offset;
+    const cached = entries.get(epochDay);
+
+    if (cached) {
+      return cached;
+    }
+
+    const daysIndex = epochDay - collectionStartEpochDay;
+
+    const day = {
+      date: dateFromEpochDay(epochDay),
+      index: epochDay,
+      items: collection.positionedItems[daysIndex] ?? [],
+      sideItems: collection.positionedSideItems[daysIndex] ?? [],
+    };
+
+    entries.set(epochDay, day);
+
+    return day;
   });
 }
 
 interface InfiniteWeekViewDayContextValue {
-  days: VirtualizedDay[];
+  days: readonly DerivedWeekDay[];
   columns: VisualizedColumns;
-  anchor: Temporal.PlainDate;
-  window: {
-    start: number;
-    end: number;
-  };
   range: {
     start: Temporal.PlainDate;
     end: Temporal.PlainDate;
   };
+  trackBase: number;
   scrollRef: React.RefObject<HTMLDivElement | null>;
 }
 
 const InfiniteWeekViewDayContext =
   React.createContext<InfiniteWeekViewDayContextValue | null>(null);
+InfiniteWeekViewDayContext.displayName = "InfiniteWeekViewDayContext";
 
 interface InfiniteWeekViewDayProviderProps {
   children: React.ReactNode;
-}
-
-function createBufferState(
-  input: DerivedWeekDayBufferInput,
-): DerivedWeekDayBufferState {
-  const snapshot = deriveWeekDayBufferSnapshot(null, input);
-
-  return {
-    snapshot,
-    result: deriveWeekDayBufferResult(snapshot, input),
-  };
 }
 
 export function InfiniteWeekViewDayProvider({
@@ -117,74 +171,100 @@ export function InfiniteWeekViewDayProvider({
 
   const { collection } = useInfiniteWeekView();
   const currentDate = useCalendarStore((s) => s.currentDate);
-  const anchor = useCalendarStore((s) => s.anchor);
   const weekStartsOn = useCalendarStore((s) => s.calendarSettings.weekStartsOn);
+  const navigationNonce = useCalendarStore((s) => s.navigationNonce);
 
   const isResizing = useIsResizing(scrollRef);
 
   const setCurrentDate = useCalendarStore((s) => s.setCurrentDate);
-  const setExternalAnchor = useCalendarStore((s) => s.setAnchor);
   const setVisibleRange = useSetVisibleRange();
 
   const columns = useVisualizedColumns();
 
-  const scrollAnchorRef = React.useRef(
-    startOfWeek(currentDate, { weekStartsOn }),
+  const [initialTrackBase] = React.useState(
+    () => epochDayOf(startOfWeek(currentDate, { weekStartsOn })) - columns.center,
   );
-  const [baseIndex, setBaseIndex] = React.useState(
-    () => columns.center - BUFFER_COUNT,
+  const trackBaseRef = React.useRef(initialTrackBase);
+  const [windowStart, setWindowStart] = React.useState(
+    () => epochDayOf(currentDate) - WEEK_DAY_BUFFER_COUNT,
   );
-  const latestScroll = React.useRef<Temporal.PlainDate>(null);
+  const lastSyncedEpochDay = React.useRef<number | null>(null);
+  const isProgrammaticScroll = React.useRef(false);
 
-  const [bufferState, dispatchBuffer] = React.useReducer(
-    derivedWeekDayBufferReducer,
-    {
-      anchor,
-      columns,
-      collection: collection.items,
-      collectionStart: collection.range.start,
-      baseIndex,
-      bufferCount: BUFFER_COUNT,
-    },
-    createBufferState,
-  );
+  const [lastReset, setLastReset] = React.useState({
+    navigationNonce,
+    weekStartsOn,
+    center: columns.center,
+  });
 
-  React.useLayoutEffect(() => {
-    if (latestScroll.current && isSameDay(latestScroll.current, currentDate)) {
-      latestScroll.current = null;
+  if (
+    lastReset.navigationNonce !== navigationNonce ||
+    lastReset.weekStartsOn !== weekStartsOn ||
+    lastReset.center !== columns.center
+  ) {
+    setLastReset({ navigationNonce, weekStartsOn, center: columns.center });
+    setWindowStart(epochDayOf(currentDate) - WEEK_DAY_BUFFER_COUNT);
+  }
 
+  const syncDayWindow = React.useEffectEvent((firstVisibleEpochDay: number) => {
+    if (lastSyncedEpochDay.current === firstVisibleEpochDay) {
       return;
     }
 
-    latestScroll.current = null;
-    setBaseIndex(columns.center - BUFFER_COUNT);
-    setExternalAnchor(currentDate);
+    lastSyncedEpochDay.current = firstVisibleEpochDay;
+    setWindowStart(firstVisibleEpochDay - WEEK_DAY_BUFFER_COUNT);
 
-    if (!isSameDay(scrollAnchorRef.current, currentDate)) {
-      scrollAnchorRef.current = currentDate;
-    }
+    const start = dateFromEpochDay(firstVisibleEpochDay);
+
+    setCurrentDate(start);
+    setVisibleRange({
+      start,
+      end: start.add({ days: columns.count - 1 }),
+    });
+  });
+
+  const resetToCurrentDate = React.useEffectEvent(() => {
+    const currentEpochDay = epochDayOf(currentDate);
+    const trackBase =
+      epochDayOf(startOfWeek(currentDate, { weekStartsOn })) - columns.center;
+
+    trackBaseRef.current = trackBase;
+    lastSyncedEpochDay.current = currentEpochDay;
+    setVisibleRange({
+      start: currentDate,
+      end: currentDate.add({ days: columns.count - 1 }),
+    });
+
     const scrollElement = scrollRef.current;
 
     if (!scrollElement) {
       return;
     }
 
-    centerScrollPosition(scrollElement);
-  }, [currentDate, weekStartsOn, columns.center, setExternalAnchor]);
+    scrollElement.style.setProperty("--track-base", String(trackBase));
+
+    const columnWidth = scrollElement.scrollWidth / columns.total;
+
+    if (columnWidth <= 0) {
+      return;
+    }
+
+    const previous = scrollElement.scrollLeft;
+
+    scrollElement.scrollLeft =
+      (currentEpochDay - trackBase) * columnWidth -
+      scrollPaddingStart(scrollElement);
+
+    if (scrollElement.scrollLeft === previous) {
+      return;
+    }
+
+    isProgrammaticScroll.current = true;
+  });
 
   React.useLayoutEffect(() => {
-    dispatchBuffer({
-      type: "derive",
-      input: {
-        anchor,
-        columns,
-        collection: collection.items,
-        collectionStart: collection.range.start,
-        baseIndex,
-        bufferCount: BUFFER_COUNT,
-      },
-    });
-  }, [anchor, columns, collection.items, collection.range.start, baseIndex]);
+    resetToCurrentDate();
+  }, [navigationNonce, weekStartsOn, columns.center]);
 
   React.useEffect(() => {
     const scrollElement = scrollRef.current;
@@ -193,82 +273,74 @@ export function InfiniteWeekViewDayProvider({
       return;
     }
 
-    const setCurrentDayWindow = (start: Temporal.PlainDate) => {
-      latestScroll.current = start;
+    const firstVisibleEpochDay = (columnWidth: number) =>
+      Math.round(
+        (scrollElement.scrollLeft + scrollPaddingStart(scrollElement)) /
+          columnWidth,
+      ) + trackBaseRef.current;
 
-      setCurrentDate(start);
-      setVisibleRange({
-        start,
-        end: start.add({ days: columns.count - 1 }),
-      });
+    const applyWeekShift = (columnWidth: number) => {
+      const previous = scrollElement.scrollLeft;
+      const firstSlot = firstVisibleEpochDay(columnWidth) - trackBaseRef.current;
+      const shift =
+        Math.round((firstSlot - columns.center) / DAYS_IN_WEEK) * DAYS_IN_WEEK;
+
+      if (shift === 0) {
+        return;
+      }
+
+      scrollElement.scrollLeft = previous - shift * columnWidth;
+
+      const applied =
+        Math.round(
+          (previous - scrollElement.scrollLeft) / (columnWidth * DAYS_IN_WEEK),
+        ) * DAYS_IN_WEEK;
+
+      if (applied === 0) {
+        return;
+      }
+
+      trackBaseRef.current += applied;
+      scrollElement.style.setProperty(
+        "--track-base",
+        String(trackBaseRef.current),
+      );
     };
 
-    const centeredBaseIndex = columns.center - BUFFER_COUNT;
-
-    const getCurrentOffset = () => {
+    const recenter = () => {
       const columnWidth = scrollElement.scrollWidth / columns.total;
-      const scrollPaddingStart = Number.parseFloat(
-        getComputedStyle(scrollElement).scrollPaddingInlineStart,
-      );
 
-      return Math.round(
-        (scrollElement.scrollLeft + scrollPaddingStart) / columnWidth,
-      );
+      if (columnWidth <= 0) {
+        return;
+      }
+
+      applyWeekShift(columnWidth);
+      syncDayWindow(firstVisibleEpochDay(columnWidth));
     };
 
-    const syncFromScroll = ({
-      force = false,
-      recenter = false,
-    }: {
-      force?: boolean;
-      recenter?: boolean;
-    } = {}) => {
-      if (!force && isResizing.get()) {
+    const syncFromScroll = () => {
+      if (isResizing.get() || isProgrammaticScroll.current) {
         return;
       }
 
-      const nextOffset = getCurrentOffset();
-      const scrollAnchorAtSync = scrollAnchorRef.current;
-      const drift = Math.abs(nextOffset - columns.center);
-      const shouldCenter =
-        recenter || drift >= MAX_SAFE_DRIFT || exceededThreshold(scrollElement);
-      const start = scrollAnchorAtSync.add({
-        days: nextOffset - columns.center,
-      });
+      const columnWidth = scrollElement.scrollWidth / columns.total;
 
-      if (shouldCenter) {
-        if (!isSameDay(start, scrollAnchorAtSync)) {
-          scrollAnchorRef.current = start;
-          setExternalAnchor(start);
-        }
+      if (columnWidth <= 0) {
+        return;
+      }
 
-        centerScrollPosition(scrollElement);
-        setBaseIndex(centeredBaseIndex);
-        setCurrentDayWindow(start);
+      if (exceededThreshold(scrollElement)) {
+        recenter();
 
         return;
       }
 
-      if (
-        !force &&
-        latestScroll.current &&
-        isSameDay(start, latestScroll.current)
-      ) {
-        return;
-      }
-
-      setBaseIndex(nextOffset - BUFFER_COUNT);
-      setCurrentDayWindow(start);
+      syncDayWindow(firstVisibleEpochDay(columnWidth));
     };
-
-    syncFromScroll({ force: true });
 
     let frame: number | null = null;
-    let forceSyncOnFrame = false;
 
-    const queueSync = (force = false) => {
-      forceSyncOnFrame = forceSyncOnFrame || force;
-
+    const queueSync = () => {
       if (frame !== null) {
         return;
       }
@@ -276,36 +348,41 @@ export function InfiniteWeekViewDayProvider({
       frame = requestAnimationFrame(() => {
         frame = null;
 
-        const shouldForceSync = forceSyncOnFrame;
-        forceSyncOnFrame = false;
-
-        syncFromScroll({ force: shouldForceSync });
+        syncFromScroll();
       });
     };
 
-    const onScroll = () => {
-      queueSync();
+    const onScrollEnd = () => {
+      isProgrammaticScroll.current = false;
+
+      if (isResizing.get()) {
+        return;
+      }
+
+      recenter();
     };
 
     const controller = new AbortController();
 
-    scrollElement.addEventListener("scroll", onScroll, {
+    scrollElement.addEventListener("scroll", queueSync, {
       passive: true,
       signal: controller.signal,
     });
 
-    scrollElement.addEventListener(
-      "scrollend",
-      () => {
-        syncFromScroll({ force: true, recenter: true });
-      },
-      { signal: controller.signal },
-    );
+    scrollElement.addEventListener("scrollend", onScrollEnd, {
+      signal: controller.signal,
+    });
 
     const unsubscribeResize = isResizing.on("change", (resizing) => {
       if (!resizing) {
-        queueSync(true);
+        recenter();
       }
+    });
+
+    const breakpoint = window.matchMedia("(min-width: 640px)");
+
+    breakpoint.addEventListener("change", () => recenter(), {
+      signal: controller.signal,
     });
 
     return () => {
@@ -316,33 +393,59 @@ export function InfiniteWeekViewDayProvider({
         cancelAnimationFrame(frame);
       }
     };
-  }, [
-    columns.total,
-    columns.center,
-    columns.count,
-    setCurrentDate,
-    setExternalAnchor,
-    setVisibleRange,
-    isResizing,
-  ]);
+  }, [columns.total, columns.center, isResizing]);
 
-  if (!bufferState.result) {
-    throw new Error("InfiniteWeekViewDayProvider buffer was not initialized");
-  }
+  const capacity = columns.count + 2 * WEEK_DAY_BUFFER_COUNT;
+
+  const days = createDerivedWeekDays({
+    windowStart,
+    capacity,
+    collection: collection.items,
+    collectionStartEpochDay: epochDayOf(collection.range.start),
+  });
 
   const value = {
-    days: bufferState.result.items as VirtualizedDay[],
+    days,
     columns,
-    anchor,
-    window: bufferState.result.window,
-    range: bufferState.result.range,
+    range: {
+      start: dateFromEpochDay(windowStart),
+      end: dateFromEpochDay(windowStart + capacity - 1),
+    },
+    trackBase: initialTrackBase,
     scrollRef,
   };
 
+  const dateFromPoint = (clientX: number, grabOffsetX?: number) => {
+    const scrollElement = scrollRef.current;
+
+    if (!scrollElement) {
+      return null;
+    }
+
+    const columnWidth = scrollElement.scrollWidth / columns.total;
+
+    if (columnWidth <= 0) {
+      return null;
+    }
+
+    const x = clientX - scrollElement.getBoundingClientRect().left;
+
+    if (x < scrollPaddingStart(scrollElement)) {
+      return null;
+    }
+
+    const slot = Math.floor((scrollElement.scrollLeft + x) / columnWidth);
+    const grabDays = Math.floor((grabOffsetX ?? 0) / columnWidth);
+
+    return dateFromEpochDay(trackBaseRef.current + slot - grabDays);
+  };
+
   return (
-    <InfiniteWeekViewDayContext value={value}>
-      {children}
-    </InfiniteWeekViewDayContext>
+    <WeekViewLayoutContext value={{ scrollRef, dateFromPoint }}>
+      <InfiniteWeekViewDayContext value={value}>
+        {children}
+      </InfiniteWeekViewDayContext>
+    </WeekViewLayoutContext>
   );
 }
 
@@ -357,3 +460,4 @@ export function useInfiniteWeekViewDays() {
 
   return context;
 }
+
