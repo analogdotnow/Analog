@@ -49,7 +49,10 @@ export interface ViewSlice {
 
   // Actions
   setCalendarView: (view: CalendarView) => void;
-  setCurrentDate: (date: Temporal.PlainDate) => void;
+  setCurrentDate: (
+    date: Temporal.PlainDate,
+    options?: { keepTimeRange?: boolean },
+  ) => void;
   navigateTo: (date: Temporal.PlainDate) => void;
   setVisibleRange: (
     range: { start: Temporal.PlainDate; end: Temporal.PlainDate } | null,
@@ -89,11 +92,15 @@ export const createViewSlice: StateCreator<
   setCalendarView: (view) =>
     set({ calendarView: view }, undefined, "view/setCalendarView"),
 
-  setCurrentDate: (date) =>
+  setCurrentDate: (date, options) =>
     set(
       (state) => {
         if (Temporal.PlainDate.compare(state.currentDate, date) === 0) {
           return state;
+        }
+
+        if (options?.keepTimeRange) {
+          return { currentDate: date };
         }
 
         const timeMin = calculateStart(date);

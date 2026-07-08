@@ -1,25 +1,19 @@
 "use client";
 
 import * as React from "react";
-import { useAtomValue } from "jotai";
-import { Temporal } from "temporal-polyfill";
-
-import { isAfter } from "@repo/temporal";
 
 import { AgendaView } from "@/components/calendar/agenda-view/agenda-view";
 import { EVENT_GAP, EVENT_HEIGHT } from "@/components/calendar/constants";
 import { MemoizedCalendarHeader } from "@/components/calendar/header/calendar-header";
 import { InfiniteWeekViewDayProvider } from "@/components/calendar/week-view/infinite-week-view-day-provider";
 import { InfiniteWeekViewProvider } from "@/components/calendar/week-view/infinite-week-view-provider";
-import { applyOptimisticActions } from "@/hooks/calendar/apply-optimistic-actions";
-import { optimisticActionsByEventIdAtom } from "@/hooks/calendar/optimistic-actions";
+import { useProcessedDisplayItems } from "@/hooks/calendar/use-display-items";
 import { useEventsForDisplay } from "@/hooks/calendar/use-events";
 import { db, mapEventQueryInput } from "@/lib/db";
 import { isEvent } from "@/lib/display-item";
 import { cn } from "@/lib/utils";
 import { useCalendarStore } from "@/providers/calendar-store-provider";
-import { getCalendarPreference } from "@/store/calendar-store";
-import { useCellHeight, useDefaultTimeZone } from "@/store/hooks";
+import { useCellHeight } from "@/store/hooks";
 import { InfiniteMonthView } from "./month-view/infinite-month-view";
 import { InfiniteMonthViewProvider } from "./month-view/infinite-month-view-provider";
 import { InfiniteMonthViewWeekProvider } from "./month-view/infinite-month-view-week-provider";
@@ -29,14 +23,6 @@ function useDisplayItems() {
   "use memo";
 
   const { data } = useEventsForDisplay();
-
-  const defaultTimeZone = useDefaultTimeZone();
-  const optimisticActions = useAtomValue(optimisticActionsByEventIdAtom);
-
-  const showPastEvents = useCalendarStore(
-    (s) => s.viewPreferences.showPastEvents,
-  );
-  const calendarPreferences = useCalendarStore((s) => s.calendarPreferences);
 
   React.useEffect(() => {
     db.events.bulkPut(
@@ -51,39 +37,9 @@ function useDisplayItems() {
     );
   }, [data?.events, data?.recurringMasterEvents]);
 
-  return React.useMemo(() => {
-    const eventItems = applyOptimisticActions({
-      items: data?.events ?? [],
-      timeZone: defaultTimeZone,
-      optimisticActions,
-    });
+  const items = React.useMemo(() => data?.events ?? [], [data?.events]);
 
-    const now = Temporal.Now.zonedDateTimeISO(defaultTimeZone);
-
-    const pastFiltered = showPastEvents
-      ? eventItems
-      : eventItems.filter((item) => isAfter(item.end, now));
-
-    return pastFiltered.filter((item) => {
-      if (!isEvent(item)) {
-        return true;
-      }
-
-      const preference = getCalendarPreference(
-        calendarPreferences,
-        item.event.calendar.provider.accountId,
-        item.event.calendar.id,
-      );
-
-      return !(preference?.hidden === true);
-    });
-  }, [
-    data?.events,
-    defaultTimeZone,
-    optimisticActions,
-    showPastEvents,
-    calendarPreferences,
-  ]);
+  return useProcessedDisplayItems(items);
 }
 
 function CalendarViewContent() {
@@ -93,7 +49,7 @@ function CalendarViewContent() {
   const items = useDisplayItems();
 
   if (view === "agenda") {
-    return <AgendaView items={items} />;
+    return <AgendaView />;
   }
 
   if (view === "month") {

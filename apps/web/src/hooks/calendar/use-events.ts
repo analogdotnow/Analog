@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
 
-import { DisplayItem, createEventDisplayItem } from "@/lib/display-item";
+import { createEventDisplayItem } from "@/lib/display-item";
 import { RouterOutputs } from "@/lib/trpc";
 import { useTRPC } from "@/lib/trpc/client";
 import { useCalendarStore } from "@/providers/calendar-store-provider";
@@ -28,6 +28,25 @@ export function useEventQueryParams() {
   return { timeMin, timeMax, defaultTimeZone, queryKey };
 }
 
+export function useSelectDisplayItems() {
+  "use memo";
+
+  const defaultTimeZone = useDefaultTimeZone();
+
+  return React.useCallback(
+    (data: RouterOutputs["events"]["list"]) => {
+      if (!data.events) {
+        return [];
+      }
+
+      return data.events.map((event) =>
+        createEventDisplayItem(event, defaultTimeZone),
+      );
+    },
+    [defaultTimeZone],
+  );
+}
+
 export function useEventsForDisplay() {
   "use memo";
 
@@ -45,25 +64,18 @@ export function useEventsForDisplay() {
   //   [defaultTimeZone],
   // );
 
+  const selectDisplayItems = useSelectDisplayItems();
+
   const select = React.useCallback(
     (data: RouterOutputs["events"]["list"]) => {
-      if (!data.events) {
-        return {
-          events: [],
-          recurringMasterEvents: {},
-        };
-      }
-
-      const events: DisplayItem[] = data.events.map((event) =>
-        createEventDisplayItem(event, defaultTimeZone),
-      );
+      const events = selectDisplayItems(data);
       // events.push(...mockItems);
       return {
         events,
         recurringMasterEvents: data.recurringMasterEvents,
       };
     },
-    [defaultTimeZone],
+    [selectDisplayItems],
   );
 
   const { data } = useQuery(
