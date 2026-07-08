@@ -37,8 +37,6 @@ export function TimelineHeader({ className }: TimelineHeaderProps) {
   );
 }
 
-export const MemoizedTimelineHeader = React.memo(TimelineHeader);
-
 interface TimelineHeaderItemProps {
   children: React.ReactNode;
   timeZoneId: string;

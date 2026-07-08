@@ -10,11 +10,8 @@ import {
 import { useLaneCapacity } from "@/hooks/calendar/use-lane-capacity";
 import { cn } from "@/lib/utils";
 import { useInfiniteMonthView } from "./infinite-month-view-provider";
-import {
-  MemoizedMonthViewDay,
-  MemoizedMonthViewDayOverflow,
-} from "./month-view-day";
-import { MemoizedMonthViewItem } from "./month-view-item";
+import { MonthViewDay, MonthViewDayOverflow } from "./month-view-day";
+import { MonthViewItem } from "./month-view-item";
 
 interface WeekData {
   start: Temporal.PlainDate;
@@ -55,13 +52,13 @@ export function InfiniteMonthViewWeek({
     >
       <div className="col-span-full grid grid-cols-subgrid">
         {week.days.map((day) => (
-          <MemoizedMonthViewDay
+          <MonthViewDay
             key={day.toString()}
             date={day}
             overflowRef={overflowRef}
           >
-            <MemoizedMonthViewDayOverflow items={overflowItems} date={day} />
-          </MemoizedMonthViewDay>
+            <MonthViewDayOverflow items={overflowItems} date={day} />
+          </MonthViewDay>
         ))}
       </div>
 
@@ -70,7 +67,7 @@ export function InfiniteMonthViewWeek({
           .slice(0, capacity)
           .map((lane, y) =>
             lane.map((item) => (
-              <MemoizedMonthViewItem
+              <MonthViewItem
                 key={item.id}
                 item={item}
                 range={week}
@@ -82,5 +79,3 @@ export function InfiniteMonthViewWeek({
     </div>
   );
 }
-
-export const MemoizedInfiniteMonthViewWeek = React.memo(InfiniteMonthViewWeek);

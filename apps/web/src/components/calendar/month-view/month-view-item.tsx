@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import { Temporal } from "temporal-polyfill";
 
 import { DraggableTaskItem } from "@/components/calendar/display-item/draggable-task-item";
@@ -100,5 +99,3 @@ function MonthViewTask({ item }: MonthViewTaskProps) {
 
   return <DraggableTaskItem item={item} view="month" />;
 }
-
-export const MemoizedMonthViewItem = React.memo(MonthViewItem);

@@ -31,8 +31,6 @@ export function Timeline() {
   );
 }
 
-export const MemoizedTimeline = React.memo(Timeline);
-
 function useHours(timeZone: string) {
   const use12Hour = useCalendarStore((s) => s.calendarSettings.use12Hour);
   const defaultTimeZone = useDefaultTimeZone();

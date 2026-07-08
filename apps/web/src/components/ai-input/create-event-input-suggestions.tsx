@@ -15,41 +15,49 @@ type SuggestionItem = {
   value: string;
 };
 
+interface CreateEventSuggestionItemsOptions {
+  query: string;
+}
+
+function createEventSuggestionItems({
+  query,
+}: CreateEventSuggestionItemsOptions) {
+  const suggestions: SuggestionItem[] = [
+    ...generateCommonTimeSuggestions().map(({ label, value }) => ({
+      type: "time" as const,
+      label,
+      value,
+    })),
+    ...DURATION_SUGGESTIONS.map(({ label, value }) => ({
+      type: "duration" as const,
+      label,
+      value,
+    })),
+  ];
+
+  const dateSuggestions = generateDateSuggestions(query);
+  suggestions.push(...dateSuggestions);
+
+  return suggestions
+    .filter((item) => {
+      if (item.type === "date") {
+        return true;
+      }
+      return item.label.toLowerCase().startsWith(query.toLowerCase());
+    })
+    .reduce((acc, item) => {
+      const sameTypeCount = acc.filter((i) => i.type === item.type).length;
+      const maxCount = SUGGESTION_LIMITS[item.type];
+      if (sameTypeCount < maxCount) {
+        acc.push(item);
+      }
+      return acc;
+    }, [] as SuggestionItem[]);
+}
+
 export const createEventInputSuggestions: MentionSuggestion = {
   allowSpaces: true,
-  items: ({ query }: { query: string }) => {
-    const suggestions: SuggestionItem[] = [
-      ...generateCommonTimeSuggestions().map(({ label, value }) => ({
-        type: "time" as const,
-        label,
-        value,
-      })),
-      ...DURATION_SUGGESTIONS.map(({ label, value }) => ({
-        type: "duration" as const,
-        label,
-        value,
-      })),
-    ];
-
-    const dateSuggestions = generateDateSuggestions(query);
-    suggestions.push(...dateSuggestions);
-
-    return suggestions
-      .filter((item) => {
-        if (item.type === "date") {
-          return true;
-        }
-        return item.label.toLowerCase().startsWith(query.toLowerCase());
-      })
-      .reduce((acc, item) => {
-        const sameTypeCount = acc.filter((i) => i.type === item.type).length;
-        const maxCount = SUGGESTION_LIMITS[item.type];
-        if (sameTypeCount < maxCount) {
-          acc.push(item);
-        }
-        return acc;
-      }, [] as SuggestionItem[]);
-  },
+  items: createEventSuggestionItems,
 
   render: () => {
     let component: ReactRenderer<unknown, TimeSelectorProps>;

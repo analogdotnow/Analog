@@ -1,8 +1,6 @@
 import * as React from "react";
 import { Temporal } from "temporal-polyfill";
 
-import { eachDayOfInterval, startOfWeek } from "@repo/temporal";
-
 import type { CalendarView } from "@/components/calendar/interfaces";
 import { timeZoneAbbreviation } from "@/components/calendar/timeline/header/use-timezone-info";
 import { calendarTitle } from "@/components/calendar/utils/title";
@@ -61,10 +59,6 @@ export function useDisplayedDays() {
   );
 
   return displayedDays(calendarView, weekViewNumberOfDays);
-}
-
-export function useAnchor(): Temporal.PlainDate {
-  return useCalendarStore((s) => s.anchor);
 }
 
 export function useSelectedEventList(): string[] {

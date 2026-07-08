@@ -33,7 +33,7 @@ export interface ViewSlice {
   // State
   calendarView: CalendarView;
   currentDate: Temporal.PlainDate;
-  anchor: Temporal.PlainDate;
+  navigationNonce: number;
   visibleRange: {
     start: Temporal.PlainDate;
     end: Temporal.PlainDate;
@@ -51,7 +51,6 @@ export interface ViewSlice {
   setCalendarView: (view: CalendarView) => void;
   setCurrentDate: (date: Temporal.PlainDate) => void;
   navigateTo: (date: Temporal.PlainDate) => void;
-  setAnchor: (date: Temporal.PlainDate) => void;
   setVisibleRange: (
     range: { start: Temporal.PlainDate; end: Temporal.PlainDate } | null,
   ) => void;
@@ -76,7 +75,7 @@ export const createViewSlice: StateCreator<
   // Initial state
   calendarView: "week",
   currentDate: now,
-  anchor: now,
+  navigationNonce: 0,
   visibleRange: null,
   selectedDisplayItemIds: [],
   isDragging: false,
@@ -116,33 +115,20 @@ export const createViewSlice: StateCreator<
   navigateTo: (date) =>
     set(
       (state) => {
-        if (Temporal.PlainDate.compare(state.currentDate, date) === 0) {
-          return state;
-        }
-
+        const navigationNonce = state.navigationNonce + 1;
         const timeMin = calculateStart(date);
         const timeMax = calculateEnd(date);
         if (
           Temporal.PlainDate.compare(state.timeMin, timeMin) === 0 &&
           Temporal.PlainDate.compare(state.timeMax, timeMax) === 0
         ) {
-          return { currentDate: date, anchor: date };
+          return { currentDate: date, navigationNonce };
         }
 
-        return { currentDate: date, anchor: date, timeMin, timeMax };
+        return { currentDate: date, timeMin, timeMax, navigationNonce };
       },
       undefined,
       "navigation/navigateTo",
-    ),
-
-  setAnchor: (date) =>
-    set(
-      (state) =>
-        Temporal.PlainDate.compare(state.anchor, date) === 0
-          ? state
-          : { anchor: date },
-      undefined,
-      "scroll/setAnchor",
     ),
 
   setVisibleRange: (range) =>

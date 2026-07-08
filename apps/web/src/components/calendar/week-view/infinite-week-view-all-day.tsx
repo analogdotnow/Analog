@@ -45,9 +45,9 @@ export function InfiniteWeekViewAllDaySection() {
         }}
       >
         {days.map(({ date, index }) => (
-          <MemoizedInfiniteWeekViewAllDayColumn
+          <InfiniteWeekViewAllDayColumn
             key={date.toString()}
-            className="absolute top-0 left-(--column-offset) w-(--column-width) [--column-offset:calc(var(--day-offset)*var(--column-width))]"
+            className="absolute top-0 left-(--column-offset) w-(--column-width) [--column-offset:calc((var(--day-offset)-var(--track-base))*var(--column-width))]"
             day={date}
             index={index}
           />
@@ -102,10 +102,6 @@ function InfiniteWeekViewAllDayColumn({
   );
 }
 
-const MemoizedInfiniteWeekViewAllDayColumn = React.memo(
-  InfiniteWeekViewAllDayColumn,
-);
-
 interface InfiniteWeekViewAllDayItemProps {
   positioned: PositionedAllDayItem;
   range: {
@@ -125,10 +121,10 @@ function InfiniteWeekViewAllDayItem({
   return (
     <DisplayItemContainer
       item={positioned.item}
-      className="pointer-events-auto absolute my-px min-w-0"
+      className="pointer-events-auto absolute left-(--column-offset) my-px min-w-0 [--column-offset:calc((var(--day-offset)-var(--track-base))*var(--column-width))]"
       style={{
         top: `calc(var(--all-day-row-height) * ${positioned.lane})`,
-        left: `${positioned.startIndex * columns.fraction}%`,
+        "--day-offset": positioned.startIndex,
         width: `${positioned.span * columns.fraction}%`,
       }}
     >

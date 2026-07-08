@@ -5,66 +5,6 @@ import {
   TOTAL_MINUTES_IN_DAY,
 } from "@/components/calendar/constants";
 
-interface ComputeTimelineWidthOptions {
-  scrollElement: HTMLElement;
-}
-
-export function computeTimelineWidth({
-  scrollElement,
-}: ComputeTimelineWidthOptions) {
-  const value = getComputedStyle(scrollElement).getPropertyValue(
-    "--timeline-container-width",
-  );
-
-  const width = Number.parseFloat(value);
-
-  return Number.isFinite(width) ? width : 0;
-}
-
-interface CalculateColumnOffsetOptions {
-  scrollLeft: number;
-  columnWidth: number;
-  cursorX: number;
-  timelineWidth: number;
-}
-
-export function calculateColumnIndex({
-  scrollLeft,
-  columnWidth,
-  cursorX,
-  timelineWidth,
-}: CalculateColumnOffsetOptions) {
-  if (cursorX < timelineWidth) {
-    return null;
-  }
-
-  const visibleIndex = Math.floor((cursorX - timelineWidth) / columnWidth);
-
-  const anchorIndex = Math.round((scrollLeft + timelineWidth) / columnWidth);
-
-  return visibleIndex + anchorIndex;
-}
-
-interface CalculateDateOptions {
-  anchor: Temporal.PlainDate;
-  columnIndex: number;
-  columns: {
-    center: number;
-  };
-  initialColumnOffset: number;
-}
-
-export function calculateDate({
-  anchor,
-  columnIndex,
-  columns,
-  initialColumnOffset,
-}: CalculateDateOptions) {
-  return anchor
-    .add({ days: columnIndex - columns.center })
-    .subtract({ days: initialColumnOffset });
-}
-
 function plainTimeFromMinutes(minutes: number) {
   const hour = Math.floor(minutes / MINUTES_IN_HOUR);
   const minute = Math.floor(minutes % MINUTES_IN_HOUR);

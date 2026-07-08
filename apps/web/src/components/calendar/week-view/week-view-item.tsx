@@ -1,5 +1,3 @@
-import * as React from "react";
-
 import { DraggableTaskItem } from "@/components/calendar/display-item/draggable-task-item";
 import { DisplayItemContainer } from "@/components/calendar/event/display-item-container";
 import { DraggableWeekEvent } from "@/components/calendar/event/draggable-week-event";
@@ -41,8 +39,6 @@ export function WeekViewItem({ item, position }: WeekViewItemProps) {
     </DisplayItemContainer>
   );
 }
-
-export const MemoizedWeekViewItem = React.memo(WeekViewItem);
 
 interface WeekViewInlineItemProps {
   item: InlineDisplayItem;

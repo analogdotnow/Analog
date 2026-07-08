@@ -113,6 +113,7 @@
     "remark-math": "^6.0.0",
     "remeda": "catalog:",
     "rrule-temporal": "https://pkg.pr.new/analogdotnow/rrule-temporal@5b1d999",
+    "scrollyfills": "^1.0.4",
     "sonner": "^2.0.7",
     "superjson": "catalog:",
     "superjson-temporal": "catalog:",
