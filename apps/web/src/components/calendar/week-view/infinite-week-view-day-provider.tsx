@@ -183,7 +183,8 @@ export function InfiniteWeekViewDayProvider({
   const columns = useVisualizedColumns();
 
   const [initialTrackBase] = React.useState(
-    () => epochDayOf(startOfWeek(currentDate, { weekStartsOn })) - columns.center,
+    () =>
+      epochDayOf(startOfWeek(currentDate, { weekStartsOn })) - columns.center,
   );
   const trackBaseRef = React.useRef(initialTrackBase);
   const [windowStart, setWindowStart] = React.useState(
@@ -282,7 +283,8 @@ export function InfiniteWeekViewDayProvider({
 
     const applyWeekShift = (columnWidth: number) => {
       const previous = scrollElement.scrollLeft;
-      const firstSlot = firstVisibleEpochDay(columnWidth) - trackBaseRef.current;
+      const firstSlot =
+        firstVisibleEpochDay(columnWidth) - trackBaseRef.current;
       const shift =
         Math.round((firstSlot - columns.center) / DAYS_IN_WEEK) * DAYS_IN_WEEK;
 
@@ -483,4 +485,3 @@ export function useInfiniteWeekViewDays() {
 
   return context;
 }
-

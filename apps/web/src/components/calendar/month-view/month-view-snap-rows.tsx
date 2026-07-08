@@ -30,7 +30,10 @@ interface GetMonthStartWeeksOptions {
   weekStartsOn: 1 | 2 | 3 | 4 | 5 | 6 | 7;
 }
 
-function getMonthStartWeeks({ range, weekStartsOn }: GetMonthStartWeeksOptions) {
+function getMonthStartWeeks({
+  range,
+  weekStartsOn,
+}: GetMonthStartWeeksOptions) {
   const weeks: number[] = [];
 
   let monthStart = startOfMonth(range.start);

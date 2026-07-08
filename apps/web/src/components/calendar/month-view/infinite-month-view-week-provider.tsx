@@ -193,23 +193,27 @@ export function InfiniteMonthViewWeekProvider({
     setSnapTrackBase(epochWeekOf(currentDate, weekStartsOn) - rows.center);
   }
 
-  const syncWeekWindow = React.useEffectEvent((firstVisibleEpochWeek: number) => {
-    if (lastSyncedEpochWeek.current === firstVisibleEpochWeek) {
-      return;
-    }
+  const syncWeekWindow = React.useEffectEvent(
+    (firstVisibleEpochWeek: number) => {
+      if (lastSyncedEpochWeek.current === firstVisibleEpochWeek) {
+        return;
+      }
 
-    lastSyncedEpochWeek.current = firstVisibleEpochWeek;
-    setWindowStart(firstVisibleEpochWeek - MONTH_WEEK_BUFFER_COUNT);
+      lastSyncedEpochWeek.current = firstVisibleEpochWeek;
+      setWindowStart(firstVisibleEpochWeek - MONTH_WEEK_BUFFER_COUNT);
 
-    setCurrentDate(weekFromEpochWeek(firstVisibleEpochWeek, weekStartsOn).start);
-    setVisibleRange({
-      start: weekFromEpochWeek(firstVisibleEpochWeek, weekStartsOn).start,
-      end: weekFromEpochWeek(
-        firstVisibleEpochWeek + rows.count - 1,
-        weekStartsOn,
-      ).end,
-    });
-  });
+      setCurrentDate(
+        weekFromEpochWeek(firstVisibleEpochWeek, weekStartsOn).start,
+      );
+      setVisibleRange({
+        start: weekFromEpochWeek(firstVisibleEpochWeek, weekStartsOn).start,
+        end: weekFromEpochWeek(
+          firstVisibleEpochWeek + rows.count - 1,
+          weekStartsOn,
+        ).end,
+      });
+    },
+  );
 
   const resetToCurrentDate = React.useEffectEvent(() => {
     const currentEpochWeek = epochWeekOf(currentDate, weekStartsOn);

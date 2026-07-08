@@ -18,7 +18,10 @@ import { useInfiniteWeekViewDays } from "./infinite-week-view-day-provider";
 import { InfiniteWeekViewHeader } from "./infinite-week-view-header";
 import { WeekViewItem } from "./week-view-item";
 import { WeekViewSideItem } from "./week-view-side-item";
-import { WeekViewSnapColumns, WeekStartSnapGuideline } from "./week-view-snap-columns";
+import {
+  WeekViewSnapColumns,
+  WeekStartSnapGuideline,
+} from "./week-view-snap-columns";
 
 type InfiniteWeekViewProps = React.ComponentProps<"div">;
 const DAYS_IN_WEEK = 7;
