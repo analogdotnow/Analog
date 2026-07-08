@@ -2,6 +2,7 @@
 
 import * as React from "react";
 
+import { SCROLL_MULTIPLIER } from "@/components/calendar/constants";
 import { ContainerProvider } from "@/components/calendar/context/container-provider";
 import { useMonthViewGridLayout } from "@/hooks/calendar/use-grid-layout";
 import { cn } from "@/lib/utils";
@@ -38,8 +39,7 @@ export function InfiniteMonthView({
         )}
         style={{
           "--month-view-grid": grid,
-          "--month-view-height":
-            "calc(5000% - (var(--month-view-header-height) * 50))",
+          "--month-view-height": `calc(${SCROLL_MULTIPLIER * 100}% - (var(--month-view-header-height) * ${SCROLL_MULTIPLIER}))`,
           "--month-view-header-height": "calc(2.25rem)",
           "--row-height": `${rows.fraction}%`,
           "--track-base": trackBase,

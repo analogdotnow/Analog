@@ -3,12 +3,14 @@
 // Required to ensure the scroll position is reset on fast refresh
 // @refresh reset
 import * as React from "react";
+import { flushSync } from "react-dom";
 // Polyfills the scrollend event; remove once scrollend browser support on caniuse.com reaches 90%
 import "scrollyfills";
 import { Temporal } from "temporal-polyfill";
 
 import { eachDayOfInterval, endOfWeek, startOfWeek } from "@repo/temporal";
 
+import { SCROLL_MULTIPLIER } from "@/components/calendar/constants";
 import { useIsResizing } from "@/hooks/use-resize";
 import { LRUCache } from "@/lib/data-structures/lru-cache";
 import { useCalendarStore } from "@/providers/calendar-store-provider";
@@ -31,7 +33,6 @@ export interface DerivedMonthWeek {
 type WeekStartsOn = 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
 const VISIBLE_ROWS = 6;
-const SCROLL_MULTIPLIER = 50;
 const EDGE_THRESHOLD = 0.1;
 const MONTH_WEEK_BUFFER_COUNT = 12;
 
@@ -76,7 +77,7 @@ function useVisualizedRows() {
   "use memo";
 
   const total = SCROLL_MULTIPLIER * VISIBLE_ROWS;
-  const fraction = 2 / VISIBLE_ROWS;
+  const fraction = 100 / total;
   const center = Math.floor(total / 2);
 
   return {
@@ -165,8 +166,8 @@ export function InfiniteMonthViewWeekProvider({
     () => epochWeekOf(currentDate, weekStartsOn) - rows.center,
   );
   const trackBaseRef = React.useRef(initialTrackBase);
-  // Render-synced copy of trackBaseRef for SnapMonths; may trail the
-  // imperative --track-base write by one frame.
+  // Render-synced copy of trackBaseRef for SnapMonths; committed via
+  // flushSync so it never trails the imperative --track-base write.
   const [snapTrackBase, setSnapTrackBase] = React.useState(initialTrackBase);
   const [windowStart, setWindowStart] = React.useState(
     () => epochWeekOf(currentDate, weekStartsOn) - MONTH_WEEK_BUFFER_COUNT,
@@ -260,11 +261,11 @@ export function InfiniteMonthViewWeekProvider({
       return;
     }
 
+    let padding = scrollPaddingTop(scrollElement);
+
     const firstVisibleEpochWeek = (rowHeight: number) =>
-      Math.round(
-        (scrollElement.scrollTop + scrollPaddingTop(scrollElement)) /
-          rowHeight,
-      ) + trackBaseRef.current;
+      Math.round((scrollElement.scrollTop + padding) / rowHeight) +
+      trackBaseRef.current;
 
     const applyRowShift = (rowHeight: number) => {
       const previous = scrollElement.scrollTop;
@@ -290,7 +291,9 @@ export function InfiniteMonthViewWeekProvider({
         "--track-base",
         String(trackBaseRef.current),
       );
-      setSnapTrackBase(trackBaseRef.current);
+      flushSync(() => {
+        setSnapTrackBase(trackBaseRef.current);
+      });
     };
 
     const recenter = () => {
@@ -359,8 +362,23 @@ export function InfiniteMonthViewWeekProvider({
       signal: controller.signal,
     });
 
+    const onUserInput = () => {
+      isProgrammaticScroll.current = false;
+    };
+
+    scrollElement.addEventListener("wheel", onUserInput, {
+      passive: true,
+      signal: controller.signal,
+    });
+
+    scrollElement.addEventListener("touchstart", onUserInput, {
+      passive: true,
+      signal: controller.signal,
+    });
+
     const unsubscribeResize = isResizing.on("change", (resizing) => {
       if (!resizing) {
+        padding = scrollPaddingTop(scrollElement);
         recenter();
       }
     });
@@ -387,8 +405,8 @@ export function InfiniteMonthViewWeekProvider({
     weeks,
     rows,
     range: {
-      start: weekFromEpochWeek(windowStart, weekStartsOn).start,
-      end: weekFromEpochWeek(windowStart + capacity - 1, weekStartsOn).end,
+      start: weeks.at(0)!.start,
+      end: weeks.at(-1)!.end,
     },
     trackBase: initialTrackBase,
     snapTrackBase,

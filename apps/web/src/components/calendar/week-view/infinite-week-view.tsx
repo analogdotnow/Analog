@@ -4,6 +4,7 @@
 // @refresh reset
 import * as React from "react";
 
+import { SCROLL_MULTIPLIER } from "@/components/calendar/constants";
 import { ContainerProvider } from "@/components/calendar/context/container-provider";
 import { TimeIndicatorBackground } from "@/components/calendar/timeline/time-indicator";
 import { Timeline } from "@/components/calendar/timeline/timeline";
@@ -50,7 +51,7 @@ export function InfiniteWeekView({
           "--time-columns": timeZoneCount,
           "--columns": columns.count,
           "--track-base": trackBase,
-          "--week-view-width": `calc(5000% - (var(--timeline-container-width) * 50))`,
+          "--week-view-width": `calc(${SCROLL_MULTIPLIER * 100}% - (var(--timeline-container-width) * ${SCROLL_MULTIPLIER}))`,
           "--column-width": `${columns.fraction}%`,
           "--padding-left": `var(--timeline-container-width)`,
           "--all-day-row-height": `28px`,

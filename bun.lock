@@ -191,6 +191,7 @@
         "remark-math": "^6.0.0",
         "remeda": "catalog:",
         "rrule-temporal": "https://pkg.pr.new/analogdotnow/rrule-temporal@5b1d999",
+        "scrollyfills": "^1.0.4",
         "sonner": "^2.0.7",
         "superjson": "catalog:",
         "superjson-temporal": "catalog:",
@@ -3614,6 +3615,8 @@
     "scheduler": ["scheduler@0.27.0", "", {}, "sha512-eNv+WrVbKu1f3vbYJT/xtiF5syA5HPIMtf9IgY/nKg0sWqzAUEvqY/xm7OcZc/qafLx/iO9FgOmeSAp4v5ti/Q=="],
 
     "schema-utils": ["schema-utils@4.3.3", "", { "dependencies": { "@types/json-schema": "^7.0.9", "ajv": "^8.9.0", "ajv-formats": "^2.1.1", "ajv-keywords": "^5.1.0" } }, "sha512-eflK8wEtyOE6+hsaRVPxvUKYCpRgzLqDTb8krvAsRIwOGlHoSgYLgBXoubGgLd2fT41/OUYdb48v4k4WWHQurA=="],
+
+    "scrollyfills": ["scrollyfills@1.0.4", "", {}, "sha512-5V9QrElky6ZOHMQPRVQBYzgviOpW5Y1sqj3yBUuUOXI6QbZW7WztmNkBBHE9WFF3oX5jRfg/K3Gx3I5RgYq8gw=="],
 
     "secure-exec": ["secure-exec@0.2.1", "", { "dependencies": { "@secure-exec/core": "0.2.1", "@secure-exec/nodejs": "0.2.1" } }, "sha512-oaQDzTPDSCOckYC8G0PimIqzEVxY6sYEvcx0fMGsRR/Wl4wkFVHaZgQ3kc2DHWysV6WHWt5g1AXc/6seafO2XQ=="],
 

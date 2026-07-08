@@ -9,6 +9,7 @@ import { Temporal } from "temporal-polyfill";
 
 import { startOfWeek } from "@repo/temporal";
 
+import { SCROLL_MULTIPLIER } from "@/components/calendar/constants";
 import type { PositionedDisplayItem } from "@/components/calendar/utils/positioning/inline-items";
 import type { PositionedSideItem } from "@/components/calendar/utils/positioning/side-items";
 import type { WeekDisplayCollection } from "@/hooks/calendar/use-event-collection";
@@ -33,10 +34,10 @@ export interface DerivedWeekDay {
   sideItems: PositionedSideItem[];
 }
 
-const SCROLL_MULTIPLIER = 50;
 const EDGE_THRESHOLD = 0.1;
 const DAYS_IN_WEEK = 7;
 const WEEK_DAY_BUFFER_COUNT = 28;
+const SM_BREAKPOINT = "(min-width: 640px)";
 
 const EPOCH = Temporal.PlainDate.from("1970-01-01");
 
@@ -65,7 +66,7 @@ function useVisualizedColumns() {
 
   const count = useDisplayedDays();
   const total = SCROLL_MULTIPLIER * count;
-  const fraction = 2 / count;
+  const fraction = 100 / total;
   const center = Math.floor(total / 2);
 
   return {
@@ -273,11 +274,11 @@ export function InfiniteWeekViewDayProvider({
       return;
     }
 
+    let padding = scrollPaddingStart(scrollElement);
+
     const firstVisibleEpochDay = (columnWidth: number) =>
-      Math.round(
-        (scrollElement.scrollLeft + scrollPaddingStart(scrollElement)) /
-          columnWidth,
-      ) + trackBaseRef.current;
+      Math.round((scrollElement.scrollLeft + padding) / columnWidth) +
+      trackBaseRef.current;
 
     const applyWeekShift = (columnWidth: number) => {
       const previous = scrollElement.scrollLeft;
@@ -373,17 +374,39 @@ export function InfiniteWeekViewDayProvider({
       signal: controller.signal,
     });
 
+    const onUserInput = () => {
+      isProgrammaticScroll.current = false;
+    };
+
+    scrollElement.addEventListener("wheel", onUserInput, {
+      passive: true,
+      signal: controller.signal,
+    });
+
+    scrollElement.addEventListener("touchstart", onUserInput, {
+      passive: true,
+      signal: controller.signal,
+    });
+
     const unsubscribeResize = isResizing.on("change", (resizing) => {
       if (!resizing) {
+        padding = scrollPaddingStart(scrollElement);
         recenter();
       }
     });
 
-    const breakpoint = window.matchMedia("(min-width: 640px)");
+    const breakpoint = window.matchMedia(SM_BREAKPOINT);
 
-    breakpoint.addEventListener("change", () => recenter(), {
-      signal: controller.signal,
-    });
+    breakpoint.addEventListener(
+      "change",
+      () => {
+        padding = scrollPaddingStart(scrollElement);
+        recenter();
+      },
+      {
+        signal: controller.signal,
+      },
+    );
 
     return () => {
       unsubscribeResize();
@@ -408,8 +431,8 @@ export function InfiniteWeekViewDayProvider({
     days,
     columns,
     range: {
-      start: dateFromEpochDay(windowStart),
-      end: dateFromEpochDay(windowStart + capacity - 1),
+      start: days.at(0)!.date,
+      end: days.at(-1)!.date,
     },
     trackBase: initialTrackBase,
     scrollRef,
