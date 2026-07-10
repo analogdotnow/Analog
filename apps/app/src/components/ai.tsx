@@ -141,7 +141,11 @@ function LoadingMessage() {
 
 LoadingMessage.displayName = "LoadingMessage";
 
-function ErrorMessage({ error }: { error: Error }) {
+interface ErrorMessageProps {
+  error: Error;
+}
+
+function ErrorMessage({ error }: ErrorMessageProps) {
   return (
     <Message className="not-prose mx-auto flex w-full max-w-3xl flex-col items-start gap-2 px-0 md:px-10">
       <div className="group flex w-full flex-col items-start gap-0">

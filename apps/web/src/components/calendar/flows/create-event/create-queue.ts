@@ -41,6 +41,14 @@ export interface CreateCreateQueueMachineOptions {
   removeOptimisticAction: RemoveOptimisticAction;
 }
 
+interface CreateEventActorOptions {
+  input: CreateQueueItem;
+}
+
+interface CreateEventMutateContextOptions {
+  context: Ctx;
+}
+
 export function createCreateQueueMachine({
   createEvent,
   removeOptimisticAction,
@@ -78,7 +86,7 @@ export function createCreateQueueMachine({
     },
     actors: {
       createEventActor: fromPromise(
-        async ({ input }: { input: CreateQueueItem }) => createEvent(input),
+        async ({ input }: CreateEventActorOptions) => createEvent(input),
       ),
     },
   }).createMachine({
@@ -113,7 +121,8 @@ export function createCreateQueueMachine({
       mutate: {
         invoke: {
           src: "createEventActor",
-          input: ({ context }: { context: Ctx }) => context.item!,
+          input: ({ context }: CreateEventMutateContextOptions) =>
+            context.item!,
           onDone: { target: "finalize" },
           onError: { target: "rollback" },
         },

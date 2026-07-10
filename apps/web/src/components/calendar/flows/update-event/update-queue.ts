@@ -61,6 +61,14 @@ export interface CreateUpdateQueueMachineOptions {
   removeOptimisticAction: RemoveOptimisticAction;
 }
 
+interface UpdateEventActorOptions {
+  input: UpdateQueueItem;
+}
+
+interface UpdateEventMutateContextOptions {
+  context: Ctx;
+}
+
 export function createUpdateQueueMachine({
   updateEvent,
   removeOptimisticAction,
@@ -115,7 +123,7 @@ export function createUpdateQueueMachine({
     },
     actors: {
       updateEventActor: fromPromise(
-        async ({ input }: { input: UpdateQueueItem }) => updateEvent(input),
+        async ({ input }: UpdateEventActorOptions) => updateEvent(input),
       ),
     },
   }).createMachine({
@@ -159,7 +167,8 @@ export function createUpdateQueueMachine({
       mutate: {
         invoke: {
           src: "updateEventActor",
-          input: ({ context }: { context: Ctx }) => context.item!,
+          input: ({ context }: UpdateEventMutateContextOptions) =>
+            context.item!,
           onDone: { target: "finalize" },
           onError: { target: "rollback" },
         },

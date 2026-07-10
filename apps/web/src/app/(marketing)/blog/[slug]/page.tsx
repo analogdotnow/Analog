@@ -71,11 +71,11 @@ export async function generateMetadata({
   };
 }
 
-export default async function PostPage({
-  params,
-}: {
+interface PostPageProps {
   params: Promise<{ slug: string }>;
-}) {
+}
+
+export default async function PostPage({ params }: PostPageProps) {
   const slug = (await params).slug;
 
   const { post } = await getSinglePost(slug);

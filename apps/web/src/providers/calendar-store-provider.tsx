@@ -36,8 +36,13 @@ interface CalendarStoreProviderProps {
   children: ReactNode;
 }
 
-function CalendarStoreSync({ children }: { children: ReactNode }) {
+interface CalendarStoreSyncProps {
+  children: ReactNode;
+}
+
+function CalendarStoreSync({ children }: CalendarStoreSyncProps) {
   useSyncDefaultCalendar();
+
   return children;
 }
 

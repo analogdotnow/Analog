@@ -37,15 +37,17 @@ type MorphingPopoverContextValue = {
 const MorphingPopoverContext =
   createContext<MorphingPopoverContextValue | null>(null);
 
+interface UsePopoverLogicOptions {
+  defaultOpen?: boolean;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
+
 function usePopoverLogic({
   defaultOpen = false,
   open: controlledOpen,
   onOpenChange,
-}: {
-  defaultOpen?: boolean;
-  open?: boolean;
-  onOpenChange?: (open: boolean) => void;
-} = {}) {
+}: UsePopoverLogicOptions = {}) {
   const uniqueId = useId();
   const [uncontrolledOpen, setUncontrolledOpen] = useState(defaultOpen);
 

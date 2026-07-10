@@ -21,13 +21,15 @@ export interface LoaderProps {
   className?: string;
 }
 
+interface LoaderComponentProps {
+  className?: string;
+  size?: "sm" | "md" | "lg";
+}
+
 export function CircularLoader({
   className,
   size = "md",
-}: {
-  className?: string;
-  size?: "sm" | "md" | "lg";
-}) {
+}: LoaderComponentProps) {
   const sizeClasses = {
     sm: "size-4",
     md: "size-5",
@@ -50,10 +52,7 @@ export function CircularLoader({
 export function ClassicLoader({
   className,
   size = "md",
-}: {
-  className?: string;
-  size?: "sm" | "md" | "lg";
-}) {
+}: LoaderComponentProps) {
   const sizeClasses = {
     sm: "size-4",
     md: "size-5",
@@ -93,13 +92,7 @@ export function ClassicLoader({
   );
 }
 
-export function PulseLoader({
-  className,
-  size = "md",
-}: {
-  className?: string;
-  size?: "sm" | "md" | "lg";
-}) {
+export function PulseLoader({ className, size = "md" }: LoaderComponentProps) {
   const sizeClasses = {
     sm: "size-4",
     md: "size-5",
@@ -117,10 +110,7 @@ export function PulseLoader({
 export function PulseDotLoader({
   className,
   size = "md",
-}: {
-  className?: string;
-  size?: "sm" | "md" | "lg";
-}) {
+}: LoaderComponentProps) {
   const sizeClasses = {
     sm: "size-1",
     md: "size-2",
@@ -140,13 +130,7 @@ export function PulseDotLoader({
   );
 }
 
-export function DotsLoader({
-  className,
-  size = "md",
-}: {
-  className?: string;
-  size?: "sm" | "md" | "lg";
-}) {
+export function DotsLoader({ className, size = "md" }: LoaderComponentProps) {
   const dotSizes = {
     sm: "h-1.5 w-1.5",
     md: "h-2 w-2",
@@ -184,13 +168,7 @@ export function DotsLoader({
   );
 }
 
-export function TypingLoader({
-  className,
-  size = "md",
-}: {
-  className?: string;
-  size?: "sm" | "md" | "lg";
-}) {
+export function TypingLoader({ className, size = "md" }: LoaderComponentProps) {
   const dotSizes = {
     sm: "h-1 w-1",
     md: "h-1.5 w-1.5",
@@ -228,13 +206,7 @@ export function TypingLoader({
   );
 }
 
-export function WaveLoader({
-  className,
-  size = "md",
-}: {
-  className?: string;
-  size?: "sm" | "md" | "lg";
-}) {
+export function WaveLoader({ className, size = "md" }: LoaderComponentProps) {
   const barWidths = {
     sm: "w-0.5",
     md: "w-0.5",
@@ -279,13 +251,7 @@ export function WaveLoader({
   );
 }
 
-export function BarsLoader({
-  className,
-  size = "md",
-}: {
-  className?: string;
-  size?: "sm" | "md" | "lg";
-}) {
+export function BarsLoader({ className, size = "md" }: LoaderComponentProps) {
   const barWidths = {
     sm: "w-1",
     md: "w-1.5",
@@ -320,10 +286,7 @@ export function BarsLoader({
 export function TerminalLoader({
   className,
   size = "md",
-}: {
-  className?: string;
-  size?: "sm" | "md" | "lg";
-}) {
+}: LoaderComponentProps) {
   const cursorSizes = {
     sm: "h-3 w-1.5",
     md: "h-4 w-2",
@@ -364,15 +327,15 @@ export function TerminalLoader({
   );
 }
 
+interface LoaderTextComponentProps extends LoaderComponentProps {
+  text?: string;
+}
+
 export function TextBlinkLoader({
   text = "Thinking",
   className,
   size = "md",
-}: {
-  text?: string;
-  className?: string;
-  size?: "sm" | "md" | "lg";
-}) {
+}: LoaderTextComponentProps) {
   const textSizes = {
     sm: "text-xs",
     md: "text-sm",
@@ -396,11 +359,7 @@ export function TextShimmerLoader({
   text = "Thinking",
   className,
   size = "md",
-}: {
-  text?: string;
-  className?: string;
-  size?: "sm" | "md" | "lg";
-}) {
+}: LoaderTextComponentProps) {
   const textSizes = {
     sm: "text-xs",
     md: "text-sm",
@@ -426,11 +385,7 @@ export function TextDotsLoader({
   className,
   text = "Thinking",
   size = "md",
-}: {
-  className?: string;
-  text?: string;
-  size?: "sm" | "md" | "lg";
-}) {
+}: LoaderTextComponentProps) {
   const textSizes = {
     sm: "text-xs",
     md: "text-sm",

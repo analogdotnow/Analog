@@ -52,6 +52,14 @@ export interface CreateUpdateQueueMachineOptions {
   removeOptimisticAction: RemoveOptimisticAction;
 }
 
+interface DeleteEventActorOptions {
+  input: DeleteQueueItem;
+}
+
+interface DeleteEventMutateContextOptions {
+  context: Ctx;
+}
+
 export function createDeleteQueueMachine({
   deleteEvent,
   removeOptimisticAction,
@@ -106,7 +114,7 @@ export function createDeleteQueueMachine({
     },
     actors: {
       deleteEventActor: fromPromise(
-        async ({ input }: { input: DeleteQueueItem }) => deleteEvent(input),
+        async ({ input }: DeleteEventActorOptions) => deleteEvent(input),
       ),
     },
   }).createMachine({
@@ -150,7 +158,8 @@ export function createDeleteQueueMachine({
       mutate: {
         invoke: {
           src: "deleteEventActor",
-          input: ({ context }: { context: Ctx }) => context.item!,
+          input: ({ context }: DeleteEventMutateContextOptions) =>
+            context.item!,
           onDone: { target: "finalize" },
           onError: { target: "rollback" },
         },
