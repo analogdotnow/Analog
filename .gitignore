@@ -55,3 +55,10 @@ count.txt
 .vinxi
 __unconfig*
 todos.json
+
+.tmp
+.visual-testing
+.devtools
+.groupedtimelineinclude
+.docs
+.cursor

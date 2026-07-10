@@ -9,7 +9,6 @@ import { DisplayItem } from "@/lib/display-item";
 import { cn } from "@/lib/utils";
 import { format } from "@/lib/utils/format";
 import { useDefaultTimeZone } from "@/store/hooks";
-import { displayItemOverlapsDay } from "../utils/positioning/inline-items";
 import { AgendaViewItem } from "./agenda-view-item";
 
 interface AgendaViewDayHeaderProps {
@@ -63,19 +62,11 @@ interface AgendaViewDayProps {
 export function AgendaViewDay({ day, items }: AgendaViewDayProps) {
   "use memo";
 
-  const events = React.useMemo(() => {
-    return items.filter((item) => displayItemOverlapsDay(item, day));
-  }, [day, items]);
-
-  if (events.length === 0) {
-    return null;
-  }
-
   return (
     <AgendaViewDayContainer>
       <AgendaViewDayHeader day={day} />
       <AgendaViewDayContent>
-        {events.map((event) => (
+        {items.map((event) => (
           <AgendaViewItem key={event.id} item={event} />
         ))}
       </AgendaViewDayContent>

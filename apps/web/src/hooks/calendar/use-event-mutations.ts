@@ -49,7 +49,10 @@ export function useCreateEventMutation() {
         }
       },
       onSettled: () => {
-        queryClient.invalidateQueries({ queryKey });
+        // Path-level: the agenda view holds per-chunk events.list caches
+        // beyond the single key optimistically updated above; leaving them
+        // stale resurrects deleted events and hides created ones there.
+        queryClient.invalidateQueries({ queryKey: trpc.events.list.pathKey() });
       },
     }),
   );
@@ -109,7 +112,10 @@ export function useUpdateEventMutation() {
         }
       },
       onSettled: () => {
-        queryClient.invalidateQueries({ queryKey });
+        // Path-level: the agenda view holds per-chunk events.list caches
+        // beyond the single key optimistically updated above; leaving them
+        // stale resurrects deleted events and hides created ones there.
+        queryClient.invalidateQueries({ queryKey: trpc.events.list.pathKey() });
       },
     }),
   );
@@ -149,7 +155,10 @@ export function useDeleteEventMutation() {
         }
       },
       onSettled: () => {
-        queryClient.invalidateQueries({ queryKey });
+        // Path-level: the agenda view holds per-chunk events.list caches
+        // beyond the single key optimistically updated above; leaving them
+        // stale resurrects deleted events and hides created ones there.
+        queryClient.invalidateQueries({ queryKey: trpc.events.list.pathKey() });
       },
     }),
   );
