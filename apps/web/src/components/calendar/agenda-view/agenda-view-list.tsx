@@ -18,7 +18,10 @@ const EDGE_DAYS = 14;
 const EDGE_ITEMS = 10;
 // Backward runway floor in viewport-heights: below this much loaded content
 // above the viewport, extend regardless of the day/item-based triggers.
-const START_RUNWAY_VIEWPORTS = 2;
+// Sized for a strong fling: it must cover the distance momentum travels
+// during one uncached chunk round trip, or the fling reaches the top while
+// extension is stalled on the network.
+const START_RUNWAY_VIEWPORTS = 5;
 const SCROLL_SILENCE_MS = 160;
 
 // WebKit drops programmatic scrollTop writes while a momentum gesture is

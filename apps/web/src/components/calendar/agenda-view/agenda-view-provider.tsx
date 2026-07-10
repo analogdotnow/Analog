@@ -18,6 +18,11 @@ const MAX_CHUNKS = 12;
 // Auto-extension through empty stretches stops once the window edge is more
 // than ~1 year past the nearest loaded event (or the window anchor).
 const AUTO_EXTEND_LIMIT_DAYS = 370;
+// Chunks kept warm beyond each extendable edge. Depth 1 is not enough: a
+// fling consumes the warm chunk instantly, and extension then stalls a full
+// round trip. At depth 2 the chunk behind the one being consumed is already
+// in flight.
+const PREFETCH_CHUNKS = 2;
 
 const EPOCH = Temporal.PlainDate.from("1970-01-01");
 
@@ -191,28 +196,33 @@ export function AgendaViewProvider({ children }: AgendaViewProviderProps) {
   const canExtendForward =
     loadedEnd.since(lastLoadedDay).days < AUTO_EXTEND_LIMIT_DAYS;
 
-  // Keep the next chunk on each extendable side warm so an extension mounts
-  // as a cache hit instead of holding the user at the window edge for a
-  // network round trip. Deferred until the visible window has loaded so the
-  // prefetch never competes with queries the user is waiting on.
+  // Keep the next chunks on each extendable side warm so extensions mount as
+  // cache hits instead of holding the user at the window edge for a network
+  // round trip. Skipped only during a cold load (mount/teleport), when the
+  // user is waiting on the visible window itself — a pending chunk at one
+  // edge must NOT pause prefetching, or the pipeline dries up exactly while
+  // a fling is draining the runway.
   React.useEffect(() => {
-    if (isPending) {
+    if (isPending && days.length === 0) {
       return;
     }
 
-    if (canExtendBackward) {
-      void queryClient.prefetchQuery(
-        trpc.events.list.queryOptions(chunkInput(range.start - 1)),
-      );
-    }
+    for (let depth = 1; depth <= PREFETCH_CHUNKS; depth++) {
+      if (canExtendBackward) {
+        void queryClient.prefetchQuery(
+          trpc.events.list.queryOptions(chunkInput(range.start - depth)),
+        );
+      }
 
-    if (canExtendForward) {
-      void queryClient.prefetchQuery(
-        trpc.events.list.queryOptions(chunkInput(range.end + 1)),
-      );
+      if (canExtendForward) {
+        void queryClient.prefetchQuery(
+          trpc.events.list.queryOptions(chunkInput(range.end + depth)),
+        );
+      }
     }
   }, [
     isPending,
+    days.length,
     canExtendBackward,
     canExtendForward,
     range,
