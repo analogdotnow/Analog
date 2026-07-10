@@ -12,11 +12,11 @@ export const metadata: Metadata = {
   title: "Sign In - Analog",
 };
 
-export default async function Page({
-  searchParams,
-}: {
+interface LoginPageProps {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
-}) {
+}
+
+export default async function Page({ searchParams }: LoginPageProps) {
   const session = await auth.api.getSession({ headers: await headers() });
 
   if (session) {

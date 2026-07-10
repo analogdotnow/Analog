@@ -10,15 +10,17 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
+interface TitleFieldProps {
+  cardSize?: Measures;
+  isLoading?: boolean;
+  aiEnabled?: boolean;
+}
+
 const TitleField = ({
   cardSize,
   isLoading = false,
   aiEnabled = false,
-}: {
-  cardSize?: Measures;
-  isLoading?: boolean;
-  aiEnabled?: boolean;
-}) => {
+}: TitleFieldProps) => {
   const field = useFieldContext<string>();
   const { expanded, setFocused, refs } = useExpandingInput(field.state.value);
 
@@ -134,10 +136,11 @@ const TitleField = ({
   );
 };
 
-function AiInputHint({
-  className,
-  ...props
-}: { className?: string } & React.ComponentProps<typeof motion.div>) {
+interface AiInputHintProps extends React.ComponentProps<typeof motion.div> {
+  className?: string;
+}
+
+function AiInputHint({ className, ...props }: AiInputHintProps) {
   return (
     <motion.div
       className={cn(

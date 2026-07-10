@@ -55,6 +55,24 @@ export type CalendarProps = DayPickerProps & {
 
 type NavView = "days" | "years";
 
+interface DisplayYears {
+  from: number;
+  to: number;
+}
+
+interface CalendarChevronProps {
+  orientation?: "left" | "right" | "up" | "down";
+}
+
+interface CalendarNavClassNameProps {
+  className?: string;
+}
+
+interface CalendarMonthGridComponentProps {
+  className?: string;
+  children?: React.ReactNode;
+}
+
 /**
  * A custom calendar component built on top of react-day-picker.
  * @param props The props for the calendar.
@@ -73,10 +91,7 @@ function Calendar({
   "use memo";
 
   const [navView, setNavView] = React.useState<NavView>("days");
-  const [displayYears, setDisplayYears] = React.useState<{
-    from: number;
-    to: number;
-  }>(
+  const [displayYears, setDisplayYears] = React.useState<DisplayYears>(
     React.useMemo(() => {
       const currentYear = new Date().getFullYear();
       return {
@@ -176,17 +191,13 @@ function Calendar({
         hidden: cn("invisible flex-1", props.hiddenClassName),
       }}
       components={{
-        Chevron: ({
-          orientation,
-        }: {
-          orientation?: "left" | "right" | "up" | "down";
-        }) => {
+        Chevron: ({ orientation }: CalendarChevronProps) => {
           const Icon = orientation === "left" ? ChevronLeft : ChevronRight;
 
           return <Icon className="h-4 w-4" />;
         },
         DayButton,
-        Nav: ({ className }: { className?: string }) => (
+        Nav: ({ className }: CalendarNavClassNameProps) => (
           <Nav
             className={className}
             displayYears={displayYears}
@@ -211,10 +222,7 @@ function Calendar({
           className,
           children,
           ...props
-        }: {
-          className?: string;
-          children?: React.ReactNode;
-        }) => (
+        }: CalendarMonthGridComponentProps) => (
           <MonthGrid
             className={className}
             displayYears={displayYears}
@@ -236,15 +244,13 @@ function Calendar({
 }
 Calendar.displayName = "Calendar";
 
-function DayButton({
-  className,
-  day,
-  modifiers,
-}: {
+interface DayButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   day: CalendarDay;
   className?: string;
   modifiers: Modifiers;
-} & React.ButtonHTMLAttributes<HTMLButtonElement>) {
+}
+
+function DayButton({ className, day, modifiers }: DayButtonProps) {
   "use memo";
   const { goToMonth, select } = useDayPicker<{ mode: "single" }>();
 
@@ -273,6 +279,17 @@ function DayButton({
   );
 }
 
+interface NavProps {
+  className?: string;
+  navView: NavView;
+  startMonth?: Date;
+  endMonth?: Date;
+  displayYears: DisplayYears;
+  setDisplayYears: React.Dispatch<React.SetStateAction<DisplayYears>>;
+  onPrevClick?: (date: Date) => void;
+  onNextClick?: (date: Date) => void;
+}
+
 function Nav({
   className,
   navView,
@@ -282,18 +299,7 @@ function Nav({
   setDisplayYears,
   onPrevClick,
   onNextClick,
-}: {
-  className?: string;
-  navView: NavView;
-  startMonth?: Date;
-  endMonth?: Date;
-  displayYears: { from: number; to: number };
-  setDisplayYears: React.Dispatch<
-    React.SetStateAction<{ from: number; to: number }>
-  >;
-  onPrevClick?: (date: Date) => void;
-  onNextClick?: (date: Date) => void;
-}) {
+}: NavProps) {
   "use memo";
   const { nextMonth, previousMonth, goToMonth } = useDayPicker();
 
@@ -425,6 +431,13 @@ function Nav({
   );
 }
 
+interface CaptionLabelProps extends React.HTMLAttributes<HTMLSpanElement> {
+  showYearSwitcher?: boolean;
+  navView: NavView;
+  setNavView: React.Dispatch<React.SetStateAction<NavView>>;
+  displayYears: DisplayYears;
+}
+
 function CaptionLabel({
   children,
   showYearSwitcher,
@@ -432,12 +445,7 @@ function CaptionLabel({
   setNavView,
   displayYears,
   ...props
-}: {
-  showYearSwitcher?: boolean;
-  navView: NavView;
-  setNavView: React.Dispatch<React.SetStateAction<NavView>>;
-  displayYears: { from: number; to: number };
-} & React.HTMLAttributes<HTMLSpanElement>) {
+}: CaptionLabelProps) {
   "use memo";
   if (!showYearSwitcher) return <span {...props}>{children}</span>;
   return (
@@ -454,6 +462,16 @@ function CaptionLabel({
   );
 }
 
+interface MonthGridProps extends React.TableHTMLAttributes<HTMLTableElement> {
+  className?: string;
+  children: React.ReactNode;
+  displayYears: DisplayYears;
+  startMonth?: Date;
+  endMonth?: Date;
+  navView: NavView;
+  setNavView: React.Dispatch<React.SetStateAction<NavView>>;
+}
+
 function MonthGrid({
   className,
   children,
@@ -463,15 +481,7 @@ function MonthGrid({
   navView,
   setNavView,
   ...props
-}: {
-  className?: string;
-  children: React.ReactNode;
-  displayYears: { from: number; to: number };
-  startMonth?: Date;
-  endMonth?: Date;
-  navView: NavView;
-  setNavView: React.Dispatch<React.SetStateAction<NavView>>;
-} & React.TableHTMLAttributes<HTMLTableElement>) {
+}: MonthGridProps) {
   "use memo";
   if (navView === "years") {
     return (
@@ -493,6 +503,15 @@ function MonthGrid({
   );
 }
 
+interface YearGridProps extends React.HTMLAttributes<HTMLDivElement> {
+  className?: string;
+  displayYears: DisplayYears;
+  startMonth?: Date;
+  endMonth?: Date;
+  setNavView: React.Dispatch<React.SetStateAction<NavView>>;
+  navView: NavView;
+}
+
 function YearGrid({
   className,
   displayYears,
@@ -501,14 +520,7 @@ function YearGrid({
   setNavView,
   navView,
   ...props
-}: {
-  className?: string;
-  displayYears: { from: number; to: number };
-  startMonth?: Date;
-  endMonth?: Date;
-  setNavView: React.Dispatch<React.SetStateAction<NavView>>;
-  navView: NavView;
-} & React.HTMLAttributes<HTMLDivElement>) {
+}: YearGridProps) {
   "use memo";
   const { goToMonth, selected } = useDayPicker();
 

@@ -15,6 +15,10 @@ export interface TimeSelectorProps {
   ref: React.RefObject<unknown | null>;
 }
 
+interface TimeSelectorKeyDownOptions {
+  event: KeyboardEvent;
+}
+
 export function TimeSelector({ items, command, ref }: TimeSelectorProps) {
   const [selectedValue, setSelectedValue] = React.useState<string | null>(null);
 
@@ -66,7 +70,7 @@ export function TimeSelector({ items, command, ref }: TimeSelectorProps) {
   }, [items]);
 
   React.useImperativeHandle(ref, () => ({
-    onKeyDown: ({ event }: { event: KeyboardEvent }) => {
+    onKeyDown: ({ event }: TimeSelectorKeyDownOptions) => {
       if (event.key === "ArrowUp") {
         upHandler();
         return true;

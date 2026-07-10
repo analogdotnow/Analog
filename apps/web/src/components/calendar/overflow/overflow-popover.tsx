@@ -117,7 +117,11 @@ function OverflowItem({ item }: OverflowItemProps) {
   return null;
 }
 
-function OverflowListEvent({ item }: { item: EventDisplayItem }) {
+interface OverflowListEventProps {
+  item: EventDisplayItem;
+}
+
+function OverflowListEvent({ item }: OverflowListEventProps) {
   const selectAction = useSelectAction();
 
   return (
