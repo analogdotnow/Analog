@@ -42,25 +42,44 @@ function useDisplayItems() {
   return useProcessedDisplayItems(items);
 }
 
+// The agenda view fetches, processes, and persists its own chunked window,
+// so the shared-range pipeline only mounts for the grid views — keeping
+// useDisplayItems in the parent would run an unused duplicate query while
+// the agenda is active.
 function CalendarViewContent() {
   "use memo";
 
   const view = useCalendarStore((s) => s.calendarView);
-  const items = useDisplayItems();
 
   if (view === "agenda") {
     return <AgendaView />;
   }
 
   if (view === "month") {
-    return (
-      <InfiniteMonthViewProvider items={items}>
-        <InfiniteMonthViewWeekProvider>
-          <InfiniteMonthView />
-        </InfiniteMonthViewWeekProvider>
-      </InfiniteMonthViewProvider>
-    );
+    return <MonthViewContent />;
   }
+
+  return <WeekViewContent />;
+}
+
+function MonthViewContent() {
+  "use memo";
+
+  const items = useDisplayItems();
+
+  return (
+    <InfiniteMonthViewProvider items={items}>
+      <InfiniteMonthViewWeekProvider>
+        <InfiniteMonthView />
+      </InfiniteMonthViewWeekProvider>
+    </InfiniteMonthViewProvider>
+  );
+}
+
+function WeekViewContent() {
+  "use memo";
+
+  const items = useDisplayItems();
 
   return (
     <InfiniteWeekViewProvider items={items}>

@@ -183,8 +183,15 @@ export function AgendaViewProvider({ children }: AgendaViewProviderProps) {
     db.events.bulkPut(
       items.filter(isEvent).map((item) => mapEventQueryInput(item.event)),
     );
+
+    // Every chunk overlapping a recurring series returns that series' master,
+    // so dedupe by id before writing.
+    const masters = new Map(
+      recurringMasterEvents.map((event) => [event.id, event]),
+    );
+
     db.events.bulkPut(
-      recurringMasterEvents.map((event) => mapEventQueryInput(event)),
+      [...masters.values()].map((event) => mapEventQueryInput(event)),
     );
   }, [items, recurringMasterEvents]);
 
