@@ -6,7 +6,9 @@ import { Temporal } from "temporal-polyfill";
 
 import { useProcessedDisplayItems } from "@/hooks/calendar/use-display-items";
 import { useSelectDisplayItems } from "@/hooks/calendar/use-events";
-import type { DisplayItem } from "@/lib/display-item";
+import { db, mapEventQueryInput } from "@/lib/db";
+import { isEvent, type DisplayItem } from "@/lib/display-item";
+import type { RouterOutputs } from "@/lib/trpc";
 import { useTRPC } from "@/lib/trpc/client";
 import { CalendarStoreContext } from "@/providers/calendar-store-provider";
 import { useDefaultTimeZone } from "@/store/hooks";
@@ -69,6 +71,7 @@ interface AgendaViewContextValue {
   canExtendForward: boolean;
   extendBackward: () => void;
   extendForward: () => void;
+  extendAround: () => void;
   resetWindowAround: (date: Temporal.PlainDate) => void;
 }
 
@@ -102,7 +105,17 @@ export function AgendaViewProvider({ children }: AgendaViewProviderProps) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const defaultTimeZone = useDefaultTimeZone();
-  const select = useSelectDisplayItems();
+  const selectDisplayItems = useSelectDisplayItems();
+
+  // Recurring masters ride along for Dexie persistence below; the shared
+  // select would drop them.
+  const select = React.useCallback(
+    (data: RouterOutputs["events"]["list"]) => ({
+      items: selectDisplayItems(data),
+      recurringMasterEvents: data.recurringMasterEvents,
+    }),
+    [selectDisplayItems],
+  );
 
   const chunkIndices = React.useMemo(
     () =>
@@ -128,12 +141,19 @@ export function AgendaViewProvider({ children }: AgendaViewProviderProps) {
     [defaultTimeZone],
   );
 
-  const { items: chunkItems, isPending } = useQueries({
+  const {
+    items: chunkItems,
+    recurringMasterEvents,
+    isPending,
+  } = useQueries({
     queries: chunkIndices.map((index) =>
       trpc.events.list.queryOptions(chunkInput(index), { select }),
     ),
     combine: (results) => ({
-      items: results.flatMap((result) => result.data ?? []),
+      items: results.flatMap((result) => result.data?.items ?? []),
+      recurringMasterEvents: results.flatMap((result) =>
+        Object.values(result.data?.recurringMasterEvents ?? {}),
+      ),
       isPending: results.some((result) => result.isPending),
     }),
   });
@@ -154,6 +174,19 @@ export function AgendaViewProvider({ children }: AgendaViewProviderProps) {
 
     return deduped;
   }, [chunkItems]);
+
+  // Mirror of the global-query persistence in calendar-view: update/delete
+  // flows and the event form resolve events through Dexie (getEventById), so
+  // events that only exist in agenda chunks — beyond the shared
+  // timeMin/timeMax window — must be persisted too or those flows abort.
+  React.useEffect(() => {
+    db.events.bulkPut(
+      items.filter(isEvent).map((item) => mapEventQueryInput(item.event)),
+    );
+    db.events.bulkPut(
+      recurringMasterEvents.map((event) => mapEventQueryInput(event)),
+    );
+  }, [items, recurringMasterEvents]);
 
   const processedItems = useProcessedDisplayItems(items);
 
@@ -246,6 +279,26 @@ export function AgendaViewProvider({ children }: AgendaViewProviderProps) {
     }));
   }, []);
 
+  // Symmetric growth for the empty-window search. Calling extendBackward and
+  // extendForward separately is NOT equivalent: at the MAX_CHUNKS cap each
+  // evicts the opposite edge, so the pair recreates identical bounds as a new
+  // object every pass and churns renders forever. Bailing with `prev` lets
+  // React skip the update entirely.
+  const extendAround = React.useCallback(() => {
+    setRange((prev) => {
+      const size = prev.end - prev.start + 1;
+
+      if (size >= MAX_CHUNKS) {
+        return prev;
+      }
+
+      return {
+        start: prev.start - 1,
+        end: size + 1 >= MAX_CHUNKS ? prev.end : prev.end + 1,
+      };
+    });
+  }, []);
+
   const resetWindowAround = React.useCallback((date: Temporal.PlainDate) => {
     setAnchorDate(date);
     setRange(chunkRangeAround(date));
@@ -260,6 +313,7 @@ export function AgendaViewProvider({ children }: AgendaViewProviderProps) {
     canExtendForward,
     extendBackward,
     extendForward,
+    extendAround,
     resetWindowAround,
   };
 

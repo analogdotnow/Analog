@@ -61,6 +61,7 @@ export function AgendaViewList() {
     canExtendForward,
     extendBackward,
     extendForward,
+    extendAround,
     resetWindowAround,
   } = useAgendaView();
 
@@ -225,12 +226,8 @@ export function AgendaViewList() {
     }
 
     if (days.length === 0) {
-      if (canExtendForward) {
-        extendForward();
-      }
-
-      if (canExtendBackward) {
-        extendBackward();
+      if (canExtendForward || canExtendBackward) {
+        extendAround();
       }
 
       return;
@@ -263,9 +260,14 @@ export function AgendaViewList() {
           scrollElement.clientHeight * START_RUNWAY_VIEWPORTS);
 
     // One side per pass: at the MAX_CHUNKS cap an extension evicts from the
-    // far side, so firing both would ping-pong extend/evict forever.
+    // far side, so firing both would ping-pong extend/evict forever. When the
+    // preferred backward side is exhausted, fall through to forward — a list
+    // too short to scroll keeps nearStart true with a null scrollDirection
+    // and would otherwise never reach future chunks.
     const forwardFirst =
-      !nearStart || virtualizer.scrollDirection === "forward";
+      !nearStart ||
+      !canExtendBackward ||
+      virtualizer.scrollDirection === "forward";
 
     if (nearEnd && forwardFirst && canExtendForward) {
       extendForward();

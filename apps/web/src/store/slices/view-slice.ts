@@ -90,7 +90,27 @@ export const createViewSlice: StateCreator<
 
   // Actions
   setCalendarView: (view) =>
-    set({ calendarView: view }, undefined, "view/setCalendarView"),
+    set(
+      (state) => {
+        // Agenda scrolling moves currentDate with keepTimeRange, so the
+        // shared range can be left far from currentDate. Re-anchor it on
+        // view switches — week/month mount around currentDate and would
+        // otherwise render blank until the next navigation.
+        const timeMin = calculateStart(state.currentDate);
+        const timeMax = calculateEnd(state.currentDate);
+
+        if (
+          Temporal.PlainDate.compare(state.timeMin, timeMin) === 0 &&
+          Temporal.PlainDate.compare(state.timeMax, timeMax) === 0
+        ) {
+          return { calendarView: view };
+        }
+
+        return { calendarView: view, timeMin, timeMax };
+      },
+      undefined,
+      "view/setCalendarView",
+    ),
 
   setCurrentDate: (date, options) =>
     set(
