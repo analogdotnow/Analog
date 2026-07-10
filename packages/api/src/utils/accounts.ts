@@ -5,7 +5,7 @@ async function withAccessToken(account: Account, headers: Headers) {
   const { accessToken } = await auth.api.getAccessToken({
     body: {
       providerId: account.providerId,
-      accountId: account.id,
+      accountId: account.accountId,
       userId: account.userId,
     },
     headers,

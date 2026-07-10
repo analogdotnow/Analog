@@ -16,7 +16,19 @@ import { useAgendaView } from "./agenda-view-provider";
 
 const EDGE_DAYS = 14;
 const EDGE_ITEMS = 10;
+// Backward runway floor in viewport-heights: below this much loaded content
+// above the viewport, extend regardless of the day/item-based triggers.
+const START_RUNWAY_VIEWPORTS = 2;
 const SCROLL_SILENCE_MS = 160;
+
+// WebKit drops programmatic scrollTop writes while a momentum gesture is
+// live, so prepend compensation cannot land mid-fling there. Engine-level,
+// not browser-level: iOS Chrome (CriOS) and Firefox (FxiOS) are WebKit too
+// and neither matches the exclusion list.
+const IS_WEBKIT =
+  typeof navigator !== "undefined" &&
+  /AppleWebKit/.test(navigator.userAgent) &&
+  !/Chrome|Chromium|Edg/.test(navigator.userAgent);
 
 function AgendaViewEmpty() {
   "use memo";
@@ -233,8 +245,19 @@ export function AgendaViewList() {
       last.index >= days.length - EDGE_ITEMS ||
       loadedEnd.since(days[last.index]!.date).days <= EDGE_DAYS;
 
+    const scrollElement = scrollRef.current;
+
+    // Three triggers, each covering a density the others miss: item count
+    // (sparse stretches — the day-distance test alone stalls after an empty
+    // prepend, because the gap to loadedStart only ever grows), day distance
+    // (dense top region where EDGE_ITEMS spans too few days), and a pixel
+    // runway floor (few tall day groups where either count is misleading).
     const nearStart =
-      days[first.index]!.date.since(loadedStart).days <= EDGE_DAYS;
+      first.index < EDGE_ITEMS ||
+      days[first.index]!.date.since(loadedStart).days <= EDGE_DAYS ||
+      (scrollElement !== null &&
+        scrollElement.scrollTop <
+          scrollElement.clientHeight * START_RUNWAY_VIEWPORTS);
 
     // One side per pass: at the MAX_CHUNKS cap an extension evicts from the
     // far side, so firing both would ping-pong extend/evict forever.
@@ -244,9 +267,11 @@ export function AgendaViewList() {
     if (nearEnd && forwardFirst && canExtendForward) {
       extendForward();
     } else if (nearStart && canExtendBackward) {
-      // Prepends are deferred while a gesture/momentum is live; applying the
-      // insertion mid-momentum is the scroll write Safari drops.
-      if (isScrollingRef.current) {
+      // On WebKit, prepends are deferred while a gesture/momentum is live;
+      // applying the insertion mid-momentum needs the compensating scrollTop
+      // write that engine drops. Blink and Gecko honor mid-momentum writes,
+      // so they prepend immediately and a fling never reaches the top edge.
+      if (IS_WEBKIT && isScrollingRef.current) {
         pendingPrependRef.current = true;
       } else {
         extendBackward();

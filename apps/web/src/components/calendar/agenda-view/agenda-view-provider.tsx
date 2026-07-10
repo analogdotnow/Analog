@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useQueries } from "@tanstack/react-query";
+import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { Temporal } from "temporal-polyfill";
 
 import { useProcessedDisplayItems } from "@/hooks/calendar/use-display-items";
@@ -95,6 +95,7 @@ export function AgendaViewProvider({ children }: AgendaViewProviderProps) {
   const [range, setRange] = React.useState(() => chunkRangeAround(anchorDate));
 
   const trpc = useTRPC();
+  const queryClient = useQueryClient();
   const defaultTimeZone = useDefaultTimeZone();
   const select = useSelectDisplayItems();
 
@@ -107,20 +108,24 @@ export function AgendaViewProvider({ children }: AgendaViewProviderProps) {
     [range],
   );
 
+  // Single source for the chunk query input: prefetched keys must match the
+  // keys useQueries mounts, or the prefetch warms nothing.
+  const chunkInput = React.useCallback(
+    (index: number) => ({
+      timeMin: chunkStart(index).toZonedDateTime({
+        timeZone: defaultTimeZone,
+      }),
+      timeMax: chunkStart(index + 1).toZonedDateTime({
+        timeZone: defaultTimeZone,
+      }),
+      defaultTimeZone,
+    }),
+    [defaultTimeZone],
+  );
+
   const { items: chunkItems, isPending } = useQueries({
     queries: chunkIndices.map((index) =>
-      trpc.events.list.queryOptions(
-        {
-          timeMin: chunkStart(index).toZonedDateTime({
-            timeZone: defaultTimeZone,
-          }),
-          timeMax: chunkStart(index + 1).toZonedDateTime({
-            timeZone: defaultTimeZone,
-          }),
-          defaultTimeZone,
-        },
-        { select },
-      ),
+      trpc.events.list.queryOptions(chunkInput(index), { select }),
     ),
     combine: (results) => ({
       items: results.flatMap((result) => result.data ?? []),
@@ -185,6 +190,36 @@ export function AgendaViewProvider({ children }: AgendaViewProviderProps) {
     firstLoadedDay.since(loadedStart).days < AUTO_EXTEND_LIMIT_DAYS;
   const canExtendForward =
     loadedEnd.since(lastLoadedDay).days < AUTO_EXTEND_LIMIT_DAYS;
+
+  // Keep the next chunk on each extendable side warm so an extension mounts
+  // as a cache hit instead of holding the user at the window edge for a
+  // network round trip. Deferred until the visible window has loaded so the
+  // prefetch never competes with queries the user is waiting on.
+  React.useEffect(() => {
+    if (isPending) {
+      return;
+    }
+
+    if (canExtendBackward) {
+      void queryClient.prefetchQuery(
+        trpc.events.list.queryOptions(chunkInput(range.start - 1)),
+      );
+    }
+
+    if (canExtendForward) {
+      void queryClient.prefetchQuery(
+        trpc.events.list.queryOptions(chunkInput(range.end + 1)),
+      );
+    }
+  }, [
+    isPending,
+    canExtendBackward,
+    canExtendForward,
+    range,
+    queryClient,
+    trpc,
+    chunkInput,
+  ]);
 
   const extendBackward = React.useCallback(() => {
     setRange((prev) => ({
