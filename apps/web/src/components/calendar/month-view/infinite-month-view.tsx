@@ -10,7 +10,7 @@ import { useInfiniteMonthView } from "./infinite-month-view-provider";
 import { InfiniteMonthViewWeek } from "./infinite-month-view-week";
 import { useInfiniteMonthViewWeeks } from "./infinite-month-view-week-provider";
 import { MonthViewHeader } from "./month-view-header";
-import { SnapMonths, SnapRows } from "./month-view-snap-rows";
+import { SnapRows } from "./month-view-snap-rows";
 
 type InfiniteMonthViewProps = React.ComponentProps<"div">;
 
@@ -22,7 +22,7 @@ export function InfiniteMonthView({
 
   const containerRef = React.useRef<HTMLDivElement>(null);
 
-  const { weeks, rows, range, trackBase, snapTrackBase, scrollRef } =
+  const { weeks, rows, trackRange, trackBase, snapTrackBase, scrollRef } =
     useInfiniteMonthViewWeeks();
   const { view } = useInfiniteMonthView();
 
@@ -56,8 +56,11 @@ export function InfiniteMonthView({
           ref={containerRef}
           className="relative h-(--month-view-height) min-w-0 flex-none"
         >
-          <SnapRows rows={rows.total} />
-          <SnapMonths range={range} trackBase={snapTrackBase} />
+          <SnapRows
+            rows={rows.total}
+            range={trackRange}
+            trackBase={snapTrackBase}
+          />
 
           {weeks.map((week) => (
             <InfiniteMonthViewWeek

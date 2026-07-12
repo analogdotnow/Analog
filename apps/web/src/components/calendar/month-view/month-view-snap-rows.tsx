@@ -3,24 +3,9 @@ import { Temporal } from "temporal-polyfill";
 
 import { startOfMonth } from "@repo/temporal";
 
+import { cn } from "@/lib/utils";
 import { useCalendarStore } from "@/providers/calendar-store-provider";
 import { epochWeekOf } from "./infinite-month-view-week-provider";
-
-interface SnapRowsProps {
-  rows: number;
-}
-
-export function SnapRows({ rows }: SnapRowsProps) {
-  "use memo";
-
-  return (
-    <div className="pointer-events-none absolute inset-0 grid grid-flow-row auto-rows-fr">
-      {Array.from({ length: rows }, (_, idx) => (
-        <div className="snap-start" key={idx} />
-      ))}
-    </div>
-  );
-}
 
 interface GetMonthStartWeeksOptions {
   range: {
@@ -50,7 +35,8 @@ function getMonthStartWeeks({
   return weeks;
 }
 
-interface SnapMonthsProps {
+interface SnapRowsProps {
+  rows: number;
   range: {
     start: Temporal.PlainDate;
     end: Temporal.PlainDate;
@@ -58,25 +44,27 @@ interface SnapMonthsProps {
   trackBase: number;
 }
 
-export function SnapMonths({ range, trackBase }: SnapMonthsProps) {
+// Month-start stops live on the row cells themselves rather than on separate
+// snap-line elements: WebKit mis-settles when a snap target sits exactly on
+// top of another one (the old 1px month lines were co-located with row
+// cells), landing scrolls a row off or re-snapping ±1 row after settling in
+// Safari. One snap target per slot, with snap-always toggled per slot, is
+// stable in both engines and keeps the fling-stops-at-each-month behavior.
+export function SnapRows({ rows, range, trackBase }: SnapRowsProps) {
   "use memo";
 
   const weekStartsOn = useCalendarStore((s) => s.calendarSettings.weekStartsOn);
 
-  const monthStartWeeks = getMonthStartWeeks({ range, weekStartsOn });
+  const monthStartSlots = new Set(
+    getMonthStartWeeks({ range, weekStartsOn }).map((week) => week - trackBase),
+  );
 
-  // Lines are keyed and positioned by slot (not epoch week) so an existing
-  // line never moves in content coordinates when --track-base shifts during a
-  // recenter: under snap-mandatory, a moved snap target licenses the browser
-  // to re-snap, which skips the view by the recenter delta. Slots churn
-  // (unmount/mount) across recenters instead of moving.
   return (
-    <div className="pointer-events-none absolute inset-0">
-      {monthStartWeeks.map((week) => (
+    <div className="pointer-events-none absolute inset-0 grid grid-flow-row auto-rows-fr">
+      {Array.from({ length: rows }, (_, idx) => (
         <div
-          className="absolute inset-x-0 top-(--row-offset) h-px snap-start snap-always [--row-offset:calc(var(--row-slot)*var(--row-height))]"
-          key={week - trackBase}
-          style={{ "--row-slot": week - trackBase }}
+          className={cn("snap-start", monthStartSlots.has(idx) && "snap-always")}
+          key={idx}
         />
       ))}
     </div>

@@ -131,6 +131,10 @@ interface InfiniteMonthViewWeekContextValue {
     start: Temporal.PlainDate;
     end: Temporal.PlainDate;
   };
+  trackRange: {
+    start: Temporal.PlainDate;
+    end: Temporal.PlainDate;
+  };
   trackBase: number;
   snapTrackBase: number;
   scrollRef: React.RefObject<HTMLDivElement | null>;
@@ -166,7 +170,7 @@ export function InfiniteMonthViewWeekProvider({
     () => epochWeekOf(currentDate, weekStartsOn) - rows.center,
   );
   const trackBaseRef = React.useRef(initialTrackBase);
-  // Render-synced copy of trackBaseRef for SnapMonths; committed via
+  // Render-synced copy of trackBaseRef for SnapRows; committed via
   // flushSync so it never trails the imperative --track-base write.
   const [snapTrackBase, setSnapTrackBase] = React.useState(initialTrackBase);
   const [windowStart, setWindowStart] = React.useState(
@@ -271,6 +275,60 @@ export function InfiniteMonthViewWeekProvider({
       Math.round((scrollElement.scrollTop + padding) / rowHeight) +
       trackBaseRef.current;
 
+    // After a recenter, Safari's threaded scrolling can revert our scrollTop
+    // write: a touch that lands during the rest window anchors the next
+    // gesture at the pre-recenter compositor offset, discarding the write
+    // while --track-base has already shifted — the view would skip by the
+    // recenter delta. Watch the first scroll positions after each recenter
+    // and undo the track shift if the write did not survive.
+    let recenterCheck: {
+      previous: number;
+      expected: number;
+      applied: number;
+      expiresAt: number;
+    } | null = null;
+
+    const revertRowShift = (applied: number) => {
+      trackBaseRef.current -= applied;
+      scrollElement.style.setProperty(
+        "--track-base",
+        String(trackBaseRef.current),
+      );
+      flushSync(() => {
+        setSnapTrackBase(trackBaseRef.current);
+      });
+    };
+
+    const verifyRowShift = () => {
+      if (!recenterCheck) {
+        return;
+      }
+
+      const { previous, expected, applied, expiresAt } = recenterCheck;
+
+      if (performance.now() > expiresAt) {
+        recenterCheck = null;
+
+        return;
+      }
+
+      const observed = scrollElement.scrollTop;
+
+      // The write's own scroll event echoes the written position; the first
+      // event that differs decides. A surviving gesture walks away from
+      // `expected` in frame-sized steps; a reverted one lands a full
+      // recenter-delta away, right back at `previous`.
+      if (Math.abs(observed - expected) <= 1) {
+        return;
+      }
+
+      recenterCheck = null;
+
+      if (Math.abs(observed - previous) < 0.25 * Math.abs(expected - previous)) {
+        revertRowShift(applied);
+      }
+    };
+
     const applyRowShift = (rowHeight: number) => {
       const previous = scrollElement.scrollTop;
       const firstSlot = firstVisibleEpochWeek(rowHeight) - trackBaseRef.current;
@@ -280,17 +338,16 @@ export function InfiniteMonthViewWeekProvider({
         return;
       }
 
-      scrollElement.scrollTop = previous - shift * rowHeight;
+      // Safari ≤26.4 re-snaps after ANY layout change that touches snap
+      // targets and unconditionally rewrites the scroll offset from stale,
+      // asynchronously-synced bookkeeping (WebKit bug 317067; fixed in
+      // Safari 26.5). Disable snapping for the duration of the mutation so
+      // the track shift and the scroll write are invisible to the snap
+      // machinery, land on an exactly aligned offset, force layout, and
+      // re-enable a frame later — the re-enable re-snap is then a no-op.
+      scrollElement.style.scrollSnapType = "none";
 
-      const applied = Math.round(
-        (previous - scrollElement.scrollTop) / rowHeight,
-      );
-
-      if (applied === 0) {
-        return;
-      }
-
-      trackBaseRef.current += applied;
+      trackBaseRef.current += shift;
       scrollElement.style.setProperty(
         "--track-base",
         String(trackBaseRef.current),
@@ -298,6 +355,28 @@ export function InfiniteMonthViewWeekProvider({
       flushSync(() => {
         setSnapTrackBase(trackBaseRef.current);
       });
+
+      // force the layout with snapping disabled
+      void scrollElement.offsetHeight;
+
+      // exact snap-aligned center position (no clamp, no residual)
+      scrollElement.scrollTop = rows.center * rowHeight - padding;
+
+      void scrollElement.offsetHeight;
+
+      requestAnimationFrame(() => {
+        scrollElement.style.scrollSnapType = "";
+      });
+
+      recenterCheck =
+        Math.abs(shift) >= 2
+          ? {
+              previous,
+              expected: scrollElement.scrollTop,
+              applied: shift,
+              expiresAt: performance.now() + 400,
+            }
+          : null;
     };
 
     const recenter = () => {
@@ -334,6 +413,10 @@ export function InfiniteMonthViewWeekProvider({
     let frame: number | null = null;
 
     const queueSync = () => {
+      // Runs per scroll event, before the rAF gate: reversion detection
+      // needs to see the first post-recenter positions, not a sampled one.
+      verifyRowShift();
+
       if (frame !== null) {
         return;
       }
@@ -345,6 +428,56 @@ export function InfiniteMonthViewWeekProvider({
       });
     };
 
+    let restTimer: NodeJS.Timeout | null = null;
+    let restAttempts = 0;
+
+    const alignmentResidual = () => {
+      const rowHeight = scrollElement.scrollHeight / rows.total;
+
+      if (rowHeight <= 0) {
+        return 0;
+      }
+
+      const offset = scrollElement.scrollTop + padding;
+      const residual = ((offset % rowHeight) + rowHeight) % rowHeight;
+
+      return Math.min(residual, rowHeight - residual);
+    };
+
+    const armRestCheck = () => {
+      // Safari dispatches scrollend at gesture-phase boundaries (finger
+      // lift, momentum pauses) while scrolling is still in flight, and its
+      // UI process synthesizes momentum deltas the page never observes — a
+      // recenter written then fights the live gesture. Recenter only once
+      // the position has held still AND sits on the snap grid (mandatory
+      // snap guarantees an aligned rest; a stable-but-unaligned reading
+      // usually means the settle is still pending). Safari sometimes never
+      // settles at all, so after a few unaligned-but-stable checks proceed
+      // anyway — the aligned recenter write doubles as the missing settle.
+      const restTop = scrollElement.scrollTop;
+
+      if (restTimer !== null) {
+        clearTimeout(restTimer);
+      }
+
+      restTimer = setTimeout(() => {
+        restTimer = null;
+
+        if (scrollElement.scrollTop !== restTop) {
+          return;
+        }
+
+        if (alignmentResidual() > 2 && restAttempts < 2) {
+          restAttempts += 1;
+          armRestCheck();
+
+          return;
+        }
+
+        recenter();
+      }, 150);
+    };
+
     const onScrollEnd = () => {
       isProgrammaticScroll.current = false;
 
@@ -352,7 +485,8 @@ export function InfiniteMonthViewWeekProvider({
         return;
       }
 
-      recenter();
+      restAttempts = 0;
+      armRestCheck();
     };
 
     const controller = new AbortController();
@@ -391,6 +525,10 @@ export function InfiniteMonthViewWeekProvider({
       unsubscribeResize();
       controller.abort();
 
+      if (restTimer !== null) {
+        clearTimeout(restTimer);
+      }
+
       if (frame !== null) {
         cancelAnimationFrame(frame);
       }
@@ -405,6 +543,14 @@ export function InfiniteMonthViewWeekProvider({
     weekStartsOn,
   });
 
+  // Spans the whole 300-row track (not the rendered window) so the snap-stop
+  // cells only change when trackBase does — during scrolling the snap-target
+  // set stays fully static, which Safari's re-snap-on-layout-change requires.
+  const trackRange = {
+    start: weekFromEpochWeek(snapTrackBase, weekStartsOn).start,
+    end: weekFromEpochWeek(snapTrackBase + rows.total - 1, weekStartsOn).end,
+  };
+
   const value = {
     weeks,
     rows,
@@ -412,6 +558,7 @@ export function InfiniteMonthViewWeekProvider({
       start: weeks.at(0)!.start,
       end: weeks.at(-1)!.end,
     },
+    trackRange,
     trackBase: initialTrackBase,
     snapTrackBase,
     scrollRef,
