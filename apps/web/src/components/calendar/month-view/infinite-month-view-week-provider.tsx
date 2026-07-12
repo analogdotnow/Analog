@@ -368,15 +368,12 @@ export function InfiniteMonthViewWeekProvider({
         scrollElement.style.scrollSnapType = "";
       });
 
-      recenterCheck =
-        Math.abs(shift) >= 2
-          ? {
-              previous,
-              expected: scrollElement.scrollTop,
-              applied: shift,
-              expiresAt: performance.now() + 400,
-            }
-          : null;
+      recenterCheck = {
+        previous,
+        expected: scrollElement.scrollTop,
+        applied: shift,
+        expiresAt: performance.now() + 400,
+      };
     };
 
     const recenter = () => {
