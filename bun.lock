@@ -129,6 +129,7 @@
         "@repo/schemas": "workspace:*",
         "@repo/temporal": "workspace:*",
         "@repo/timezone-coordinates": "workspace:*",
+        "@repo/timezones": "workspace:*",
         "@sentry/nextjs": "^10.56.0",
         "@simpleanalytics/next": "^1.1.1",
         "@tailwindcss/typography": "^0.5.20",
@@ -528,6 +529,10 @@
         "eslint": "catalog:",
         "typescript": "catalog:",
       },
+    },
+    "packages/timezones": {
+      "name": "@repo/timezones",
+      "version": "0.1.0",
     },
     "tooling/eslint-config": {
       "name": "@repo/eslint-config",
@@ -1365,6 +1370,8 @@
     "@repo/temporal": ["@repo/temporal@workspace:packages/temporal"],
 
     "@repo/timezone-coordinates": ["@repo/timezone-coordinates@workspace:packages/timezone-coordinates"],
+
+    "@repo/timezones": ["@repo/timezones@workspace:packages/timezones"],
 
     "@repo/typescript-config": ["@repo/typescript-config@workspace:tooling/typescript-config"],
 

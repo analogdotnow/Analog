@@ -1,0 +1,11 @@
+{
+  "name": "@repo/timezones",
+  "version": "0.1.0",
+  "private": true,
+  "exports": {
+    ".": {
+      "types": "./timezones.json.d.ts",
+      "default": "./timezones.json"
+    }
+  }
+}
