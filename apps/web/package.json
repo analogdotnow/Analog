@@ -50,7 +50,6 @@
     "@repo/providers": "workspace:*",
     "@repo/schemas": "workspace:*",
     "@repo/temporal": "workspace:*",
-    "@repo/timezone-coordinates": "workspace:*",
     "@repo/timezones": "workspace:*",
     "@sentry/nextjs": "^10.56.0",
     "@simpleanalytics/next": "^1.1.1",

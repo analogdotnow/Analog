@@ -6,6 +6,7 @@
     ".": {
       "types": "./timezones.json.d.ts",
       "default": "./timezones.json"
-    }
+    },
+    "./coordinates": "./src/coordinates/index.ts"
   }
 }

@@ -12,7 +12,7 @@ import {
 } from "react-simple-maps";
 import { Temporal } from "temporal-polyfill";
 
-import { TIMEZONE_LOCATIONS } from "@repo/timezone-coordinates";
+import { TIMEZONE_LOCATIONS } from "@repo/timezones/coordinates";
 
 import { useZonedDateTime } from "@/components/calendar/context/datetime-provider";
 import { useDefaultTimeZone } from "@/store/hooks";
