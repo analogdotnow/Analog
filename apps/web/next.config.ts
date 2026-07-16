@@ -5,6 +5,9 @@ import withSimpleAnalytics from "@simpleanalytics/next/plugin";
 import { URLS } from "./src/lib/urls";
 
 const nextConfig: NextConfig = {
+  experimental: {
+    useTypeScriptCli: true,
+  },
   reactCompiler: {
     compilationMode: "annotation",
   },
