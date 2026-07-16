@@ -197,7 +197,9 @@ export interface Event extends OutlookItem {
   originalEndTimeZone?: string | null;
   originalStart?: string | null;
   originalStartTimeZone?: string | null;
-  recurrence?: PatternedRecurrence;
+  // null is meaningful on update: Graph removes the recurrence, turning the
+  // series master back into a single event.
+  recurrence?: PatternedRecurrence | null;
   reminderMinutesBeforeStart?: number | null;
   responseRequested?: boolean | null;
   responseStatus?: ResponseStatus;

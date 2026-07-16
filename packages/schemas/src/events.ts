@@ -73,6 +73,9 @@ const microsoftMetadataSchema = z.object({
       tollNumber: z.string().optional(),
     })
     .optional(),
+  // Graph expresses a series' range in this zone; required to round-trip
+  // recurrence edits without shifting range.startDate/endDate.
+  recurrenceTimeZone: z.string().optional(),
 });
 
 const googleMetadataSchema = z.object({

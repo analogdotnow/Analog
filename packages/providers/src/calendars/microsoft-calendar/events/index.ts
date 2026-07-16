@@ -263,32 +263,47 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
     });
   }
 
-  async update({
-    calendar,
-    eventId,
-    event,
-  }: CalendarProviderEventsUpdateOptions) {
+  async update(options: CalendarProviderEventsUpdateOptions) {
     return this.withErrorHandler("events.update", async () => {
-      // First, perform the regular event update
-      // TODO: Handle conflicts gracefully via If-Match with event.etag
-      const updatedEvent = await this.eventsFor(calendar.id).update({
-        userId: "me",
-        eventId,
-        event: toMicrosoftEventPatch(event),
-      });
-
-      // Then, handle response status update if present (Microsoft-specific approach)
-      if (event.response && event.response.status !== "unknown") {
-        await this.respondToEvent(eventId, event.response.status, {
-          comment: event.response.comment,
-          sendResponse: event.response.sendUpdate,
+      // Graph requires recurrence.range.startDate to match the master's start
+      // date; a sparse patch that changes recurrence without moving the event
+      // does not carry it, so resolve it from the stored event.
+      if (options.event.recurrence && !options.event.start) {
+        const existingEvent = await this.get({
+          calendar: options.calendar,
+          eventId: options.eventId,
         });
+
+        return this.patchEvent(options, existingEvent.start);
       }
 
-      return parseMicrosoftEvent({
-        event: updatedEvent,
-        calendar,
+      return this.patchEvent(options, options.event.start);
+    });
+  }
+
+  private async patchEvent(
+    { calendar, eventId, event }: CalendarProviderEventsUpdateOptions,
+    startForRecurrence: CalendarEvent["start"] | undefined,
+  ) {
+    // First, perform the regular event update
+    // TODO: Handle conflicts gracefully via If-Match with event.etag
+    const updatedEvent = await this.eventsFor(calendar.id).update({
+      userId: "me",
+      eventId,
+      event: toMicrosoftEventPatch(event, { startForRecurrence }),
+    });
+
+    // Then, handle response status update if present (Microsoft-specific approach)
+    if (event.response && event.response.status !== "unknown") {
+      await this.respondToEvent(eventId, event.response.status, {
+        comment: event.response.comment,
+        sendResponse: event.response.sendUpdate,
       });
+    }
+
+    return parseMicrosoftEvent({
+      event: updatedEvent,
+      calendar,
     });
   }
 
