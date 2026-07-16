@@ -8,7 +8,7 @@ import { TimeZoneAwareGlobeIcon } from "@/components/timezone-aware-globe-icon";
 import { cn } from "@/lib/utils";
 import { format, formatTime } from "@/lib/utils/format";
 import { useCalendarStore } from "@/providers/calendar-store-provider";
-import { useTimeZoneDisplay } from "./use-timezone-info";
+import { useTimeZone } from "./use-timezone";
 
 interface TimeZoneDetailsProps {
   className?: string;
@@ -23,7 +23,7 @@ export function TimeZoneDetails({
 }: TimeZoneDetailsProps) {
   "use memo";
 
-  const displayValue = useTimeZoneDisplay({ date, timeZoneId });
+  const displayValue = useTimeZone({ date, timeZoneId });
 
   return (
     <div className={cn("flex items-start gap-2", className)}>

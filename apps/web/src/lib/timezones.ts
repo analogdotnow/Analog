@@ -1,9 +1,9 @@
-import { getTimeZones } from "@vvo/tzdb";
 import { Temporal } from "temporal-polyfill";
 
 import { toDate } from "@repo/temporal";
+import TIMEZONES from "@repo/timezones";
 
-const TIME_ZONES = getTimeZones({ includeUtc: true });
+const timezones = Intl.supportedValuesOf("timeZone").concat(["UTC"]);
 
 function getShortName(timeZone: string, dateTime: Temporal.ZonedDateTime) {
   const formatter = new Intl.DateTimeFormat("en-US", {
@@ -32,35 +32,52 @@ export interface TimeZoneDisplayValue {
   };
 }
 
-const timezones = Intl.supportedValuesOf("timeZone").concat(["UTC"]);
-
 const now = Temporal.Now.plainDateISO();
 
 export const TIMEZONES_DISPLAY: TimeZoneDisplayValue[] = timezones
   .map((timeZone) => getDisplayValue(timeZone, now))
   .sort((a, b) => a.offset.value - b.offset.value);
 
+function isDaylightSavingTime(dateTime: Temporal.ZonedDateTime) {
+  const timeZone = TIMEZONES[dateTime.timeZoneId];
+
+  if (!timeZone?.dst) {
+    return false;
+  }
+
+  const standardOffset = timeZone.offset.findLast(
+    ({ start }) => start === undefined || start <= dateTime.epochNanoseconds,
+  );
+
+  if (!standardOffset) {
+    return false;
+  }
+
+  return timeZone.dst.offset.some(
+    ({ start, end, value }) =>
+      (start === undefined || start <= dateTime.epochNanoseconds) &&
+      (end === undefined || dateTime.epochNanoseconds < end) &&
+      dateTime.offsetNanoseconds === standardOffset.value + value,
+  );
+}
+
 export function getDisplayValue(
   timeZoneId: string,
   date: Temporal.PlainDate,
 ): TimeZoneDisplayValue {
-  const timeZone = TIME_ZONES.find((tz) => tz.name === timeZoneId);
-  const dateTime = date.toZonedDateTime(timeZoneId);
-  const modifiedLabel = timeZoneId
-    .replace(/_/g, " ")
-    .replaceAll("/", " - ")
-    .replace("UTC", "Coordinated Universal Time");
+  const timeZone = TIMEZONES[timeZoneId];
 
-  const abbreviation =
-    timeZone?.abbreviation.replace("GMT", "UTC") ??
-    getShortName(timeZoneId, dateTime).replace("GMT", "UTC");
+  const dateTime = date.toZonedDateTime(timeZoneId);
+  const title =
+    timeZone?.dst && isDaylightSavingTime(dateTime) ? timeZone.dst : timeZone;
 
   return {
     id: timeZoneId,
-    abbreviation,
-    name: timeZone?.alternativeName ?? modifiedLabel,
-    fullName: modifiedLabel,
-    city: cityName(timeZoneId),
+    abbreviation:
+      title?.abbreviation ?? fallbackAbbreviation(timeZoneId, dateTime),
+    name: title?.name ?? timeZone?.name ?? fallbackName(timeZoneId),
+    fullName: fallbackName(timeZoneId),
+    city: timeZone?.location?.city,
     offset: {
       sign: dateTime.offsetNanoseconds < 0 ? "-" : "+",
       label: {
@@ -72,7 +89,19 @@ export function getDisplayValue(
   };
 }
 
-function abbreviation(dateTime: Temporal.ZonedDateTime) {}
+function fallbackName(timeZoneId: string) {
+  return timeZoneId
+    .replace(/_/g, " ")
+    .replaceAll("/", " - ")
+    .replace("UTC", "Coordinated Universal Time");
+}
+
+function fallbackAbbreviation(
+  timeZoneId: string,
+  dateTime: Temporal.ZonedDateTime,
+) {
+  return getShortName(timeZoneId, dateTime).replace("GMT", "UTC");
+}
 
 function longOffset(dateTime: Temporal.ZonedDateTime) {
   return `UTC${dateTime.offset}`;
@@ -94,12 +123,4 @@ function shortOffset(dateTime: Temporal.ZonedDateTime) {
   }
 
   return `UTC${sign}${hours}:${minutes}`;
-}
-
-function cityName(timeZoneId: string) {
-  if (!timeZoneId.includes("/")) {
-    return undefined;
-  }
-
-  return timeZoneId.split("/").pop()?.replace("_", " ");
 }

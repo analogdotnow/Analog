@@ -51,6 +51,7 @@
     "@repo/schemas": "workspace:*",
     "@repo/temporal": "workspace:*",
     "@repo/timezone-coordinates": "workspace:*",
+    "@repo/timezones": "workspace:*",
     "@sentry/nextjs": "^10.56.0",
     "@simpleanalytics/next": "^1.1.1",
     "@tailwindcss/typography": "^0.5.20",

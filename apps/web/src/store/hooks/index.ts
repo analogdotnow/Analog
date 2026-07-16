@@ -2,11 +2,11 @@ import * as React from "react";
 import { Temporal } from "temporal-polyfill";
 
 import type { CalendarView } from "@/components/calendar/interfaces";
-import { timeZoneAbbreviation } from "@/components/calendar/timeline/header/use-timezone-info";
 import { calendarTitle } from "@/components/calendar/utils/title";
 import type { StackWindowEntry } from "@/components/command-bar/interfaces";
 import { useLiveEventById } from "@/lib/db";
 import type { Calendar, CalendarEvent } from "@/lib/interfaces";
+import { getDisplayValue } from "@/lib/timezones";
 import { useCalendarStore } from "@/providers/calendar-store-provider";
 import type { TimeZone } from "@/store/calendar-store";
 
@@ -32,7 +32,7 @@ export function useTimeZoneList(): TimeZone[] {
 
   return timeZones.map((timeZone) => ({
     id: timeZone.id,
-    label: timeZone.label ?? timeZoneAbbreviation(timeZone.id, now),
+    label: timeZone.label ?? getDisplayValue(timeZone.id, now).abbreviation,
   }));
 }
 
