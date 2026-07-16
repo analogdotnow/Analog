@@ -76,13 +76,40 @@ export function useUpdateEventMutation() {
             return prev;
           }
 
+          const master = prev.recurringMasterEvents?.[data.id];
+
+          const recurringMasterEvents = master
+            ? {
+                ...prev.recurringMasterEvents,
+                [data.id]: { ...master, ...data } as CalendarEvent,
+              }
+            : prev.recurringMasterEvents;
+
           const existing = prev.events.find((e) => e.id === data.id);
 
-          // A sparse patch is not a full event, so there is nothing to insert
-          // when the target (e.g. a series master) is not in the timeline;
-          // the refetch on settle covers it.
           if (!existing) {
-            return prev;
+            // Series master: masters are not part of range results, so apply
+            // the display fields to its occurrences instead of inserting it
+            // into the timeline. Identity and times stay per-occurrence.
+            return {
+              ...prev,
+              recurringMasterEvents,
+              events: prev.events.map((event) =>
+                event.recurringEventId === data.id
+                  ? {
+                      ...event,
+                      title: data.title ?? event.title,
+                      description: data.description ?? event.description,
+                      location: data.location ?? event.location,
+                      availability: data.availability ?? event.availability,
+                      visibility: data.visibility ?? event.visibility,
+                      color: data.color ?? event.color,
+                      attendees: data.attendees ?? event.attendees,
+                      conference: data.conference ?? event.conference,
+                    }
+                  : event,
+              ),
+            };
           }
 
           // The patch is sparse; unchanged fields come from the cached event.
@@ -106,6 +133,7 @@ export function useUpdateEventMutation() {
 
           return {
             ...prev,
+            recurringMasterEvents,
             events,
           };
         });

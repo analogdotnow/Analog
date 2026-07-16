@@ -2,6 +2,15 @@ import { Temporal } from "temporal-polyfill";
 
 import type { CalendarEvent } from "@/lib/interfaces";
 
+// Thrown when a whole-series change cannot be transferred to the master
+// without being recurrence-aware (moving dates, changing time zones, etc.).
+export class SeriesUpdateBlockedError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "SeriesUpdateBlockedError";
+  }
+}
+
 function isTemporal(
   value: unknown,
 ): value is Temporal.PlainDate | Temporal.Instant | Temporal.ZonedDateTime {
@@ -215,27 +224,114 @@ export function isEmptyUpdate(payload: UpdateEventPayload) {
   return Object.keys(payload.data).every((key) => PATCH_ENVELOPE.has(key));
 }
 
+// A time edit transfers to every occurrence only as a clock-time or duration
+// change on the same date; anything else needs the master start and the
+// recurrence rule updated atomically, which is not recurrence-aware yet.
+function transferTimeToMaster(
+  event: CalendarEvent,
+  previous: CalendarEvent,
+  master: CalendarEvent,
+) {
+  if (event.allDay !== previous.allDay) {
+    throw new SeriesUpdateBlockedError(
+      "Switching the entire series between all-day and timed isn't supported yet. Edit this event only instead.",
+    );
+  }
+
+  if (
+    event.start instanceof Temporal.ZonedDateTime &&
+    previous.start instanceof Temporal.ZonedDateTime &&
+    event.end instanceof Temporal.ZonedDateTime &&
+    master.start instanceof Temporal.ZonedDateTime
+  ) {
+    if (event.start.timeZoneId !== previous.start.timeZoneId) {
+      throw new SeriesUpdateBlockedError(
+        "Changing the time zone of the entire series isn't supported yet. Edit this event only instead.",
+      );
+    }
+
+    if (!event.start.toPlainDate().equals(previous.start.toPlainDate())) {
+      throw new SeriesUpdateBlockedError(
+        "Moving the entire series to another day isn't supported yet. Edit this event only instead.",
+      );
+    }
+
+    const start = master.start.withPlainTime(event.start.toPlainTime());
+    const end = start.add(event.start.until(event.end));
+
+    return { start, end };
+  }
+
+  if (
+    event.start instanceof Temporal.Instant &&
+    previous.start instanceof Temporal.Instant &&
+    event.end instanceof Temporal.Instant &&
+    master.start instanceof Temporal.Instant
+  ) {
+    const sameDate = event.start
+      .toZonedDateTimeISO("UTC")
+      .toPlainDate()
+      .equals(previous.start.toZonedDateTimeISO("UTC").toPlainDate());
+
+    if (!sameDate) {
+      throw new SeriesUpdateBlockedError(
+        "Moving the entire series to another day isn't supported yet. Edit this event only instead.",
+      );
+    }
+
+    const start = master.start.add(previous.start.until(event.start));
+    const end = start.add(event.start.until(event.end));
+
+    return { start, end };
+  }
+
+  // All-day date moves and mixed date representations both re-anchor the
+  // series; neither transfers safely to the master.
+  throw new SeriesUpdateBlockedError(
+    "Moving the entire series to another day isn't supported yet. Edit this event only instead.",
+  );
+}
+
 interface BuildUpdateSeriesOptions {
   sendUpdate?: boolean;
 }
 
-// Whole-series edits retarget the occurrence's changed fields at the master.
-// Time fields still transfer verbatim for now; deriving them from the master
-// comes with master-first series updates.
 export function buildUpdateSeries(
   event: CalendarEvent,
   previous: CalendarEvent,
+  master: CalendarEvent,
   options: BuildUpdateSeriesOptions,
 ) {
+  const {
+    start: startChange,
+    end: endChange,
+    allDay: allDayChange,
+    recurrence: recurrenceChange,
+    ...changes
+  } = diffEventFields(event, previous);
+
+  if (recurrenceChange !== undefined) {
+    throw new SeriesUpdateBlockedError(
+      "Changing the repeat rule from a single event isn't supported yet.",
+    );
+  }
+
+  const timeChanged =
+    startChange !== undefined ||
+    endChange !== undefined ||
+    allDayChange !== undefined;
+
   const isCalendarChanged = isMovedBetweenCalendars(event, previous);
 
   return {
     data: {
-      ...diffEventFields(event, previous),
-      id: event.recurringEventId!,
+      ...changes,
+      ...(timeChanged ? transferTimeToMaster(event, previous, master) : {}),
+      id: master.id,
       calendar: isCalendarChanged ? previous.calendar : event.calendar,
-      readOnly: event.readOnly,
-      ...(previous.metadata ? { metadata: previous.metadata } : {}),
+      readOnly: master.readOnly,
+      ...(master.etag ? { etag: master.etag } : {}),
+      ...(master.metadata ? { metadata: master.metadata } : {}),
       ...buildResponse(event, previous, options),
     },
     ...buildMove(event, previous),
