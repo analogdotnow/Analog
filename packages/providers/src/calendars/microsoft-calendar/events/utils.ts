@@ -93,6 +93,7 @@ export function parseMicrosoftEvent({
     },
     readOnly: calendar.readOnly,
     conference: parseMicrosoftConference(event),
+    recurringEventId: event.seriesMasterId ?? undefined,
     ...(responseStatus ? { response: { status: responseStatus } } : {}),
     ...(event.createdDateTime
       ? { createdAt: Temporal.Instant.from(event.createdDateTime) }

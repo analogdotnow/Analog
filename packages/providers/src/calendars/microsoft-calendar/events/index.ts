@@ -3,14 +3,16 @@ import type {
   DefaultCalendarCreateEventInput,
   DefaultCalendarDeleteEventInput,
   DefaultCalendarGetEventInput,
+  DefaultCalendarListCalendarViewInput,
   DefaultCalendarListEventInput,
   DefaultCalendarUpdateEventInput,
   DeltaCollectionResponse,
   Event as MicrosoftEvent,
+  EventCollectionResponse,
   MicrosoftCalendar,
 } from "@analog/microsoft-calendar";
 
-import type { CalendarEventSyncItem } from "../../../interfaces";
+import type { CalendarEvent, CalendarEventSyncItem } from "../../../interfaces";
 import type {
   CalendarProviderEvents,
   CalendarProviderEventsCreateOptions,
@@ -62,6 +64,8 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
     const calendarView = this.client.users.calendars.calendarView;
 
     return {
+      list: (params: DefaultCalendarListCalendarViewInput) =>
+        calendarView.list({ ...params, calendarId }),
       delta: (params: DefaultCalendarCalendarViewDeltaInput) =>
         calendarView.delta({ ...params, calendarId }),
     };
@@ -77,22 +81,65 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
       const startTime = timeMin.withTimeZone("UTC").toInstant().toString();
       const endTime = timeMax.withTimeZone("UTC").toInstant().toString();
 
-      const filter = `start/dateTime ge '${startTime}' and end/dateTime le '${endTime}'`;
       const headers = { Prefer: `outlook.timezone="${timeZone ?? "UTC"}"` };
 
-      const response = await this.eventsFor(calendar.id).list({
-        userId: "me",
-        filter,
-        orderby: ["start/dateTime"],
-        top: MAX_EVENTS_PER_CALENDAR,
-        headers,
-      });
+      const listPages = async (nextLink?: string): Promise<CalendarEvent[]> => {
+        if (!nextLink) {
+          const response = await this.calendarViewFor(calendar.id).list({
+            userId: "me",
+            startDateTime: startTime,
+            endDateTime: endTime,
+            orderby: ["start/dateTime"],
+            top: MAX_EVENTS_PER_CALENDAR,
+            headers,
+          });
 
-      const events = (response.value ?? []).map((event) =>
-        parseMicrosoftEvent({ event, calendar }),
+          const events = (response.value ?? []).map((event) =>
+            parseMicrosoftEvent({ event, calendar }),
+          );
+
+          if (!response["@odata.nextLink"]) {
+            return events;
+          }
+
+          return events.concat(await listPages(response["@odata.nextLink"]));
+        }
+
+        const page = await this.client.get<EventCollectionResponse>(
+          nextLink,
+          undefined,
+          undefined,
+          headers,
+        );
+
+        const events = (page.value ?? []).map((event) =>
+          parseMicrosoftEvent({ event, calendar }),
+        );
+
+        if (!page["@odata.nextLink"]) {
+          return events;
+        }
+
+        return events.concat(await listPages(page["@odata.nextLink"]));
+      };
+
+      const events = await listPages();
+
+      const recurringEventIds = new Set<string>();
+
+      for (const event of events) {
+        if (event.recurringEventId) {
+          recurringEventIds.add(event.recurringEventId);
+        }
+      }
+
+      const recurringMasterEvents = await Promise.all(
+        Array.from(recurringEventIds).map((eventId) =>
+          this.get({ calendar, eventId, timeZone }),
+        ),
       );
 
-      return { events, recurringMasterEvents: [] };
+      return { events, recurringMasterEvents };
     });
   }
 

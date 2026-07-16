@@ -41,23 +41,33 @@ export class GoogleCalendarEvents implements CalendarProviderEvents {
     timeZone,
   }: CalendarProviderEventsListOptions) {
     return this.withErrorHandler("events.list", async () => {
-      const { items } = await this.client.events.list({
-        calendarId: calendar.id,
-        timeMin: timeMin.withTimeZone("UTC").toInstant().toString(),
-        timeMax: timeMax.withTimeZone("UTC").toInstant().toString(),
-        singleEvents: true,
-        orderBy: "startTime",
-        maxResults: MAX_EVENTS_PER_CALENDAR,
-      });
+      const listPage = async (pageToken?: string): Promise<CalendarEvent[]> => {
+        const { items, nextPageToken } = await this.client.events.list({
+          calendarId: calendar.id,
+          timeMin: timeMin.withTimeZone("UTC").toInstant().toString(),
+          timeMax: timeMax.withTimeZone("UTC").toInstant().toString(),
+          singleEvents: true,
+          orderBy: "startTime",
+          maxResults: MAX_EVENTS_PER_CALENDAR,
+          pageToken,
+        });
 
-      const events: CalendarEvent[] =
-        items?.map((event) =>
+        const events = (items ?? []).map((event) =>
           parseGoogleCalendarEvent({
             calendar,
             event,
             defaultTimeZone: timeZone ?? "UTC",
           }),
-        ) ?? [];
+        );
+
+        if (!nextPageToken) {
+          return events;
+        }
+
+        return events.concat(await listPage(nextPageToken));
+      };
+
+      const events = await listPage();
 
       const instances = events.filter((e) => e.recurringEventId);
       const masters = new Set<string>([]);
