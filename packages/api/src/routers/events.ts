@@ -5,7 +5,11 @@ import { zZonedDateTimeInstance } from "temporal-zod";
 import * as z from "zod";
 
 import { CalendarEvent } from "@repo/providers/interfaces";
-import { createEventInputSchema, updateEventInputSchema } from "@repo/schemas";
+import {
+  createEventInputSchema,
+  patchEventInputSchema,
+  type CreateEventInput,
+} from "@repo/schemas";
 import { toInstant } from "@repo/temporal";
 
 import { calendarProcedure, createTRPCRouter } from "../trpc";
@@ -206,7 +210,7 @@ export const eventsRouter = createTRPCRouter({
   update: calendarProcedure
     .input(
       z.object({
-        data: updateEventInputSchema,
+        data: patchEventInputSchema,
         move: z
           .object({
             source: z.object({
@@ -337,11 +341,44 @@ export const eventsRouter = createTRPCRouter({
         return { event: updated };
       }
 
-      // Different Google accounts → clone then delete
+      // Different Google accounts → clone then delete. The patch is sparse, so
+      // fetch the source event and lay the changed fields over it.
+      const sourceEvent = await sourceProvider.client.events.get({
+        calendar: sourceCalendar,
+        eventId: data.id,
+      });
+
       const created = await destinationProvider.client.events.create({
         calendar: destinationCalendar,
         event: {
-          ...data,
+          ...sourceEvent,
+          title: data.title ?? sourceEvent.title,
+          start: data.start ?? sourceEvent.start,
+          end: data.end ?? sourceEvent.end,
+          allDay: data.allDay ?? sourceEvent.allDay,
+          availability: data.availability ?? sourceEvent.availability,
+          visibility: data.visibility ?? sourceEvent.visibility,
+          attendees: data.attendees ?? sourceEvent.attendees,
+          metadata: data.metadata ?? sourceEvent.metadata,
+          // On the nullish fields, null is an explicit clear — the clone must
+          // drop the source's value, not inherit it.
+          recurrence:
+            data.recurrence === undefined
+              ? sourceEvent.recurrence
+              : data.recurrence,
+          description:
+            data.description === undefined
+              ? sourceEvent.description
+              : (data.description ?? undefined),
+          location:
+            data.location === undefined
+              ? sourceEvent.location
+              : (data.location ?? undefined),
+          color: data.color === undefined ? sourceEvent.color : data.color,
+          conference:
+            data.conference === undefined
+              ? sourceEvent.conference
+              : data.conference,
           id: crypto.randomUUID(),
           calendar: {
             id: destinationCalendar.id,

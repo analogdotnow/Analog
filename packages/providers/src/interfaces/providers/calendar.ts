@@ -3,7 +3,7 @@ import { Temporal } from "temporal-polyfill";
 import type {
   CreateCalendarInput,
   CreateEventInput,
-  UpdateEventInput,
+  UpdateEventPatch,
 } from "@repo/schemas";
 
 import type {
@@ -76,10 +76,12 @@ export interface CalendarProviderEventsCreateOptions {
   event: CreateEventInput;
 }
 
+// Sparse patch: absent/undefined fields are left untouched by the provider;
+// null clears where the schema allows it.
 export interface CalendarProviderEventsUpdateOptions {
   calendar: Calendar;
   eventId: string;
-  event: UpdateEventInput;
+  event: UpdateEventPatch;
 }
 
 export interface CalendarProviderEventsDeleteOptions {

@@ -76,24 +76,32 @@ export function useUpdateEventMutation() {
             return prev;
           }
 
-          const withoutEvent = prev.events.filter((e) => e.id !== data.id);
+          const existing = prev.events.find((e) => e.id === data.id);
 
+          // A sparse patch is not a full event, so there is nothing to insert
+          // when the target (e.g. a series master) is not in the timeline;
+          // the refetch on settle covers it.
+          if (!existing) {
+            return prev;
+          }
+
+          // The patch is sparse; unchanged fields come from the cached event.
           const updatedEvent = {
+            ...existing,
             ...data,
             ...(move?.destination
               ? {
                   calendar: move.destination,
                 }
               : {}),
-          };
+          } as CalendarEvent;
 
-          const events = insertIntoSorted(
-            withoutEvent,
-            updatedEvent as CalendarEvent,
-            (a) =>
-              isBefore(a.start, data.start, {
-                timeZone: defaultTimeZone,
-              }),
+          const withoutEvent = prev.events.filter((e) => e.id !== data.id);
+
+          const events = insertIntoSorted(withoutEvent, updatedEvent, (a) =>
+            isBefore(a.start, updatedEvent.start, {
+              timeZone: defaultTimeZone,
+            }),
           );
 
           return {

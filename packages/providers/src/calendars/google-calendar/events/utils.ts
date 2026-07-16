@@ -1,6 +1,6 @@
 import { Temporal } from "temporal-polyfill";
 
-import type { CreateEventInput, UpdateEventInput } from "@repo/schemas";
+import type { CreateEventInput, UpdateEventPatch } from "@repo/schemas";
 
 import type {
   Attendee,
@@ -216,7 +216,7 @@ function toGoogleCalendarAttendees(
   return attendees.map(toGoogleCalendarAttendee);
 }
 
-function recurrences(event: CreateEventInput | UpdateEventInput) {
+function recurrences(event: CreateEventInput | UpdateEventPatch) {
   // TODO: how to handle recurrence when the time zone is changed (i.e. until, rDate, exDate).
   if (event.recurrence === null) {
     return [];
@@ -229,7 +229,7 @@ function recurrences(event: CreateEventInput | UpdateEventInput) {
   return toRecurrenceProperties(event.recurrence);
 }
 
-function attendees(event: CreateEventInput | UpdateEventInput) {
+function attendees(event: CreateEventInput | UpdateEventPatch) {
   if (!event.attendees) {
     return undefined;
   }
@@ -237,7 +237,7 @@ function attendees(event: CreateEventInput | UpdateEventInput) {
   return toGoogleCalendarAttendees(event.attendees);
 }
 
-function conference(event: CreateEventInput | UpdateEventInput) {
+function conference(event: CreateEventInput | UpdateEventPatch) {
   if (event.conference === null) {
     return null;
   }
@@ -249,7 +249,7 @@ function conference(event: CreateEventInput | UpdateEventInput) {
   return toConferenceData(event.conference);
 }
 
-function availability(event: CreateEventInput | UpdateEventInput) {
+function availability(event: CreateEventInput | UpdateEventPatch) {
   if (!event.availability) {
     return undefined;
   }
@@ -262,7 +262,7 @@ function availability(event: CreateEventInput | UpdateEventInput) {
 }
 
 export function createEventParams(
-  event: CreateEventInput | UpdateEventInput,
+  event: CreateEventInput,
 ): GoogleCalendarEventCreateParams {
   return {
     id: event.id,
@@ -284,33 +284,46 @@ export function createEventParams(
 }
 
 export function updateEventParams(
-  event: CreateEventInput | UpdateEventInput,
+  event: UpdateEventPatch,
 ): GoogleCalendarEventUpdateParams {
-  const params: GoogleCalendarEventUpdateParams = {
+  // Sparse patch semantics: update() spreads these params over the freshly
+  // fetched event before a full-replace PUT, so a field absent here keeps its
+  // fetched value. A field set to `undefined` overrides the fetched value and
+  // is dropped by JSON serialization, which clears it on Google's side.
+  return {
     id: event.id,
-    summary: event.title,
-    description: event.description,
-    location: event.location,
-    visibility: event.visibility,
-    start: toGoogleCalendarDate(event.start),
-    end: toGoogleCalendarDate(event.end),
-    transparency: availability(event),
-    attendees: attendees(event),
-    conferenceData: conference(event),
+    calendarId: event.calendar.id,
     // Should always be 1 to ensure conference data is retained for all event modification requests.
     conferenceDataVersion: 1,
+    ...(event.title !== undefined ? { summary: event.title } : {}),
+    ...(event.description !== undefined
+      ? { description: event.description ?? undefined }
+      : {}),
+    ...(event.location !== undefined
+      ? { location: event.location ?? undefined }
+      : {}),
+    ...(event.visibility !== undefined ? { visibility: event.visibility } : {}),
+    ...(event.start !== undefined
+      ? { start: toGoogleCalendarDate(event.start) }
+      : {}),
+    ...(event.end !== undefined
+      ? { end: toGoogleCalendarDate(event.end) }
+      : {}),
+    ...(event.availability !== undefined
+      ? { transparency: availability(event) }
+      : {}),
+    ...(event.attendees !== undefined ? { attendees: attendees(event) } : {}),
+    ...(event.conference !== undefined
+      ? { conferenceData: conference(event) }
+      : {}),
     // TODO: how to handle recurrence when the time zone is changed (i.e. until, rDate, exDate).
-    recurrence: recurrences(event),
-    recurringEventId: event.recurringEventId,
-    calendarId: event.calendar.id,
+    ...(event.recurrence !== undefined
+      ? { recurrence: recurrences(event) }
+      : {}),
+    ...(event.recurringEventId !== undefined
+      ? { recurringEventId: event.recurringEventId }
+      : {}),
   };
-
-  // update() spreads these params over the freshly fetched event before a
-  // full-replace PUT; an undefined value would override the fetched field and
-  // clear it on Google's side (explicit clears use null or [] instead).
-  return Object.fromEntries(
-    Object.entries(params).filter(([, value]) => value !== undefined),
-  ) as GoogleCalendarEventUpdateParams;
 }
 
 export function toGoogleCalendarAttendeeResponseStatus(

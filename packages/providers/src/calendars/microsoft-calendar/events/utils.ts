@@ -8,7 +8,7 @@ import { Temporal } from "temporal-polyfill";
 import type {
   CreateEventInput,
   MicrosoftEventMetadata,
-  UpdateEventInput,
+  UpdateEventPatch,
 } from "@repo/schemas";
 
 import type {
@@ -127,10 +127,8 @@ export function parseMicrosoftEvent({
   } as CalendarEvent;
 }
 
-export function toMicrosoftEvent(
-  event: CreateEventInput | UpdateEventInput,
-): MicrosoftEvent {
-  const metadata = event.metadata as MicrosoftEventMetadata | undefined | null;
+export function toMicrosoftEvent(event: CreateEventInput): MicrosoftEvent {
+  const metadata = toMicrosoftMetadata(event.metadata);
 
   return {
     subject: event.title,
@@ -151,6 +149,51 @@ export function toMicrosoftEvent(
     ...(event.location ? { location: { displayName: event.location } } : {}),
     ...(event.conference ? toMicrosoftConferenceData(event.conference) : {}),
     showAs: event.availability,
+  };
+}
+
+function toMicrosoftMetadata(
+  metadata: CreateEventInput["metadata"],
+): MicrosoftEventMetadata {
+  if (!metadata) return {};
+  if ("originalStartTimeZone" in metadata) return metadata;
+  if ("originalEndTimeZone" in metadata) return metadata;
+  if ("onlineMeeting" in metadata) return metadata;
+  return {};
+}
+
+export function toMicrosoftEventPatch(event: UpdateEventPatch): MicrosoftEvent {
+  const metadata = toMicrosoftMetadata(event.metadata);
+
+  return {
+    ...(event.title !== undefined ? { subject: event.title } : {}),
+    ...(event.description !== undefined
+      ? {
+          body: { contentType: "text", content: event.description ?? "" },
+        }
+      : {}),
+    ...(event.start !== undefined
+      ? {
+          start: toMicrosoftDate({
+            value: event.start,
+            originalTimeZone: metadata?.originalStartTimeZone,
+          }),
+        }
+      : {}),
+    ...(event.end !== undefined
+      ? {
+          end: toMicrosoftDate({
+            value: event.end,
+            originalTimeZone: metadata?.originalEndTimeZone,
+          }),
+        }
+      : {}),
+    ...(event.allDay !== undefined ? { isAllDay: event.allDay } : {}),
+    ...(event.location !== undefined
+      ? { location: { displayName: event.location } }
+      : {}),
+    ...(event.availability !== undefined ? { showAs: event.availability } : {}),
+    ...(event.conference ? toMicrosoftConferenceData(event.conference) : {}),
   };
 }
 

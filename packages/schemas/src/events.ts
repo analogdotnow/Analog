@@ -230,17 +230,10 @@ export const createEventInputSchema = z.object({
   updatedAt: z.instanceof(Temporal.Instant).optional(),
 });
 
-export const updateEventInputSchema = createEventInputSchema.extend({
-  etag: z.string().optional(),
-  response: z
-    .object({
-      status: z.enum(["accepted", "tentative", "declined", "unknown"]),
-      comment: z.string().nullable().optional(),
-      sendUpdate: z.boolean().default(false),
-    })
-    .optional(),
-});
-
+// Sparse update: fields other than the id/calendar/readOnly envelope are sent
+// only when they changed. `undefined`/absent means "leave as is"; `null` on the
+// nullish fields means "clear". Keeps a title-only edit from resending
+// occurrence dates, lossily-parsed bodies, recurrence, or attendees.
 export const patchEventInputSchema = z.object({
   id: z.string(),
   title: z.string().optional(),
@@ -252,7 +245,7 @@ export const patchEventInputSchema = z.object({
   description: z.string().nullish(),
   location: z.string().nullish(),
   availability: z.enum(["busy", "free"]).optional(),
-  color: z.string().optional(),
+  color: z.string().nullish(),
   visibility: z
     .enum(["default", "public", "private", "confidential"])
     .optional(),
@@ -265,14 +258,14 @@ export const patchEventInputSchema = z.object({
   }),
   readOnly: z.boolean(),
   attendees: z.array(attendeeSchema).optional(),
-  conference: conferenceSchema.optional(),
+  conference: conferenceSchema.nullish(),
   createdAt: z.instanceof(Temporal.Instant).optional(),
   updatedAt: z.instanceof(Temporal.Instant).optional(),
   etag: z.string().optional(),
   response: z
     .object({
       status: z.enum(["accepted", "tentative", "declined", "unknown"]),
-      comment: z.string().optional(),
+      comment: z.string().nullable().optional(),
       sendUpdate: z.boolean().default(false),
     })
     .optional(),
@@ -280,7 +273,7 @@ export const patchEventInputSchema = z.object({
 });
 
 export type CreateEventInput = z.infer<typeof createEventInputSchema>;
-export type UpdateEventInput = z.infer<typeof updateEventInputSchema>;
+export type UpdateEventPatch = z.infer<typeof patchEventInputSchema>;
 
 export type MicrosoftEventMetadata = z.infer<typeof microsoftMetadataSchema>;
 export type GoogleEventMetadata = z.infer<typeof googleMetadataSchema>;

@@ -26,7 +26,11 @@ import type {
   CalendarProviderSyncResult,
 } from "../../../interfaces/providers";
 import { ProviderError } from "../../../lib/provider-error";
-import { parseMicrosoftEvent, toMicrosoftEvent } from "./utils";
+import {
+  parseMicrosoftEvent,
+  toMicrosoftEvent,
+  toMicrosoftEventPatch,
+} from "./utils";
 
 const MAX_EVENTS_PER_CALENDAR = 250;
 
@@ -270,7 +274,7 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
       const updatedEvent = await this.eventsFor(calendar.id).update({
         userId: "me",
         eventId,
-        event: toMicrosoftEvent(event),
+        event: toMicrosoftEventPatch(event),
       });
 
       // Then, handle response status update if present (Microsoft-specific approach)

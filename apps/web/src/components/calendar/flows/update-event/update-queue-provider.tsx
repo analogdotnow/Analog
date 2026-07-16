@@ -6,7 +6,7 @@ import { removeOptimisticActionAtom } from "@/hooks/calendar/optimistic-actions"
 import { useUpdateEventMutation } from "@/hooks/calendar/use-event-mutations";
 import { getEventById } from "@/lib/db";
 import { createUpdateQueueMachine, type UpdateQueueItem } from "./update-queue";
-import { buildUpdateEvent, buildUpdateSeries } from "./utils";
+import { buildUpdateEvent, buildUpdateSeries, isEmptyUpdate } from "./utils";
 
 export const UpdateQueueContext = createActorContext(
   createUpdateQueueMachine({
@@ -37,35 +37,31 @@ export function UpdateQueueProvider({ children }: UpdateQueueProviderProps) {
         return;
       }
 
-      if (item.event.recurringEventId && item.scope === "series") {
-        updateMutation.mutate(
-          buildUpdateSeries(item.event, prevEvent, { sendUpdate: item.notify }),
-          {
-            onError: () => {
-              removeOptimisticAction(item.optimisticId);
-            },
-            onSuccess: () => {
-              // removeOptimisticAction(item.optimisticId);
-              item.onSuccess?.();
-            },
-          },
-        );
+      const payload =
+        item.event.recurringEventId && item.scope === "series"
+          ? buildUpdateSeries(item.event, prevEvent, {
+              sendUpdate: item.notify,
+            })
+          : buildUpdateEvent(item.event, prevEvent, {
+              sendUpdate: item.notify,
+            });
+
+      if (isEmptyUpdate(payload)) {
+        removeOptimisticAction(item.optimisticId);
+        item.onSuccess?.();
 
         return;
       }
 
-      updateMutation.mutate(
-        buildUpdateEvent(item.event, prevEvent, { sendUpdate: item.notify }),
-        {
-          onError: () => {
-            removeOptimisticAction(item.optimisticId);
-          },
-          onSuccess: () => {
-            // removeOptimisticAction(item.optimisticId);
-            item.onSuccess?.();
-          },
+      updateMutation.mutate(payload, {
+        onError: () => {
+          removeOptimisticAction(item.optimisticId);
         },
-      );
+        onSuccess: () => {
+          // removeOptimisticAction(item.optimisticId);
+          item.onSuccess?.();
+        },
+      });
     },
     [updateMutation, removeOptimisticAction],
   );
