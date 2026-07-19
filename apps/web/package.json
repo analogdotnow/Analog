@@ -147,8 +147,8 @@
     "@types/react-simple-maps": "^3.0.6",
     "@types/react-syntax-highlighter": "^15.5.13",
     "eslint": "catalog:",
-    "eslint-config-next": "16.2.7",
+    "eslint-config-next": "16.3.0-preview.6",
     "tailwindcss": "^4.3.0",
-    "typescript": "catalog:"
+    "typescript": "^7.0.2"
   }
 }
