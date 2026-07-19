@@ -71,11 +71,13 @@ export function parseMicrosoftConference(
     return parseConferenceFallback(event);
   }
 
-  const phoneNumbers = event.onlineMeeting?.phones
-    ?.map((p) => p.number)
-    ?.filter((n): n is string => Boolean(n));
+  const phoneNumbers = [
+    ...(event.onlineMeeting?.phones?.map((phone) => phone.number) ?? []),
+    event.onlineMeeting?.tollNumber,
+    ...(event.onlineMeeting?.tollFreeNumbers ?? []),
+    event.onlineMeeting?.quickDial,
+  ].filter((number): number is string => Boolean(number));
 
-  // TODO: how to handle toll/toll-free numbers and quick dial?
   return {
     type: "conference",
     providerId: "microsoft",

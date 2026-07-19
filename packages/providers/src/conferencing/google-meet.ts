@@ -1,6 +1,7 @@
 import { GoogleCalendar } from "@analog/google-calendar";
 
 import { parseConferenceData } from "../calendars/google-calendar/events/conferences/utils";
+import { toGoogleCalendarEventInput } from "../calendars/google-calendar/events/utils";
 import type { Conference, ConferencingProvider } from "../interfaces";
 import type { ConferencingProviderCreateConferenceOptions } from "../interfaces/providers";
 import { ProviderError } from "../lib/provider-error";
@@ -37,8 +38,7 @@ export class GoogleMeetProvider implements ConferencingProvider {
       const updatedEvent = await this.client.events.update({
         calendarId,
         eventId,
-        ...existingEvent,
-        conferenceDataVersion: 1, // This ensures the conference data is created, DO NOT REMOVE
+        ...toGoogleCalendarEventInput(existingEvent),
         conferenceData: {
           createRequest: {
             requestId: crypto.randomUUID(),
@@ -47,6 +47,9 @@ export class GoogleMeetProvider implements ConferencingProvider {
             },
           },
         },
+        conferenceDataVersion: 1, // This ensures the conference data is created, DO NOT REMOVE
+        supportsAttachments: true,
+        headers: { "If-Match": existingEvent.etag },
       });
 
       if (!updatedEvent.conferenceData) {

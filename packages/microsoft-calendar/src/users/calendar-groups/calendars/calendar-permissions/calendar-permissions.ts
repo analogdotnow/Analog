@@ -1,4 +1,5 @@
 import type { MicrosoftCalendar } from "../../../../client";
+import type { ListMoreInput } from "../../../../interfaces";
 import type {
   CalendarGroupCalendarCalendarPermissionGetCountInput,
   CalendarGroupCalendarCalendarPermissionGetCountResponse,
@@ -31,6 +32,17 @@ export class CalendarPermissions {
         $select: params.select,
         $expand: params.expand,
       },
+      params.signal,
+      params.headers,
+    );
+  }
+
+  async listMore(
+    params: ListMoreInput,
+  ): Promise<CalendarGroupCalendarListCalendarPermissionResponse> {
+    return this.client.get<CalendarGroupCalendarListCalendarPermissionResponse>(
+      params.nextLink,
+      undefined,
       params.signal,
       params.headers,
     );

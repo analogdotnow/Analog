@@ -5,7 +5,10 @@ export interface ListOtherContactsInput extends GooglePeopleRequestOptions {
   pageToken?: string;
   readMask: string;
   requestSyncToken?: boolean;
-  sources?: ReadSourceType[];
+  sources?:
+    | ["READ_SOURCE_TYPE_CONTACT"]
+    | ["READ_SOURCE_TYPE_CONTACT", "READ_SOURCE_TYPE_PROFILE"]
+    | ["READ_SOURCE_TYPE_PROFILE", "READ_SOURCE_TYPE_CONTACT"];
   syncToken?: string;
 }
 
@@ -17,7 +20,7 @@ export interface SearchOtherContactsInput extends GooglePeopleRequestOptions {
 
 export interface CopyOtherContactToMyContactsGroupInput extends GooglePeopleRequestOptions {
   resourceName: string;
-  copyMask?: string;
+  copyMask: string;
   readMask?: string;
   sources?: ReadSourceType[];
 }

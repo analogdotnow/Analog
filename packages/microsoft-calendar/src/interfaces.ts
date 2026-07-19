@@ -12,6 +12,10 @@ export interface MicrosoftCalendarRequestOptions {
   headers?: RequestHeaders;
 }
 
+export interface ListMoreInput extends MicrosoftCalendarRequestOptions {
+  nextLink: string;
+}
+
 export interface CollectionResponse<T> {
   value?: T[];
   "@odata.nextLink"?: string | null;
@@ -413,7 +417,8 @@ export type ResponseType =
 export interface ScheduleInformation {
   availabilityView?: string | null;
   error?: FreeBusyError;
-  scheduleId?: string | null;
+  /** SMTP address of the user, distribution list, or resource represented by this schedule information. */
+  scheduleId: string;
   scheduleItems?: ScheduleItem[];
   workingHours?: WorkingHours;
   [key: string]: unknown;

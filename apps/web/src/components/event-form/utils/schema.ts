@@ -55,7 +55,7 @@ export const formSchema = z.object({
   title: z.string(),
   start: zZonedDateTimeInstance,
   end: zZonedDateTimeInstance,
-  isAllDay: z.boolean(),
+  allDay: z.boolean(),
   location: z.string(),
   availability: z.enum(["busy", "free"]),
   recurrence: recurrenceSchema.nullable().optional(),
@@ -69,6 +69,15 @@ export const formSchema = z.object({
     }),
   }),
   attendees: z.array(attendeeSchema),
+  // The user's own RSVP, carried through hydration untouched so the update
+  // diff can tell an actual response change from a plain save. It must stay
+  // the SELF attendee's status — the same source the providers parse it from.
+  response: z
+    .object({
+      status: z.enum(["accepted", "declined", "tentative", "unknown"]),
+      comment: z.string().nullable().optional(),
+    })
+    .optional(),
   conference: conferenceSchema.nullable().optional(),
   visibility: z.enum(["default", "public", "private", "confidential"]),
 });

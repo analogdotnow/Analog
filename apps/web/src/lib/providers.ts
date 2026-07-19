@@ -14,3 +14,8 @@ export const providers = [
 ];
 
 export type ProviderId = "google" | "microsoft";
+
+// Microsoft Graph always emails attendees, so saving without notifying is unsupported.
+export function isNotifyRequired(providerId: ProviderId | undefined): boolean {
+  return providerId === "microsoft";
+}

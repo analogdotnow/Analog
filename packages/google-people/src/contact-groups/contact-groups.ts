@@ -2,13 +2,13 @@ import type { GooglePeople } from "../client";
 import type {
   BatchGetContactGroupsResponse,
   ContactGroup,
-  Empty,
   ListContactGroupsResponse,
 } from "../interfaces";
 import type {
   BatchGetContactGroupsInput,
   CreateContactGroupsInput,
   DeleteContactGroupsInput,
+  GetContactGroupsInput,
   ListContactGroupsInput,
   UpdateContactGroupsInput,
 } from "./interfaces";
@@ -87,8 +87,27 @@ export class ContactGroups {
     );
   }
 
-  async delete(params: DeleteContactGroupsInput): Promise<Empty> {
-    return this.client.delete<Empty>(
+  async get(params: GetContactGroupsInput): Promise<ContactGroup> {
+    return this.client.get<ContactGroup>(
+      `/v1/${params.resourceName}`,
+      {
+        alt: params.alt,
+        callback: params.callback,
+        fields: params.fields,
+        key: params.key,
+        prettyPrint: params.prettyPrint,
+        quotaUser: params.quotaUser,
+        upload_protocol: params.uploadProtocol,
+        uploadType: params.uploadType,
+        groupFields: params.groupFields,
+        maxMembers: params.maxMembers,
+      },
+      params.signal,
+    );
+  }
+
+  async delete(params: DeleteContactGroupsInput): Promise<void> {
+    return this.client.delete<void>(
       `/v1/${params.resourceName}`,
       {
         alt: params.alt,
@@ -102,6 +121,7 @@ export class ContactGroups {
         deleteContacts: params.deleteContacts,
       },
       params.signal,
+      true,
     );
   }
 

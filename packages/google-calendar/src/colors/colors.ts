@@ -16,6 +16,7 @@ export class Colors {
         userIp: params.userIp,
       },
       params.signal,
+      params.headers,
     );
   }
 }

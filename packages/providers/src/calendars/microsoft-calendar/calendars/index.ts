@@ -1,4 +1,5 @@
 import type {
+  CalendarCollectionResponse,
   GetDefaultCalendarInput,
   MicrosoftCalendar,
   UpdateDefaultCalendarInput,
@@ -39,6 +40,27 @@ export class MicrosoftCalendarCalendars {
 
   async list(): Promise<Calendar[]> {
     return this.withErrorHandler("calendars.list", async () => {
+      const listPages = async (
+        response: CalendarCollectionResponse,
+      ): Promise<Calendar[]> => {
+        const calendars = (response.value ?? []).map((calendar) =>
+          parseMicrosoftCalendar({
+            calendar,
+            providerAccountId: this.providerAccountId,
+          }),
+        );
+
+        if (!response["@odata.nextLink"]) {
+          return calendars;
+        }
+
+        const nextPage = await this.client.users.calendars.listMore({
+          nextLink: response["@odata.nextLink"],
+        });
+
+        return calendars.concat(await listPages(nextPage));
+      };
+
       const response = await this.client.users.calendars.list({
         userId: "me",
         select: [
@@ -53,12 +75,7 @@ export class MicrosoftCalendarCalendars {
         ],
       });
 
-      return (response.value ?? []).map((calendar) =>
-        parseMicrosoftCalendar({
-          calendar,
-          providerAccountId: this.providerAccountId,
-        }),
-      );
+      return listPages(response);
     });
   }
 

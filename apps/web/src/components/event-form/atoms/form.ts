@@ -14,6 +14,13 @@ export const formAtom = atom<Form>({
   values: initialValues,
 });
 
+export type FormPatchKey = Exclude<keyof FormValues, "id" | "type">;
+
+// Keys of formAtom.values changed by an edit deferred into a dirty form
+// (drag, RSVP, calendar move). The live form applies just these fields via
+// setFieldValue instead of a full reset, so in-progress edits survive.
+export const pendingFieldPatchAtom = atom<FormPatchKey[] | null>(null);
+
 export const isPristineAtom = atom(true);
 
 export const formDisabledAtom = atom((get) => {

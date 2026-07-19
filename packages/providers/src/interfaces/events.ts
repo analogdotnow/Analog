@@ -92,6 +92,21 @@ export type CalendarEventSyncItem =
       event: CalendarEvent;
     }
   | {
+      status: "cancelled";
+      event: {
+        id: string;
+        recurringEventId: string;
+        originalStartTime: EventTime;
+        calendar: {
+          id: string;
+          provider: {
+            id: "google" | "microsoft";
+            accountId: string;
+          };
+        };
+      };
+    }
+  | {
       status: "deleted";
       event: {
         id: string;
@@ -120,6 +135,7 @@ export interface CreateConferenceRequest {
   type: "create";
   providerId: "google" | "microsoft";
   requestId: string;
+  status?: "pending" | "success" | "failure";
 }
 
 export type Conference = ConferenceData | CreateConferenceRequest;

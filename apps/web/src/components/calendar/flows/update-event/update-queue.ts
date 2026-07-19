@@ -6,26 +6,37 @@ import { Guard } from "xstate/guards";
 
 import type { CalendarEvent } from "@/lib/interfaces";
 
+// Success passes back the canonical event returned by the provider (absent
+// when the update diffed to nothing), so callers can advance the baseline
+// they diff subsequent edits against.
+export type OnUpdateSuccess = (event?: CalendarEvent) => void;
+
 export interface UpdateQueueRequest {
   changes: Partial<CalendarEvent> & Required<Pick<CalendarEvent, "id">>;
   scope?: "series" | "instance";
   notify?: boolean;
-  onSuccess?: () => void;
+  onSuccess?: OnUpdateSuccess;
 }
 
 export interface ReplaceQueueRequest {
   event: CalendarEvent;
+  // The snapshot the edit was based on. The diff and If-Match etag must use
+  // it — not the current db event — when the two can diverge (remote edits
+  // landing while a dirty form suppresses rehydration), so untouched fields
+  // are never re-emitted and true conflicts 412 at the provider.
+  previous?: CalendarEvent;
   scope?: "series" | "instance";
   notify?: boolean;
-  onSuccess?: () => void;
+  onSuccess?: OnUpdateSuccess;
 }
 
 export interface UpdateQueueItem {
   optimisticId: string;
   event: CalendarEvent;
+  previous?: CalendarEvent;
   scope?: "series" | "instance";
   notify?: boolean;
-  onSuccess?: () => void;
+  onSuccess?: OnUpdateSuccess;
 }
 
 export function isRecurring(event: CalendarEvent) {

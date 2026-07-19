@@ -25,7 +25,11 @@ import { ProviderError } from "../../../lib/provider-error";
 import {
   attendeesWithSelfResponse,
   createEventParams,
+  parseGoogleCalendarEventDate,
   parseGoogleCalendarEvent,
+  toGoogleCalendarAttendee,
+  toGoogleCalendarAttendeeResponseStatus,
+  toGoogleCalendarEventInput,
   updateEventParams,
 } from "./utils";
 
@@ -109,7 +113,9 @@ export class GoogleCalendarEvents implements CalendarProviderEvents {
             showDeleted: true,
             maxResults: MAX_EVENTS_PER_CALENDAR,
             pageToken,
-            syncToken: currentSyncToken,
+            ...(currentSyncToken === undefined
+              ? {}
+              : { syncToken: currentSyncToken }),
           });
 
         if (nextSyncToken) {
@@ -124,6 +130,24 @@ export class GoogleCalendarEvents implements CalendarProviderEvents {
 
         for (const event of items) {
           if (event.status === "cancelled") {
+            if (event.recurringEventId) {
+              changes.push({
+                status: "cancelled",
+                event: {
+                  id: event.id!,
+                  recurringEventId: event.recurringEventId,
+                  originalStartTime: parseGoogleCalendarEventDate(
+                    event.originalStartTime!,
+                  ),
+                  calendar: {
+                    id: calendar.id,
+                    provider: calendar.provider,
+                  },
+                },
+              });
+              continue;
+            }
+
             changes.push({
               status: "deleted",
               event: {
@@ -149,7 +173,7 @@ export class GoogleCalendarEvents implements CalendarProviderEvents {
       } while (pageToken);
 
       const recurringEventIds = changes.flatMap((change) => {
-        if (change.status === "deleted") {
+        if (change.status !== "updated") {
           return [];
         }
 
@@ -223,12 +247,17 @@ export class GoogleCalendarEvents implements CalendarProviderEvents {
     });
   }
 
-  async create({ calendar, event }: CalendarProviderEventsCreateOptions) {
+  async create({
+    calendar,
+    event,
+    sendUpdate,
+  }: CalendarProviderEventsCreateOptions) {
     return this.withErrorHandler("events.create", async () => {
       try {
         const createdEvent = await this.client.events.insert({
           calendarId: calendar.id,
           ...createEventParams(event),
+          sendUpdates: sendUpdate ? "all" : "none",
         });
 
         return parseGoogleCalendarEvent({
@@ -242,6 +271,7 @@ export class GoogleCalendarEvents implements CalendarProviderEvents {
             calendar,
             eventId: event.id,
             event,
+            sendUpdate,
           });
         }
 
@@ -254,6 +284,7 @@ export class GoogleCalendarEvents implements CalendarProviderEvents {
     calendar,
     eventId,
     event,
+    sendUpdate = false,
   }: CalendarProviderEventsUpdateOptions) {
     return this.withErrorHandler("events.update", async () => {
       const existingEvent = await this.client.events.get({
@@ -261,27 +292,51 @@ export class GoogleCalendarEvents implements CalendarProviderEvents {
         eventId,
       });
 
-      let eventToUpdate = {
-        ...existingEvent,
-        ...updateEventParams(event),
-      };
+      const response =
+        event.response && event.response.status !== "unknown"
+          ? event.response
+          : undefined;
+      const selfEmail = existingEvent.attendees?.find(
+        (attendee) => attendee.self,
+      )?.email;
 
-      // Handle response status update within the same call for Google Calendar
-      if (event.response && event.response.status !== "unknown") {
-        eventToUpdate = {
-          ...eventToUpdate,
-          attendees: attendeesWithSelfResponse(
-            existingEvent.attendees,
-            event.response.status,
-          ),
-          sendUpdates: event.response.sendUpdate ? "all" : "none",
-        };
-      }
-
-      // TODO: Handle conflicts gracefully via If-Match with event.etag
       const updatedEvent = await this.client.events.update({
         eventId,
-        ...eventToUpdate,
+        ...toGoogleCalendarEventInput(existingEvent),
+        ...updateEventParams(event, existingEvent),
+        ...(response
+          ? event.attendees === undefined
+            ? {
+                attendees: attendeesWithSelfResponse(
+                  existingEvent.attendees,
+                  response.status,
+                  response.comment,
+                ),
+                attendeesOmitted: true,
+              }
+            : {
+                // An RSVP combined with an attendee edit merges into the
+                // patched list; attendeesOmitted would discard the edit.
+                attendees: event.attendees.map((attendee) =>
+                  attendee.email === selfEmail
+                    ? {
+                        ...toGoogleCalendarAttendee(attendee),
+                        ...(response.comment !== undefined
+                          ? { comment: response.comment }
+                          : {}),
+                        responseStatus: toGoogleCalendarAttendeeResponseStatus(
+                          response.status,
+                        ),
+                      }
+                    : toGoogleCalendarAttendee(attendee),
+                ),
+              }
+          : {}),
+        sendUpdates: (response ? response.sendUpdate : sendUpdate)
+          ? "all"
+          : "none",
+        supportsAttachments: true,
+        headers: { "If-Match": event.etag ?? existingEvent.etag },
       });
 
       return parseGoogleCalendarEvent({
@@ -294,12 +349,14 @@ export class GoogleCalendarEvents implements CalendarProviderEvents {
   async delete({
     calendarId,
     eventId,
+    etag,
     sendUpdate,
   }: CalendarProviderEventsDeleteOptions) {
     return this.withErrorHandler("events.delete", async () => {
       await this.client.events.delete({
         calendarId,
         eventId,
+        ...(etag && { headers: { "If-Match": etag } }),
         sendUpdates: sendUpdate ? "all" : "none",
       });
     });
@@ -309,19 +366,21 @@ export class GoogleCalendarEvents implements CalendarProviderEvents {
     sourceCalendar,
     destinationCalendar,
     eventId,
+    etag,
     sendUpdate = true,
   }: CalendarProviderEventsMoveOptions) {
     return this.withErrorHandler("events.move", async () => {
-      const moved = await this.client.events.move({
+      const event = await this.client.events.move({
         calendarId: sourceCalendar.id,
         eventId,
         destination: destinationCalendar.id,
+        ...(etag && { headers: { "If-Match": etag } }),
         sendUpdates: sendUpdate ? "all" : "none",
       });
 
       return parseGoogleCalendarEvent({
         calendar: destinationCalendar,
-        event: moved,
+        event,
       });
     });
   }
@@ -336,13 +395,22 @@ export class GoogleCalendarEvents implements CalendarProviderEvents {
         return;
       }
 
-      const event = await this.client.events.get({ calendarId, eventId });
-
-      await this.client.events.update({
-        ...event,
+      const existingEvent = await this.client.events.get({
         calendarId,
         eventId,
-        attendees: attendeesWithSelfResponse(event.attendees, response.status),
+        maxAttendees: 1,
+      });
+
+      await this.client.events.patch({
+        calendarId,
+        eventId,
+        attendees: attendeesWithSelfResponse(
+          existingEvent.attendees,
+          response.status,
+          response.comment,
+        ),
+        attendeesOmitted: true,
+        headers: { "If-Match": existingEvent.etag },
         sendUpdates: response.sendUpdate ? "all" : "none",
       });
     });
@@ -391,9 +459,6 @@ export class GoogleCalendarEvents implements CalendarProviderEvents {
       return true;
     }
 
-    const details =
-      (error.error as { errors?: Array<{ reason?: string }> })?.errors ?? [];
-
-    return details.some(({ reason }) => reason === "fullSyncRequired");
+    return error.hasReason("fullSyncRequired");
   }
 }

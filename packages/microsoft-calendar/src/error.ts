@@ -1,9 +1,37 @@
+export interface ODataError {
+  error: ODataMainError;
+  [key: string]: unknown;
+}
+
+export interface ODataMainError {
+  code: string;
+  message: string;
+  target?: string | null;
+  details?: ODataErrorDetail[];
+  innerError?: ODataInnerError;
+  [key: string]: unknown;
+}
+
+export interface ODataErrorDetail {
+  code: string;
+  message: string;
+  target?: string | null;
+  [key: string]: unknown;
+}
+
+export interface ODataInnerError {
+  code?: string;
+  "client-request-id"?: string;
+  date?: string;
+  "request-id"?: string;
+  innerError?: ODataInnerError;
+  [key: string]: unknown;
+}
+
 export class APIError<
   TStatus extends number | undefined = number | undefined,
   THeaders extends Headers | undefined = Headers | undefined,
-  TError extends Record<string, unknown> | undefined =
-    | Record<string, unknown>
-    | undefined,
+  TError extends ODataError | undefined = ODataError | undefined,
 > extends Error {
   /** HTTP status for the response that caused the error */
   readonly status: TStatus;
@@ -26,32 +54,32 @@ export class APIError<
 
   private static makeMessage(
     status: number | undefined,
-    error: any,
+    error: ODataError | undefined,
     message: string | undefined,
   ) {
-    const msg = error?.message
-      ? typeof error.message === "string"
-        ? error.message
-        : JSON.stringify(error.message)
-      : error
-        ? JSON.stringify(error)
-        : message;
+    if (error) {
+      if (status) {
+        return `${status} ${error.error.message}`;
+      }
 
-    if (status && msg) {
-      return `${status} ${msg}`;
+      return error.error.message;
+    }
+
+    if (status && message) {
+      return `${status} ${message}`;
     }
     if (status) {
       return `${status} status code (no body)`;
     }
-    if (msg) {
-      return msg;
+    if (message) {
+      return message;
     }
     return "(no status code or body)";
   }
 
   static from(
     status: number,
-    error: Record<string, unknown> | undefined,
+    error: ODataError | undefined,
     message: string | undefined,
     headers: Headers,
   ): APIError {
@@ -144,9 +172,31 @@ export class APIError<
   }
 }
 
-function parseErrorBody(text: string) {
+function isODataError(value: unknown): value is ODataError {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "error" in value &&
+    typeof value.error === "object" &&
+    value.error !== null &&
+    "code" in value.error &&
+    typeof value.error.code === "string" &&
+    "message" in value.error &&
+    typeof value.error.message === "string"
+  );
+}
+
+function parseErrorBody(text: string): ODataError | undefined {
   try {
-    return JSON.parse(text) as Record<string, unknown>;
+    const parsed: unknown = JSON.parse(text);
+
+    // Non-OData JSON bodies (proxy errors, arrays, bare strings) fall through
+    // to the status-based message instead of crashing on error.error.message.
+    if (!isODataError(parsed)) {
+      return undefined;
+    }
+
+    return parsed;
   } catch {
     return undefined;
   }

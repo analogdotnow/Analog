@@ -33,9 +33,11 @@ export class CalendarList {
         pageToken: params.pageToken,
         showDeleted: params.showDeleted,
         showHidden: params.showHidden,
+        showOwnOrganizationOnly: params.showOwnOrganizationOnly,
         syncToken: params.syncToken,
       },
       params.signal,
+      params.headers,
     );
   }
 
@@ -56,7 +58,6 @@ export class CalendarList {
       {
         backgroundColor: params.backgroundColor,
         colorId: params.colorId,
-        conferenceProperties: params.conferenceProperties,
         defaultReminders: params.defaultReminders,
         foregroundColor: params.foregroundColor,
         hidden: params.hidden,
@@ -66,6 +67,7 @@ export class CalendarList {
         summaryOverride: params.summaryOverride,
       },
       params.signal,
+      params.headers,
     );
   }
 
@@ -86,20 +88,20 @@ export class CalendarList {
         pageToken: params.pageToken,
         showDeleted: params.showDeleted,
         showHidden: params.showHidden,
+        showOwnOrganizationOnly: params.showOwnOrganizationOnly,
         syncToken: params.syncToken,
       },
       {
         address: params.address,
         expiration: params.expiration,
         id: params.id,
-        kind: params.kind,
         params: params.params,
         payload: params.payload,
-        resourceId: params.resourceId,
         token: params.token,
         type: params.type,
       },
       params.signal,
+      params.headers,
     );
   }
 
@@ -115,6 +117,8 @@ export class CalendarList {
         userIp: params.userIp,
       },
       params.signal,
+      params.headers,
+      true,
     );
   }
 
@@ -130,6 +134,7 @@ export class CalendarList {
         userIp: params.userIp,
       },
       params.signal,
+      params.headers,
     );
   }
 
@@ -150,7 +155,6 @@ export class CalendarList {
       {
         backgroundColor: params.backgroundColor,
         colorId: params.colorId,
-        conferenceProperties: params.conferenceProperties,
         defaultReminders: params.defaultReminders,
         foregroundColor: params.foregroundColor,
         hidden: params.hidden,
@@ -159,6 +163,7 @@ export class CalendarList {
         summaryOverride: params.summaryOverride,
       },
       params.signal,
+      params.headers,
     );
   }
 
@@ -179,7 +184,6 @@ export class CalendarList {
       {
         backgroundColor: params.backgroundColor,
         colorId: params.colorId,
-        conferenceProperties: params.conferenceProperties,
         defaultReminders: params.defaultReminders,
         foregroundColor: params.foregroundColor,
         hidden: params.hidden,
@@ -188,6 +192,7 @@ export class CalendarList {
         summaryOverride: params.summaryOverride,
       },
       params.signal,
+      params.headers,
     );
   }
 }

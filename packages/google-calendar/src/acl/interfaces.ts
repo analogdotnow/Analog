@@ -16,38 +16,60 @@ export interface AclRule {
   etag?: string;
   id?: string;
   kind?: string;
-  role?: string;
-  scope?: { type?: string; value?: string };
+  role?: AclRole;
+  scope?: {
+    type?: "default" | "domain" | "group" | "user";
+    value?: string;
+  };
 }
 
-export type AclRuleInput = Omit<AclRule, "etag" | "id" | "kind">;
+export type AclRole =
+  | "freeBusyReader"
+  | "none"
+  | "owner"
+  | "reader"
+  | "writer"
+  | "writerWithoutPrivateAccess";
 
-export interface ListAclInput extends GoogleCalendarRequestOptions {
+export type AclScopeInput =
+  | { type: "default"; value?: never }
+  | { type: "domain" | "group" | "user"; value: string };
+
+export interface AclRuleInput {
+  role?: AclRole;
+  scope?: AclScopeInput;
+}
+
+interface AclListOptions {
   calendarId: string;
   maxResults?: number;
   pageToken?: string;
-  showDeleted?: boolean;
-  syncToken?: string;
 }
+
+type AclSyncOptions =
+  | { showDeleted?: boolean; syncToken?: never }
+  | { showDeleted?: true; syncToken: string };
+
+export type ListAclInput = GoogleCalendarRequestOptions &
+  AclListOptions &
+  AclSyncOptions;
 
 export type ListAclResponse = Acl;
 
 export interface InsertAclInput
   extends GoogleCalendarRequestOptions, AclRuleInput {
   calendarId: string;
+  role: AclRole;
+  scope: AclScopeInput;
   sendNotifications?: boolean;
 }
 
 export type InsertAclResponse = AclRule;
 
-export interface WatchAclInput
-  extends GoogleCalendarRequestOptions, ChannelInput {
-  calendarId: string;
-  maxResults?: number;
-  pageToken?: string;
-  showDeleted?: boolean;
-  syncToken?: string;
-}
+export type WatchAclInput = GoogleCalendarRequestOptions &
+  ChannelInput &
+  AclListOptions &
+  AclSyncOptions;
 
 export type WatchAclResponse = Channel;
 
@@ -76,6 +98,7 @@ export interface UpdateAclInput
   extends GoogleCalendarRequestOptions, AclRuleInput {
   calendarId: string;
   ruleId: string;
+  scope: AclScopeInput;
   sendNotifications?: boolean;
 }
 

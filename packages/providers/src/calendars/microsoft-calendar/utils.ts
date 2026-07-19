@@ -43,7 +43,7 @@ export function toMicrosoftDate({
 }: ToMicrosoftDateOptions) {
   if (value instanceof Temporal.PlainDate) {
     return {
-      dateTime: value.toString(),
+      dateTime: value.toPlainDateTime().toString(),
       timeZone: originalTimeZone?.raw ?? "UTC",
     };
   }
@@ -62,7 +62,7 @@ export function toMicrosoftDate({
   }
 
   return {
-    dateTime: value.toInstant().toString(),
+    dateTime: value.toPlainDateTime().toString(),
     timeZone:
       originalTimeZone?.parsed === value.timeZoneId
         ? originalTimeZone?.raw

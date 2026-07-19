@@ -1,10 +1,19 @@
+import type {
+  ConferenceDataInput,
+  CreateConferenceRequest,
+} from "@analog/google-calendar";
 import { detectMeetingLink } from "@analog/meeting-links";
 
 import type { Conference } from "../../../../interfaces";
-import type {
-  GoogleCalendarEvent,
-  GoogleCalendarEventConferenceData,
-} from "../../interfaces";
+import type { GoogleCalendarEvent } from "../../interfaces";
+
+function parseConferenceRequestStatus(status?: string) {
+  if (status === "pending" || status === "success" || status === "failure") {
+    return status;
+  }
+
+  return undefined;
+}
 
 function extractUrls(text: string) {
   const urlRegex = /https?:\/\/[^\s<>"'{}|\\^`[\]]+/gi;
@@ -104,9 +113,30 @@ function parseConferenceFallback(
   return undefined;
 }
 
+function isCreatingConferenceRequest(
+  createRequest?: CreateConferenceRequest,
+): createRequest is CreateConferenceRequest {
+  if (!createRequest) {
+    return false;
+  }
+
+  return createRequest.status?.statusCode !== "success";
+}
+
 export function parseConferenceData(
   event: GoogleCalendarEvent,
 ): Conference | undefined {
+  if (isCreatingConferenceRequest(event.conferenceData?.createRequest)) {
+    return {
+      type: "create",
+      providerId: "google",
+      requestId: event.conferenceData.createRequest.requestId!,
+      status: parseConferenceRequestStatus(
+        event.conferenceData.createRequest.status?.statusCode,
+      ),
+    };
+  }
+
   if (!event.conferenceData?.entryPoints?.length) {
     // If no conference data, fall back to searching other fields
     return parseConferenceFallback(event);
@@ -136,7 +166,7 @@ export function parseConferenceData(
       : {}),
     conferenceId: event.conferenceData.conferenceId,
     name: event.conferenceData.conferenceSolution?.name,
-    ...(videoEntryPoint && videoEntryPoint.uri
+    ...(videoEntryPoint?.uri
       ? {
           video: {
             joinUrl: {
@@ -151,7 +181,7 @@ export function parseConferenceData(
           },
         }
       : {}),
-    ...(sipEntryPoint && sipEntryPoint.uri
+    ...(sipEntryPoint?.uri
       ? {
           sip: {
             joinUrl: {
@@ -184,7 +214,7 @@ export function parseConferenceData(
 
 export function toConferenceData(
   conference: Conference,
-): GoogleCalendarEventConferenceData | undefined {
+): ConferenceDataInput | undefined {
   if (conference.type === "conference") {
     return undefined;
   }

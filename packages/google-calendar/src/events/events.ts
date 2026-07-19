@@ -56,6 +56,7 @@ export class Events {
         updatedMin: params.updatedMin,
       },
       params.signal,
+      params.headers,
     );
   }
 
@@ -70,6 +71,7 @@ export class Events {
         quotaUser: params.quotaUser,
         userIp: params.userIp,
         conferenceDataVersion: params.conferenceDataVersion,
+        eventLabelVersion: params.eventLabelVersion,
         maxAttendees: params.maxAttendees,
         sendNotifications: params.sendNotifications,
         sendUpdates: params.sendUpdates,
@@ -80,26 +82,23 @@ export class Events {
         attachments: params.attachments,
         attendees: params.attendees,
         attendeesOmitted: params.attendeesOmitted,
+        birthdayProperties: params.birthdayProperties,
         colorId: params.colorId,
         conferenceData: params.conferenceData,
         description: params.description,
         end: params.end,
-        endTimeUnspecified: params.endTimeUnspecified,
+        eventLabelId: params.eventLabelId,
         eventType: params.eventType,
         extendedProperties: params.extendedProperties,
         focusTimeProperties: params.focusTimeProperties,
-        gadget: params.gadget,
         guestsCanInviteOthers: params.guestsCanInviteOthers,
         guestsCanModify: params.guestsCanModify,
         guestsCanSeeOtherGuests: params.guestsCanSeeOtherGuests,
-        iCalUID: params.iCalUID,
         id: params.id,
         location: params.location,
         originalStartTime: params.originalStartTime,
         outOfOfficeProperties: params.outOfOfficeProperties,
-        privateCopy: params.privateCopy,
         recurrence: params.recurrence,
-        recurringEventId: params.recurringEventId,
         reminders: params.reminders,
         sequence: params.sequence,
         source: params.source,
@@ -111,6 +110,7 @@ export class Events {
         workingLocationProperties: params.workingLocationProperties,
       },
       params.signal,
+      params.headers,
     );
   }
 
@@ -125,6 +125,7 @@ export class Events {
         quotaUser: params.quotaUser,
         userIp: params.userIp,
         conferenceDataVersion: params.conferenceDataVersion,
+        eventLabelVersion: params.eventLabelVersion,
         supportsAttachments: params.supportsAttachments,
       },
       {
@@ -132,26 +133,24 @@ export class Events {
         attachments: params.attachments,
         attendees: params.attendees,
         attendeesOmitted: params.attendeesOmitted,
+        birthdayProperties: params.birthdayProperties,
         colorId: params.colorId,
         conferenceData: params.conferenceData,
         description: params.description,
         end: params.end,
-        endTimeUnspecified: params.endTimeUnspecified,
+        eventLabelId: params.eventLabelId,
         eventType: params.eventType,
         extendedProperties: params.extendedProperties,
         focusTimeProperties: params.focusTimeProperties,
-        gadget: params.gadget,
         guestsCanInviteOthers: params.guestsCanInviteOthers,
         guestsCanModify: params.guestsCanModify,
         guestsCanSeeOtherGuests: params.guestsCanSeeOtherGuests,
         iCalUID: params.iCalUID,
-        id: params.id,
         location: params.location,
+        organizer: params.organizer,
         originalStartTime: params.originalStartTime,
         outOfOfficeProperties: params.outOfOfficeProperties,
-        privateCopy: params.privateCopy,
         recurrence: params.recurrence,
-        recurringEventId: params.recurringEventId,
         reminders: params.reminders,
         sequence: params.sequence,
         source: params.source,
@@ -163,6 +162,7 @@ export class Events {
         workingLocationProperties: params.workingLocationProperties,
       },
       params.signal,
+      params.headers,
     );
   }
 
@@ -182,6 +182,7 @@ export class Events {
       },
       undefined,
       params.signal,
+      params.headers,
     );
   }
 
@@ -218,14 +219,13 @@ export class Events {
         address: params.address,
         expiration: params.expiration,
         id: params.id,
-        kind: params.kind,
         params: params.params,
         payload: params.payload,
-        resourceId: params.resourceId,
         token: params.token,
         type: params.type,
       },
       params.signal,
+      params.headers,
     );
   }
 
@@ -243,9 +243,15 @@ export class Events {
         sendUpdates: params.sendUpdates,
       },
       params.signal,
+      params.headers,
+      true,
     );
   }
 
+  async get(
+    params: GetEventsInput & { fields?: never },
+  ): Promise<GetEventsResponse & { etag: string }>;
+  async get(params: GetEventsInput): Promise<GetEventsResponse>;
   async get(params: GetEventsInput): Promise<GetEventsResponse> {
     return this.client.get<GetEventsResponse>(
       `/calendars/${encodeURIComponent(params.calendarId)}/events/${encodeURIComponent(params.eventId)}`,
@@ -261,6 +267,7 @@ export class Events {
         timeZone: params.timeZone,
       },
       params.signal,
+      params.headers,
     );
   }
 
@@ -276,6 +283,7 @@ export class Events {
         userIp: params.userIp,
         alwaysIncludeEmail: params.alwaysIncludeEmail,
         conferenceDataVersion: params.conferenceDataVersion,
+        eventLabelVersion: params.eventLabelVersion,
         maxAttendees: params.maxAttendees,
         sendNotifications: params.sendNotifications,
         sendUpdates: params.sendUpdates,
@@ -290,22 +298,16 @@ export class Events {
         conferenceData: params.conferenceData,
         description: params.description,
         end: params.end,
-        endTimeUnspecified: params.endTimeUnspecified,
-        eventType: params.eventType,
+        eventLabelId: params.eventLabelId,
         extendedProperties: params.extendedProperties,
         focusTimeProperties: params.focusTimeProperties,
-        gadget: params.gadget,
         guestsCanInviteOthers: params.guestsCanInviteOthers,
         guestsCanModify: params.guestsCanModify,
         guestsCanSeeOtherGuests: params.guestsCanSeeOtherGuests,
-        iCalUID: params.iCalUID,
-        id: params.id,
         location: params.location,
         originalStartTime: params.originalStartTime,
         outOfOfficeProperties: params.outOfOfficeProperties,
-        privateCopy: params.privateCopy,
         recurrence: params.recurrence,
-        recurringEventId: params.recurringEventId,
         reminders: params.reminders,
         sequence: params.sequence,
         source: params.source,
@@ -317,6 +319,7 @@ export class Events {
         workingLocationProperties: params.workingLocationProperties,
       },
       params.signal,
+      params.headers,
     );
   }
 
@@ -332,6 +335,7 @@ export class Events {
         userIp: params.userIp,
         alwaysIncludeEmail: params.alwaysIncludeEmail,
         conferenceDataVersion: params.conferenceDataVersion,
+        eventLabelVersion: params.eventLabelVersion,
         maxAttendees: params.maxAttendees,
         sendNotifications: params.sendNotifications,
         sendUpdates: params.sendUpdates,
@@ -346,22 +350,17 @@ export class Events {
         conferenceData: params.conferenceData,
         description: params.description,
         end: params.end,
-        endTimeUnspecified: params.endTimeUnspecified,
+        eventLabelId: params.eventLabelId,
         eventType: params.eventType,
         extendedProperties: params.extendedProperties,
         focusTimeProperties: params.focusTimeProperties,
-        gadget: params.gadget,
         guestsCanInviteOthers: params.guestsCanInviteOthers,
         guestsCanModify: params.guestsCanModify,
         guestsCanSeeOtherGuests: params.guestsCanSeeOtherGuests,
-        iCalUID: params.iCalUID,
-        id: params.id,
         location: params.location,
         originalStartTime: params.originalStartTime,
         outOfOfficeProperties: params.outOfOfficeProperties,
-        privateCopy: params.privateCopy,
         recurrence: params.recurrence,
-        recurringEventId: params.recurringEventId,
         reminders: params.reminders,
         sequence: params.sequence,
         source: params.source,
@@ -373,6 +372,7 @@ export class Events {
         workingLocationProperties: params.workingLocationProperties,
       },
       params.signal,
+      params.headers,
     );
   }
 
@@ -399,6 +399,7 @@ export class Events {
         timeZone: params.timeZone,
       },
       params.signal,
+      params.headers,
     );
   }
 
@@ -418,6 +419,7 @@ export class Events {
       },
       undefined,
       params.signal,
+      params.headers,
     );
   }
 }

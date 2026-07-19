@@ -6,10 +6,25 @@ export type QueryParamValue =
   | undefined;
 export type QueryParams = Record<string, QueryParamValue>;
 
+export type GooglePeopleRawQueryParams = QueryParams & {
+  alt?: never;
+  $alt?: never;
+  callback?: never;
+  $callback?: never;
+};
+
+export interface GooglePeopleRawRequestOptions {
+  body?: unknown;
+  headers?: HeadersInit;
+  method: "DELETE" | "GET" | "PATCH" | "POST" | "PUT";
+  params?: GooglePeopleRawQueryParams;
+  signal?: AbortSignal;
+}
+
 export interface GooglePeopleRequestOptions {
   signal?: AbortSignal;
-  alt?: "json" | "media" | "proto";
-  callback?: string;
+  alt?: never;
+  callback?: never;
   fields?: string;
   key?: string;
   prettyPrint?: boolean;
@@ -22,7 +37,8 @@ export type ReadSourceType =
   | "READ_SOURCE_TYPE_UNSPECIFIED"
   | "READ_SOURCE_TYPE_PROFILE"
   | "READ_SOURCE_TYPE_CONTACT"
-  | "READ_SOURCE_TYPE_DOMAIN_CONTACT";
+  | "READ_SOURCE_TYPE_DOMAIN_CONTACT"
+  | "READ_SOURCE_TYPE_OTHER_CONTACT";
 
 export type DirectorySourceType =
   | "DIRECTORY_SOURCE_TYPE_UNSPECIFIED"
@@ -64,14 +80,9 @@ export interface AgeRangeType {
 }
 
 export interface BatchCreateContactsRequest {
-  contacts?: Array<ContactToCreate>;
-  readMask?: string;
-  sources?: Array<
-    | "READ_SOURCE_TYPE_UNSPECIFIED"
-    | "READ_SOURCE_TYPE_PROFILE"
-    | "READ_SOURCE_TYPE_CONTACT"
-    | "READ_SOURCE_TYPE_DOMAIN_CONTACT"
-  >;
+  contacts: Array<ContactToCreate>;
+  readMask: string;
+  sources?: ReadSourceType[];
 }
 
 export interface BatchCreateContactsResponse {
@@ -79,23 +90,23 @@ export interface BatchCreateContactsResponse {
 }
 
 export interface BatchDeleteContactsRequest {
-  resourceNames?: Array<string>;
+  resourceNames: Array<string>;
 }
 
 export interface BatchGetContactGroupsResponse {
   responses?: Array<ContactGroupResponse>;
 }
 
-export interface BatchUpdateContactsRequest {
-  contacts?: Record<string, Person>;
-  readMask?: string;
-  sources?: Array<
-    | "READ_SOURCE_TYPE_UNSPECIFIED"
-    | "READ_SOURCE_TYPE_PROFILE"
-    | "READ_SOURCE_TYPE_CONTACT"
-    | "READ_SOURCE_TYPE_DOMAIN_CONTACT"
-  >;
-  updateMask?: string;
+export interface BatchUpdateContactsRequest<
+  TContacts extends Record<string, SourceInput[]> = Record<
+    string,
+    [ContactSourceToUpdate]
+  >,
+> {
+  contacts: { [K in keyof TContacts]: ContactToUpdate<TContacts[K]> };
+  readMask: string;
+  sources?: ReadSourceType[];
+  updateMask: string;
 }
 
 export interface BatchUpdateContactsResponse {
@@ -164,27 +175,54 @@ export interface ContactGroupResponse {
 }
 
 export interface ContactToCreate {
-  contactPerson?: Person;
+  contactPerson: PersonInput;
 }
 
+export interface ContactSourceToUpdate extends SourceInput {
+  etag: string;
+  type: "CONTACT";
+}
+
+type ContainsContactSource<TSources extends SourceInput[]> = TSources extends [
+  infer TSource extends SourceInput,
+  ...infer TRest extends SourceInput[],
+]
+  ? TSource extends ContactSourceToUpdate
+    ? true
+    : ContainsContactSource<TRest>
+  : false;
+
+export type ContactSourcesToUpdate<TSources extends SourceInput[]> =
+  number extends TSources["length"]
+    ? [TSources[number]] extends [ContactSourceToUpdate]
+      ? TSources
+      : never
+    : ContainsContactSource<TSources> extends true
+      ? TSources
+      : never;
+
+export type ContactToUpdate<
+  TSources extends SourceInput[] = [ContactSourceToUpdate],
+> = PersonInput & {
+  metadata: {
+    sources: ContactSourcesToUpdate<TSources>;
+  };
+};
+
 export interface CopyOtherContactToMyContactsGroupRequest {
-  copyMask?: string;
+  copyMask: string;
   readMask?: string;
-  sources?: Array<
-    | "READ_SOURCE_TYPE_UNSPECIFIED"
-    | "READ_SOURCE_TYPE_PROFILE"
-    | "READ_SOURCE_TYPE_CONTACT"
-    | "READ_SOURCE_TYPE_DOMAIN_CONTACT"
-  >;
+  sources?: ReadSourceType[];
 }
 
 export interface CoverPhoto {
+  default?: boolean;
   metadata?: FieldMetadata;
   url?: string;
 }
 
 export interface CreateContactGroupRequest {
-  contactGroup?: ContactGroupInput;
+  contactGroup: ContactGroupInput;
   readGroupFields?: string;
 }
 
@@ -209,8 +247,6 @@ export interface EmailAddress {
   type?: string;
   value?: string;
 }
-
-export type Empty = Record<string, unknown>;
 
 export interface Event {
   date?: Date;
@@ -471,6 +507,7 @@ export interface PhoneNumber {
 }
 
 export interface Photo {
+  default?: boolean;
   metadata?: FieldMetadata;
   url?: string;
 }
@@ -560,20 +597,15 @@ export interface Tagline {
 }
 
 export interface UpdateContactGroupRequest {
-  contactGroup?: ContactGroupInput;
+  contactGroup: ContactGroupInput;
   readGroupFields?: string;
   updateGroupFields?: string;
 }
 
 export interface UpdateContactPhotoRequest {
   personFields?: string;
-  photoBytes?: string;
-  sources?: Array<
-    | "READ_SOURCE_TYPE_UNSPECIFIED"
-    | "READ_SOURCE_TYPE_PROFILE"
-    | "READ_SOURCE_TYPE_CONTACT"
-    | "READ_SOURCE_TYPE_DOMAIN_CONTACT"
-  >;
+  photoBytes: string;
+  sources?: ReadSourceType[];
 }
 
 export interface UpdateContactPhotoResponse {
@@ -593,6 +625,64 @@ export interface UserDefined {
   value?: string;
 }
 
+export type SourceInput = Omit<Source, "profileMetadata" | "updateTime">;
+
+export type FieldMetadataInput = Omit<
+  FieldMetadata,
+  "primary" | "source" | "verified"
+> & {
+  source?: SourceInput;
+};
+
+type PersonFieldInput<
+  TField extends { metadata?: FieldMetadata },
+  TOutputOnly extends keyof TField = never,
+> = Omit<TField, "metadata" | TOutputOnly> & {
+  metadata?: FieldMetadataInput;
+};
+
+type Singleton<T> = [] | [T];
+
+interface PersonInputFields {
+  addresses?: Array<PersonFieldInput<Address, "formattedType">>;
+  biographies?: Singleton<PersonFieldInput<Biography>>;
+  birthdays?: Singleton<PersonFieldInput<Birthday>>;
+  calendarUrls?: Array<PersonFieldInput<CalendarUrl, "formattedType">>;
+  clientData?: Array<PersonFieldInput<ClientData>>;
+  emailAddresses?: Array<PersonFieldInput<EmailAddress, "formattedType">>;
+  events?: Array<PersonFieldInput<Event, "formattedType">>;
+  externalIds?: Array<PersonFieldInput<ExternalId, "formattedType">>;
+  genders?: Singleton<PersonFieldInput<Gender, "formattedValue">>;
+  imClients?: Array<
+    PersonFieldInput<ImClient, "formattedProtocol" | "formattedType">
+  >;
+  interests?: Array<PersonFieldInput<Interest>>;
+  locales?: Array<PersonFieldInput<Locale>>;
+  locations?: Array<PersonFieldInput<Location>>;
+  memberships?: Array<
+    Omit<
+      PersonFieldInput<Membership, "domainMembership">,
+      "contactGroupMembership"
+    > & {
+      contactGroupMembership?: Omit<ContactGroupMembership, "contactGroupId">;
+    }
+  >;
+  miscKeywords?: Array<PersonFieldInput<MiscKeyword, "formattedType">>;
+  names?: Singleton<
+    PersonFieldInput<Name, "displayName" | "displayNameLastFirst">
+  >;
+  nicknames?: Array<PersonFieldInput<Nickname>>;
+  occupations?: Array<PersonFieldInput<Occupation>>;
+  organizations?: Array<PersonFieldInput<Organization, "formattedType">>;
+  phoneNumbers?: Array<
+    PersonFieldInput<PhoneNumber, "canonicalForm" | "formattedType">
+  >;
+  relations?: Array<PersonFieldInput<Relation, "formattedType">>;
+  sipAddresses?: Array<PersonFieldInput<SipAddress, "formattedType">>;
+  urls?: Array<PersonFieldInput<Url, "formattedType">>;
+  userDefined?: Array<PersonFieldInput<UserDefined>>;
+}
+
 export type ContactGroupInput = Omit<
   ContactGroup,
   | "formattedName"
@@ -606,10 +696,18 @@ export type PersonInput = Omit<
   Person,
   | "ageRange"
   | "ageRanges"
+  | "braggingRights"
   | "coverPhotos"
+  | "etag"
+  | "fileAses"
   | "metadata"
   | "photos"
   | "relationshipInterests"
   | "relationshipStatuses"
+  | "residences"
+  | "resourceName"
+  | "skills"
   | "taglines"
->;
+  | keyof PersonInputFields
+> &
+  PersonInputFields;

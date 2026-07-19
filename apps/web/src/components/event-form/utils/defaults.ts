@@ -20,7 +20,7 @@ export const initialValues: FormValues = {
     roundingIncrement: 15,
     roundingMode: "halfExpand",
   }),
-  isAllDay: false,
+  allDay: false,
   location: "",
   availability: "busy",
   description: "",
@@ -65,7 +65,7 @@ export function getDefaultValues({
     end: start.add(duration),
     location: "",
     description: "",
-    isAllDay: false,
+    allDay: false,
     availability: "busy",
     attendees: [],
     calendar: {

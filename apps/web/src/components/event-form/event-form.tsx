@@ -15,6 +15,7 @@ import { useAtomValue } from "jotai";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
+import { isNotifyRequired } from "@/lib/providers";
 import { cn } from "@/lib/utils";
 import { requiresAttendeeConfirmation } from "@/lib/utils/events";
 import { useCalendarStore } from "@/providers/calendar-store-provider";
@@ -87,7 +88,7 @@ export function EventForm({ className }: EventFormProps) {
         <DateInputSection form={form} disabled={disabled} />
         <div className="flex w-32 flex-col items-end gap-y-1">
           <div className="grid h-8 grid-cols-(--grid-event-form-half) items-center gap-x-1">
-            <form.Field name="isAllDay">
+            <form.Field name="allDay">
               {(field) => (
                 <>
                   <div className="col-start-1 flex ps-2">
@@ -262,10 +263,11 @@ export function EventForm({ className }: EventFormProps) {
             return {
               isDefaultValue: state.isDefaultValue,
               values: state.values.attendees,
+              providerId: state.values.calendar.provider.id,
             };
           }}
         >
-          {({ isDefaultValue, values }) => {
+          {({ isDefaultValue, values, providerId }) => {
             if (isDefaultValue || !requiresAttendeeConfirmation(values)) {
               return null;
             }
@@ -273,6 +275,7 @@ export function EventForm({ className }: EventFormProps) {
             return (
               <SendUpdateButton
                 className="col-span-4 col-start-1 pt-2"
+                notifyRequired={isNotifyRequired(providerId)}
                 onSave={() => form.handleSubmit({ sendUpdate: true })}
                 onSaveWithoutNotifying={() =>
                   form.handleSubmit({ sendUpdate: false })

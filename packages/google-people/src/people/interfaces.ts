@@ -2,12 +2,14 @@ import type {
   BatchCreateContactsRequest,
   BatchDeleteContactsRequest,
   BatchUpdateContactsRequest,
+  ContactSourceToUpdate,
+  ContactToUpdate,
   DirectoryMergeSourceType,
   DirectorySourceType,
   GooglePeopleRequestOptions,
-  Person,
   PersonInput,
   ReadSourceType,
+  SourceInput,
 } from "../interfaces";
 
 export interface BatchCreateContactsInput
@@ -17,18 +19,23 @@ export interface BatchDeleteContactsInput
   extends GooglePeopleRequestOptions, BatchDeleteContactsRequest {}
 
 export interface BatchGetPeopleInput extends GooglePeopleRequestOptions {
-  personFields?: string;
+  personFields: string;
   requestMaskIncludeField?: string;
-  resourceNames?: string[];
+  resourceNames: string[];
   sources?: ReadSourceType[];
 }
 
-export interface BatchUpdateContactsInput
-  extends GooglePeopleRequestOptions, BatchUpdateContactsRequest {}
+export interface BatchUpdateContactsInput<
+  TContacts extends Record<string, SourceInput[]> = Record<
+    string,
+    [ContactSourceToUpdate]
+  >,
+>
+  extends GooglePeopleRequestOptions, BatchUpdateContactsRequest<TContacts> {}
 
 export interface CreateContactInput extends GooglePeopleRequestOptions {
-  person?: PersonInput;
-  personFields?: string;
+  person: PersonInput;
+  personFields: string;
   sources?: ReadSourceType[];
 }
 
@@ -36,16 +43,16 @@ export interface ListDirectoryPeopleInput extends GooglePeopleRequestOptions {
   mergeSources?: DirectoryMergeSourceType[];
   pageSize?: number;
   pageToken?: string;
-  readMask?: string;
+  readMask: string;
   requestSyncToken?: boolean;
-  sources?: DirectorySourceType[];
+  sources: DirectorySourceType[];
   syncToken?: string;
 }
 
 export interface SearchContactsInput extends GooglePeopleRequestOptions {
   pageSize?: number;
-  query?: string;
-  readMask?: string;
+  query: string;
+  readMask: string;
   sources?: ReadSourceType[];
 }
 
@@ -53,24 +60,26 @@ export interface SearchDirectoryPeopleInput extends GooglePeopleRequestOptions {
   mergeSources?: DirectoryMergeSourceType[];
   pageSize?: number;
   pageToken?: string;
-  query?: string;
-  readMask?: string;
-  sources?: DirectorySourceType[];
+  query: string;
+  readMask: string;
+  sources: DirectorySourceType[];
 }
 
 export interface GetPersonInput extends GooglePeopleRequestOptions {
   resourceName: string;
-  personFields?: string;
+  personFields: string;
   requestMaskIncludeField?: string;
   sources?: ReadSourceType[];
 }
 
-export interface UpdateContactInput extends GooglePeopleRequestOptions {
+export interface UpdateContactInput<
+  TSources extends SourceInput[] = [ContactSourceToUpdate],
+> extends GooglePeopleRequestOptions {
   resourceName: string;
-  person?: Person;
+  person: ContactToUpdate<TSources>;
   personFields?: string;
   sources?: ReadSourceType[];
-  updatePersonFields?: string;
+  updatePersonFields: string;
 }
 
 export interface DeleteContactInput extends GooglePeopleRequestOptions {
@@ -86,6 +95,6 @@ export interface DeleteContactPhotoInput extends GooglePeopleRequestOptions {
 export interface UpdateContactPhotoInput extends GooglePeopleRequestOptions {
   resourceName: string;
   personFields?: string;
-  photoBytes?: string;
+  photoBytes: string;
   sources?: ReadSourceType[];
 }

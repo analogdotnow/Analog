@@ -20,10 +20,6 @@ export class GoogleCalendarCalendars {
     return this.withErrorHandler("calendars.list", async () => {
       const { items } = await this.client.calendarList.list({});
 
-      if (!items) {
-        return [];
-      }
-
       return items.map((calendar) =>
         parseGoogleCalendarCalendarListEntry({
           providerAccountId: this.providerAccountId,

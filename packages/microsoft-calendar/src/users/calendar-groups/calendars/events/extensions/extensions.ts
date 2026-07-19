@@ -1,4 +1,5 @@
 import type { MicrosoftCalendar } from "../../../../../client";
+import type { ListMoreInput } from "../../../../../interfaces";
 import type {
   CalendarGroupCalendarEventCreateExtensionInput,
   CalendarGroupCalendarEventCreateExtensionResponse,
@@ -31,6 +32,17 @@ export class Extensions {
         $select: params.select,
         $expand: params.expand,
       },
+      params.signal,
+      params.headers,
+    );
+  }
+
+  async listMore(
+    params: ListMoreInput,
+  ): Promise<CalendarGroupCalendarEventListExtensionResponse> {
+    return this.client.get<CalendarGroupCalendarEventListExtensionResponse>(
+      params.nextLink,
+      undefined,
       params.signal,
       params.headers,
     );

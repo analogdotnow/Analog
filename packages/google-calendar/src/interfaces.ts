@@ -5,9 +5,11 @@ export type QueryParamValue =
   | null
   | undefined;
 export type QueryParams = Record<string, QueryParamValue>;
+export type RequestHeaders = Record<string, string>;
 
 export interface GoogleCalendarRequestOptions {
   signal?: AbortSignal;
+  headers?: RequestHeaders;
   alt?: "json";
   fields?: string;
   key?: string;
@@ -26,16 +28,29 @@ export interface Channel {
   resourceId?: string;
   resourceUri?: string;
   token?: string;
-  type?: string;
+  type?: "web_hook" | "webhook";
 }
 
-export type ChannelInput = Omit<Channel, "resourceUri">;
+export interface ChannelInput {
+  address: string;
+  expiration?: string;
+  id: string;
+  params?: Record<string, string>;
+  payload?: boolean;
+  token?: string;
+  type: "web_hook" | "webhook";
+}
 
 export interface ConferenceProperties {
   allowedConferenceSolutionTypes?: string[];
 }
 
 export interface EventReminder {
-  method?: string;
+  method?: "email" | "popup";
   minutes?: number;
+}
+
+export interface EventReminderInput extends EventReminder {
+  method: "email" | "popup";
+  minutes: number;
 }

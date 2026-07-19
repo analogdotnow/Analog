@@ -5,10 +5,10 @@ import type {
 } from "../../interfaces";
 
 export interface ListConnectionsInput extends GooglePeopleRequestOptions {
-  resourceName: string;
+  resourceName: "people/me";
   pageSize?: number;
   pageToken?: string;
-  personFields?: string;
+  personFields: string;
   requestMaskIncludeField?: string;
   requestSyncToken?: boolean;
   sortOrder?: SortOrder;

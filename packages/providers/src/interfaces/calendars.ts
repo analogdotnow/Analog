@@ -22,7 +22,13 @@ export interface FreeBusySlot {
   status?: string;
 }
 
-export interface CalendarFreeBusy {
-  scheduleId: string;
-  busy: FreeBusySlot[];
-}
+export type CalendarFreeBusy =
+  | {
+      scheduleId: string;
+      busy: FreeBusySlot[];
+    }
+  | {
+      scheduleId: string;
+      message: string;
+      code: string;
+    };

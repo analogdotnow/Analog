@@ -8,7 +8,7 @@ import type {
   DefaultCalendarUpdateEventInput,
   DeltaCollectionResponse,
   Event as MicrosoftEvent,
-  EventCollectionResponse,
+  ListMoreInput,
   MicrosoftCalendar,
 } from "@analog/microsoft-calendar";
 
@@ -19,7 +19,6 @@ import type {
   CalendarProviderEventsDeleteOptions,
   CalendarProviderEventsGetOptions,
   CalendarProviderEventsListOptions,
-  CalendarProviderEventsMoveOptions,
   CalendarProviderEventsRespondOptions,
   CalendarProviderEventsUpdateOptions,
   CalendarProviderSyncOptions,
@@ -33,6 +32,7 @@ import {
 } from "./utils";
 
 const MAX_EVENTS_PER_CALENDAR = 250;
+const TEXT_BODY_PREFERENCE = 'outlook.body-content-type="text"';
 
 export class MicrosoftCalendarEvents implements CalendarProviderEvents {
   constructor(private readonly client: MicrosoftCalendar) {}
@@ -70,8 +70,10 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
     return {
       list: (params: DefaultCalendarListCalendarViewInput) =>
         calendarView.list({ ...params, calendarId }),
+      listMore: (params: ListMoreInput) => calendarView.listMore(params),
       delta: (params: DefaultCalendarCalendarViewDeltaInput) =>
         calendarView.delta({ ...params, calendarId }),
+      deltaMore: (params: ListMoreInput) => calendarView.deltaMore(params),
     };
   }
 
@@ -85,7 +87,9 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
       const startTime = timeMin.withTimeZone("UTC").toInstant().toString();
       const endTime = timeMax.withTimeZone("UTC").toInstant().toString();
 
-      const headers = { Prefer: `outlook.timezone="${timeZone ?? "UTC"}"` };
+      const headers = {
+        Prefer: `outlook.timezone="${timeZone ?? "UTC"}", ${TEXT_BODY_PREFERENCE}`,
+      };
 
       const listPages = async (nextLink?: string): Promise<CalendarEvent[]> => {
         if (!nextLink) {
@@ -109,12 +113,10 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
           return events.concat(await listPages(response["@odata.nextLink"]));
         }
 
-        const page = await this.client.get<EventCollectionResponse>(
+        const page = await this.calendarViewFor(calendar.id).listMore({
           nextLink,
-          undefined,
-          undefined,
           headers,
-        );
+        });
 
         const events = (page.value ?? []).map((event) =>
           parseMicrosoftEvent({ event, calendar }),
@@ -158,7 +160,9 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
       const startTime = timeMin?.withTimeZone("UTC").toInstant().toString();
       const endTime = timeMax?.withTimeZone("UTC").toInstant().toString();
 
-      const headers = { Prefer: `outlook.timezone="${timeZone}"` };
+      const headers = {
+        Prefer: `outlook.timezone="${timeZone ?? "UTC"}", ${TEXT_BODY_PREFERENCE}`,
+      };
 
       let syncToken: string | undefined;
       let pageToken: string | undefined;
@@ -171,9 +175,10 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
         let response: DeltaCollectionResponse<MicrosoftEvent>;
 
         if (link) {
-          response = await this.client.get<
-            DeltaCollectionResponse<MicrosoftEvent>
-          >(link, undefined, undefined, headers);
+          response = await this.calendarViewFor(calendar.id).deltaMore({
+            nextLink: link,
+            headers,
+          });
         } else {
           if (!startTime || !endTime) {
             throw new Error(
@@ -234,7 +239,9 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
 
   async get({ calendar, eventId, timeZone }: CalendarProviderEventsGetOptions) {
     return this.withErrorHandler("events.get", async () => {
-      const headers = { Prefer: `outlook.timezone="${timeZone ?? "UTC"}"` };
+      const headers = {
+        Prefer: `outlook.timezone="${timeZone ?? "UTC"}", ${TEXT_BODY_PREFERENCE}`,
+      };
 
       const event = await this.eventsFor(calendar.id).get({
         userId: "me",
@@ -249,11 +256,20 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
     });
   }
 
-  async create({ calendar, event }: CalendarProviderEventsCreateOptions) {
+  async create({
+    calendar,
+    event,
+    sendUpdate,
+  }: CalendarProviderEventsCreateOptions) {
     return this.withErrorHandler("events.create", async () => {
+      if (!sendUpdate) {
+        throw new Error("Microsoft Calendar does not support sendUpdate=false");
+      }
+
       const createdEvent = await this.eventsFor(calendar.id).create({
         userId: "me",
         event: toMicrosoftEvent(event),
+        headers: { Prefer: TEXT_BODY_PREFERENCE },
       });
 
       return parseMicrosoftEvent({
@@ -265,6 +281,10 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
 
   async update(options: CalendarProviderEventsUpdateOptions) {
     return this.withErrorHandler("events.update", async () => {
+      if (options.sendUpdate === false) {
+        throw new Error("Microsoft Calendar does not support sendUpdate=false");
+      }
+
       // Graph requires recurrence.range.startDate to match the master's start
       // date; a sparse patch that changes recurrence without moving the event
       // does not carry it, so resolve it from the stored event.
@@ -286,11 +306,12 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
     startForRecurrence: CalendarEvent["start"] | undefined,
   ) {
     // First, perform the regular event update
-    // TODO: Handle conflicts gracefully via If-Match with event.etag
     const updatedEvent = await this.eventsFor(calendar.id).update({
       userId: "me",
       eventId,
       event: toMicrosoftEventPatch(event, { startForRecurrence }),
+      ...(event.etag ? { ifMatch: event.etag } : {}),
+      headers: { Prefer: TEXT_BODY_PREFERENCE },
     });
 
     // Then, handle response status update if present (Microsoft-specific approach)
@@ -299,6 +320,10 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
         comment: event.response.comment,
         sendResponse: event.response.sendUpdate,
       });
+
+      // The respond actions return no body and advance the changeKey, so the
+      // PATCH response is stale; re-fetch to return the final server state.
+      return this.get({ calendar, eventId });
     }
 
     return parseMicrosoftEvent({
@@ -307,35 +332,28 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
     });
   }
 
-  async delete({ calendarId, eventId }: CalendarProviderEventsDeleteOptions) {
+  async delete({
+    calendarId,
+    eventId,
+    etag,
+    sendUpdate,
+  }: CalendarProviderEventsDeleteOptions) {
     await this.withErrorHandler("events.delete", async () => {
-      await this.eventsFor(calendarId).delete({ userId: "me", eventId });
+      if (!sendUpdate) {
+        throw new Error("Microsoft Calendar does not support sendUpdate=false");
+      }
+
+      await this.eventsFor(calendarId).delete({
+        userId: "me",
+        eventId,
+        ...(etag ? { ifMatch: etag } : {}),
+      });
     });
   }
 
-  async move({
-    sourceCalendar,
-    destinationCalendar,
-    eventId,
-  }: CalendarProviderEventsMoveOptions) {
-    return this.withErrorHandler("events.move", async () => {
-      // Placeholder: Microsoft Graph does not have a direct move endpoint.
-      // This could be implemented by creating a new event in destination and deleting the original,
-      // preserving fields as needed.
-      const event = await this.get({
-        calendar: sourceCalendar,
-        eventId,
-        timeZone: "UTC",
-      });
-
-      return {
-        ...event,
-        calendar: {
-          id: destinationCalendar.id,
-          provider: destinationCalendar.provider,
-        },
-        readOnly: event.readOnly,
-      };
+  async move() {
+    return this.withErrorHandler("events.move", () => {
+      throw new Error("Moving Microsoft Calendar events is not supported");
     });
   }
 

@@ -1,4 +1,7 @@
-import type { ChannelInput, GoogleCalendarRequestOptions } from "../interfaces";
+import type { GoogleCalendarRequestOptions } from "../interfaces";
 
-export interface StopChannelsInput
-  extends GoogleCalendarRequestOptions, ChannelInput {}
+export interface StopChannelsInput extends GoogleCalendarRequestOptions {
+  id: string;
+  resourceId: string;
+  token?: string;
+}
