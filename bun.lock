@@ -439,6 +439,15 @@
         "typescript": "catalog:",
       },
     },
+    "packages/microsoft-people": {
+      "name": "@analog/microsoft-people",
+      "version": "0.0.1-alpha.0",
+      "devDependencies": {
+        "@repo/typescript-config": "workspace:*",
+        "@types/node": "catalog:",
+        "typescript": "catalog:",
+      },
+    },
     "packages/providers": {
       "name": "@repo/providers",
       "version": "0.1.0",
@@ -604,6 +613,8 @@
     "@analog/meeting-links": ["@analog/meeting-links@workspace:packages/meeting-links"],
 
     "@analog/microsoft-calendar": ["@analog/microsoft-calendar@workspace:packages/microsoft-calendar"],
+
+    "@analog/microsoft-people": ["@analog/microsoft-people@workspace:packages/microsoft-people"],
 
     "@ariakit/components": ["@ariakit/components@0.1.2", "", { "dependencies": { "@ariakit/store": "0.1.2", "@ariakit/utils": "0.1.2" } }, "sha512-tvh2P0x1cJnoPXnmDEJwdRk3z7x6cTB8ArctcZdAUXlRg9tuwW/rJoBFJMzD5qMI9CDDlQ3Zctx58HvENw4BYw=="],
 
