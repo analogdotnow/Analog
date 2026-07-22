@@ -15,7 +15,7 @@ import type {
 
 export interface ResponseToEventInput {
   status: "accepted" | "tentative" | "declined" | "unknown";
-  comment?: string;
+  comment?: string | null;
   sendUpdate: boolean;
 }
 
@@ -74,6 +74,7 @@ export interface CalendarProviderEventsGetOptions {
 export interface CalendarProviderEventsCreateOptions {
   calendar: Calendar;
   event: CreateEventInput;
+  sendUpdate: boolean;
 }
 
 // Sparse patch: absent/undefined fields are left untouched by the provider;
@@ -82,11 +83,13 @@ export interface CalendarProviderEventsUpdateOptions {
   calendar: Calendar;
   eventId: string;
   event: UpdateEventPatch;
+  sendUpdate?: boolean;
 }
 
 export interface CalendarProviderEventsDeleteOptions {
   calendarId: string;
   eventId: string;
+  etag?: string;
   sendUpdate: boolean;
 }
 
@@ -100,6 +103,7 @@ export interface CalendarProviderEventsMoveOptions {
   sourceCalendar: Calendar;
   destinationCalendar: Calendar;
   eventId: string;
+  etag?: string;
   sendUpdate?: boolean;
 }
 

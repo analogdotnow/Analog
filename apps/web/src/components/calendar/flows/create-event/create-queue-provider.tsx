@@ -23,14 +23,17 @@ export function CreateQueueProvider({ children }: CreateQueueProviderProps) {
 
   const createEvent = React.useCallback(
     async (item: CreateQueueItem) => {
-      createMutation.mutate(item.event, {
-        onSuccess: () => {
-          item.onSuccess?.();
+      createMutation.mutate(
+        { ...item.event, sendUpdate: item.notify },
+        {
+          onSuccess: () => {
+            item.onSuccess?.();
+          },
+          onSettled: () => {
+            removeOptimisticAction(item.optimisticId);
+          },
         },
-        onSettled: () => {
-          removeOptimisticAction(item.optimisticId);
-        },
-      });
+      );
     },
     [createMutation, removeOptimisticAction],
   );

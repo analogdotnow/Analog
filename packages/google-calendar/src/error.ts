@@ -1,8 +1,27 @@
+export interface GoogleCalendarErrorDetail {
+  domain: string;
+  location?: string;
+  locationType?: string;
+  message: string;
+  reason: string;
+}
+
+export interface GoogleCalendarErrorBody {
+  code: number;
+  errors?: GoogleCalendarErrorDetail[];
+  message: string;
+  status?: string;
+}
+
+export interface GoogleCalendarError {
+  error: GoogleCalendarErrorBody;
+}
+
 export class APIError<
   TStatus extends number | undefined = number | undefined,
   THeaders extends Headers | undefined = Headers | undefined,
-  TError extends Record<string, unknown> | undefined =
-    | Record<string, unknown>
+  TError extends GoogleCalendarError | undefined =
+    | GoogleCalendarError
     | undefined,
 > extends Error {
   /** HTTP status for the response that caused the error */
@@ -18,24 +37,28 @@ export class APIError<
     message: string | undefined,
     headers: THeaders,
   ) {
-    super(`${APIError.makeMessage(status, error, message)}`);
+    super(APIError.makeMessage(status, error, message));
     this.status = status;
     this.headers = headers;
     this.error = error;
   }
 
+  hasReason(reason: string) {
+    const errors = this.error?.error.errors;
+
+    if (!errors) {
+      return false;
+    }
+
+    return errors.some((error) => error.reason === reason);
+  }
+
   private static makeMessage(
     status: number | undefined,
-    error: any,
+    error: GoogleCalendarError | undefined,
     message: string | undefined,
   ) {
-    const msg = error?.message
-      ? typeof error.message === "string"
-        ? error.message
-        : JSON.stringify(error.message)
-      : error
-        ? JSON.stringify(error)
-        : message;
+    const msg = error?.error.message ?? message;
 
     if (status && msg) {
       return `${status} ${msg}`;
@@ -51,7 +74,7 @@ export class APIError<
 
   static from(
     status: number,
-    error: Record<string, unknown> | undefined,
+    error: GoogleCalendarError | undefined,
     message: string | undefined,
     headers: Headers,
   ): APIError {
@@ -61,6 +84,10 @@ export class APIError<
 
     if (status === 401) {
       return new AuthenticationError(status, error, message, headers);
+    }
+
+    if (status === 403 && isRateLimitError(error)) {
+      return new RateLimitError(status, error, message, headers);
     }
 
     if (status === 403) {
@@ -73,6 +100,10 @@ export class APIError<
 
     if (status === 409) {
       return new ConflictError(status, error, message, headers);
+    }
+
+    if (status === 412) {
+      return new PreconditionFailedError(status, error, message, headers);
     }
 
     if (status === 422) {
@@ -144,9 +175,47 @@ export class APIError<
   }
 }
 
-function parseErrorBody(text: string) {
+function isRateLimitError(error: GoogleCalendarError | undefined) {
+  const errors = error?.error.errors;
+
+  if (!errors) {
+    return false;
+  }
+
+  // quotaExceeded (calendar usage limits) is not resolved by backoff, unlike the rate-limit reasons.
+  return errors.some(({ reason }) =>
+    ["rateLimitExceeded", "userRateLimitExceeded"].includes(reason),
+  );
+}
+
+function isGoogleCalendarError(value: unknown): value is GoogleCalendarError {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "error" in value &&
+    typeof value.error === "object" &&
+    value.error !== null &&
+    "code" in value.error &&
+    typeof value.error.code === "number" &&
+    "message" in value.error &&
+    typeof value.error.message === "string" &&
+    (!("errors" in value.error) ||
+      value.error.errors === undefined ||
+      Array.isArray(value.error.errors))
+  );
+}
+
+function parseErrorBody(text: string): GoogleCalendarError | undefined {
   try {
-    return JSON.parse(text) as Record<string, unknown>;
+    const parsed: unknown = JSON.parse(text);
+
+    // Non-envelope JSON bodies (proxy errors, arrays, bare strings) fall
+    // through to the status-based message instead of crashing downstream.
+    if (!isGoogleCalendarError(parsed)) {
+      return undefined;
+    }
+
+    return parsed;
   } catch {
     return undefined;
   }
@@ -175,9 +244,11 @@ export class NotFoundError extends APIError<404, Headers> {}
 
 export class ConflictError extends APIError<409, Headers> {}
 
+export class PreconditionFailedError extends APIError<412, Headers> {}
+
 export class UnprocessableEntityError extends APIError<422, Headers> {}
 
-export class RateLimitError extends APIError<429, Headers> {}
+export class RateLimitError extends APIError<403 | 429, Headers> {}
 
 export class InternalServerError<
   TStatus extends number = number,

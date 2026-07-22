@@ -8,6 +8,7 @@ import type {
   InsertCalendarsResponse,
   PatchCalendarsInput,
   PatchCalendarsResponse,
+  TransferOwnershipCalendarsInput,
   UpdateCalendarsInput,
   UpdateCalendarsResponse,
 } from "./interfaces";
@@ -27,13 +28,14 @@ export class Calendars {
         userIp: params.userIp,
       },
       {
-        conferenceProperties: params.conferenceProperties,
         description: params.description,
+        labelProperties: params.labelProperties,
         location: params.location,
         summary: params.summary,
         timeZone: params.timeZone,
       },
       params.signal,
+      params.headers,
     );
   }
 
@@ -49,6 +51,8 @@ export class Calendars {
         userIp: params.userIp,
       },
       params.signal,
+      params.headers,
+      true,
     );
   }
 
@@ -64,6 +68,7 @@ export class Calendars {
         userIp: params.userIp,
       },
       params.signal,
+      params.headers,
     );
   }
 
@@ -79,13 +84,14 @@ export class Calendars {
         userIp: params.userIp,
       },
       {
-        conferenceProperties: params.conferenceProperties,
         description: params.description,
+        labelProperties: params.labelProperties,
         location: params.location,
         summary: params.summary,
         timeZone: params.timeZone,
       },
       params.signal,
+      params.headers,
     );
   }
 
@@ -101,13 +107,14 @@ export class Calendars {
         userIp: params.userIp,
       },
       {
-        conferenceProperties: params.conferenceProperties,
         description: params.description,
+        labelProperties: params.labelProperties,
         location: params.location,
         summary: params.summary,
         timeZone: params.timeZone,
       },
       params.signal,
+      params.headers,
     );
   }
 
@@ -124,6 +131,30 @@ export class Calendars {
       },
       undefined,
       params.signal,
+      params.headers,
+      true,
+    );
+  }
+
+  async transferOwnership(
+    params: TransferOwnershipCalendarsInput,
+  ): Promise<void> {
+    return this.client.post(
+      `/calendars/${encodeURIComponent(params.calendarId)}/transferOwnership`,
+      {
+        alt: params.alt,
+        fields: params.fields,
+        key: params.key,
+        prettyPrint: params.prettyPrint,
+        quotaUser: params.quotaUser,
+        userIp: params.userIp,
+        newDataOwner: params.newDataOwner,
+        useAdminAccess: params.useAdminAccess,
+      },
+      undefined,
+      params.signal,
+      params.headers,
+      true,
     );
   }
 }

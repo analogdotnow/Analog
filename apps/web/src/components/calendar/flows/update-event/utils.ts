@@ -142,15 +142,18 @@ interface BuildResponseOptions {
   sendUpdate?: boolean;
 }
 
+// Only an actual RSVP change may be emitted: both providers rewrite the SELF
+// attendee's status whenever a response is present, so attaching an unchanged
+// status corrupts the user's RSVP on every save. Notification intent for
+// non-RSVP changes rides on the payload's top-level sendUpdate.
 function buildResponse(
   event: CalendarEvent,
   previous: CalendarEvent,
   options: BuildResponseOptions,
 ) {
   const status = event.response?.status ?? "unknown";
-  const statusChanged = status !== (previous.response?.status ?? "unknown");
 
-  if (!options.sendUpdate && !statusChanged) {
+  if (status === (previous.response?.status ?? "unknown")) {
     return {};
   }
 
@@ -199,6 +202,7 @@ export function buildUpdateEvent(
         : {}),
       ...buildResponse(event, previous, options),
     },
+    sendUpdate: options.sendUpdate,
     ...buildMove(event, previous),
   };
 }
@@ -334,6 +338,7 @@ export function buildUpdateSeries(
       ...(master.metadata ? { metadata: master.metadata } : {}),
       ...buildResponse(event, previous, options),
     },
+    sendUpdate: options.sendUpdate,
     ...buildMove(event, previous),
   };
 }

@@ -12,6 +12,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { isNotifyRequired } from "@/lib/providers";
 import { CreateQueueContext } from "./create-queue-provider";
 
 export function CreateEventAttendeeDialog() {
@@ -20,6 +21,9 @@ export function CreateEventAttendeeDialog() {
   const actorRef = CreateQueueContext.useActorRef();
   const open = CreateQueueContext.useSelector((snapshot) =>
     snapshot.matches("askNotifyAttendee"),
+  );
+  const notifyRequired = CreateQueueContext.useSelector((snapshot) =>
+    isNotifyRequired(snapshot.context.item?.event.calendar.provider.id),
   );
 
   const onSaveAndNotify = React.useCallback(() => {
@@ -53,7 +57,11 @@ export function CreateEventAttendeeDialog() {
         <AlertDialogFooter className="sm:justify-between">
           <AlertDialogCancel>Discard</AlertDialogCancel>
           <div className="flex gap-2">
-            <AlertDialogAction variant="outline" onClick={onSave}>
+            <AlertDialogAction
+              variant="outline"
+              disabled={notifyRequired}
+              onClick={onSave}
+            >
               Save
             </AlertDialogAction>
             <AlertDialogAction onClick={onSaveAndNotify}>

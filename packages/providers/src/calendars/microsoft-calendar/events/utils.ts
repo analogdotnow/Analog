@@ -152,6 +152,19 @@ function assertConvertibleRecurrence(recurrence: Recurrence) {
       "count and until are mutually exclusive",
     );
   }
+
+  if (recurrence.freq === "WEEKLY" && recurrence.bySetPos?.length) {
+    throw new RecurrenceConversionError("bySetPos is not supported for WEEKLY");
+  }
+
+  if (
+    recurrence.until !== undefined &&
+    !(recurrence.until instanceof Temporal.PlainDate)
+  ) {
+    throw new RecurrenceConversionError(
+      "Microsoft recurrence only supports date-valued until",
+    );
+  }
 }
 
 function toMicrosoftRecurrencePattern(
@@ -191,9 +204,7 @@ function toMicrosoftRecurrencePattern(
         daysOfWeek: recurrence.byDay?.length
           ? toMicrosoftDaysOfWeek(recurrence.byDay)
           : [toMicrosoftDayOfWeek(start.dayOfWeek)],
-        ...(recurrence.wkst
-          ? { firstDayOfWeek: WEEKDAY_TO_MICROSOFT_DAY[recurrence.wkst] }
-          : {}),
+        firstDayOfWeek: WEEKDAY_TO_MICROSOFT_DAY[recurrence.wkst ?? "MO"],
       };
     }
     case "MONTHLY": {
@@ -356,7 +367,9 @@ export function parseMicrosoftRecurrence(
         ...shared,
         freq: "WEEKLY",
         ...(byDay?.length ? { byDay } : {}),
-        ...(wkst ? { wkst } : {}),
+        // Graph defaults firstDayOfWeek to sunday, unlike RFC 5545's implicit
+        // WKST=MO, so a missing field must parse as an explicit SU.
+        wkst: wkst ?? "SU",
       };
     case "absoluteMonthly":
       return {
@@ -403,28 +416,35 @@ interface ParseMicrosoftEventOptions {
 function parseResponseStatus(
   event: MicrosoftEvent,
 ): AttendeeStatus | undefined {
-  const organizerIsAttendee =
-    event.attendees?.some(
-      (attendee) => attendee.status?.response === "organizer",
-    ) ?? false;
-
-  if (
-    !event.attendees ||
-    !organizerIsAttendee ||
-    event.attendees.length === 0
-  ) {
-    return undefined;
-  }
-
-  const hasOtherAttendees = organizerIsAttendee && event.attendees.length > 1;
-
-  if (!hasOtherAttendees) {
-    return undefined;
-  }
-
   return event.responseStatus?.response
     ? parseMicrosoftAttendeeStatus(event.responseStatus.response)
     : undefined;
+}
+
+function parseMicrosoftVisibility(
+  sensitivity: MicrosoftEvent["sensitivity"],
+): CalendarEvent["visibility"] {
+  if (sensitivity === "normal") return "default";
+  if (sensitivity === "personal") return "private";
+  return sensitivity;
+}
+
+function toMicrosoftSensitivity(
+  visibility: CreateEventInput["visibility"],
+): MicrosoftEvent["sensitivity"] {
+  if (visibility === "default") return "normal";
+  if (visibility === "public") return "normal";
+  return visibility;
+}
+
+function toMicrosoftAttendee(attendee: Attendee): MicrosoftEventAttendee {
+  return {
+    emailAddress: {
+      address: attendee.email,
+      name: attendee.name,
+    },
+    type: attendee.type,
+  };
 }
 
 export function parseMicrosoftEvent({
@@ -445,7 +465,7 @@ export function parseMicrosoftEvent({
   return {
     id: event.id!,
     title: event.subject!,
-    description: event.bodyPreview ?? undefined,
+    description: event.body?.content ?? undefined,
     start: isAllDay
       ? parseDate(start.dateTime!)
       : parseDateTime(start.dateTime!, start.timeZone!),
@@ -455,6 +475,7 @@ export function parseMicrosoftEvent({
     allDay: isAllDay ?? false,
     location: event.location?.displayName ?? undefined,
     availability: event.showAs === "free" ? "free" : "busy",
+    visibility: parseMicrosoftVisibility(event.sensitivity),
     attendees: event.attendees?.map(parseMicrosoftAttendee) ?? [],
     url: event.webLink ?? undefined,
     etag: event["@odata.etag"],
@@ -524,6 +545,8 @@ export function toMicrosoftEvent(event: CreateEventInput): MicrosoftEvent {
     ...(event.location ? { location: { displayName: event.location } } : {}),
     ...(event.conference ? toMicrosoftConferenceData(event.conference) : {}),
     showAs: event.availability,
+    sensitivity: toMicrosoftSensitivity(event.visibility),
+    attendees: event.attendees?.map(toMicrosoftAttendee),
     ...(event.recurrence
       ? {
           recurrence: toMicrosoftRecurrence({
@@ -620,7 +643,19 @@ export function toMicrosoftEventPatch(
       ? { location: { displayName: event.location } }
       : {}),
     ...(event.availability !== undefined ? { showAs: event.availability } : {}),
-    ...(event.conference ? toMicrosoftConferenceData(event.conference) : {}),
+    ...(event.visibility !== undefined
+      ? { sensitivity: toMicrosoftSensitivity(event.visibility) }
+      : {}),
+    ...(event.attendees !== undefined
+      ? { attendees: event.attendees.map(toMicrosoftAttendee) }
+      : {}),
+    // Graph has no conference field to null out: clearing demotes the online
+    // meeting via isOnlineMeeting=false with the provider reset to "unknown".
+    ...(event.conference === null
+      ? { isOnlineMeeting: false, onlineMeetingProvider: "unknown" as const }
+      : event.conference
+        ? toMicrosoftConferenceData(event.conference)
+        : {}),
     ...toMicrosoftRecurrencePatch(
       event.recurrence,
       recurrenceStart,

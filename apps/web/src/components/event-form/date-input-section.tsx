@@ -20,7 +20,7 @@ export const DateInputSection = withForm({
   render: function Render({ form, disabled }) {
     const startField = useField({ name: "start", form });
     const endField = useField({ name: "end", form });
-    const isAllDayField = useField({ name: "isAllDay", form });
+    const allDayField = useField({ name: "allDay", form });
     const isSameTimezone =
       startField.state.value.timeZoneId === endField.state.value.timeZoneId;
     const [openTimePicker, setOpenTimePicker] = React.useState<
@@ -101,7 +101,7 @@ export const DateInputSection = withForm({
       [openTimePicker],
     );
 
-    const isAllDay = isAllDayField.state.value;
+    const allDay = allDayField.state.value;
 
     return (
       <section className="flex flex-col gap-y-1">
@@ -117,7 +117,7 @@ export const DateInputSection = withForm({
               open={openTimePicker === "start"}
               onOpenChange={onTimeStartOpenChange}
               onChange={onStartChange}
-              disabled={disabled || isAllDay}
+              disabled={disabled || allDay}
             />
             <label htmlFor="end.time" className="sr-only">
               End time
@@ -129,7 +129,7 @@ export const DateInputSection = withForm({
               open={openTimePicker === "end"}
               onOpenChange={onTimeEndOpenChange}
               onChange={onEndChange}
-              disabled={disabled || isAllDay}
+              disabled={disabled || allDay}
             />
             <div className="pointer-events-none absolute inset-0 grid grid-cols-(--grid-event-form) items-center gap-2">
               <div className="col-start-1 ps-2">
@@ -158,7 +158,7 @@ export const DateInputSection = withForm({
               id="start.date"
               className={cn(
                 "col-span-1 col-start-2 h-8 border-none bg-transparent ps-3 shadow-none dark:bg-transparent",
-                isAllDay && "col-span-2 col-start-1 ps-8",
+                allDay && "col-span-2 col-start-1 ps-8",
               )}
               value={startField.state.value}
               onChange={onStartChange}
@@ -171,14 +171,14 @@ export const DateInputSection = withForm({
               id="end.date"
               className={cn(
                 "col-span-1 col-start-4 h-8 border-none bg-transparent ps-3 shadow-none dark:bg-transparent",
-                isAllDay && "col-span-2 col-start-3 ps-8",
+                allDay && "col-span-2 col-start-3 ps-8",
               )}
               value={endField.state.value}
               start={startField.state.value}
               onChange={onEndChange}
               disabled={disabled}
             />
-            {/* {isAllDay ? (
+            {/* {allDay ? (
               <div className="pointer-events-none absolute inset-0 grid grid-cols-(--grid-event-form) items-center gap-2">
                 <div className="col-start-1 ps-1.5">
                   <ClockIcon className="size-4 text-muted-foreground peer-hover:text-foreground" />

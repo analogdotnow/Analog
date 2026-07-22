@@ -18,6 +18,8 @@ import { cn } from "@/lib/utils";
 
 interface SendUpdateButtonProps {
   className?: string;
+  // Microsoft Calendar always notifies attendees, so saving without notifying is not supported.
+  notifyRequired?: boolean;
   onSave: () => void;
   onSaveWithoutNotifying: () => void;
   onDiscard: () => void;
@@ -25,6 +27,7 @@ interface SendUpdateButtonProps {
 
 export function SendUpdateButton({
   className,
+  notifyRequired,
   onSave,
   onSaveWithoutNotifying,
   onDiscard,
@@ -51,7 +54,10 @@ export function SendUpdateButton({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={onSaveWithoutNotifying}>
+          <DropdownMenuItem
+            disabled={notifyRequired}
+            onClick={onSaveWithoutNotifying}
+          >
             <BellSlashIcon />
             Save update without notifying
           </DropdownMenuItem>

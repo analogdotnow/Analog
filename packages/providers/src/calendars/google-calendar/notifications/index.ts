@@ -33,7 +33,7 @@ export class GoogleCalendarNotifications {
     });
   }
 
-  async unsubscribe(subscriptionId: string, resourceId?: string) {
+  async unsubscribe(subscriptionId: string, resourceId: string) {
     return this.withErrorHandler("notifications.unsubscribe", async () => {
       await this.client.channels.stop({
         id: subscriptionId,

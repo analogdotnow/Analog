@@ -16,17 +16,13 @@ export class Channels {
         userIp: params.userIp,
       },
       {
-        address: params.address,
-        expiration: params.expiration,
         id: params.id,
-        kind: params.kind,
-        params: params.params,
-        payload: params.payload,
         resourceId: params.resourceId,
         token: params.token,
-        type: params.type,
       },
       params.signal,
+      params.headers,
+      true,
     );
   }
 }

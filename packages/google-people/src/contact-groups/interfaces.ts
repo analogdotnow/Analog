@@ -11,7 +11,7 @@ export interface ListContactGroupsInput extends GooglePeopleRequestOptions {
 }
 
 export interface CreateContactGroupsInput extends GooglePeopleRequestOptions {
-  contactGroup?: ContactGroupInput;
+  contactGroup: ContactGroupInput;
   readGroupFields?: string;
 }
 
@@ -21,6 +21,12 @@ export interface BatchGetContactGroupsInput extends GooglePeopleRequestOptions {
   resourceNames: string[];
 }
 
+export interface GetContactGroupsInput extends GooglePeopleRequestOptions {
+  groupFields?: string;
+  maxMembers?: number;
+  resourceName: string;
+}
+
 export interface DeleteContactGroupsInput extends GooglePeopleRequestOptions {
   resourceName: string;
   deleteContacts?: boolean;
@@ -28,7 +34,7 @@ export interface DeleteContactGroupsInput extends GooglePeopleRequestOptions {
 
 export interface UpdateContactGroupsInput extends GooglePeopleRequestOptions {
   resourceName: string;
-  contactGroup?: ContactGroupInput;
+  contactGroup: ContactGroupInput;
   readGroupFields?: string;
   updateGroupFields?: string;
 }

@@ -1,4 +1,5 @@
 import type { MicrosoftCalendar } from "../../client";
+import type { ListMoreInput } from "../../interfaces";
 import { Calendars } from "./calendars";
 import type {
   CalendarGroupGetCountInput,
@@ -36,6 +37,15 @@ export class CalendarGroups {
         $select: params.select,
         $expand: params.expand,
       },
+      params.signal,
+      params.headers,
+    );
+  }
+
+  async listMore(params: ListMoreInput): Promise<ListCalendarGroupResponse> {
+    return this.client.get<ListCalendarGroupResponse>(
+      params.nextLink,
+      undefined,
       params.signal,
       params.headers,
     );

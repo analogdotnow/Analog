@@ -1,4 +1,5 @@
 import type { MicrosoftCalendar } from "../../../client";
+import type { ListMoreInput } from "../../../interfaces";
 import type {
   GroupEventInstanceDeltaInput,
   GroupEventInstanceDeltaResponse,
@@ -31,6 +32,17 @@ export class Instances {
     );
   }
 
+  async listMore(
+    params: ListMoreInput,
+  ): Promise<GroupEventListInstanceResponse> {
+    return this.client.get<GroupEventListInstanceResponse>(
+      params.nextLink,
+      undefined,
+      params.signal,
+      params.headers,
+    );
+  }
+
   async delta(
     params: GroupEventInstanceDeltaInput,
   ): Promise<GroupEventInstanceDeltaResponse> {
@@ -48,6 +60,17 @@ export class Instances {
         $orderby: params.orderby,
         $expand: params.expand,
       },
+      params.signal,
+      params.headers,
+    );
+  }
+
+  async deltaMore(
+    params: ListMoreInput,
+  ): Promise<GroupEventInstanceDeltaResponse> {
+    return this.client.get<GroupEventInstanceDeltaResponse>(
+      params.nextLink,
+      undefined,
       params.signal,
       params.headers,
     );

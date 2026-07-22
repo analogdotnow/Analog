@@ -1,5 +1,14 @@
 import { Temporal } from "temporal-polyfill";
 
+import type {
+  ConferenceDataInput,
+  EntryPoint,
+  EntryPointInput,
+  EventAttendee,
+  EventAttendeeInput,
+  EventDateTime,
+  EventInput,
+} from "@analog/google-calendar";
 import type { CreateEventInput, UpdateEventPatch } from "@repo/schemas";
 
 import type {
@@ -17,10 +26,150 @@ import type {
   GoogleCalendarEvent,
   GoogleCalendarEventAttendee,
   GoogleCalendarEventAttendeeResponseStatus,
-  GoogleCalendarEventCreateParams,
-  GoogleCalendarEventUpdateParams,
 } from "../interfaces";
 import { parseConferenceData, toConferenceData } from "./conferences/utils";
+
+function toGoogleCalendarEntryPointInput(
+  entryPoint: EntryPoint,
+): EntryPointInput {
+  return {
+    accessCode: entryPoint.accessCode,
+    entryPointFeatures: entryPoint.entryPointFeatures,
+    entryPointType: entryPoint.entryPointType!,
+    label: entryPoint.label,
+    meetingCode: entryPoint.meetingCode,
+    passcode: entryPoint.passcode,
+    password: entryPoint.password,
+    pin: entryPoint.pin,
+    regionCode: entryPoint.regionCode,
+    uri: entryPoint.uri!,
+  };
+}
+
+function toGoogleCalendarConferenceDataInput(
+  conferenceData: GoogleCalendarEvent["conferenceData"],
+): ConferenceDataInput | undefined {
+  if (!conferenceData) {
+    return undefined;
+  }
+
+  // A createRequest with status "success" is a completed conference (see
+  // isCreatingConferenceRequest in ./conferences/utils.ts), so copy it instead
+  // of re-echoing the request.
+  if (
+    (!conferenceData.createRequest ||
+      conferenceData.createRequest.status?.statusCode === "success") &&
+    conferenceData.entryPoints?.length
+  ) {
+    const [entryPoint, ...entryPoints] = conferenceData.entryPoints;
+
+    return {
+      ...conferenceData,
+      conferenceSolution: {
+        iconUri: conferenceData.conferenceSolution?.iconUri,
+        key: {
+          type: conferenceData.conferenceSolution!.key!.type!,
+        },
+        name: conferenceData.conferenceSolution?.name,
+      },
+      entryPoints: [
+        toGoogleCalendarEntryPointInput(entryPoint!),
+        ...entryPoints.map(toGoogleCalendarEntryPointInput),
+      ],
+    };
+  }
+
+  if (!conferenceData.createRequest) {
+    return undefined;
+  }
+
+  // Re-sending the same requestId is an idempotent no-op that keeps a
+  // conferenceData body present; omitting it would clear the conference
+  // because updates always send conferenceDataVersion=1.
+  return {
+    createRequest: {
+      requestId: conferenceData.createRequest.requestId!,
+      ...(conferenceData.createRequest.conferenceSolutionKey?.type && {
+        conferenceSolutionKey: {
+          type: conferenceData.createRequest.conferenceSolutionKey.type,
+        },
+      }),
+    },
+  };
+}
+
+function toGoogleCalendarAttendeeInput(
+  attendee: EventAttendee,
+): EventAttendeeInput {
+  return {
+    additionalGuests: attendee.additionalGuests,
+    comment: attendee.comment,
+    displayName: attendee.displayName,
+    email: attendee.email!,
+    optional: attendee.optional,
+    resource: attendee.resource,
+    responseStatus: attendee.responseStatus,
+  };
+}
+
+function toGoogleCalendarRemindersInput(
+  reminders: GoogleCalendarEvent["reminders"],
+): EventInput["reminders"] {
+  if (!reminders) {
+    return undefined;
+  }
+
+  return {
+    overrides: reminders.overrides?.map((reminder) => ({
+      ...reminder,
+      method: reminder.method!,
+      minutes: reminder.minutes!,
+    })),
+    useDefault: reminders.useDefault,
+  };
+}
+
+export function toGoogleCalendarEventInput(event: GoogleCalendarEvent) {
+  if (event.eventType && event.eventType !== "default") {
+    throw new Error(
+      `Google Calendar ${event.eventType} events cannot be updated`,
+    );
+  }
+
+  return {
+    anyoneCanAddSelf: event.anyoneCanAddSelf,
+    attachments: event.attachments?.map((attachment) => ({
+      fileUrl: attachment.fileUrl!,
+      iconLink: attachment.iconLink,
+      mimeType: attachment.mimeType,
+      title: attachment.title,
+    })),
+    attendees: event.attendees?.map(toGoogleCalendarAttendeeInput),
+    attendeesOmitted: event.attendeesOmitted,
+    conferenceData: toGoogleCalendarConferenceDataInput(event.conferenceData),
+    description: event.description,
+    end: event.end!,
+    eventType: "default" as const,
+    extendedProperties: event.extendedProperties,
+    guestsCanInviteOthers: event.guestsCanInviteOthers,
+    guestsCanModify: event.guestsCanModify,
+    guestsCanSeeOtherGuests: event.guestsCanSeeOtherGuests,
+    location: event.location,
+    originalStartTime: event.originalStartTime,
+    recurrence: event.recurrence,
+    reminders: toGoogleCalendarRemindersInput(event.reminders),
+    sequence: event.sequence,
+    source: event.source,
+    start: event.start!,
+    status: event.status,
+    summary: event.summary,
+    transparency: event.transparency,
+    visibility: event.visibility,
+    ...(event.eventLabelId
+      ? { eventLabelId: event.eventLabelId, eventLabelVersion: 1 as const }
+      : { colorId: event.colorId }),
+  };
+}
 
 export function toGoogleCalendarDate(
   value: Temporal.PlainDate | Temporal.Instant | Temporal.ZonedDateTime,
@@ -87,6 +236,17 @@ function parseDateTime({ dateTime, timeZone }: GoogleCalendarDateTime) {
   return instant.toZonedDateTimeISO(normalized);
 }
 
+export function parseGoogleCalendarEventDate(value: EventDateTime) {
+  if (value.date) {
+    return parseDate({ date: value.date });
+  }
+
+  return parseDateTime({
+    dateTime: value.dateTime!,
+    timeZone: value.timeZone,
+  });
+}
+
 function parseResponseStatus(event: GoogleCalendarEvent) {
   const selfAttendee = event.attendees?.find((a) => a.self);
 
@@ -96,7 +256,7 @@ function parseResponseStatus(event: GoogleCalendarEvent) {
 
   return {
     status: parseGoogleCalendarAttendeeStatus(
-      selfAttendee.responseStatus as GoogleCalendarEventAttendeeResponseStatus,
+      selfAttendee.responseStatus ?? "needsAction",
     ),
     comment: selfAttendee.comment,
   };
@@ -166,9 +326,13 @@ export function parseGoogleCalendarEvent({
     },
     readOnly:
       calendar.readOnly ||
-      ["birthday", "focusTime", "outOfOffice", "workingLocation"].includes(
-        event.eventType ?? "",
-      ),
+      [
+        "birthday",
+        "focusTime",
+        "fromGmail",
+        "outOfOffice",
+        "workingLocation",
+      ].includes(event.eventType ?? ""),
     conference: parseConferenceData(event),
     ...(response ? { response } : {}),
     ...(recurrence ? { recurrence } : {}),
@@ -188,23 +352,15 @@ export function parseGoogleCalendarEvent({
   } as CalendarEvent;
 }
 
-function toGoogleCalenderResponseStatus(status: AttendeeStatus) {
-  if (status === "unknown") {
-    return "needsAction";
-  }
-
-  return status;
-}
-
 export function toGoogleCalendarAttendee(
   attendee: Attendee,
-): GoogleCalendarEventAttendee {
+): EventAttendeeInput {
   return {
     email: attendee.email,
     displayName: attendee.name,
     ...(attendee.type === "optional" ? { optional: true } : {}),
     ...(attendee.type === "resource" ? { resource: true } : {}),
-    responseStatus: toGoogleCalenderResponseStatus(attendee.status),
+    responseStatus: toGoogleCalendarAttendeeResponseStatus(attendee.status),
     comment: attendee.comment,
     additionalGuests: attendee.additionalGuests,
   };
@@ -212,7 +368,7 @@ export function toGoogleCalendarAttendee(
 
 function toGoogleCalendarAttendees(
   attendees: Attendee[],
-): GoogleCalendarEventAttendee[] {
+): EventAttendeeInput[] {
   return attendees.map(toGoogleCalendarAttendee);
 }
 
@@ -249,7 +405,9 @@ function conference(event: CreateEventInput | UpdateEventPatch) {
   return toConferenceData(event.conference);
 }
 
-function availability(event: CreateEventInput | UpdateEventPatch) {
+function availability(
+  event: CreateEventInput | UpdateEventPatch,
+): "opaque" | "transparent" | undefined {
   if (!event.availability) {
     return undefined;
   }
@@ -261,9 +419,11 @@ function availability(event: CreateEventInput | UpdateEventPatch) {
   return "opaque";
 }
 
-export function createEventParams(
-  event: CreateEventInput,
-): GoogleCalendarEventCreateParams {
+export function createEventParams(event: CreateEventInput) {
+  if (event.color) {
+    throw new Error("Google Calendar event colors are not supported");
+  }
+
   return {
     id: event.id,
     summary: event.title,
@@ -274,54 +434,68 @@ export function createEventParams(
     end: toGoogleCalendarDate(event.end),
     transparency: availability(event),
     attendees: attendees(event),
-    conferenceData: conference(event) ?? undefined,
+    conferenceData: event.conference
+      ? toConferenceData(event.conference)
+      : undefined,
     // Should always be 1 to ensure conference data is retained for all event modification requests.
-    conferenceDataVersion: 1,
+    conferenceDataVersion: 1 as const,
     // TODO: how to handle recurrence when the time zone is changed (i.e. until, rDate, exDate).
     recurrence: recurrences(event),
-    recurringEventId: event.recurringEventId,
   };
+}
+
+interface GoogleCalendarEventUpdateOverrides {
+  attendees?: EventAttendeeInput[];
+  calendarId: string;
+  conferenceData?: ConferenceDataInput | null;
+  conferenceDataVersion: 1;
+  description?: string | null;
+  end: EventDateTime;
+  location?: string | null;
+  recurrence?: string[];
+  start: EventDateTime;
+  summary?: string;
+  transparency?: "opaque" | "transparent";
+  visibility?: "confidential" | "default" | "private" | "public";
 }
 
 export function updateEventParams(
   event: UpdateEventPatch,
-): GoogleCalendarEventUpdateParams {
-  // Sparse patch semantics: update() spreads these params over the freshly
-  // fetched event before a full-replace PUT, so a field absent here keeps its
-  // fetched value. A field set to `undefined` overrides the fetched value and
-  // is dropped by JSON serialization, which clears it on Google's side.
+  existingEvent: GoogleCalendarEvent,
+): GoogleCalendarEventUpdateOverrides {
+  if (event.color) {
+    throw new Error("Google Calendar event colors are not supported");
+  }
+
   return {
-    id: event.id,
     calendarId: event.calendar.id,
     // Should always be 1 to ensure conference data is retained for all event modification requests.
     conferenceDataVersion: 1,
+    start: event.start
+      ? toGoogleCalendarDate(event.start)
+      : existingEvent.start!,
+    end: event.end ? toGoogleCalendarDate(event.end) : existingEvent.end!,
+    // TODO: how to handle recurrence when the time zone is changed (i.e. until, rDate, exDate).
+    recurrence:
+      event.recurrence !== undefined
+        ? recurrences(event)
+        : existingEvent.recurrence,
     ...(event.title !== undefined ? { summary: event.title } : {}),
+    // A null patch value is sent as an explicit null in the PUT body to clear
+    // the field (recurrence clears as [] instead — the insert type has no null).
     ...(event.description !== undefined
-      ? { description: event.description ?? undefined }
+      ? { description: event.description }
       : {}),
-    ...(event.location !== undefined
-      ? { location: event.location ?? undefined }
-      : {}),
+    ...(event.location !== undefined ? { location: event.location } : {}),
     ...(event.visibility !== undefined ? { visibility: event.visibility } : {}),
-    ...(event.start !== undefined
-      ? { start: toGoogleCalendarDate(event.start) }
-      : {}),
-    ...(event.end !== undefined
-      ? { end: toGoogleCalendarDate(event.end) }
-      : {}),
     ...(event.availability !== undefined
       ? { transparency: availability(event) }
       : {}),
     ...(event.attendees !== undefined ? { attendees: attendees(event) } : {}),
-    ...(event.conference !== undefined
+    // A "conference"-shaped patch is display-only and maps to no input: skip
+    // the key so the echoed conferenceData survives the full-replace PUT.
+    ...(event.conference === null || event.conference?.type === "create"
       ? { conferenceData: conference(event) }
-      : {}),
-    // TODO: how to handle recurrence when the time zone is changed (i.e. until, rDate, exDate).
-    ...(event.recurrence !== undefined
-      ? { recurrence: recurrences(event) }
-      : {}),
-    ...(event.recurringEventId !== undefined
-      ? { recurringEventId: event.recurringEventId }
       : {}),
   };
 }
@@ -337,27 +511,38 @@ export function toGoogleCalendarAttendeeResponseStatus(
 }
 
 export function attendeesWithSelfResponse(
-  attendees: GoogleCalendarEventAttendee[] | undefined,
+  attendees: EventAttendee[] | undefined,
   status: AttendeeStatus,
-): GoogleCalendarEventAttendee[] {
+  comment?: string | null,
+) {
   if (!attendees) {
     throw new Error("Event has no attendees");
   }
 
-  const selfIndex = attendees.findIndex((attendee) => attendee.self);
+  const attendee = attendees.find((attendee) => attendee.self);
 
-  if (selfIndex === -1) {
+  if (!attendee) {
     throw new Error("User is not an attendee");
   }
 
-  const updated = [...attendees];
+  const input = toGoogleCalendarAttendeeInput(attendee);
 
-  updated[selfIndex] = {
-    ...updated[selfIndex],
-    responseStatus: toGoogleCalendarAttendeeResponseStatus(status),
-  };
+  if (comment === undefined) {
+    return [
+      {
+        ...input,
+        responseStatus: toGoogleCalendarAttendeeResponseStatus(status),
+      },
+    ];
+  }
 
-  return updated;
+  return [
+    {
+      ...input,
+      comment,
+      responseStatus: toGoogleCalendarAttendeeResponseStatus(status),
+    },
+  ];
 }
 
 function parseGoogleCalendarAttendeeStatus(
@@ -392,7 +577,7 @@ export function parseGoogleCalendarAttendee(
     email: attendee.email!,
     name: attendee.displayName,
     status: parseGoogleCalendarAttendeeStatus(
-      attendee.responseStatus as GoogleCalendarEventAttendeeResponseStatus,
+      attendee.responseStatus ?? "needsAction",
     ),
     type: parseGoogleCalendarAttendeeType(attendee),
     comment: attendee.comment,

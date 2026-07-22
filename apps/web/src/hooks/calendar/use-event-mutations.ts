@@ -99,13 +99,26 @@ export function useUpdateEventMutation() {
                   ? {
                       ...event,
                       title: data.title ?? event.title,
-                      description: data.description ?? event.description,
-                      location: data.location ?? event.location,
+                      // Nullish patch fields: null clears, undefined keeps.
+                      description:
+                        data.description === undefined
+                          ? event.description
+                          : (data.description ?? undefined),
+                      location:
+                        data.location === undefined
+                          ? event.location
+                          : (data.location ?? undefined),
                       availability: data.availability ?? event.availability,
                       visibility: data.visibility ?? event.visibility,
-                      color: data.color ?? event.color,
+                      color:
+                        data.color === undefined
+                          ? event.color
+                          : (data.color ?? undefined),
                       attendees: data.attendees ?? event.attendees,
-                      conference: data.conference ?? event.conference,
+                      conference:
+                        data.conference === undefined
+                          ? event.conference
+                          : (data.conference ?? undefined),
                     }
                   : event,
               ),

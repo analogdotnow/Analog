@@ -3,12 +3,14 @@ import type {
   ChannelInput,
   ConferenceProperties,
   EventReminder,
+  EventReminderInput,
   GoogleCalendarRequestOptions,
 } from "../interfaces";
 
 export interface CalendarList {
   etag?: string;
-  items?: CalendarListEntry[];
+  // Optional in the API reference, but always present: empty lists (e.g. service accounts) are returned as [].
+  items: CalendarListEntry[];
   kind?: string;
   nextPageToken?: string;
   nextSyncToken?: string;
@@ -16,9 +18,11 @@ export interface CalendarList {
 
 export interface CalendarListEntry {
   accessRole?: string;
+  autoAcceptInvitations?: boolean;
   backgroundColor?: string;
   colorId?: string;
   conferenceProperties?: ConferenceProperties;
+  dataOwner?: string;
   defaultReminders?: EventReminder[];
   deleted?: boolean;
   description?: string;
@@ -36,54 +40,119 @@ export interface CalendarListEntry {
   timeZone?: string;
 }
 
+export type CalendarAccessRole =
+  | "freeBusyReader"
+  | "owner"
+  | "reader"
+  | "writer"
+  | "writerWithoutPrivateAccess";
+
 export interface CalendarNotification {
-  method?: string;
-  type?: string;
+  method?: "email";
+  type?:
+    | "agenda"
+    | "eventCancellation"
+    | "eventChange"
+    | "eventCreation"
+    | "eventResponse";
 }
 
-export type CalendarListEntryInput = Omit<
-  CalendarListEntry,
-  | "accessRole"
-  | "deleted"
-  | "description"
-  | "etag"
-  | "id"
-  | "kind"
-  | "location"
-  | "primary"
-  | "summary"
-  | "timeZone"
+export interface CalendarNotificationInput extends CalendarNotification {
+  method: "email";
+  type:
+    | "agenda"
+    | "eventCancellation"
+    | "eventChange"
+    | "eventCreation"
+    | "eventResponse";
+}
+
+export interface CalendarListEntryInput {
+  backgroundColor?: string;
+  colorId?: string;
+  defaultReminders?: EventReminderInput[];
+  foregroundColor?: string;
+  hidden?: boolean;
+  notificationSettings?: { notifications?: CalendarNotificationInput[] };
+  selected?: boolean;
+  summaryOverride?: string;
+}
+
+type CalendarListColorOptions =
+  | {
+      backgroundColor?: never;
+      colorRgbFormat?: boolean;
+      foregroundColor?: never;
+    }
+  | {
+      backgroundColor?: string;
+      colorRgbFormat: true;
+      foregroundColor?: string;
+    };
+
+type CalendarListPatchColorOptions =
+  | {
+      backgroundColor?: never;
+      colorRgbFormat?: boolean;
+      foregroundColor?: never;
+    }
+  | {
+      backgroundColor?: string | null;
+      colorRgbFormat: true;
+      foregroundColor?: string | null;
+    };
+
+type CalendarListEntryInputWithoutRgb = Omit<
+  CalendarListEntryInput,
+  "backgroundColor" | "foregroundColor"
 >;
 
-export interface ListCalendarListInput extends GoogleCalendarRequestOptions {
+type CalendarListPatchEntryInputWithoutRgb = {
+  [Property in keyof CalendarListEntryInputWithoutRgb]?:
+    | CalendarListEntryInputWithoutRgb[Property]
+    | null;
+};
+
+interface CalendarListOptions {
   maxResults?: number;
-  minAccessRole?: "freeBusyReader" | "owner" | "reader" | "writer";
   pageToken?: string;
-  showDeleted?: boolean;
-  showHidden?: boolean;
-  syncToken?: string;
 }
+
+type CalendarListSyncOptions =
+  | {
+      minAccessRole?: CalendarAccessRole;
+      showDeleted?: boolean;
+      showHidden?: boolean;
+      showOwnOrganizationOnly?: boolean;
+      syncToken?: never;
+    }
+  | {
+      minAccessRole?: never;
+      showDeleted?: true;
+      showHidden?: true;
+      showOwnOrganizationOnly?: never;
+      syncToken: string;
+    };
+
+export type ListCalendarListInput = GoogleCalendarRequestOptions &
+  CalendarListOptions &
+  CalendarListSyncOptions;
 
 export type ListCalendarListResponse = CalendarList;
 
-export interface InsertCalendarListInput
-  extends GoogleCalendarRequestOptions, CalendarListEntryInput {
-  /** Identifier of the calendar to add to the user's calendar list. */
-  id: string;
-  colorRgbFormat?: boolean;
-}
+export type InsertCalendarListInput = GoogleCalendarRequestOptions &
+  CalendarListEntryInputWithoutRgb &
+  CalendarListColorOptions & {
+    /** Identifier of the calendar to add to the user's calendar list. */
+    id: string;
+  };
 
 export type InsertCalendarListResponse = CalendarListEntry;
 
-export interface WatchCalendarListInput
-  extends GoogleCalendarRequestOptions, ChannelInput {
-  maxResults?: number;
-  minAccessRole?: "freeBusyReader" | "owner" | "reader" | "writer";
-  pageToken?: string;
-  showDeleted?: boolean;
-  showHidden?: boolean;
-  syncToken?: string;
-}
+export type WatchCalendarListInput = GoogleCalendarRequestOptions &
+  ChannelInput &
+  CalendarListOptions &
+  CalendarListSyncOptions;
 
 export type WatchCalendarListResponse = Channel;
 
@@ -97,18 +166,14 @@ export interface GetCalendarListInput extends GoogleCalendarRequestOptions {
 
 export type GetCalendarListResponse = CalendarListEntry;
 
-export interface PatchCalendarListInput
-  extends GoogleCalendarRequestOptions, CalendarListEntryInput {
-  calendarId: string;
-  colorRgbFormat?: boolean;
-}
+export type PatchCalendarListInput = GoogleCalendarRequestOptions &
+  CalendarListPatchEntryInputWithoutRgb &
+  CalendarListPatchColorOptions & { calendarId: string };
 
 export type PatchCalendarListResponse = CalendarListEntry;
 
-export interface UpdateCalendarListInput
-  extends GoogleCalendarRequestOptions, CalendarListEntryInput {
-  calendarId: string;
-  colorRgbFormat?: boolean;
-}
+export type UpdateCalendarListInput = GoogleCalendarRequestOptions &
+  CalendarListEntryInputWithoutRgb &
+  CalendarListColorOptions & { calendarId: string };
 
 export type UpdateCalendarListResponse = CalendarListEntry;

@@ -1,4 +1,5 @@
 import type { MicrosoftCalendar } from "../../../client";
+import type { ListMoreInput } from "../../../interfaces";
 import type {
   GroupEventAttachmentCreateUploadSessionInput,
   GroupEventAttachmentCreateUploadSessionResponse,
@@ -31,6 +32,17 @@ export class Attachments {
         $select: params.select,
         $expand: params.expand,
       },
+      params.signal,
+      params.headers,
+    );
+  }
+
+  async listMore(
+    params: ListMoreInput,
+  ): Promise<GroupEventListAttachmentResponse> {
+    return this.client.get<GroupEventListAttachmentResponse>(
+      params.nextLink,
+      undefined,
       params.signal,
       params.headers,
     );

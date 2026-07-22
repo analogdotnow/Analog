@@ -1,4 +1,5 @@
 import type { MicrosoftCalendar } from "../../../../client";
+import type { ListMoreInput } from "../../../../interfaces";
 import type {
   CalendarGroupCalendarCalendarViewDeltaInput,
   CalendarGroupCalendarCalendarViewDeltaResponse,
@@ -31,6 +32,17 @@ export class CalendarView {
     );
   }
 
+  async listMore(
+    params: ListMoreInput,
+  ): Promise<CalendarGroupCalendarListCalendarViewResponse> {
+    return this.client.get<CalendarGroupCalendarListCalendarViewResponse>(
+      params.nextLink,
+      undefined,
+      params.signal,
+      params.headers,
+    );
+  }
+
   async delta(
     params: CalendarGroupCalendarCalendarViewDeltaInput,
   ): Promise<CalendarGroupCalendarCalendarViewDeltaResponse> {
@@ -48,6 +60,17 @@ export class CalendarView {
         $orderby: params.orderby,
         $expand: params.expand,
       },
+      params.signal,
+      params.headers,
+    );
+  }
+
+  async deltaMore(
+    params: ListMoreInput,
+  ): Promise<CalendarGroupCalendarCalendarViewDeltaResponse> {
+    return this.client.get<CalendarGroupCalendarCalendarViewDeltaResponse>(
+      params.nextLink,
+      undefined,
       params.signal,
       params.headers,
     );

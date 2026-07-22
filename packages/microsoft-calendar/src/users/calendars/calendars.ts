@@ -1,4 +1,5 @@
 import type { MicrosoftCalendar } from "../../client";
+import type { ListMoreInput } from "../../interfaces";
 import { CalendarPermissions } from "./calendar-permissions";
 import { CalendarView } from "./calendar-view";
 import { Events } from "./events";
@@ -45,6 +46,15 @@ export class Calendars {
         $select: params.select,
         $expand: params.expand,
       },
+      params.signal,
+      params.headers,
+    );
+  }
+
+  async listMore(params: ListMoreInput): Promise<ListCalendarResponse> {
+    return this.client.get<ListCalendarResponse>(
+      params.nextLink,
+      undefined,
       params.signal,
       params.headers,
     );
@@ -125,6 +135,17 @@ export class Calendars {
     );
   }
 
+  async allowedCalendarSharingRolesMore(
+    params: ListMoreInput,
+  ): Promise<AllowedCalendarSharingRolesResponse> {
+    return this.client.get<AllowedCalendarSharingRolesResponse>(
+      params.nextLink,
+      undefined,
+      params.signal,
+      params.headers,
+    );
+  }
+
   async getSchedule(params: GetScheduleInput): Promise<GetScheduleResponse> {
     return this.client.post<GetScheduleResponse>(
       `/users/${encodeURIComponent(params.userId)}/calendars/${encodeURIComponent(params.calendarId)}/microsoft.graph.getSchedule`,
@@ -135,6 +156,15 @@ export class Calendars {
         endTime: params.endTime,
         availabilityViewInterval: params.availabilityViewInterval,
       },
+      params.signal,
+      params.headers,
+    );
+  }
+
+  async getScheduleMore(params: ListMoreInput): Promise<GetScheduleResponse> {
+    return this.client.get<GetScheduleResponse>(
+      params.nextLink,
+      undefined,
       params.signal,
       params.headers,
     );

@@ -175,7 +175,11 @@ export const eventsRouter = createTRPCRouter({
       return { event };
     }),
   create: calendarProcedure
-    .input(createEventInputSchema)
+    .input(
+      createEventInputSchema.extend({
+        sendUpdate: z.boolean().optional().default(true),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       const provider = ctx.providers.find(
         ({ account }) =>
@@ -203,6 +207,7 @@ export const eventsRouter = createTRPCRouter({
       const event = await provider.client.events.create({
         calendar,
         event: input,
+        sendUpdate: input.sendUpdate,
       });
 
       return { event };
@@ -211,6 +216,7 @@ export const eventsRouter = createTRPCRouter({
     .input(
       z.object({
         data: patchEventInputSchema,
+        sendUpdate: z.boolean().optional().default(true),
         move: z
           .object({
             source: z.object({
@@ -232,7 +238,7 @@ export const eventsRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const { data, move } = input;
+      const { data, move, sendUpdate } = input;
 
       // If no move provided, perform a regular update on the current calendar
       if (!move) {
@@ -262,6 +268,7 @@ export const eventsRouter = createTRPCRouter({
           calendar,
           eventId: data.id,
           event: data,
+          sendUpdate,
         });
 
         return { event };
@@ -302,6 +309,7 @@ export const eventsRouter = createTRPCRouter({
           calendar: sourceCalendar,
           eventId: data.id,
           event: data,
+          sendUpdate,
         });
         return { event };
       }
@@ -325,7 +333,7 @@ export const eventsRouter = createTRPCRouter({
           sourceCalendar,
           destinationCalendar,
           eventId: data.id,
-          sendUpdate: data.response?.sendUpdate ?? true,
+          sendUpdate,
         });
 
         const updated = await destinationProvider.client.events.update({
@@ -336,6 +344,7 @@ export const eventsRouter = createTRPCRouter({
             id: moved.id,
             calendar: move.destination,
           },
+          sendUpdate,
         });
 
         return { event: updated };
@@ -350,6 +359,7 @@ export const eventsRouter = createTRPCRouter({
 
       const created = await destinationProvider.client.events.create({
         calendar: destinationCalendar,
+        sendUpdate,
         event: {
           ...sourceEvent,
           title: data.title ?? sourceEvent.title,
@@ -390,7 +400,7 @@ export const eventsRouter = createTRPCRouter({
       await sourceProvider.client.events.delete({
         calendarId: sourceCalendar.id,
         eventId: data.id,
-        sendUpdate: data.response?.sendUpdate ?? true,
+        sendUpdate,
       });
 
       return { event: created };
@@ -499,6 +509,7 @@ export const eventsRouter = createTRPCRouter({
       // TODO: what happens to attendees?
       const created = await destinationProvider.client.events.create({
         calendar: destinationCalendar,
+        sendUpdate: input.sendUpdate,
         event: {
           ...sourceEvent,
           id: crypto.randomUUID(),

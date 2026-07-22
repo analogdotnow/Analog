@@ -1,9 +1,43 @@
+import type { Status } from "./interfaces";
+
+export interface GooglePeopleErrorDetail {
+  "@type": string;
+  contactErrors?: Record<string, Status>;
+  domain?: string;
+  metadata?: Record<string, string>;
+  reason?: string;
+  [key: string]: unknown;
+}
+
+export interface BatchCreateContactsErrorDetails {
+  "@type": "type.googleapis.com/google.people.v1.BatchCreateContactsErrorDetails";
+  contactErrors?: Record<number, Status>;
+}
+
+export interface BatchUpdateContactsErrorDetails {
+  "@type": "type.googleapis.com/google.people.v1.BatchUpdateContactsErrorDetails";
+  contactErrors?: Record<string, Status>;
+}
+
+export interface GooglePeopleErrorInfo extends GooglePeopleErrorDetail {
+  "@type": "type.googleapis.com/google.rpc.ErrorInfo";
+}
+
+export interface GooglePeopleErrorBody {
+  code: number;
+  details?: GooglePeopleErrorDetail[];
+  message: string;
+  status: string;
+}
+
+export interface GooglePeopleError {
+  error: GooglePeopleErrorBody;
+}
+
 export class APIError<
   TStatus extends number | undefined = number | undefined,
   THeaders extends Headers | undefined = Headers | undefined,
-  TError extends Record<string, unknown> | undefined =
-    | Record<string, unknown>
-    | undefined,
+  TError extends GooglePeopleError | undefined = GooglePeopleError | undefined,
 > extends Error {
   /** HTTP status for the response that caused the error */
   readonly status: TStatus;
@@ -26,16 +60,10 @@ export class APIError<
 
   private static makeMessage(
     status: number | undefined,
-    error: any,
+    error: GooglePeopleError | undefined,
     message: string | undefined,
   ) {
-    const msg = error?.message
-      ? typeof error.message === "string"
-        ? error.message
-        : JSON.stringify(error.message)
-      : error
-        ? JSON.stringify(error)
-        : message;
+    const msg = error?.error.message ?? message;
 
     if (status && msg) {
       return `${status} ${msg}`;
@@ -50,15 +78,11 @@ export class APIError<
   }
 
   static from(
-    status: number | undefined,
-    error: Record<string, unknown> | undefined,
+    status: number,
+    error: GooglePeopleError | undefined,
     message: string | undefined,
-    headers: Headers | undefined,
+    headers: Headers,
   ): APIError {
-    if (!status || !headers) {
-      return new TimeoutError(message);
-    }
-
     if (status === 400) {
       return new BadRequestError(status, error, message, headers);
     }
@@ -148,9 +172,34 @@ export class APIError<
   }
 }
 
-function parseErrorBody(text: string) {
+function isGooglePeopleError(value: unknown): value is GooglePeopleError {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "error" in value &&
+    typeof value.error === "object" &&
+    value.error !== null &&
+    "code" in value.error &&
+    typeof value.error.code === "number" &&
+    "message" in value.error &&
+    typeof value.error.message === "string" &&
+    (!("details" in value.error) ||
+      value.error.details === undefined ||
+      Array.isArray(value.error.details))
+  );
+}
+
+function parseErrorBody(text: string): GooglePeopleError | undefined {
   try {
-    return JSON.parse(text) as Record<string, unknown>;
+    const parsed: unknown = JSON.parse(text);
+
+    // Non-envelope JSON bodies (proxy errors, arrays, bare strings) fall
+    // through to the status-based message instead of crashing downstream.
+    if (!isGooglePeopleError(parsed)) {
+      return undefined;
+    }
+
+    return parsed;
   } catch {
     return undefined;
   }
@@ -159,6 +208,24 @@ function parseErrorBody(text: string) {
 export class TimeoutError extends APIError<undefined, undefined> {
   constructor(message?: string) {
     super(undefined, undefined, message ?? "Request timed out.", undefined);
+  }
+}
+
+export class ConnectionError extends APIError<undefined, undefined> {
+  constructor(message?: string, cause?: unknown) {
+    super(undefined, undefined, message ?? "Connection error.", undefined);
+    this.cause = cause;
+  }
+}
+
+export class RawResponseError extends APIError<number, Headers, undefined> {
+  readonly body: Uint8Array;
+  readonly contentType: string | null;
+
+  constructor(response: Response, body: Uint8Array) {
+    super(response.status, undefined, response.statusText, response.headers);
+    this.body = body;
+    this.contentType = response.headers.get("Content-Type");
   }
 }
 

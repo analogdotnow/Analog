@@ -1,4 +1,5 @@
 import type { MicrosoftCalendar } from "../../client";
+import type { ListMoreInput } from "../../interfaces";
 import { CalendarPermissions } from "./calendar-permissions";
 import { CalendarView } from "./calendar-view";
 import { Events } from "./events";
@@ -68,6 +69,17 @@ export class Calendar {
     );
   }
 
+  async allowedCalendarSharingRolesMore(
+    params: ListMoreInput,
+  ): Promise<DefaultCalendarAllowedCalendarSharingRolesResponse> {
+    return this.client.get<DefaultCalendarAllowedCalendarSharingRolesResponse>(
+      params.nextLink,
+      undefined,
+      params.signal,
+      params.headers,
+    );
+  }
+
   async getSchedule(
     params: DefaultCalendarGetScheduleInput,
   ): Promise<DefaultCalendarGetScheduleResponse> {
@@ -80,6 +92,17 @@ export class Calendar {
         endTime: params.endTime,
         availabilityViewInterval: params.availabilityViewInterval,
       },
+      params.signal,
+      params.headers,
+    );
+  }
+
+  async getScheduleMore(
+    params: ListMoreInput,
+  ): Promise<DefaultCalendarGetScheduleResponse> {
+    return this.client.get<DefaultCalendarGetScheduleResponse>(
+      params.nextLink,
+      undefined,
       params.signal,
       params.headers,
     );

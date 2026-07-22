@@ -32,7 +32,7 @@ export function UpdateQueueProvider({ children }: UpdateQueueProviderProps) {
 
   const updateEvent = React.useCallback(
     async (item: UpdateQueueItem) => {
-      const prevEvent = await getEventById(item.event.id);
+      const prevEvent = item.previous ?? (await getEventById(item.event.id));
 
       if (!prevEvent) {
         if (item.event.type !== "draft") {
@@ -56,9 +56,9 @@ export function UpdateQueueProvider({ children }: UpdateQueueProviderProps) {
           onError: () => {
             removeOptimisticAction(item.optimisticId);
           },
-          onSuccess: () => {
+          onSuccess: (data) => {
             // removeOptimisticAction(item.optimisticId);
-            item.onSuccess?.();
+            item.onSuccess?.(data.event);
           },
         });
       };

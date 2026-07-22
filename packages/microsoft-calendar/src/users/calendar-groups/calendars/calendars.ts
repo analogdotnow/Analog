@@ -1,4 +1,5 @@
 import type { MicrosoftCalendar } from "../../../client";
+import type { ListMoreInput } from "../../../interfaces";
 import { CalendarPermissions } from "./calendar-permissions";
 import { CalendarView } from "./calendar-view";
 import { Events } from "./events";
@@ -47,6 +48,17 @@ export class Calendars {
         $select: params.select,
         $expand: params.expand,
       },
+      params.signal,
+      params.headers,
+    );
+  }
+
+  async listMore(
+    params: ListMoreInput,
+  ): Promise<CalendarGroupListCalendarResponse> {
+    return this.client.get<CalendarGroupListCalendarResponse>(
+      params.nextLink,
+      undefined,
       params.signal,
       params.headers,
     );
@@ -133,6 +145,17 @@ export class Calendars {
     );
   }
 
+  async allowedCalendarSharingRolesMore(
+    params: ListMoreInput,
+  ): Promise<CalendarGroupCalendarAllowedCalendarSharingRolesResponse> {
+    return this.client.get<CalendarGroupCalendarAllowedCalendarSharingRolesResponse>(
+      params.nextLink,
+      undefined,
+      params.signal,
+      params.headers,
+    );
+  }
+
   async getSchedule(
     params: CalendarGroupCalendarGetScheduleInput,
   ): Promise<CalendarGroupCalendarGetScheduleResponse> {
@@ -145,6 +168,17 @@ export class Calendars {
         startTime: params.startTime,
         availabilityViewInterval: params.availabilityViewInterval,
       },
+      params.signal,
+      params.headers,
+    );
+  }
+
+  async getScheduleMore(
+    params: ListMoreInput,
+  ): Promise<CalendarGroupCalendarGetScheduleResponse> {
+    return this.client.get<CalendarGroupCalendarGetScheduleResponse>(
+      params.nextLink,
+      undefined,
       params.signal,
       params.headers,
     );

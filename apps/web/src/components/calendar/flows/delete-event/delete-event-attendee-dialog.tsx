@@ -12,6 +12,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { isNotifyRequired } from "@/lib/providers";
 import { DeleteQueueContext } from "./delete-queue-provider";
 
 export function DeleteEventAttendeeDialog() {
@@ -20,6 +21,9 @@ export function DeleteEventAttendeeDialog() {
   const actorRef = DeleteQueueContext.useActorRef();
   const open = DeleteQueueContext.useSelector((snapshot) =>
     snapshot.matches("askNotifyAttendee"),
+  );
+  const notifyRequired = DeleteQueueContext.useSelector((snapshot) =>
+    isNotifyRequired(snapshot.context.item?.event.calendar.provider.id),
   );
 
   const onSaveAndNotify = React.useCallback(() => {
@@ -45,7 +49,7 @@ export function DeleteEventAttendeeDialog() {
     >
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Update Event</AlertDialogTitle>
+          <AlertDialogTitle>Delete Event</AlertDialogTitle>
           <AlertDialogDescription>
             This event has other attendees. How would you like to proceed?
           </AlertDialogDescription>
@@ -53,11 +57,15 @@ export function DeleteEventAttendeeDialog() {
         <AlertDialogFooter className="sm:justify-between">
           <AlertDialogCancel>Discard</AlertDialogCancel>
           <div className="flex gap-2">
-            <AlertDialogAction variant="outline" onClick={onSave}>
-              Save
+            <AlertDialogAction
+              variant="outline"
+              disabled={notifyRequired}
+              onClick={onSave}
+            >
+              Delete
             </AlertDialogAction>
             <AlertDialogAction onClick={onSaveAndNotify}>
-              Save and notify attendees
+              Delete and notify attendees
             </AlertDialogAction>
           </div>
         </AlertDialogFooter>

@@ -1,4 +1,5 @@
 import type { MicrosoftCalendar } from "../../client";
+import type { ListMoreInput } from "../../interfaces";
 import type {
   CalendarViewDeltaInput,
   CalendarViewDeltaResponse,
@@ -29,6 +30,15 @@ export class CalendarView {
     );
   }
 
+  async listMore(params: ListMoreInput): Promise<ListCalendarViewResponse> {
+    return this.client.get<ListCalendarViewResponse>(
+      params.nextLink,
+      undefined,
+      params.signal,
+      params.headers,
+    );
+  }
+
   async delta(
     params: CalendarViewDeltaInput,
   ): Promise<CalendarViewDeltaResponse> {
@@ -46,6 +56,15 @@ export class CalendarView {
         $orderby: params.orderby,
         $expand: params.expand,
       },
+      params.signal,
+      params.headers,
+    );
+  }
+
+  async deltaMore(params: ListMoreInput): Promise<CalendarViewDeltaResponse> {
+    return this.client.get<CalendarViewDeltaResponse>(
+      params.nextLink,
+      undefined,
       params.signal,
       params.headers,
     );

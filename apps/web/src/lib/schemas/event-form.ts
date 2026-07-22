@@ -36,7 +36,7 @@ const baseEventFormSchema = z.object({
   timezone: z
     .string()
     .describe("IANA timezone identifier like 'Europe/Warsaw'"),
-  isAllDay: z.boolean(),
+  allDay: z.boolean(),
   repeats: z.boolean(),
   repeatType: z.enum(["daily", "weekly", "monthly"]).optional(),
   selectedParticipants: z.array(participantSchema).refine(
@@ -54,7 +54,7 @@ export const aiInputSchema = baseEventFormSchema.omit({
 });
 
 export const eventFormSchema = baseEventFormSchema.superRefine((data, ctx) => {
-  const { startDate, endDate, startTime, endTime, isAllDay } = data;
+  const { startDate, endDate, startTime, endTime, allDay } = data;
 
   // Date relationship validation
   if (endDate.compare(startDate) < 0) {
@@ -65,7 +65,7 @@ export const eventFormSchema = baseEventFormSchema.superRefine((data, ctx) => {
     });
   }
 
-  if (isAllDay) return;
+  if (allDay) return;
 
   if (startTime === null) {
     ctx.addIssue({

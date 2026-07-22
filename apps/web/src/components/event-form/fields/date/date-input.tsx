@@ -55,7 +55,7 @@ interface DateInputProps {
   className?: string;
   id?: string;
   value: Temporal.ZonedDateTime;
-  isAllDay?: boolean;
+  allDay?: boolean;
   onChange: (value: Temporal.ZonedDateTime) => void;
   start?: Temporal.ZonedDateTime;
   disabled?: boolean;
@@ -65,7 +65,7 @@ export function DateInput({
   className,
   id,
   value,
-  isAllDay,
+  allDay,
   start,
   onChange,
   disabled,
@@ -75,7 +75,7 @@ export function DateInput({
   const inputRef = React.useRef<HTMLInputElement>(null);
 
   const date = React.useMemo(() => {
-    if (isAllDay && start) {
+    if (allDay && start) {
       if (
         Temporal.PlainDate.compare(value.toPlainDate(), start.toPlainDate()) ===
         0
@@ -87,7 +87,7 @@ export function DateInput({
     }
 
     return value.toPlainDate();
-  }, [value, isAllDay, start]);
+  }, [value, allDay, start]);
 
   const defaultMonth = React.useMemo(() => {
     return value.toPlainDate().toPlainYearMonth();
@@ -133,7 +133,7 @@ export function DateInput({
       setDisplayedMonth(newDate.toPlainYearMonth());
       setInput(formatDate(newDate, { locale, timeZone: value.timeZoneId }));
 
-      if (isAllDay && start) {
+      if (allDay && start) {
         if (
           Temporal.PlainDate.compare(
             value.toPlainDate(),
@@ -152,7 +152,7 @@ export function DateInput({
 
       onChange(newValue);
     },
-    [value, min, locale, isAllDay, start, onChange],
+    [value, min, locale, allDay, start, onChange],
   );
 
   const onInput = React.useCallback(

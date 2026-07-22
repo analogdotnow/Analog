@@ -26,6 +26,7 @@ export class Settings {
         syncToken: params.syncToken,
       },
       params.signal,
+      params.headers,
     );
   }
 
@@ -47,14 +48,13 @@ export class Settings {
         address: params.address,
         expiration: params.expiration,
         id: params.id,
-        kind: params.kind,
         params: params.params,
         payload: params.payload,
-        resourceId: params.resourceId,
         token: params.token,
         type: params.type,
       },
       params.signal,
+      params.headers,
     );
   }
 
@@ -70,6 +70,7 @@ export class Settings {
         userIp: params.userIp,
       },
       params.signal,
+      params.headers,
     );
   }
 }

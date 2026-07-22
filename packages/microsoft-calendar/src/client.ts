@@ -5,6 +5,7 @@ import { Users } from "./users";
 
 export class MicrosoftCalendar {
   private static readonly BASE_URL = "https://graph.microsoft.com/v1.0";
+  private static readonly ORIGIN_URL = "https://graph.microsoft.com";
 
   public readonly groups: Groups;
   public readonly users: Users;
@@ -15,7 +16,7 @@ export class MicrosoftCalendar {
   }
 
   private buildUrl(path: string, params?: QueryParams) {
-    // Absolute URLs (@odata.nextLink / @odata.deltaLink) are used as-is.
+    // Microsoft Graph absolute URLs (@odata.nextLink / @odata.deltaLink) are used as-is.
     // A userId of "me" maps to the /me alias; "me" is never a valid user id
     // or userPrincipalName, so the rewrite cannot collide with a real user.
     const url = new URL(
@@ -23,6 +24,10 @@ export class MicrosoftCalendar {
         ? path
         : `${MicrosoftCalendar.BASE_URL}${path.startsWith("/users/me/") ? path.slice("/users".length) : path}`,
     );
+
+    if (url.origin !== MicrosoftCalendar.ORIGIN_URL) {
+      throw new Error("Absolute URLs must use the Microsoft Graph origin");
+    }
 
     if (!params) {
       return url;
@@ -56,20 +61,39 @@ export class MicrosoftCalendar {
     try {
       return await fetch(url, init);
     } catch (error) {
-      const cause = error as { name?: string; message?: string } | undefined;
+      MicrosoftCalendar.throwTransportError(error, init.signal);
+    }
+  }
 
-      // Caller-initiated aborts propagate as-is; AbortSignal.timeout() aborts
-      // map to TimeoutError, transport failures (DNS, reset) to ConnectionError.
-      if (cause?.name === "AbortError") {
+  private static throwTransportError(
+    error: unknown,
+    signal?: AbortSignal | null,
+  ): never {
+    // Aborted fetches reject with signal.reason verbatim, which need not be
+    // an Error. AbortSignal.timeout() rejections are also identity-equal to
+    // signal.reason, so timeouts classify by name before the identity checks
+    // propagate caller-initiated aborts as-is.
+    if (!(error instanceof Error)) {
+      if (signal?.aborted && error === signal.reason) {
         throw error;
       }
 
-      if (cause?.name === "TimeoutError") {
-        throw new TimeoutError(cause.message);
-      }
-
-      throw new ConnectionError(cause?.message, error);
+      throw new ConnectionError(undefined, error);
     }
+
+    if (error.name === "AbortError") {
+      throw error;
+    }
+
+    if (error.name === "TimeoutError") {
+      throw new TimeoutError(error.message);
+    }
+
+    if (signal?.aborted && error === signal.reason) {
+      throw error;
+    }
+
+    throw new ConnectionError(error.message, error);
   }
 
   private async parseResponse(response: Response) {

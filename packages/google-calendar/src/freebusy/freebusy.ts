@@ -24,6 +24,7 @@ export class Freebusy {
         timeZone: params.timeZone,
       },
       params.signal,
+      params.headers,
     );
   }
 }

@@ -4,7 +4,7 @@ import { Temporal } from "temporal-polyfill";
 
 import { jotaiStore } from "@/atoms/store";
 import { formAtom, isPristineAtom } from "@/components/event-form/atoms/form";
-import { useUpdateFormState } from "@/components/event-form/utils/use-update-form-state";
+import { useUpdateFormValues } from "@/components/event-form/utils/use-update-form-state";
 import {
   addOptimisticActionAtom,
   generateOptimisticId,
@@ -100,7 +100,7 @@ function isFormPristine() {
 
 export function usePartialUpdateAction() {
   const actorRef = UpdateQueueContext.useActorRef();
-  const updateFormState = useUpdateFormState();
+  const updateFormValues = useUpdateFormValues();
   const updateOptimisticUpdate = useOptimisticUpdateAction();
 
   return React.useCallback(
@@ -114,9 +114,11 @@ export function usePartialUpdateAction() {
         return;
       }
 
-      // If the event is in the form and the form is not pristine, patch the form state
+      // If the event is in the form and the form is not pristine, patch only
+      // the form values: overwriting formAtom.event would bake the deferred
+      // change into the diff baseline and silently drop it from the next save.
       if (isInForm(req.changes.id) && !isFormPristine()) {
-        await updateFormState(event);
+        await updateFormValues(event, req.changes);
         await updateOptimisticUpdate(optimisticId, event, req.changes.type);
 
         return optimisticId;
@@ -137,7 +139,7 @@ export function usePartialUpdateAction() {
       // Return optimistic id to allow callers to await completion externally
       return optimisticId;
     },
-    [actorRef, updateFormState, updateOptimisticUpdate],
+    [actorRef, updateFormValues, updateOptimisticUpdate],
   );
 }
 
@@ -159,6 +161,7 @@ export function useUpdateAction() {
       const item: UpdateQueueItem = {
         optimisticId,
         event,
+        previous: req.previous,
         scope: req.scope,
         notify: req.notify,
         onSuccess: req.onSuccess,

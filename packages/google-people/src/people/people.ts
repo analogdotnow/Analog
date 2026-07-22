@@ -3,12 +3,12 @@ import type {
   BatchCreateContactsResponse,
   BatchUpdateContactsResponse,
   DeleteContactPhotoResponse,
-  Empty,
   GetPeopleResponse,
   ListDirectoryPeopleResponse,
   Person,
   SearchDirectoryPeopleResponse,
   SearchResponse,
+  SourceInput,
   UpdateContactPhotoResponse,
 } from "../interfaces";
 import { Connections } from "./connections";
@@ -59,8 +59,8 @@ export class People {
     );
   }
 
-  async batchDeleteContacts(params: BatchDeleteContactsInput): Promise<Empty> {
-    return this.client.post<Empty>(
+  async batchDeleteContacts(params: BatchDeleteContactsInput): Promise<void> {
+    return this.client.post<void>(
       "/v1/people:batchDeleteContacts",
       {
         alt: params.alt,
@@ -76,6 +76,7 @@ export class People {
         resourceNames: params.resourceNames,
       },
       params.signal,
+      true,
     );
   }
 
@@ -100,8 +101,10 @@ export class People {
     );
   }
 
-  async batchUpdateContacts(
-    params: BatchUpdateContactsInput,
+  async batchUpdateContacts<
+    const TContacts extends Record<string, SourceInput[]>,
+  >(
+    params: BatchUpdateContactsInput<TContacts>,
   ): Promise<BatchUpdateContactsResponse> {
     return this.client.post<BatchUpdateContactsResponse>(
       "/v1/people:batchUpdateContacts",
@@ -237,7 +240,9 @@ export class People {
     );
   }
 
-  async updateContact(params: UpdateContactInput): Promise<Person> {
+  async updateContact<const TSources extends SourceInput[]>(
+    params: UpdateContactInput<TSources>,
+  ): Promise<Person> {
     return this.client.patch<Person>(
       `/v1/${params.resourceName}:updateContact`,
       {
@@ -258,8 +263,8 @@ export class People {
     );
   }
 
-  async deleteContact(params: DeleteContactInput): Promise<Empty> {
-    return this.client.delete<Empty>(
+  async deleteContact(params: DeleteContactInput): Promise<void> {
+    return this.client.delete<void>(
       `/v1/${params.resourceName}:deleteContact`,
       {
         alt: params.alt,
@@ -272,6 +277,7 @@ export class People {
         uploadType: params.uploadType,
       },
       params.signal,
+      true,
     );
   }
 

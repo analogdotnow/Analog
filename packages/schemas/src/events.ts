@@ -17,6 +17,7 @@ export const conferenceSchema = z.union([
     type: z.literal("create"),
     providerId: z.union([z.literal("google"), z.literal("microsoft")]),
     requestId: z.string(),
+    status: z.enum(["pending", "success", "failure"]).optional(),
   }),
   z.object({
     type: z.literal("conference"),
