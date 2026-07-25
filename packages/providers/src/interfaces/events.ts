@@ -237,3 +237,9 @@ export interface Recurrence {
   rscale?: RScale;
   skip?: "OMIT" | "BACKWARD" | "FORWARD";
 }
+
+// CalendarEvent is a union over the allDay/start/end shapes, which `Omit` would
+// collapse into a single `allDay: boolean` object, so the required `attendees`
+// is intersected onto the union instead.
+export type Meeting = CalendarEvent &
+  Required<Pick<CalendarEvent, "attendees">>;

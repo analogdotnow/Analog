@@ -1,9 +1,9 @@
 import { detectMeetingLink } from "@analog/meeting-links";
 import type { Event as MicrosoftEvent } from "@analog/microsoft-calendar";
 
-import type { Conference } from "../../../../interfaces";
+import type { Conference } from "../../interfaces";
 
-export function toMicrosoftConferenceData(conference: Conference) {
+export function formatConference(conference: Conference) {
   if (conference.type !== "create") {
     return undefined;
   }
@@ -62,9 +62,7 @@ function parseConferenceFallback(
   };
 }
 
-export function parseMicrosoftConference(
-  event: MicrosoftEvent,
-): Conference | undefined {
+export function parseConference(event: MicrosoftEvent): Conference | undefined {
   const joinUrl = event.onlineMeeting?.joinUrl ?? event.onlineMeetingUrl;
 
   if (!joinUrl) {

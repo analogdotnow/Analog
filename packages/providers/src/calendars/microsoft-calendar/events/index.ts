@@ -1,3 +1,4 @@
+import { APIError } from "@analog/microsoft-calendar";
 import type {
   DefaultCalendarCalendarViewDeltaInput,
   DefaultCalendarCreateEventInput,
@@ -19,20 +20,41 @@ import type {
   CalendarProviderEventsDeleteOptions,
   CalendarProviderEventsGetOptions,
   CalendarProviderEventsListOptions,
+  CalendarProviderEventsMoveOptions,
   CalendarProviderEventsRespondOptions,
   CalendarProviderEventsUpdateOptions,
   CalendarProviderSyncOptions,
   CalendarProviderSyncResult,
 } from "../../../interfaces/providers";
 import { ProviderError } from "../../../lib/provider-error";
-import {
-  parseMicrosoftEvent,
-  toMicrosoftEvent,
-  toMicrosoftEventPatch,
-} from "./utils";
+import { formatEvent, formatEventPatch } from "./format";
+import { parseEvent } from "./parse";
 
 const MAX_EVENTS_PER_CALENDAR = 250;
 const TEXT_BODY_PREFERENCE = 'outlook.body-content-type="text"';
+
+// Graph owns these properties; they are rejected or silently ignored when they
+// are posted back, so a copied event must not carry them over.
+const SERVER_OWNED_EVENT_FIELDS = new Set([
+  "id",
+  "changeKey",
+  "iCalUId",
+  "webLink",
+  "createdDateTime",
+  "lastModifiedDateTime",
+  "seriesMasterId",
+  "onlineMeeting",
+  "onlineMeetingUrl",
+]);
+
+function stripServerOwnedFields(event: MicrosoftEvent) {
+  return Object.fromEntries(
+    Object.entries(event).filter(
+      ([key]) =>
+        !key.startsWith("@odata") && !SERVER_OWNED_EVENT_FIELDS.has(key),
+    ),
+  ) as MicrosoftEvent;
+}
 
 export class MicrosoftCalendarEvents implements CalendarProviderEvents {
   constructor(private readonly client: MicrosoftCalendar) {}
@@ -103,7 +125,7 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
           });
 
           const events = (response.value ?? []).map((event) =>
-            parseMicrosoftEvent({ event, calendar }),
+            parseEvent({ event, calendar }),
           );
 
           if (!response["@odata.nextLink"]) {
@@ -119,7 +141,7 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
         });
 
         const events = (page.value ?? []).map((event) =>
-          parseMicrosoftEvent({ event, calendar }),
+          parseEvent({ event, calendar }),
         );
 
         if (!page["@odata.nextLink"]) {
@@ -156,7 +178,7 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
     timeMax,
     timeZone,
   }: CalendarProviderSyncOptions): Promise<CalendarProviderSyncResult> {
-    return this.withErrorHandler("events.sync", async () => {
+    const runSync = async (token: string | undefined) => {
       const startTime = timeMin?.withTimeZone("UTC").toInstant().toString();
       const endTime = timeMax?.withTimeZone("UTC").toInstant().toString();
 
@@ -170,7 +192,7 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
       const changes: CalendarEventSyncItem[] = [];
 
       do {
-        const link = pageToken ?? initialSyncToken;
+        const link = pageToken ?? token;
 
         let response: DeltaCollectionResponse<MicrosoftEvent>;
 
@@ -218,7 +240,7 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
 
           changes.push({
             status: "updated",
-            event: parseMicrosoftEvent({
+            event: parseEvent({
               event: item,
               calendar,
             }),
@@ -229,12 +251,93 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
         syncToken = response["@odata.deltaLink"] ?? undefined;
       } while (pageToken);
 
+      // The delta feed only carries the changed instances, so pull in the series
+      // masters they reference unless the feed already returned them.
+      const changedEventIds = new Set<string>();
+      const recurringEventIds = new Set<string>();
+
+      for (const change of changes) {
+        if (change.status === "deleted") {
+          continue;
+        }
+
+        changedEventIds.add(change.event.id);
+
+        if (change.event.recurringEventId) {
+          recurringEventIds.add(change.event.recurringEventId);
+        }
+      }
+
+      const recurringMasterEvents = await Promise.all(
+        Array.from(recurringEventIds)
+          .filter((eventId) => !changedEventIds.has(eventId))
+          .map((eventId) => this.get({ calendar, eventId, timeZone })),
+      );
+
+      const recurringChanges: CalendarEventSyncItem[] =
+        recurringMasterEvents.map((event) => ({
+          status: "updated",
+          event,
+        }));
+
+      changes.push(...recurringChanges);
+
       return {
         changes,
         syncToken,
-        status: "incremental",
       };
+    };
+
+    return this.withErrorHandler("events.sync", async () => {
+      try {
+        const result = await runSync(initialSyncToken);
+
+        return { ...result, status: "incremental" };
+      } catch (error) {
+        if (!this.isFullSyncRequiredError(error)) {
+          throw error;
+        }
+
+        // A full sync needs an explicit window; without one the retry can only
+        // fail with the generic guard below, which would hide the resync
+        // signal the caller has to act on.
+        if (!timeMin || !timeMax) {
+          throw error;
+        }
+
+        const result = await runSync(undefined);
+
+        // Assume if the new sync token is equal to the initial sync token,
+        // content hasn't changed
+        if (initialSyncToken === result.syncToken) {
+          return {
+            changes: [],
+            syncToken: initialSyncToken,
+            status: "incremental",
+          };
+        }
+
+        return { ...result, status: "full" };
+      }
     });
+  }
+
+  // Graph expires and invalidates delta tokens; the 410 status and the sync
+  // state error codes both mean the delta link is unusable and the calendar has
+  // to be synced from scratch.
+  private isFullSyncRequiredError(error: unknown): boolean {
+    if (!(error instanceof APIError)) {
+      return false;
+    }
+
+    if (error.status === 410) {
+      return true;
+    }
+
+    return (
+      error.error?.error.code === "syncStateNotFound" ||
+      error.error?.error.code === "resyncRequired"
+    );
   }
 
   async get({ calendar, eventId, timeZone }: CalendarProviderEventsGetOptions) {
@@ -249,7 +352,7 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
         headers,
       });
 
-      return parseMicrosoftEvent({
+      return parseEvent({
         event,
         calendar,
       });
@@ -268,11 +371,11 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
 
       const createdEvent = await this.eventsFor(calendar.id).create({
         userId: "me",
-        event: toMicrosoftEvent(event),
+        event: formatEvent(event),
         headers: { Prefer: TEXT_BODY_PREFERENCE },
       });
 
-      return parseMicrosoftEvent({
+      return parseEvent({
         event: createdEvent,
         calendar,
       });
@@ -309,7 +412,7 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
     const updatedEvent = await this.eventsFor(calendar.id).update({
       userId: "me",
       eventId,
-      event: toMicrosoftEventPatch(event, { startForRecurrence }),
+      event: formatEventPatch(event, { startForRecurrence }),
       ...(event.etag ? { ifMatch: event.etag } : {}),
       headers: { Prefer: TEXT_BODY_PREFERENCE },
     });
@@ -326,7 +429,7 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
       return this.get({ calendar, eventId });
     }
 
-    return parseMicrosoftEvent({
+    return parseEvent({
       event: updatedEvent,
       calendar,
     });
@@ -339,8 +442,32 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
     sendUpdate,
   }: CalendarProviderEventsDeleteOptions) {
     await this.withErrorHandler("events.delete", async () => {
-      if (!sendUpdate) {
-        throw new Error("Microsoft Calendar does not support sendUpdate=false");
+      // Cancelling is what notifies the attendees, but Graph only allows it on
+      // meetings the user organizes; event ids are calendar-independent, so the
+      // action is addressed through /me/events like the respond actions.
+      if (sendUpdate) {
+        try {
+          await this.client.users.events.cancel({ userId: "me", eventId });
+
+          return;
+        } catch (error) {
+          // Graph rejects the action with a client error when the event is not
+          // an organized meeting: fall back to deleting the event. Auth,
+          // throttling, server and network failures are transient and must
+          // surface instead of silently deleting without notifying anyone.
+          const status = error instanceof APIError ? error.status : undefined;
+
+          if (
+            status === undefined ||
+            status < 400 ||
+            status >= 500 ||
+            status === 401 ||
+            status === 408 ||
+            status === 429
+          ) {
+            throw error;
+          }
+        }
       }
 
       await this.eventsFor(calendarId).delete({
@@ -351,9 +478,38 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
     });
   }
 
-  async move() {
-    return this.withErrorHandler("events.move", () => {
-      throw new Error("Moving Microsoft Calendar events is not supported");
+  async move({
+    sourceCalendar,
+    destinationCalendar,
+    eventId,
+    etag,
+  }: CalendarProviderEventsMoveOptions) {
+    return this.withErrorHandler("events.move", async () => {
+      // Graph cannot move an event between calendars, so copy it into the
+      // destination calendar and delete the original. The source is read in UTC
+      // so the copy keeps the absolute times of the original.
+      const sourceEvent = await this.eventsFor(sourceCalendar.id).get({
+        userId: "me",
+        eventId,
+        headers: { Prefer: 'outlook.timezone="UTC"' },
+      });
+
+      const createdEvent = await this.eventsFor(destinationCalendar.id).create({
+        userId: "me",
+        event: stripServerOwnedFields(sourceEvent),
+        headers: { Prefer: TEXT_BODY_PREFERENCE },
+      });
+
+      await this.eventsFor(sourceCalendar.id).delete({
+        userId: "me",
+        eventId,
+        ...(etag ? { ifMatch: etag } : {}),
+      });
+
+      return parseEvent({
+        event: createdEvent,
+        calendar: destinationCalendar,
+      });
     });
   }
 
