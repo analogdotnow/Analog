@@ -3,7 +3,7 @@ name: analog
 services:
   db:
     container_name: analog_db
-    image: bitnami/postgresql:18
+    image: soldevelo/postgresql:18
     environment:
       POSTGRESQL_POSTGRES_PASSWORD: postgres
       POSTGRESQL_DATABASE: analog_db
