@@ -24,14 +24,13 @@ import type {
 import { ProviderError } from "../../../lib/provider-error";
 import {
   attendeesWithSelfResponse,
-  createEventParams,
-  parseGoogleCalendarEventDate,
-  parseGoogleCalendarEvent,
-  toGoogleCalendarAttendee,
-  toGoogleCalendarAttendeeResponseStatus,
-  toGoogleCalendarEventInput,
-  updateEventParams,
-} from "./utils";
+  formatAttendee,
+  formatAttendeeStatus,
+  formatEvent,
+  formatEventInput,
+  formatEventPatch,
+} from "./format";
+import { parseEvent, parseEventDate } from "./parse";
 
 const MAX_EVENTS_PER_CALENDAR = 250;
 
@@ -57,7 +56,7 @@ export class GoogleCalendarEvents implements CalendarProviderEvents {
         });
 
         const events = (items ?? []).map((event) =>
-          parseGoogleCalendarEvent({
+          parseEvent({
             calendar,
             event,
             defaultTimeZone: timeZone ?? "UTC",
@@ -136,9 +135,7 @@ export class GoogleCalendarEvents implements CalendarProviderEvents {
                 event: {
                   id: event.id!,
                   recurringEventId: event.recurringEventId,
-                  originalStartTime: parseGoogleCalendarEventDate(
-                    event.originalStartTime!,
-                  ),
+                  originalStartTime: parseEventDate(event.originalStartTime!),
                   calendar: {
                     id: calendar.id,
                     provider: calendar.provider,
@@ -163,7 +160,7 @@ export class GoogleCalendarEvents implements CalendarProviderEvents {
 
           changes.push({
             status: "updated",
-            event: parseGoogleCalendarEvent({
+            event: parseEvent({
               calendar,
               event,
               defaultTimeZone: timeZone,
@@ -239,7 +236,7 @@ export class GoogleCalendarEvents implements CalendarProviderEvents {
         eventId,
       });
 
-      return parseGoogleCalendarEvent({
+      return parseEvent({
         calendar,
         event,
         defaultTimeZone: timeZone ?? "UTC",
@@ -256,11 +253,11 @@ export class GoogleCalendarEvents implements CalendarProviderEvents {
       try {
         const createdEvent = await this.client.events.insert({
           calendarId: calendar.id,
-          ...createEventParams(event),
+          ...formatEvent(event),
           sendUpdates: sendUpdate ? "all" : "none",
         });
 
-        return parseGoogleCalendarEvent({
+        return parseEvent({
           calendar,
           event: createdEvent,
         });
@@ -302,8 +299,8 @@ export class GoogleCalendarEvents implements CalendarProviderEvents {
 
       const updatedEvent = await this.client.events.update({
         eventId,
-        ...toGoogleCalendarEventInput(existingEvent),
-        ...updateEventParams(event, existingEvent),
+        ...formatEventInput(existingEvent),
+        ...formatEventPatch(event, existingEvent),
         ...(response
           ? event.attendees === undefined
             ? {
@@ -320,15 +317,13 @@ export class GoogleCalendarEvents implements CalendarProviderEvents {
                 attendees: event.attendees.map((attendee) =>
                   attendee.email === selfEmail
                     ? {
-                        ...toGoogleCalendarAttendee(attendee),
+                        ...formatAttendee(attendee),
                         ...(response.comment !== undefined
                           ? { comment: response.comment }
                           : {}),
-                        responseStatus: toGoogleCalendarAttendeeResponseStatus(
-                          response.status,
-                        ),
+                        responseStatus: formatAttendeeStatus(response.status),
                       }
-                    : toGoogleCalendarAttendee(attendee),
+                    : formatAttendee(attendee),
                 ),
               }
           : {}),
@@ -339,7 +334,7 @@ export class GoogleCalendarEvents implements CalendarProviderEvents {
         headers: { "If-Match": event.etag ?? existingEvent.etag },
       });
 
-      return parseGoogleCalendarEvent({
+      return parseEvent({
         calendar,
         event: updatedEvent,
       });
@@ -378,7 +373,7 @@ export class GoogleCalendarEvents implements CalendarProviderEvents {
         sendUpdates: sendUpdate ? "all" : "none",
       });
 
-      return parseGoogleCalendarEvent({
+      return parseEvent({
         calendar: destinationCalendar,
         event,
       });

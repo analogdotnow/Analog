@@ -8,7 +8,7 @@ import type {
   CalendarProviderCalendarsUpdateOptions,
 } from "../../../interfaces/providers";
 import { ProviderError } from "../../../lib/provider-error";
-import { parseGoogleCalendarCalendarListEntry } from "./utils";
+import { parseCalendar } from "./parse";
 
 export class GoogleCalendarCalendars {
   constructor(
@@ -21,7 +21,7 @@ export class GoogleCalendarCalendars {
       const { items } = await this.client.calendarList.list({});
 
       return items.map((calendar) =>
-        parseGoogleCalendarCalendarListEntry({
+        parseCalendar({
           providerAccountId: this.providerAccountId,
           entry: calendar,
         }),
@@ -35,7 +35,7 @@ export class GoogleCalendarCalendars {
     return this.withErrorHandler("calendars.get", async () => {
       const calendar = await this.client.calendarList.get({ calendarId });
 
-      return parseGoogleCalendarCalendarListEntry({
+      return parseCalendar({
         providerAccountId: this.providerAccountId,
         entry: calendar,
       });
@@ -52,7 +52,7 @@ export class GoogleCalendarCalendars {
         timeZone: calendar.timeZone,
       });
 
-      return parseGoogleCalendarCalendarListEntry({
+      return parseCalendar({
         providerAccountId: this.providerAccountId,
         entry: createdCalendar,
       });
@@ -69,7 +69,7 @@ export class GoogleCalendarCalendars {
         summary: calendar.name,
       });
 
-      return parseGoogleCalendarCalendarListEntry({
+      return parseCalendar({
         providerAccountId: this.providerAccountId,
         entry: updatedCalendar,
       });

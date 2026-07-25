@@ -27,6 +27,13 @@ export interface DeltaCollectionResponse<T> extends CollectionResponse<T> {
   "@odata.deltaLink"?: string | null;
 }
 
+export interface DeltaRemovedEvent {
+  id: string;
+  "@removed": {
+    reason: "deleted";
+  };
+}
+
 export type ODataCountResponse = number;
 
 export interface Attachment extends Entity {

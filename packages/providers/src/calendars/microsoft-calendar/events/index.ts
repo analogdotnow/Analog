@@ -8,6 +8,7 @@ import type {
   DefaultCalendarListEventInput,
   DefaultCalendarUpdateEventInput,
   DeltaCollectionResponse,
+  DeltaRemovedEvent,
   Event as MicrosoftEvent,
   ListMoreInput,
   MicrosoftCalendar,
@@ -194,7 +195,9 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
       do {
         const link = pageToken ?? token;
 
-        let response: DeltaCollectionResponse<MicrosoftEvent>;
+        let response: DeltaCollectionResponse<
+          MicrosoftEvent | DeltaRemovedEvent
+        >;
 
         if (link) {
           response = await this.calendarViewFor(calendar.id).deltaMore({
@@ -223,7 +226,7 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
             continue;
           }
 
-          if (item["@removed"]) {
+          if ("@removed" in item) {
             changes.push({
               status: "deleted",
               event: {
