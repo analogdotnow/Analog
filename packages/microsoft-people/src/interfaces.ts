@@ -19,6 +19,7 @@ export interface ListMoreInput extends MicrosoftPeopleRequestOptions {
 export interface CollectionResponse<T> {
   value?: T[];
   "@odata.nextLink"?: string | null;
+  "@odata.count"?: number;
   [key: string]: unknown;
 }
 

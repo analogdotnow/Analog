@@ -19,7 +19,7 @@ export class MicrosoftPeople {
     const url = new URL(
       path.startsWith("https://")
         ? path
-        : `${MicrosoftPeople.BASE_URL}${path.startsWith("/users/me/") ? path.slice("/users".length) : path}`,
+        : `${MicrosoftPeople.BASE_URL}${path.replace(/^\/users\/me(?=\/|$)/, "/me")}`,
     );
 
     if (url.origin !== MicrosoftPeople.ORIGIN_URL) {
@@ -90,8 +90,19 @@ export class MicrosoftPeople {
     throw new ConnectionError(error.message, error);
   }
 
-  private async parseResponse(response: Response) {
-    const text = await response.text();
+  private async readResponseText(
+    response: Response,
+    signal?: AbortSignal,
+  ): Promise<string> {
+    try {
+      return await response.text();
+    } catch (error) {
+      MicrosoftPeople.throwTransportError(error, signal);
+    }
+  }
+
+  private async parseResponse(response: Response, signal?: AbortSignal) {
+    const text = await this.readResponseText(response, signal);
 
     if (!response.ok) {
       throw APIError.fromResponse(response, text);
@@ -109,8 +120,11 @@ export class MicrosoftPeople {
     return JSON.parse(text);
   }
 
-  private async parseText(response: Response): Promise<string> {
-    const text = await response.text();
+  private async parseText(
+    response: Response,
+    signal?: AbortSignal,
+  ): Promise<string> {
+    const text = await this.readResponseText(response, signal);
 
     if (!response.ok) {
       throw APIError.fromResponse(response, text);
@@ -131,7 +145,7 @@ export class MicrosoftPeople {
       signal,
     });
 
-    return this.parseResponse(response);
+    return this.parseResponse(response, signal);
   }
 
   async number(
@@ -146,10 +160,10 @@ export class MicrosoftPeople {
       signal,
     });
 
-    const text = await this.parseText(response);
+    const text = await this.parseText(response, signal);
     const value = Number(text);
 
-    if (!text || !Number.isFinite(value)) {
+    if (!text.trim() || !Number.isFinite(value)) {
       throw new APIError(
         response.status,
         undefined,
