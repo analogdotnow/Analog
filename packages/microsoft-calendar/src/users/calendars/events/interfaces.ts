@@ -79,7 +79,7 @@ export interface CalendarUpdateEventInput extends MicrosoftCalendarRequestOption
   userId: string;
   calendarId: string;
   eventId: string;
-  event: Event;
+  event: Partial<Event>;
 }
 
 export type CalendarUpdateEventResponse = Event;

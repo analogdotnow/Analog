@@ -72,7 +72,7 @@ export type GetEventResponse = Event;
 export interface UpdateEventInput extends MicrosoftCalendarRequestOptions {
   userId: string;
   eventId: string;
-  event: Event;
+  event: Partial<Event>;
 }
 
 export type UpdateEventResponse = Event;

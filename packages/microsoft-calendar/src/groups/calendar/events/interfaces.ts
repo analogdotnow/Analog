@@ -72,7 +72,7 @@ export type GroupCalendarGetEventResponse = Event;
 export interface GroupCalendarUpdateEventInput extends MicrosoftCalendarRequestOptions {
   groupId: string;
   eventId: string;
-  event: Event;
+  event: Partial<Event>;
 }
 
 export type GroupCalendarUpdateEventResponse = Event;

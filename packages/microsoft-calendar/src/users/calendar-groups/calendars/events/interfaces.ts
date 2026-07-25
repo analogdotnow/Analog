@@ -87,7 +87,7 @@ export interface CalendarGroupCalendarUpdateEventInput extends MicrosoftCalendar
   calendarGroupId: string;
   calendarId: string;
   eventId: string;
-  event: Event;
+  event: Partial<Event>;
 }
 
 export type CalendarGroupCalendarUpdateEventResponse = Event;

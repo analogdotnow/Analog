@@ -30,17 +30,13 @@ export function parseRecurrence(
 ): Recurrence | undefined {
   const { pattern, range } = recurrence;
 
-  if (!pattern?.type) {
-    return undefined;
-  }
-
   const shared: Recurrence = {
-    ...(pattern.interval !== undefined ? { interval: pattern.interval } : {}),
-    ...(range?.type === "numbered" && range.numberOfOccurrences !== undefined
+    interval: pattern.interval,
+    ...(range.type === "numbered" && range.numberOfOccurrences !== undefined
       ? { count: range.numberOfOccurrences }
       : {}),
     // Graph's endDate is inclusive, matching RFC 5545 UNTIL for date values.
-    ...(range?.type === "endDate" && range.endDate
+    ...(range.type === "endDate" && range.endDate
       ? { until: Temporal.PlainDate.from(range.endDate) }
       : {}),
   };

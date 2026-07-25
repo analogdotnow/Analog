@@ -164,7 +164,7 @@ interface FormatEventPatchOptions {
 export function formatEventPatch(
   event: UpdateEventPatch,
   options: FormatEventPatchOptions = {},
-): MicrosoftEvent {
+): Partial<MicrosoftEvent> {
   const metadata = formatMetadata(event.metadata);
 
   return {

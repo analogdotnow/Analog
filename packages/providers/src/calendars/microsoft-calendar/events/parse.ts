@@ -26,18 +26,18 @@ interface ParseEventOptions {
 
 function parseStart(event: MicrosoftEvent) {
   if (event.isAllDay) {
-    return parseDate(event.start!.dateTime!);
+    return parseDate(event.start.dateTime);
   }
 
-  return parseDateTime(event.start!.dateTime!, event.start!.timeZone!);
+  return parseDateTime(event.start.dateTime, event.start.timeZone);
 }
 
 function parseEnd(event: MicrosoftEvent) {
   if (event.isAllDay) {
-    return parseDate(event.end!.dateTime!);
+    return parseDate(event.end.dateTime);
   }
 
-  return parseDateTime(event.end!.dateTime!, event.end!.timeZone!);
+  return parseDateTime(event.end.dateTime, event.end.timeZone);
 }
 
 function parseVisibility(
@@ -113,7 +113,7 @@ function parseOriginalEndTimeZone(event: MicrosoftEvent) {
 }
 
 function parseRecurrenceTimeZone(event: MicrosoftEvent) {
-  if (!event.recurrence?.range?.recurrenceTimeZone) {
+  if (!event.recurrence?.range.recurrenceTimeZone) {
     return {};
   }
 
@@ -145,10 +145,6 @@ export function parseEvent({
   calendar,
   event,
 }: ParseEventOptions): CalendarEvent {
-  if (!event.start || !event.end) {
-    throw new Error("Event start or end is missing");
-  }
-
   return {
     id: event.id!,
     title: event.subject!,
@@ -201,8 +197,8 @@ function parseAttendeeStatus(
 
 export function parseAttendee(attendee: MicrosoftEventAttendee): Attendee {
   return {
-    email: attendee.emailAddress!.address!,
-    name: attendee.emailAddress?.name ?? undefined,
+    email: attendee.emailAddress.address!,
+    name: attendee.emailAddress.name ?? undefined,
     status: parseAttendeeStatus(attendee.status?.response),
     type: attendee.type!,
   };

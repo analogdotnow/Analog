@@ -72,7 +72,7 @@ export type DefaultCalendarGetEventResponse = Event;
 export interface DefaultCalendarUpdateEventInput extends MicrosoftCalendarRequestOptions {
   userId: string;
   eventId: string;
-  event: Event;
+  event: Partial<Event>;
 }
 
 export type DefaultCalendarUpdateEventResponse = Event;
