@@ -29,7 +29,10 @@ export function InfiniteMonthView({
   const grid = useMonthViewGridLayout();
 
   return (
-    <ContainerProvider containerRef={containerRef} view={view}>
+    <ContainerProvider
+      containerRef={containerRef}
+      view={{ ...view, rows: rows.total }}
+    >
       <div
         ref={scrollRef}
         data-slot="infinite-month-view"

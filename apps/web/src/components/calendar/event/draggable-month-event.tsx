@@ -21,7 +21,9 @@ import {
 import { getEventInForm } from "@/components/event-form/atoms/form";
 import { ContextMenuTrigger } from "@/components/ui/context-menu";
 import { EventDisplayItem } from "@/lib/display-item";
-import { useSetDraggingEventId } from "@/store/hooks";
+import { cn } from "@/lib/utils";
+import { useDraggingEventId, useSetDraggingEventId } from "@/store/hooks";
+import { DragPreviewPortal } from "./drag-preview-portal";
 
 interface GetColumnOffsetOptions {
   containerRef: React.RefObject<HTMLElement | null>;
@@ -148,6 +150,11 @@ export function DraggableMonthEvent({
 
   const { setIsDragging, moveEvent } = useEvent(item.event);
 
+  const eventElementRef = React.useRef<HTMLDivElement | null>(null);
+
+  const draggingEventId = useDraggingEventId();
+  const isDragging = draggingEventId === item.event.id;
+
   const originX = useMotionValue(0);
   const originY = useMotionValue(0);
   const relativeX = useMotionValue(0);
@@ -158,6 +165,14 @@ export function DraggableMonthEvent({
 
   const transform = useMotionTemplate`translate(${left}px,${top}px)`;
 
+  const grabOffsetX = React.useRef(0);
+  const grabOffsetY = React.useRef(0);
+
+  const previewX = useMotionValue(0);
+  const previewY = useMotionValue(0);
+  const previewWidth = useMotionValue(0);
+  const previewHeight = useMotionValue(0);
+
   const onDragStart = (e: PointerEvent, info: PanInfo) => {
     e.preventDefault();
 
@@ -165,10 +180,21 @@ export function DraggableMonthEvent({
       return;
     }
 
-    const rect = containerRef.current.getBoundingClientRect();
+    const containerRect = containerRef.current.getBoundingClientRect();
+    const eventRect = eventElementRef.current!.getBoundingClientRect();
 
-    originX.set(info.point.x - info.offset.x - rect.left);
-    originY.set(info.point.y - info.offset.y - rect.top);
+    originX.set(info.point.x - info.offset.x - containerRect.left);
+    originY.set(info.point.y - info.offset.y - containerRect.top);
+    relativeX.set(info.point.x - containerRect.left);
+    relativeY.set(info.point.y - containerRect.top);
+
+    grabOffsetX.current = info.point.x - eventRect.left;
+    grabOffsetY.current = info.point.y - eventRect.top;
+
+    previewX.set(eventRect.left);
+    previewY.set(eventRect.top);
+    previewWidth.set(eventRect.width);
+    previewHeight.set(eventRect.height);
 
     setIsDragging(true);
   };
@@ -182,18 +208,19 @@ export function DraggableMonthEvent({
 
     relativeX.set(info.point.x - rect.left);
     relativeY.set(info.point.y - rect.top);
+
+    previewX.set(info.point.x - grabOffsetX.current);
+    previewY.set(info.point.y - grabOffsetY.current);
   };
 
   const onDragEnd = (_e: PointerEvent, info: PanInfo) => {
+    previewX.set(info.point.x - grabOffsetX.current);
+    previewY.set(info.point.y - grabOffsetY.current);
+
     setIsDragging(false);
 
     const columnOffset = getColumnOffset({ containerRef, info, columns });
     const deltaY = relativeY.get() - originY.get();
-
-    originX.set(0);
-    originY.set(0);
-    relativeX.set(0);
-    relativeY.set(0);
 
     moveEvent(deltaY, columnOffset);
   };
@@ -208,32 +235,48 @@ export function DraggableMonthEvent({
     originY,
     relativeX,
     relativeY,
-    // item.event.start,
-    // item.event.end,
+    item.event.start,
+    item.event.end,
   ]);
 
   return (
-    <motion.div className="size-full touch-none" style={{ transform, zIndex }}>
-      <EventContextMenu event={item.event}>
-        <ContextMenuTrigger>
-          <MonthEventItem
-            item={item}
-            isFirstDay={isFirstDay}
-            isLastDay={isLastDay}
-          >
-            {!item.event.readOnly ? (
-              <>
+    <>
+      {isDragging ? (
+        <DragPreviewPortal
+          item={item}
+          isAllDayItem
+          isFirstDay={isFirstDay}
+          isLastDay={isLastDay}
+          x={previewX}
+          y={previewY}
+          width={previewWidth}
+          height={previewHeight}
+        />
+      ) : null}
+      <motion.div
+        ref={eventElementRef}
+        className={cn("size-full touch-none", isDragging && "invisible")}
+        style={{ transform, zIndex }}
+      >
+        <EventContextMenu event={item.event}>
+          <ContextMenuTrigger>
+            <MonthEventItem
+              item={item}
+              isFirstDay={isFirstDay}
+              isLastDay={isLastDay}
+            >
+              {!item.event.readOnly ? (
                 <motion.div
                   className="absolute inset-x-0 inset-y-2 touch-none"
                   onPanStart={onDragStart}
                   onPan={onDrag}
                   onPanEnd={onDragEnd}
                 />
-              </>
-            ) : null}
-          </MonthEventItem>
-        </ContextMenuTrigger>
-      </EventContextMenu>
-    </motion.div>
+              ) : null}
+            </MonthEventItem>
+          </ContextMenuTrigger>
+        </EventContextMenu>
+      </motion.div>
+    </>
   );
 }
