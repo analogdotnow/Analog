@@ -62,7 +62,7 @@ export interface CalendarProviderEventsListOptions {
   calendar: Calendar;
   timeMin: Temporal.ZonedDateTime;
   timeMax: Temporal.ZonedDateTime;
-  timeZone?: string;
+  timeZone: string;
 }
 
 export interface CalendarProviderEventsGetOptions {

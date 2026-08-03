@@ -59,7 +59,7 @@ export class GoogleCalendarEvents implements CalendarProviderEvents {
           parseEvent({
             calendar,
             event,
-            defaultTimeZone: timeZone ?? "UTC",
+            defaultTimeZone: timeZone,
           }),
         );
 

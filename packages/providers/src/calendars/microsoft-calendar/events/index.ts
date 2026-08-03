@@ -35,7 +35,9 @@ const MAX_EVENTS_PER_CALENDAR = 250;
 const TEXT_BODY_PREFERENCE = 'outlook.body-content-type="text"';
 
 // Graph owns these properties; they are rejected or silently ignored when they
-// are posted back, so a copied event must not carry them over.
+// are posted back, so a copied event must not carry them over. transactionId
+// identifies the original create, so carrying it over would make Graph dedupe
+// the copy into the source event instead of creating one.
 const SERVER_OWNED_EVENT_FIELDS = new Set([
   "id",
   "changeKey",
@@ -46,15 +48,19 @@ const SERVER_OWNED_EVENT_FIELDS = new Set([
   "seriesMasterId",
   "onlineMeeting",
   "onlineMeetingUrl",
+  "transactionId",
 ]);
 
-function stripServerOwnedFields(event: MicrosoftEvent) {
-  return Object.fromEntries(
-    Object.entries(event).filter(
-      ([key]) =>
-        !key.startsWith("@odata") && !SERVER_OWNED_EVENT_FIELDS.has(key),
-    ),
-  ) as MicrosoftEvent;
+function stripServerOwnedFields(event: MicrosoftEvent): MicrosoftEvent {
+  const copy = { ...event };
+
+  for (const key of Object.keys(copy)) {
+    if (key.startsWith("@odata") || SERVER_OWNED_EVENT_FIELDS.has(key)) {
+      delete copy[key];
+    }
+  }
+
+  return copy;
 }
 
 export class MicrosoftCalendarEvents implements CalendarProviderEvents {
@@ -445,31 +451,35 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
     sendUpdate,
   }: CalendarProviderEventsDeleteOptions) {
     await this.withErrorHandler("events.delete", async () => {
+      // Deleting an organized meeting makes Graph email the attendees a
+      // cancellation, and no request shape suppresses that.
+      if (!sendUpdate) {
+        throw new Error("Microsoft Calendar does not support sendUpdate=false");
+      }
+
       // Cancelling is what notifies the attendees, but Graph only allows it on
       // meetings the user organizes; event ids are calendar-independent, so the
       // action is addressed through /me/events like the respond actions.
-      if (sendUpdate) {
-        try {
-          await this.client.users.events.cancel({ userId: "me", eventId });
+      try {
+        await this.client.users.events.cancel({ userId: "me", eventId });
 
-          return;
-        } catch (error) {
-          // Graph rejects the action with a client error when the event is not
-          // an organized meeting: fall back to deleting the event. Auth,
-          // throttling, server and network failures are transient and must
-          // surface instead of silently deleting without notifying anyone.
-          const status = error instanceof APIError ? error.status : undefined;
+        return;
+      } catch (error) {
+        // Graph rejects the action with a client error when the event is not
+        // an organized meeting: fall back to deleting the event. Auth,
+        // throttling, server and network failures are transient and must
+        // surface instead of silently deleting without notifying anyone.
+        const status = error instanceof APIError ? error.status : undefined;
 
-          if (
-            status === undefined ||
-            status < 400 ||
-            status >= 500 ||
-            status === 401 ||
-            status === 408 ||
-            status === 429
-          ) {
-            throw error;
-          }
+        if (
+          status === undefined ||
+          status < 400 ||
+          status >= 500 ||
+          status === 401 ||
+          status === 408 ||
+          status === 429
+        ) {
+          throw error;
         }
       }
 
