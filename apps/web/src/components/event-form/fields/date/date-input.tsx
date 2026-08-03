@@ -89,9 +89,10 @@ export function DateInput({
     return value.toPlainDate();
   }, [value, allDay, start]);
 
-  const defaultMonth = React.useMemo(() => {
-    return value.toPlainDate().toPlainYearMonth();
-  }, [value]);
+  const defaultMonth = React.useMemo(
+    () => value.toPlainDate().toPlainYearMonth(),
+    [value],
+  );
 
   const [displayedMonth, setDisplayedMonth] =
     React.useState<Temporal.PlainYearMonth>(date.toPlainYearMonth());
@@ -296,9 +297,10 @@ function TemporalCalendar({
   onMonthChange,
   min,
 }: TemporalCalendarProps) {
-  const legacySelected = React.useMemo(() => {
-    return toDate(selected, { timeZone });
-  }, [selected, timeZone]);
+  const legacySelected = React.useMemo(
+    () => toDate(selected, { timeZone }),
+    [selected, timeZone],
+  );
 
   const legacyOnSelect = React.useCallback(
     (date: Date) => {

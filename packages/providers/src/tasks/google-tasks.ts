@@ -83,7 +83,7 @@ class GoogleTasksTasks implements TaskProviderTasks {
       const { items: taskCollections } =
         await this.client.tasks.v1.users.me.lists.list();
 
-      const results = await Promise.all(
+      return Promise.all(
         taskCollections?.map(async (taskCollection) => {
           const { items: tasks } = await this.client.tasks.v1.lists.tasks.list(
             taskCollection.id!,
@@ -104,7 +104,6 @@ class GoogleTasksTasks implements TaskProviderTasks {
           };
         }) ?? [],
       );
-      return results;
     });
   }
 

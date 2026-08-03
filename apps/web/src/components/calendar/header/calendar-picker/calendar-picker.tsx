@@ -87,18 +87,20 @@ function CalendarPickerContent() {
   const calendarPreferences = useCalendarStore((s) => s.calendarPreferences);
   const { isActionMenuOpen } = useCalendarPickerContext();
 
-  const visibleCalendars = React.useMemo(() => {
-    return data?.accounts
-      .flatMap((account) => account.calendars)
-      .filter((calendar) => {
-        const preference = getCalendarPreference(
-          calendarPreferences,
-          calendar.provider.accountId,
-          calendar.id,
-        );
-        return !preference?.hidden;
-      });
-  }, [data, calendarPreferences]);
+  const visibleCalendars = React.useMemo(
+    () =>
+      data?.accounts
+        .flatMap((account) => account.calendars)
+        .filter((calendar) => {
+          const preference = getCalendarPreference(
+            calendarPreferences,
+            calendar.provider.accountId,
+            calendar.id,
+          );
+          return !preference?.hidden;
+        }),
+    [data, calendarPreferences],
+  );
 
   if (!data) {
     return null;

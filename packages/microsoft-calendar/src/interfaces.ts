@@ -59,7 +59,7 @@ export interface Attachment extends Entity {
   [key: string]: unknown;
 }
 
-export interface AttachmentCollectionResponse extends CollectionResponse<Attachment> {}
+export type AttachmentCollectionResponse = CollectionResponse<Attachment>;
 
 export interface AttachmentItem {
   attachmentType: AttachmentType;
@@ -110,7 +110,7 @@ export interface Calendar extends Entity {
   [key: string]: unknown;
 }
 
-export interface CalendarCollectionResponse extends CollectionResponse<Calendar> {}
+export type CalendarCollectionResponse = CollectionResponse<Calendar>;
 
 export type CalendarColor =
   | "auto"
@@ -133,7 +133,7 @@ export interface CalendarGroup extends Entity {
   [key: string]: unknown;
 }
 
-export interface CalendarGroupCollectionResponse extends CollectionResponse<CalendarGroup> {}
+export type CalendarGroupCollectionResponse = CollectionResponse<CalendarGroup>;
 
 export interface CalendarPermission extends Entity {
   allowedRoles?: CalendarRoleType[];
@@ -144,7 +144,8 @@ export interface CalendarPermission extends Entity {
   [key: string]: unknown;
 }
 
-export interface CalendarPermissionCollectionResponse extends CollectionResponse<CalendarPermission> {}
+export type CalendarPermissionCollectionResponse =
+  CollectionResponse<CalendarPermission>;
 
 export type CalendarRoleType =
   | "none"
@@ -239,7 +240,7 @@ export interface Event extends OutlookItem {
   [key: string]: unknown;
 }
 
-export interface EventCollectionResponse extends CollectionResponse<Event> {}
+export type EventCollectionResponse = CollectionResponse<Event>;
 
 export type EventType =
   | "singleInstance"
@@ -251,7 +252,7 @@ export interface Extension extends Entity {
   [key: string]: unknown;
 }
 
-export interface ExtensionCollectionResponse extends CollectionResponse<Extension> {}
+export type ExtensionCollectionResponse = CollectionResponse<Extension>;
 
 export interface FreeBusyError {
   message?: string | null;

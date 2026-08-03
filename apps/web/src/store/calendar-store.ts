@@ -135,8 +135,8 @@ export type PersistedState = Pick<
 
 export const createCalendarStore = (
   initState: Omit<CalendarStore, keyof CalendarActions> = defaultInitState,
-) => {
-  return createStore<CalendarStore>()(
+) =>
+  createStore<CalendarStore>()(
     devtools(
       persist(
         (...a) => ({
@@ -167,4 +167,3 @@ export const createCalendarStore = (
     ),
     shallow,
   );
-};

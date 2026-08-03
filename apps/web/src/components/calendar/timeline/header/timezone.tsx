@@ -64,9 +64,10 @@ function TimeDisplay({ className, timeZoneId }: TimeDisplayProps) {
   const use12Hour = useCalendarStore((s) => s.calendarSettings.use12Hour);
   const locale = useCalendarStore((s) => s.calendarSettings.locale);
 
-  const time = React.useMemo(() => {
-    return currentTime.withTimeZone(timeZoneId);
-  }, [currentTime, timeZoneId]);
+  const time = React.useMemo(
+    () => currentTime.withTimeZone(timeZoneId),
+    [currentTime, timeZoneId],
+  );
 
   return (
     <div className={cn("flex flex-col items-end gap-0.5", className)}>

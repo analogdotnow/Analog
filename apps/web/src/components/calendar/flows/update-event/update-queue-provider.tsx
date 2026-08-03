@@ -101,12 +101,14 @@ export function UpdateQueueProvider({ children }: UpdateQueueProviderProps) {
     [updateMutation, removeOptimisticAction],
   );
 
-  const logic = React.useMemo(() => {
-    return createUpdateQueueMachine({
-      updateEvent,
-      removeOptimisticAction,
-    });
-  }, [updateEvent, removeOptimisticAction]);
+  const logic = React.useMemo(
+    () =>
+      createUpdateQueueMachine({
+        updateEvent,
+        removeOptimisticAction,
+      }),
+    [updateEvent, removeOptimisticAction],
+  );
 
   return (
     <UpdateQueueContext.Provider logic={logic}>

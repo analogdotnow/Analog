@@ -75,13 +75,15 @@ export function useTimeSuggestionsList() {
   const settings = useCalendarSettings();
   const defaultTimeZone = useDefaultTimeZone();
 
-  return React.useMemo(() => {
-    return generateList({
-      locale: settings.locale,
-      timeZone: defaultTimeZone,
-      use12Hour: settings.use12Hour,
-    });
-  }, [settings.locale, defaultTimeZone, settings.use12Hour]);
+  return React.useMemo(
+    () =>
+      generateList({
+        locale: settings.locale,
+        timeZone: defaultTimeZone,
+        use12Hour: settings.use12Hour,
+      }),
+    [settings.locale, defaultTimeZone, settings.use12Hour],
+  );
 }
 
 export function useTimeSuggestions(searchValue: string) {

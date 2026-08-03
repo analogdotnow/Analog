@@ -27,11 +27,11 @@ export function requiresAttendeeConfirmation(
 export function requiresRecurrenceConfirmation(
   recurringEventId: string | undefined,
 ): boolean {
-  return !!recurringEventId;
+  return Boolean(recurringEventId);
 }
 
 export function isMeeting(event: CalendarEvent): boolean {
-  return !!event.attendees && event.attendees.length > 1;
+  return (event.attendees?.length ?? 0) > 1;
 }
 
 type OnlineMeetingEvent = CalendarEvent & {
@@ -51,5 +51,5 @@ export function isOnlineMeeting(
     return false;
   }
 
-  return !!event.conference.video?.joinUrl;
+  return Boolean(event.conference.video?.joinUrl);
 }
