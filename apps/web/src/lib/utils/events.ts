@@ -3,7 +3,7 @@ import { Conference } from "@repo/providers/interfaces";
 import type { Attendee, CalendarEvent } from "@/lib/interfaces";
 
 export function isUserOnlyAttendee(attendees: Attendee[]): boolean {
-  if (!attendees || attendees.length === 0) {
+  if (attendees.length === 0) {
     return true;
   }
 

@@ -11,8 +11,8 @@ export const useExpandingInput = (value: string) => {
   const placeCursorAtEnd = useCallback(() => {
     if (!textareaRef.current) return;
     textareaRef.current.focus();
-    textareaRef.current.selectionStart = textareaRef.current.value.length ?? 0;
-    textareaRef.current.selectionEnd = textareaRef.current.value.length ?? 0;
+    textareaRef.current.selectionStart = textareaRef.current.value.length;
+    textareaRef.current.selectionEnd = textareaRef.current.value.length;
   }, []);
 
   useUpdateEffect(() => {

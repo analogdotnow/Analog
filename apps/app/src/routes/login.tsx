@@ -61,7 +61,7 @@ function Login() {
       toast.success("Magic link printed to the server logs");
     },
     onError: (error) => {
-      toast.error(error.message ?? "An unknown error occurred");
+      toast.error(error.message);
     },
   });
 

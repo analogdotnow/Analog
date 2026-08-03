@@ -72,7 +72,7 @@ export function DefaultCalendarPicker() {
       <Label htmlFor="default-calendar" className="sr-only">
         Default Calendar
       </Label>
-      <Select value={data?.defaultCalendar.id} onValueChange={onValueChange}>
+      <Select value={data.defaultCalendar.id} onValueChange={onValueChange}>
         <SelectTrigger
           id="default-calendar"
           className="w-fit max-w-full min-w-48"
@@ -80,7 +80,7 @@ export function DefaultCalendarPicker() {
           <SelectValue placeholder="Select default calendar" />
         </SelectTrigger>
         <SelectContent>
-          {data?.accounts.map((account) => (
+          {data.accounts.map((account) => (
             <SelectGroup key={account.id}>
               <SelectLabel className="py-1.5 text-xs">
                 {account.name}

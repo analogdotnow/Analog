@@ -3,7 +3,7 @@ import { Temporal } from "temporal-polyfill";
 import { mapWindowsToIanaTimeZone } from "./windows-timezones";
 
 export function isValidTimeZone(timeZone: string) {
-  if (!Intl || !Intl.DateTimeFormat().resolvedOptions().timeZone) {
+  if (!Intl.DateTimeFormat().resolvedOptions().timeZone) {
     throw new Error("Time zones are not available in this environment");
   }
 

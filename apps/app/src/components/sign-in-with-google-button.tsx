@@ -22,7 +22,7 @@ export function SignInWithGoogleButton() {
       return data;
     },
     onError: (error) => {
-      toast.error(error.message ?? "An unknown error occurred");
+      toast.error(error.message);
     },
   });
 

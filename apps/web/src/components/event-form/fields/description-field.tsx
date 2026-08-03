@@ -22,7 +22,7 @@ export function DescriptionField({
 
   const onTextareaChange = React.useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-      onChange?.(e.target.value);
+      onChange(e.target.value);
     },
     [onChange],
   );

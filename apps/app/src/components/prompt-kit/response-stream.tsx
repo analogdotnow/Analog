@@ -76,8 +76,6 @@ function useTextStream({
     if (modeRef.current === "typewriter") {
       if (normalizedSpeed < 25) return 1;
       return Math.max(1, Math.round((normalizedSpeed - 25) / 10));
-    } else if (modeRef.current === "fade") {
-      return 1;
     }
 
     return 1;
@@ -234,7 +232,7 @@ function useTextStream({
 
     if (typeof textStream === "string") {
       processStringTypewriter(textStream);
-    } else if (textStream) {
+    } else {
       processAsyncIterable(textStream);
     }
   }, [textStream, reset, processStringTypewriter, processAsyncIterable]);
@@ -388,7 +386,7 @@ function ResponseStream({
     }
   };
 
-  const Container = as as keyof React.JSX.IntrinsicElements;
+  const Container = as;
 
   return <Container className={className}>{renderContent()}</Container>;
 }

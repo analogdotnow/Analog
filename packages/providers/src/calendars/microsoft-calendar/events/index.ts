@@ -111,7 +111,7 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
       const endTime = timeMax.withTimeZone("UTC").toInstant().toString();
 
       const headers = {
-        Prefer: `outlook.timezone="${timeZone ?? "UTC"}", ${TEXT_BODY_PREFERENCE}`,
+        Prefer: `outlook.timezone="${timeZone}", ${TEXT_BODY_PREFERENCE}`,
       };
 
       const listPages = async (nextLink?: string): Promise<CalendarEvent[]> => {
@@ -184,7 +184,7 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
       const endTime = timeMax?.withTimeZone("UTC").toInstant().toString();
 
       const headers = {
-        Prefer: `outlook.timezone="${timeZone ?? "UTC"}", ${TEXT_BODY_PREFERENCE}`,
+        Prefer: `outlook.timezone="${timeZone}", ${TEXT_BODY_PREFERENCE}`,
       };
 
       let syncToken: string | undefined;
@@ -222,7 +222,7 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
         }
 
         for (const item of response.value ?? []) {
-          if (!item?.id) {
+          if (!item.id) {
             continue;
           }
 

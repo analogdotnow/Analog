@@ -91,7 +91,7 @@ export function parseConference(event: MicrosoftEvent): Conference | undefined {
       },
       meetingCode: event.onlineMeeting?.conferenceId ?? undefined,
     },
-    ...(phoneNumbers && phoneNumbers.length > 0
+    ...(phoneNumbers.length > 0
       ? {
           phone: phoneNumbers.map((number) => ({
             joinUrl: {

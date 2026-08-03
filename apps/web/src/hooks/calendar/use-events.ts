@@ -35,10 +35,6 @@ export function useSelectDisplayItems() {
 
   return React.useCallback(
     (data: RouterOutputs["events"]["list"]) => {
-      if (!data.events) {
-        return [];
-      }
-
       return data.events.map((event) =>
         createEventDisplayItem(event, defaultTimeZone),
       );

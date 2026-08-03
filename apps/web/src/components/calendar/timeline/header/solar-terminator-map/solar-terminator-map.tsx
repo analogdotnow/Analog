@@ -127,7 +127,7 @@ export function SolarTerminatorMap({
     if (terminator.length > 0) {
       // Go to right edge at same latitude
       dayCoords.push([180, terminator[terminator.length - 1]?.[1] || 0]);
-      if ((sunDeclination ?? 0) >= 0) {
+      if (sunDeclination >= 0) {
         // Close across the northern boundary when the sun is over the northern hemisphere
         dayCoords.push([180, 90]);
         dayCoords.push([-180, 90]);
@@ -156,7 +156,7 @@ export function SolarTerminatorMap({
         );
       });
 
-    return lineGenerator(dayCoords) + "Z" || "";
+    return lineGenerator(dayCoords) + "Z";
   }, [terminator, projection, sunDeclination]);
 
   return (

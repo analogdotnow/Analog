@@ -47,7 +47,7 @@ export function formatDate({ value, originalTimeZone }: FormatDateOptions) {
     dateTime: value.toPlainDateTime().toString(),
     timeZone:
       originalTimeZone?.parsed === value.timeZoneId
-        ? originalTimeZone?.raw
+        ? originalTimeZone.raw
         : value.timeZoneId,
   };
 }
