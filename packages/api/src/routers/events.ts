@@ -96,7 +96,7 @@ export const eventsRouter = createTRPCRouter({
           account.accountId === input.calendar.provider.accountId,
       );
 
-      if (!provider?.client) {
+      if (!provider) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: `Calendar client not found for providerAccountId: ${input.calendar.provider.accountId}`,
@@ -148,7 +148,7 @@ export const eventsRouter = createTRPCRouter({
           account.accountId === input.calendar.provider.accountId,
       );
 
-      if (!provider?.client) {
+      if (!provider) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: `Calendar client not found for providerAccountId: ${input.calendar.provider.accountId}`,
@@ -177,7 +177,7 @@ export const eventsRouter = createTRPCRouter({
   create: calendarProcedure
     .input(
       createEventInputSchema.extend({
-        sendUpdate: z.boolean().optional().default(true),
+        sendUpdate: z.boolean().default(true),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -186,7 +186,7 @@ export const eventsRouter = createTRPCRouter({
           account.accountId === input.calendar.provider.accountId,
       );
 
-      if (!provider?.client) {
+      if (!provider) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: `Calendar client not found for providerAccountId: ${input.calendar.provider.accountId}`,
@@ -216,7 +216,7 @@ export const eventsRouter = createTRPCRouter({
     .input(
       z.object({
         data: patchEventInputSchema,
-        sendUpdate: z.boolean().optional().default(true),
+        sendUpdate: z.boolean().default(true),
         move: z
           .object({
             source: z.object({
@@ -247,7 +247,7 @@ export const eventsRouter = createTRPCRouter({
             account.accountId === data.calendar.provider.accountId,
         );
 
-        if (!provider?.client) {
+        if (!provider) {
           throw new TRPCError({
             code: "NOT_FOUND",
             message: `Calendar client not found for providerAccountId: ${data.calendar.provider.accountId}`,
@@ -416,7 +416,7 @@ export const eventsRouter = createTRPCRouter({
           }),
         }),
         eventId: z.string(),
-        sendUpdate: z.boolean().optional().default(true),
+        sendUpdate: z.boolean().default(true),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -425,7 +425,7 @@ export const eventsRouter = createTRPCRouter({
           account.accountId === input.calendar.provider.accountId,
       );
 
-      if (!provider?.client) {
+      if (!provider) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: `Calendar client not found for providerAccountId: ${input.calendar.provider.accountId}`,
@@ -458,7 +458,7 @@ export const eventsRouter = createTRPCRouter({
           }),
         }),
         eventId: z.string(),
-        sendUpdate: z.boolean().optional().default(true),
+        sendUpdate: z.boolean().default(true),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -549,7 +549,7 @@ export const eventsRouter = createTRPCRouter({
           account.accountId === input.calendar.provider.accountId,
       );
 
-      if (!provider?.client) {
+      if (!provider) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: `Calendar client not found for providerAccountId: ${input.calendar.provider.accountId}`,

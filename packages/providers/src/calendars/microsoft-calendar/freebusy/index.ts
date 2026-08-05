@@ -10,8 +10,8 @@ import type {
   CalendarProviderFreeBusyQueryOptions,
 } from "../../../interfaces/providers";
 import { ProviderError } from "../../../lib/provider-error";
-import { toMicrosoftDate } from "../utils";
-import { parseScheduleItem } from "./utils";
+import { formatDate } from "../events/format";
+import { parseScheduleItem } from "./parse";
 
 const MAX_SCHEDULES_PER_REQUEST = 20;
 
@@ -72,8 +72,8 @@ export class MicrosoftCalendarFreeBusy implements CalendarProviderFreeBusy {
             await this.client.users.calendar.getSchedule({
               userId: "me",
               schedules: batch,
-              startTime: toMicrosoftDate({ value: timeMin }),
-              endTime: toMicrosoftDate({ value: timeMax }),
+              startTime: formatDate({ value: timeMin }),
+              endTime: formatDate({ value: timeMax }),
             }),
           ),
         ),

@@ -17,8 +17,8 @@ export function parseScheduleItemStatus(status: ScheduleItem["status"]) {
 
 export function parseScheduleItem(item: ScheduleItem) {
   return {
-    start: parseDateTime(item.start!.dateTime!, item.start!.timeZone!),
-    end: parseDateTime(item.end!.dateTime!, item.end!.timeZone!),
+    start: parseDateTime(item.start.dateTime, item.start.timeZone),
+    end: parseDateTime(item.end.dateTime, item.end.timeZone),
     status: parseScheduleItemStatus(item.status),
   };
 }

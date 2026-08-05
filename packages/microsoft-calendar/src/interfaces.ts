@@ -27,6 +27,13 @@ export interface DeltaCollectionResponse<T> extends CollectionResponse<T> {
   "@odata.deltaLink"?: string | null;
 }
 
+export interface DeltaRemovedEvent {
+  id: string;
+  "@removed": {
+    reason: "deleted";
+  };
+}
+
 export type ODataCountResponse = number;
 
 export interface Attachment extends Entity {
@@ -52,7 +59,7 @@ export interface Attachment extends Entity {
   [key: string]: unknown;
 }
 
-export interface AttachmentCollectionResponse extends CollectionResponse<Attachment> {}
+export type AttachmentCollectionResponse = CollectionResponse<Attachment>;
 
 export interface AttachmentItem {
   attachmentType: AttachmentType;
@@ -103,7 +110,7 @@ export interface Calendar extends Entity {
   [key: string]: unknown;
 }
 
-export interface CalendarCollectionResponse extends CollectionResponse<Calendar> {}
+export type CalendarCollectionResponse = CollectionResponse<Calendar>;
 
 export type CalendarColor =
   | "auto"
@@ -126,7 +133,7 @@ export interface CalendarGroup extends Entity {
   [key: string]: unknown;
 }
 
-export interface CalendarGroupCollectionResponse extends CollectionResponse<CalendarGroup> {}
+export type CalendarGroupCollectionResponse = CollectionResponse<CalendarGroup>;
 
 export interface CalendarPermission extends Entity {
   allowedRoles?: CalendarRoleType[];
@@ -137,7 +144,8 @@ export interface CalendarPermission extends Entity {
   [key: string]: unknown;
 }
 
-export interface CalendarPermissionCollectionResponse extends CollectionResponse<CalendarPermission> {}
+export type CalendarPermissionCollectionResponse =
+  CollectionResponse<CalendarPermission>;
 
 export type CalendarRoleType =
   | "none"
@@ -149,9 +157,12 @@ export type CalendarRoleType =
   | "delegateWithPrivateEventAccess"
   | "custom";
 
+// Graph's OpenAPI marks every field optional. The docs only define dateTime and
+// timeZone; both are expected when the type is present.
+// https://learn.microsoft.com/en-us/graph/api/resources/datetimetimezone
 export interface DateTimeTimeZone {
-  dateTime?: string;
-  timeZone?: string | null;
+  dateTime: string;
+  timeZone: string;
   [key: string]: unknown;
 }
 
@@ -175,13 +186,19 @@ export interface Entity {
   [key: string]: unknown;
 }
 
+// Graph's OpenAPI marks every field optional. Calendar event docs always
+// expect start and end on GET/create; PATCH sends Partial<Event> with only
+// changed fields. Caveat: a $select that leaves out start or end returns
+// objects this type overpromises on — select both, or treat the response as
+// partial.
+// https://learn.microsoft.com/en-us/graph/api/resources/event
 export interface Event extends OutlookItem {
   allowNewTimeProposals?: boolean | null;
   attendees?: Attendee[];
   body?: ItemBody;
   bodyPreview?: string | null;
   cancelledOccurrences?: string[];
-  end?: DateTimeTimeZone;
+  end: DateTimeTimeZone;
   hasAttachments?: boolean | null;
   hideAttendees?: boolean | null;
   iCalUId?: string | null;
@@ -210,7 +227,7 @@ export interface Event extends OutlookItem {
   sensitivity?: Sensitivity;
   seriesMasterId?: string | null;
   showAs?: FreeBusyStatus;
-  start?: DateTimeTimeZone;
+  start: DateTimeTimeZone;
   subject?: string | null;
   transactionId?: string | null;
   type?: EventType;
@@ -225,7 +242,7 @@ export interface Event extends OutlookItem {
   [key: string]: unknown;
 }
 
-export interface EventCollectionResponse extends CollectionResponse<Event> {}
+export type EventCollectionResponse = CollectionResponse<Event>;
 
 export type EventType =
   | "singleInstance"
@@ -237,7 +254,7 @@ export interface Extension extends Entity {
   [key: string]: unknown;
 }
 
-export interface ExtensionCollectionResponse extends CollectionResponse<Extension> {}
+export type ExtensionCollectionResponse = CollectionResponse<Extension>;
 
 export interface FreeBusyError {
   message?: string | null;
@@ -292,8 +309,12 @@ export type LocationUniqueIdType =
   | "private"
   | "bing";
 
+// Graph's OpenAPI marks every field optional. Create docs require id and
+// value for each property in multiValueExtendedProperties.
+// https://learn.microsoft.com/en-us/graph/api/multivaluelegacyextendedproperty-post-multivalueextendedproperties?view=graph-rest-1.0
 export interface MultiValueLegacyExtendedProperty extends Entity {
-  value?: (string | null)[];
+  id: string;
+  value: (string | null)[];
   [key: string]: unknown;
 }
 
@@ -330,17 +351,24 @@ export interface OutlookItem extends Entity {
   [key: string]: unknown;
 }
 
+// Graph's OpenAPI marks both as optional (the type is shared with access
+// reviews, which omit pattern for one-time reviews). For calendar events,
+// both are required when recurrence is set.
+// https://learn.microsoft.com/en-us/graph/outlook-schedule-recurring-events
 export interface PatternedRecurrence {
-  pattern?: RecurrencePattern;
-  range?: RecurrenceRange;
+  pattern: RecurrencePattern;
+  range: RecurrenceRange;
   [key: string]: unknown;
 }
 
+// Graph's OpenAPI marks every field optional. The docs only define number and
+// type; both are expected on a phone entry.
+// https://learn.microsoft.com/en-us/graph/api/resources/phone?view=graph-rest-1.0
 export interface Phone {
   language?: string | null;
-  number?: string | null;
+  number: string;
   region?: string | null;
-  type?: PhoneType;
+  type: PhoneType;
   [key: string]: unknown;
 }
 
@@ -365,19 +393,25 @@ export interface PhysicalAddress {
   [key: string]: unknown;
 }
 
+// Graph's OpenAPI marks emailAddress optional. The docs only define
+// emailAddress; it is expected on a recipient.
+// https://learn.microsoft.com/en-us/graph/api/resources/recipient
 export interface Recipient {
-  emailAddress?: EmailAddress;
+  emailAddress: EmailAddress;
   [key: string]: unknown;
 }
 
+// Graph's OpenAPI marks every field optional. Docs require type and interval
+// for every pattern; other fields are required only for specific types.
+// https://learn.microsoft.com/en-us/graph/api/resources/recurrencepattern
 export interface RecurrencePattern {
   dayOfMonth?: number;
   daysOfWeek?: DayOfWeek[];
   firstDayOfWeek?: DayOfWeek;
   index?: WeekIndex;
-  interval?: number;
+  interval: number;
   month?: number;
-  type?: RecurrencePatternType;
+  type: RecurrencePatternType;
   [key: string]: unknown;
 }
 
@@ -389,12 +423,15 @@ export type RecurrencePatternType =
   | "absoluteYearly"
   | "relativeYearly";
 
+// Graph's OpenAPI marks every field optional. Docs require type and startDate
+// for every range; endDate / numberOfOccurrences depend on type.
+// https://learn.microsoft.com/en-us/graph/api/resources/recurrencerange
 export interface RecurrenceRange {
   endDate?: string | null;
   numberOfOccurrences?: number;
   recurrenceTimeZone?: string | null;
-  startDate?: string | null;
-  type?: RecurrenceRangeType;
+  startDate: string;
+  type: RecurrenceRangeType;
   [key: string]: unknown;
 }
 
@@ -424,38 +461,54 @@ export interface ScheduleInformation {
   [key: string]: unknown;
 }
 
+// Graph's OpenAPI marks every field optional. Docs mark only isPrivate,
+// location, and subject as optional; start, end, and status are expected.
+// https://learn.microsoft.com/en-us/graph/api/resources/scheduleitem
 export interface ScheduleItem {
-  end?: DateTimeTimeZone;
+  end: DateTimeTimeZone;
   isPrivate?: boolean | null;
   location?: string | null;
-  start?: DateTimeTimeZone;
-  status?: FreeBusyStatus;
+  start: DateTimeTimeZone;
+  status: FreeBusyStatus;
   subject?: string | null;
   [key: string]: unknown;
 }
 
 export type Sensitivity = "normal" | "personal" | "private" | "confidential";
 
+// Graph's OpenAPI marks id/value optional (id via Entity). Create docs require
+// both id and value for each property in the collection.
+// https://learn.microsoft.com/en-us/graph/api/singlevaluelegacyextendedproperty-post-singlevalueextendedproperties?view=graph-rest-1.0
 export interface SingleValueLegacyExtendedProperty extends Entity {
-  value?: string | null;
+  id: string;
+  value: string;
   [key: string]: unknown;
 }
 
+// Graph's OpenAPI marks every field optional. The docs only define start and
+// end; both are expected on a time slot.
+// https://learn.microsoft.com/en-us/graph/api/resources/timeslot
 export interface TimeSlot {
-  end?: DateTimeTimeZone;
-  start?: DateTimeTimeZone;
+  end: DateTimeTimeZone;
+  start: DateTimeTimeZone;
   [key: string]: unknown;
 }
 
+// Graph's OpenAPI marks name optional. Docs only define name; it is expected
+// when the type is present.
+// https://learn.microsoft.com/en-us/graph/api/resources/timezonebase
 export interface TimeZoneBase {
-  name?: string | null;
+  name: string;
   [key: string]: unknown;
 }
 
+// Graph's OpenAPI marks every field optional. createUploadSession always
+// returns uploadUrl, expirationDateTime, and nextExpectedRanges.
+// https://learn.microsoft.com/en-us/graph/api/attachment-createuploadsession?view=graph-rest-1.0
 export interface UploadSession {
-  expirationDateTime?: string | null;
-  nextExpectedRanges?: (string | null)[];
-  uploadUrl?: string | null;
+  expirationDateTime: string;
+  nextExpectedRanges: string[];
+  uploadUrl: string;
   [key: string]: unknown;
 }
 

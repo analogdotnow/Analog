@@ -34,15 +34,10 @@ export function useSelectDisplayItems() {
   const defaultTimeZone = useDefaultTimeZone();
 
   return React.useCallback(
-    (data: RouterOutputs["events"]["list"]) => {
-      if (!data.events) {
-        return [];
-      }
-
-      return data.events.map((event) =>
+    (data: RouterOutputs["events"]["list"]) =>
+      data.events.map((event) =>
         createEventDisplayItem(event, defaultTimeZone),
-      );
-    },
+      ),
     [defaultTimeZone],
   );
 }

@@ -2,14 +2,13 @@ import { createOpenApiFetchHandler } from "trpc-to-openapi";
 
 import { appRouter, createContext } from "@repo/api";
 
-const handler = (req: Request) => {
-  return createOpenApiFetchHandler({
+const handler = (req: Request) =>
+  createOpenApiFetchHandler({
     endpoint: "/api/v1",
     req,
     router: appRouter,
     createContext: () => createContext({ headers: req.headers }),
   });
-};
 
 export {
   handler as GET,

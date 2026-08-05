@@ -14,12 +14,14 @@ export function DatePicker() {
 
   const displayedDays = useDisplayedDays();
 
-  const displayedMonth = React.useMemo(() => {
-    return Temporal.PlainYearMonth.from({
-      year: currentDate.year,
-      month: currentDate.month,
-    });
-  }, [currentDate.year, currentDate.month]);
+  const displayedMonth = React.useMemo(
+    () =>
+      Temporal.PlainYearMonth.from({
+        year: currentDate.year,
+        month: currentDate.month,
+      }),
+    [currentDate.year, currentDate.month],
+  );
 
   const calendarRef = React.useRef<HTMLDivElement>(null);
 

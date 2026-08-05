@@ -3,7 +3,7 @@ import { Temporal } from "temporal-polyfill";
 import type { CalendarFreeBusy } from "../../../interfaces";
 import type { GoogleCalendarFreeBusyResponse } from "../interfaces";
 
-export function parseGoogleCalendarFreeBusy(
+export function parseFreeBusy(
   response: GoogleCalendarFreeBusyResponse,
 ): CalendarFreeBusy[] {
   return Object.entries(response.calendars).map<CalendarFreeBusy>(

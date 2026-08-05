@@ -54,9 +54,7 @@ export function RecurrenceField({
     return baseEvent?.recurrence;
   }, [value, baseEvent?.recurrence]);
 
-  const timeZone = React.useMemo(() => {
-    return date.timeZoneId;
-  }, [date]);
+  const timeZone = React.useMemo(() => date.timeZoneId, [date]);
 
   const recurrence = useRecurrence({
     recurrence: displayRecurrence ?? undefined,
@@ -75,7 +73,7 @@ export function RecurrenceField({
           <Button
             id={id}
             variant="ghost"
-            disabled={disabled || !!recurringEventId}
+            disabled={disabled || Boolean(recurringEventId)}
             className={cn(
               "flex h-8 w-full justify-start focus:bg-accent-light focus-visible:bg-accent-light data-[state=open]:bg-accent-light data-[state=open]:dark:bg-accent-light",
               className,

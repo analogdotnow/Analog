@@ -53,9 +53,7 @@ export function CalendarField({
   const trpc = useTRPC();
   const { data } = useQuery(trpc.calendars.list.queryOptions());
 
-  const items = React.useMemo(() => {
-    return data?.accounts ?? [];
-  }, [data]);
+  const items = React.useMemo(() => data?.accounts ?? [], [data]);
 
   const onSelect = React.useCallback(
     (calendar: Calendar) => {
@@ -65,11 +63,13 @@ export function CalendarField({
     [onChange, onBlur],
   );
 
-  const selected = React.useMemo(() => {
-    return data?.accounts
-      .flatMap((item) => item.calendars)
-      .find((item) => item.id === value.id);
-  }, [data, value]);
+  const selected = React.useMemo(
+    () =>
+      data?.accounts
+        .flatMap((item) => item.calendars)
+        .find((item) => item.id === value.id),
+    [data, value],
+  );
 
   return (
     <CalendarListPicker items={items} onSelect={onSelect} value={selected}>

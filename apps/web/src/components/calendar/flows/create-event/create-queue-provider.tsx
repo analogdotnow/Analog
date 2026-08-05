@@ -38,12 +38,14 @@ export function CreateQueueProvider({ children }: CreateQueueProviderProps) {
     [createMutation, removeOptimisticAction],
   );
 
-  const logic = React.useMemo(() => {
-    return createCreateQueueMachine({
-      createEvent,
-      removeOptimisticAction,
-    });
-  }, [createEvent, removeOptimisticAction]);
+  const logic = React.useMemo(
+    () =>
+      createCreateQueueMachine({
+        createEvent,
+        removeOptimisticAction,
+      }),
+    [createEvent, removeOptimisticAction],
+  );
 
   return (
     <CreateQueueContext.Provider logic={logic}>

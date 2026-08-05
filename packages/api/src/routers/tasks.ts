@@ -12,7 +12,7 @@ export const tasksRouter = createTRPCRouter({
         ({ account }) => account.accountId === input.provider.accountId,
       );
 
-      if (!provider?.client) {
+      if (!provider) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: `Task client not found for providerAccountId: ${input.provider.accountId}`,

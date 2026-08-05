@@ -2,6 +2,7 @@ import type {
   Calendar,
   DateTimeTimeZone,
   DeltaCollectionResponse,
+  DeltaRemovedEvent,
   Event,
   EventCollectionResponse,
   MicrosoftCalendarRequestOptions,
@@ -52,7 +53,9 @@ export interface GroupEventDeltaInput extends MicrosoftCalendarRequestOptions {
   expand?: string[];
 }
 
-export type GroupEventDeltaResponse = DeltaCollectionResponse<Event>;
+export type GroupEventDeltaResponse = DeltaCollectionResponse<
+  Event | DeltaRemovedEvent
+>;
 
 export interface GroupDeleteEventInput extends MicrosoftCalendarRequestOptions {
   groupId: string;
@@ -72,7 +75,7 @@ export type GroupGetEventResponse = Event;
 export interface GroupUpdateEventInput extends MicrosoftCalendarRequestOptions {
   groupId: string;
   eventId: string;
-  event: Event;
+  event: Partial<Event>;
 }
 
 export type GroupUpdateEventResponse = Event;

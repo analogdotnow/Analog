@@ -1,11 +1,13 @@
 import type {
   ConferenceDataInput,
   CreateConferenceRequest,
+  EntryPoint,
+  EntryPointInput,
 } from "@analog/google-calendar";
 import { detectMeetingLink } from "@analog/meeting-links";
 
-import type { Conference } from "../../../../interfaces";
-import type { GoogleCalendarEvent } from "../../interfaces";
+import type { Conference } from "../../interfaces";
+import type { GoogleCalendarEvent } from "./interfaces";
 
 function parseConferenceRequestStatus(status?: string) {
   if (status === "pending" || status === "success" || status === "failure") {
@@ -123,7 +125,7 @@ function isCreatingConferenceRequest(
   return createRequest.status?.statusCode !== "success";
 }
 
-export function parseConferenceData(
+export function parseConference(
   event: GoogleCalendarEvent,
 ): Conference | undefined {
   if (isCreatingConferenceRequest(event.conferenceData?.createRequest)) {
@@ -212,7 +214,7 @@ export function parseConferenceData(
   };
 }
 
-export function toConferenceData(
+export function formatConference(
   conference: Conference,
 ): ConferenceDataInput | undefined {
   if (conference.type === "conference") {
@@ -225,6 +227,73 @@ export function toConferenceData(
       conferenceSolutionKey: {
         type: "hangoutsMeet",
       },
+    },
+  };
+}
+
+function formatEntryPointInput(entryPoint: EntryPoint): EntryPointInput {
+  return {
+    accessCode: entryPoint.accessCode,
+    entryPointFeatures: entryPoint.entryPointFeatures,
+    entryPointType: entryPoint.entryPointType!,
+    label: entryPoint.label,
+    meetingCode: entryPoint.meetingCode,
+    passcode: entryPoint.passcode,
+    password: entryPoint.password,
+    pin: entryPoint.pin,
+    regionCode: entryPoint.regionCode,
+    uri: entryPoint.uri!,
+  };
+}
+
+export function formatConferenceInput(
+  conferenceData: GoogleCalendarEvent["conferenceData"],
+): ConferenceDataInput | undefined {
+  if (!conferenceData) {
+    return undefined;
+  }
+
+  // A createRequest with status "success" is a completed conference (see
+  // isCreatingConferenceRequest above), so copy it instead of re-echoing the
+  // request.
+  if (
+    (!conferenceData.createRequest ||
+      conferenceData.createRequest.status?.statusCode === "success") &&
+    conferenceData.entryPoints?.length
+  ) {
+    const [entryPoint, ...entryPoints] = conferenceData.entryPoints;
+
+    return {
+      ...conferenceData,
+      conferenceSolution: {
+        iconUri: conferenceData.conferenceSolution?.iconUri,
+        key: {
+          type: conferenceData.conferenceSolution!.key!.type!,
+        },
+        name: conferenceData.conferenceSolution?.name,
+      },
+      entryPoints: [
+        formatEntryPointInput(entryPoint!),
+        ...entryPoints.map(formatEntryPointInput),
+      ],
+    };
+  }
+
+  if (!conferenceData.createRequest) {
+    return undefined;
+  }
+
+  // Re-sending the same requestId is an idempotent no-op that keeps a
+  // conferenceData body present; omitting it would clear the conference
+  // because updates always send conferenceDataVersion=1.
+  return {
+    createRequest: {
+      requestId: conferenceData.createRequest.requestId!,
+      ...(conferenceData.createRequest.conferenceSolutionKey?.type && {
+        conferenceSolutionKey: {
+          type: conferenceData.createRequest.conferenceSolutionKey.type,
+        },
+      }),
     },
   };
 }

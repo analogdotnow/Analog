@@ -13,7 +13,7 @@ import type {
   CalendarProviderCalendarsUpdateOptions,
 } from "../../../interfaces/providers";
 import { ProviderError } from "../../../lib/provider-error";
-import { parseMicrosoftCalendar } from "./utils";
+import { parseCalendar } from "./parse";
 
 export class MicrosoftCalendarCalendars {
   constructor(
@@ -44,7 +44,7 @@ export class MicrosoftCalendarCalendars {
         response: CalendarCollectionResponse,
       ): Promise<Calendar[]> => {
         const calendars = (response.value ?? []).map((calendar) =>
-          parseMicrosoftCalendar({
+          parseCalendar({
             calendar,
             providerAccountId: this.providerAccountId,
           }),
@@ -98,7 +98,7 @@ export class MicrosoftCalendarCalendars {
         select,
       });
 
-      return parseMicrosoftCalendar({
+      return parseCalendar({
         calendar,
         providerAccountId: this.providerAccountId,
       });
@@ -116,7 +116,7 @@ export class MicrosoftCalendarCalendars {
         },
       });
 
-      return parseMicrosoftCalendar({
+      return parseCalendar({
         calendar: createdCalendar,
         providerAccountId: this.providerAccountId,
       });
@@ -133,7 +133,7 @@ export class MicrosoftCalendarCalendars {
         calendar: { name: calendar.name },
       });
 
-      return parseMicrosoftCalendar({
+      return parseCalendar({
         calendar: updatedCalendar,
         providerAccountId: this.providerAccountId,
       });

@@ -1,7 +1,7 @@
 import { GoogleCalendar } from "@analog/google-calendar";
 
-import { parseConferenceData } from "../calendars/google-calendar/events/conferences/utils";
-import { toGoogleCalendarEventInput } from "../calendars/google-calendar/events/utils";
+import { parseConference } from "../calendars/google-calendar/conferences";
+import { formatEventInput } from "../calendars/google-calendar/events/format";
 import type { Conference, ConferencingProvider } from "../interfaces";
 import type { ConferencingProviderCreateConferenceOptions } from "../interfaces/providers";
 import { ProviderError } from "../lib/provider-error";
@@ -38,7 +38,7 @@ export class GoogleMeetProvider implements ConferencingProvider {
       const updatedEvent = await this.client.events.update({
         calendarId,
         eventId,
-        ...toGoogleCalendarEventInput(existingEvent),
+        ...formatEventInput(existingEvent),
         conferenceData: {
           createRequest: {
             requestId: crypto.randomUUID(),
@@ -56,7 +56,7 @@ export class GoogleMeetProvider implements ConferencingProvider {
         throw new Error("Failed to create conference data");
       }
 
-      return parseConferenceData(updatedEvent)!;
+      return parseConference(updatedEvent)!;
     });
   }
 

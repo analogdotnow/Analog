@@ -108,13 +108,6 @@ export function accountToConferencingProvider(
 
   const Provider = supportedConferencingProviders[providerId];
 
-  if (!Provider) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: `Conferencing provider not supported: '${providerId}' for account '${activeAccount.providerId}' (providerAccountId: ${activeAccount.accountId})`,
-    });
-  }
-
   return new Provider({
     accessToken: activeAccount.accessToken,
     providerAccountId: activeAccount.accountId,

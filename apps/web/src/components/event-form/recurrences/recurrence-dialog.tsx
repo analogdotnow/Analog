@@ -110,9 +110,7 @@ export function RecurrenceDialog({
     },
   });
 
-  const min = React.useMemo(() => {
-    return toDate(start);
-  }, [start]);
+  const min = React.useMemo(() => toDate(start), [start]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
