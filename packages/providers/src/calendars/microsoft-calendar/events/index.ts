@@ -14,8 +14,6 @@ import type {
   MicrosoftCalendar,
 } from "@analog/microsoft-calendar";
 
-import type { MicrosoftEventMetadata } from "@repo/schemas";
-
 import type { CalendarEvent, CalendarEventSyncItem } from "../../../interfaces";
 import type {
   CalendarProviderEvents,
@@ -35,6 +33,31 @@ import type { FormatEventPatchOptions } from "./format";
 import { parseEvent } from "./parse";
 
 const MAX_EVENTS_PER_CALENDAR = 250;
+
+// The stored recurrenceTimeZone round-trips to Graph verbatim, but
+// originalStartTimeZone.raw can be a marker like "tzone://Microsoft/Custom"
+// that Graph rejects as a recurrenceTimeZone, so fall back on the parsed
+// IANA zone.
+function parseStoredRecurrenceTimeZone(
+  metadata: Record<string, unknown> | undefined,
+) {
+  if (typeof metadata?.recurrenceTimeZone === "string") {
+    return metadata.recurrenceTimeZone;
+  }
+
+  const originalStartTimeZone = metadata?.originalStartTimeZone;
+
+  if (
+    typeof originalStartTimeZone === "object" &&
+    originalStartTimeZone !== null &&
+    "parsed" in originalStartTimeZone &&
+    typeof originalStartTimeZone.parsed === "string"
+  ) {
+    return originalStartTimeZone.parsed;
+  }
+
+  return undefined;
+}
 const TEXT_BODY_PREFERENCE = 'outlook.body-content-type="text"';
 
 // Graph owns these properties; they are rejected or silently ignored when they
@@ -409,15 +432,11 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
           eventId: options.eventId,
         });
 
-        const metadata = existingEvent.metadata as
-          | MicrosoftEventMetadata
-          | undefined;
-
         return this.patchEvent(options, {
           startForRecurrence: existingEvent.start,
-          recurrenceTimeZone:
-            metadata?.recurrenceTimeZone ??
-            metadata?.originalStartTimeZone?.raw,
+          recurrenceTimeZone: parseStoredRecurrenceTimeZone(
+            existingEvent.metadata,
+          ),
         });
       }
 

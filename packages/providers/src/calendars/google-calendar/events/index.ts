@@ -314,17 +314,19 @@ export class GoogleCalendarEvents implements CalendarProviderEvents {
             : {
                 // An RSVP combined with an attendee edit merges into the
                 // patched list; attendeesOmitted would discard the edit.
-                attendees: event.attendees.map((attendee) =>
-                  attendee.email === selfEmail
-                    ? {
-                        ...formatAttendee(attendee),
-                        ...(response.comment !== undefined
-                          ? { comment: response.comment }
-                          : {}),
-                        responseStatus: formatAttendeeStatus(response.status),
-                      }
-                    : formatAttendee(attendee),
-                ),
+                attendees: event.attendees
+                  .filter((attendee) => attendee.email)
+                  .map((attendee) =>
+                    attendee.email === selfEmail
+                      ? {
+                          ...formatAttendee(attendee),
+                          ...(response.comment !== undefined
+                            ? { comment: response.comment }
+                            : {}),
+                          responseStatus: formatAttendeeStatus(response.status),
+                        }
+                      : formatAttendee(attendee),
+                  ),
               }
           : {}),
         sendUpdates: (response ? response.sendUpdate : sendUpdate)

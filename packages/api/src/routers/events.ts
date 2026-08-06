@@ -176,8 +176,7 @@ export const eventsRouter = createTRPCRouter({
     }),
   create: calendarProcedure
     .input(
-      // .extend() throws on schemas with refinements; safeExtend keeps them.
-      createEventInputSchema.safeExtend({
+      createEventInputSchema.extend({
         sendUpdate: z.boolean().default(true),
       }),
     )

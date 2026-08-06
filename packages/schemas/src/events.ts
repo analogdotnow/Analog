@@ -122,7 +122,7 @@ export const dateInputSchema = z.union([
 
 const attendeeSchema = z.object({
   id: z.string().optional(),
-  email: z.string().email(),
+  email: z.string().email().optional(),
   name: z.string().optional(),
   status: z.enum(["accepted", "tentative", "declined", "unknown"]),
   type: z.enum(["required", "optional", "resource"]),

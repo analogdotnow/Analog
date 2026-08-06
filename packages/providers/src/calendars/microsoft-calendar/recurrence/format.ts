@@ -115,6 +115,11 @@ function assertConvertibleRecurrence(recurrence: Recurrence) {
     );
   }
 
+  // RFC 7529: SKIP is only valid alongside RSCALE.
+  if (recurrence.skip && !recurrence.rscale) {
+    throw new RecurrenceConversionError("skip requires rscale");
+  }
+
   if (recurrence.byDay?.length && recurrence.byMonthDay?.length) {
     throw new RecurrenceConversionError(
       "byDay and byMonthDay cannot be combined",
@@ -130,6 +135,20 @@ function assertConvertibleRecurrence(recurrence: Recurrence) {
   ) {
     throw new RecurrenceConversionError(
       "bySetPos is only supported together with byDay for MONTHLY and YEARLY",
+    );
+  }
+
+  // Graph resolves "the {index} {weekday}" per listed day and takes the
+  // earliest match, while RFC 5545 counts one position across the combined
+  // day set; the two only agree at position 1.
+  if (
+    recurrence.bySetPos?.length &&
+    recurrence.byDay &&
+    recurrence.byDay.length > 1 &&
+    !(recurrence.bySetPos.length === 1 && recurrence.bySetPos[0] === 1)
+  ) {
+    throw new RecurrenceConversionError(
+      "bySetPos other than 1 requires a single byDay value",
     );
   }
 

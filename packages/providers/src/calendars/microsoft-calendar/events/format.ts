@@ -116,7 +116,9 @@ function formatAttendee(attendee: Attendee): MicrosoftEventAttendee {
 }
 
 function formatAttendees(event: CreateEventInput) {
-  return event.attendees?.map(formatAttendee);
+  return event.attendees
+    ?.filter((attendee) => attendee.email)
+    .map(formatAttendee);
 }
 
 function formatEventRecurrence(event: CreateEventInput) {
@@ -206,7 +208,11 @@ export function formatEventPatch(
       ? { sensitivity: formatSensitivity(event.visibility) }
       : {}),
     ...(event.attendees !== undefined
-      ? { attendees: event.attendees.map(formatAttendee) }
+      ? {
+          attendees: event.attendees
+            .filter((attendee) => attendee.email)
+            .map(formatAttendee),
+        }
       : {}),
     // Graph has no conference field to null out: clearing demotes the online
     // meeting via isOnlineMeeting=false with the provider reset to "unknown".

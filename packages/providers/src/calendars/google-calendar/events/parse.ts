@@ -111,9 +111,7 @@ function parseAttendees(event: GoogleCalendarEvent) {
     return [];
   }
 
-  const attendees = event.attendees
-    .filter((attendee) => attendee.email)
-    .map(parseAttendee);
+  const attendees = event.attendees.map(parseAttendee);
   const organizer = attendees.find((attendee) => attendee.organizer);
 
   if (!organizer) {
@@ -262,7 +260,7 @@ function parseAttendeeType(
 export function parseAttendee(attendee: GoogleCalendarEventAttendee): Attendee {
   return {
     id: attendee.id,
-    email: attendee.email!,
+    email: attendee.email,
     name: attendee.displayName,
     status: parseAttendeeStatus(attendee.responseStatus ?? "needsAction"),
     type: parseAttendeeType(attendee),

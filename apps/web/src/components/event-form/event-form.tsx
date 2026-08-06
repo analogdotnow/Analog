@@ -204,7 +204,7 @@ export function EventForm({ className }: EventFormProps) {
                             return (
                               <AttendeeListItem
                                 name={subField.state.value.name}
-                                email={subField.state.value.email}
+                                email={subField.state.value.email ?? ""}
                                 status={subField.state.value.status}
                                 type={subField.state.value.type}
                                 organizer={subField.state.value.organizer}

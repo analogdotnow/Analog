@@ -113,7 +113,9 @@ export function formatDate(
 
 export function formatAttendee(attendee: Attendee): EventAttendeeInput {
   return {
-    email: attendee.email,
+    // Invariant: callers filter out attendees without an email — Google
+    // rejects writes with attendees missing one.
+    email: attendee.email!,
     displayName: attendee.name,
     ...(attendee.type === "optional" ? { optional: true } : {}),
     ...(attendee.type === "resource" ? { resource: true } : {}),
@@ -141,7 +143,9 @@ function formatAttendees(event: CreateEventInput | UpdateEventPatch) {
     return undefined;
   }
 
-  return event.attendees.map(formatAttendee);
+  return event.attendees
+    .filter((attendee) => attendee.email)
+    .map(formatAttendee);
 }
 
 function formatEventConference(event: CreateEventInput | UpdateEventPatch) {

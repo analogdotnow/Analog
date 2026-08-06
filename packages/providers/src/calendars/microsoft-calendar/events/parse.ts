@@ -49,13 +49,7 @@ function parseVisibility(
 }
 
 function parseAttendees(event: MicrosoftEvent) {
-  // Graph marks emailAddress.address optional; the Attendee contract requires
-  // an email, so entries without one cannot be represented.
-  return (
-    event.attendees
-      ?.filter((attendee) => attendee.emailAddress?.address)
-      .map(parseAttendee) ?? []
-  );
+  return event.attendees?.map(parseAttendee) ?? [];
 }
 
 function parseResponseStatus(
@@ -146,10 +140,12 @@ function parseOnlineMeeting(event: MicrosoftEvent) {
     return {};
   }
 
-  const phones =
-    event.onlineMeeting.phones?.filter((phone) => phone.number && phone.type);
-  const tollFreeNumbers =
-    event.onlineMeeting.tollFreeNumbers?.filter((number) => number !== null);
+  const phones = event.onlineMeeting.phones?.filter(
+    (phone) => phone.number && phone.type,
+  );
+  const tollFreeNumbers = event.onlineMeeting.tollFreeNumbers?.filter(
+    (number) => number !== null,
+  );
 
   return {
     onlineMeeting: {
@@ -243,8 +239,8 @@ function parseAttendeeStatus(
 
 export function parseAttendee(attendee: MicrosoftEventAttendee): Attendee {
   return {
-    email: attendee.emailAddress.address!,
-    name: attendee.emailAddress.name ?? undefined,
+    email: attendee.emailAddress?.address ?? undefined,
+    name: attendee.emailAddress?.name ?? undefined,
     status: parseAttendeeStatus(attendee.status?.response),
     type: attendee.type!,
   };

@@ -1,5 +1,4 @@
 import type {
-  ConferenceDataCopyInput,
   ConferenceDataInput,
   CreateConferenceRequest,
   EntryPoint,
@@ -260,17 +259,22 @@ export function formatConferenceInput(
   if (
     (!conferenceData.createRequest ||
       conferenceData.createRequest.status?.statusCode === "success") &&
-    conferenceData.entryPoints?.length
+    conferenceData.entryPoints?.length &&
+    conferenceData.conferenceSolution
   ) {
+    const [entryPoint, ...entryPoints] = conferenceData.entryPoints;
+
     // Google documents copying an empty or unfamiliar-type conference by
     // echoing the response verbatim so it is neither modified nor cleared
     // (returning undefined would clear it, since updates always send
     // conferenceDataVersion=1).
-    if (!conferenceData.conferenceSolution?.key?.type) {
-      return conferenceData as ConferenceDataCopyInput;
+    if (!conferenceData.conferenceSolution.key?.type) {
+      return {
+        ...conferenceData,
+        conferenceSolution: conferenceData.conferenceSolution,
+        entryPoints: [entryPoint!, ...entryPoints],
+      };
     }
-
-    const [entryPoint, ...entryPoints] = conferenceData.entryPoints;
 
     return {
       ...conferenceData,
