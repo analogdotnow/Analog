@@ -151,7 +151,7 @@ export function formatEvent(event: CreateEventInput): MicrosoftEvent {
   };
 }
 
-interface FormatEventPatchOptions {
+export interface FormatEventPatchOptions {
   // Resolved master start for recurrence serialization; Graph requires
   // range.startDate to match the master event's start date, which a sparse
   // patch does not necessarily carry.
@@ -159,6 +159,10 @@ interface FormatEventPatchOptions {
     | Temporal.PlainDate
     | Temporal.Instant
     | Temporal.ZonedDateTime;
+  // Fallback resolved from the stored event when the sparse patch metadata
+  // carries no recurrenceTimeZone (first recurrence on a previously
+  // non-recurring event).
+  recurrenceTimeZone?: string;
 }
 
 export function formatEventPatch(
@@ -214,7 +218,7 @@ export function formatEventPatch(
     ...formatRecurrencePatch(
       event.recurrence,
       options.startForRecurrence ?? event.start,
-      metadata.recurrenceTimeZone,
+      metadata.recurrenceTimeZone ?? options.recurrenceTimeZone,
     ),
   };
 }

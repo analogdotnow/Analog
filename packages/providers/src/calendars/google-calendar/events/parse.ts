@@ -20,6 +20,8 @@ import type {
 const GMT_OFFSET =
   /^GMT(?<sign>[+-])(?<hours>\d{1,2})(?::?(?<minutes>[0-5]\d))?$/;
 
+const OFFSET_SUFFIX = /(?:[Zz]|[+-]\d{2}:?\d{2})$/;
+
 function parseTimeZone(timeZone: string) {
   // Normalize Google-style GMT offsets to IANA or UTC-compatible time zones
   if (!timeZone) {
@@ -54,6 +56,14 @@ function parseDate({ date }: GoogleCalendarDate) {
 }
 
 function parseDateTime({ dateTime, timeZone }: GoogleCalendarDateTime) {
+  // Google can return offset-less local dateTimes; Instant.from would throw,
+  // and only an accompanying timeZone makes them interpretable.
+  if (!OFFSET_SUFFIX.test(dateTime) && timeZone) {
+    return Temporal.PlainDateTime.from(dateTime).toZonedDateTime(
+      parseTimeZone(timeZone),
+    );
+  }
+
   const instant = Temporal.Instant.from(dateTime);
 
   if (!timeZone) {
@@ -101,7 +111,9 @@ function parseAttendees(event: GoogleCalendarEvent) {
     return [];
   }
 
-  const attendees = event.attendees.map(parseAttendee);
+  const attendees = event.attendees
+    .filter((attendee) => attendee.email)
+    .map(parseAttendee);
   const organizer = attendees.find((attendee) => attendee.organizer);
 
   if (!organizer) {

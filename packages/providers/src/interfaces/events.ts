@@ -241,5 +241,9 @@ export interface Recurrence {
 // CalendarEvent is a union over the allDay/start/end shapes, which `Omit` would
 // collapse into a single `allDay: boolean` object, so the required `attendees`
 // is intersected onto the union instead.
+// The structural type can only encode "attendees present" — isMeeting in
+// ../lib/events additionally requires another participant besides the
+// organizer, and parsed events always carry an attendees array (possibly
+// empty).
 export type Meeting = CalendarEvent &
   Required<Pick<CalendarEvent, "attendees">>;

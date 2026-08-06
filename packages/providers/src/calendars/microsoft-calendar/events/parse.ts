@@ -49,7 +49,13 @@ function parseVisibility(
 }
 
 function parseAttendees(event: MicrosoftEvent) {
-  return event.attendees?.map(parseAttendee) ?? [];
+  // Graph marks emailAddress.address optional; the Attendee contract requires
+  // an email, so entries without one cannot be represented.
+  return (
+    event.attendees
+      ?.filter((attendee) => attendee.emailAddress?.address)
+      .map(parseAttendee) ?? []
+  );
 }
 
 function parseResponseStatus(
@@ -132,11 +138,51 @@ function parseEventRecurrence(event: MicrosoftEvent) {
   return { recurrence };
 }
 
+// Graph returns onlineMeeting: null on non-Teams events, and null fails the
+// microsoft branch of the metadata schema union — keep the key absent and
+// carry only schema-known fields so the round-tripped metadata validates.
+function parseOnlineMeeting(event: MicrosoftEvent) {
+  if (!event.onlineMeeting) {
+    return {};
+  }
+
+  const phones =
+    event.onlineMeeting.phones?.filter((phone) => phone.number && phone.type);
+  const tollFreeNumbers =
+    event.onlineMeeting.tollFreeNumbers?.filter((number) => number !== null);
+
+  return {
+    onlineMeeting: {
+      ...(event.onlineMeeting.conferenceId
+        ? { conferenceId: event.onlineMeeting.conferenceId }
+        : {}),
+      ...(event.onlineMeeting.joinUrl
+        ? { joinUrl: event.onlineMeeting.joinUrl }
+        : {}),
+      ...(phones?.length
+        ? {
+            phones: phones.map((phone) => ({
+              number: phone.number,
+              type: phone.type,
+            })),
+          }
+        : {}),
+      ...(event.onlineMeeting.quickDial
+        ? { quickDial: event.onlineMeeting.quickDial }
+        : {}),
+      ...(tollFreeNumbers?.length ? { tollFreeNumbers } : {}),
+      ...(event.onlineMeeting.tollNumber
+        ? { tollNumber: event.onlineMeeting.tollNumber }
+        : {}),
+    },
+  };
+}
+
 function parseMetadata(event: MicrosoftEvent) {
   return {
     ...parseOriginalStartTimeZone(event),
     ...parseOriginalEndTimeZone(event),
-    onlineMeeting: event.onlineMeeting,
+    ...parseOnlineMeeting(event),
     ...parseRecurrenceTimeZone(event),
   };
 }

@@ -65,6 +65,11 @@ export function parseRecurrence(
         ...(pattern.dayOfMonth !== undefined
           ? { byMonthDay: [pattern.dayOfMonth] }
           : {}),
+        // Graph clamps to the month's last day in short months; RFC 7529
+        // SKIP=BACKWARD (which requires RSCALE) declares the same semantics.
+        ...(pattern.dayOfMonth !== undefined && pattern.dayOfMonth > 28
+          ? { rscale: "GREGORIAN", skip: "BACKWARD" }
+          : {}),
       };
     case "relativeMonthly":
       return {
@@ -73,7 +78,16 @@ export function parseRecurrence(
         ...(byDay?.length ? { byDay } : {}),
         bySetPos: [WEEK_INDEX_MAP[pattern.index ?? "first"]],
       };
-    case "absoluteYearly":
+    case "absoluteYearly": {
+      // Days at or below this count occur every year in the given month, so
+      // Graph's last-day clamp can never fire for them.
+      const stableDays =
+        pattern.month === 2
+          ? 28
+          : pattern.month !== undefined && [4, 6, 9, 11].includes(pattern.month)
+            ? 30
+            : 31;
+
       return {
         ...shared,
         freq: "YEARLY",
@@ -81,7 +95,12 @@ export function parseRecurrence(
         ...(pattern.dayOfMonth !== undefined
           ? { byMonthDay: [pattern.dayOfMonth] }
           : {}),
+        // Same clamp as absoluteMonthly, against this month's stable day count.
+        ...(pattern.dayOfMonth !== undefined && pattern.dayOfMonth > stableDays
+          ? { rscale: "GREGORIAN", skip: "BACKWARD" }
+          : {}),
       };
+    }
     case "relativeYearly":
       return {
         ...shared,

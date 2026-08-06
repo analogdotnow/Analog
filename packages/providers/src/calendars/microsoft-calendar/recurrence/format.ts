@@ -97,7 +97,9 @@ function assertConvertibleRecurrence(recurrence: Recurrence) {
     unsupported.push(`rscale=${recurrence.rscale}`);
   }
 
-  if (recurrence.skip && recurrence.skip !== "OMIT") {
+  // BACKWARD matches Graph's own clamp-to-last-day behavior, so it converts
+  // losslessly; only FORWARD has no Microsoft equivalent.
+  if (recurrence.skip === "FORWARD") {
     unsupported.push(`skip=${recurrence.skip}`);
   }
 
@@ -113,8 +115,22 @@ function assertConvertibleRecurrence(recurrence: Recurrence) {
     );
   }
 
-  if (recurrence.freq === "WEEKLY" && recurrence.bySetPos?.length) {
-    throw new RecurrenceConversionError("bySetPos is not supported for WEEKLY");
+  if (recurrence.byDay?.length && recurrence.byMonthDay?.length) {
+    throw new RecurrenceConversionError(
+      "byDay and byMonthDay cannot be combined",
+    );
+  }
+
+  if (
+    recurrence.bySetPos?.length &&
+    !(
+      (recurrence.freq === "MONTHLY" || recurrence.freq === "YEARLY") &&
+      recurrence.byDay?.length
+    )
+  ) {
+    throw new RecurrenceConversionError(
+      "bySetPos is only supported together with byDay for MONTHLY and YEARLY",
+    );
   }
 
   if (
@@ -186,8 +202,9 @@ function formatRecurrencePattern(
       const dayOfMonth = recurrence.byMonthDay?.[0] ?? start.day;
 
       // RFC 5545 skips months without this day, but Outlook substitutes the
-      // month's last day, silently changing the rule's meaning.
-      if (dayOfMonth > 28) {
+      // month's last day, silently changing the rule's meaning — unless the
+      // rule declares that same clamp via RFC 7529 SKIP=BACKWARD.
+      if (dayOfMonth > 28 && recurrence.skip !== "BACKWARD") {
         throw new RecurrenceConversionError(
           `MONTHLY on day ${dayOfMonth} means "last day" in short months on Outlook, unlike the RFC rule`,
         );
@@ -223,11 +240,12 @@ function formatRecurrencePattern(
       const dayOfMonth = recurrence.byMonthDay?.[0] ?? start.day;
 
       // Same Outlook substitution as MONTHLY: Feb 29 and days beyond a fixed
-      // month's length roll to the month's last day instead of skipping.
+      // month's length roll to the month's last day instead of skipping —
+      // lossless only when the rule declares SKIP=BACKWARD.
       const stableDays =
         month === 2 ? 28 : [4, 6, 9, 11].includes(month) ? 30 : 31;
 
-      if (dayOfMonth > stableDays) {
+      if (dayOfMonth > stableDays && recurrence.skip !== "BACKWARD") {
         throw new RecurrenceConversionError(
           `YEARLY on month ${month}, day ${dayOfMonth} does not occur every year and rolls to the month's last day on Outlook`,
         );

@@ -211,7 +211,7 @@ export interface Event extends OutlookItem {
   isReminderOn?: boolean | null;
   location?: Location;
   locations?: Location[];
-  onlineMeeting?: OnlineMeetingInfo;
+  onlineMeeting?: OnlineMeetingInfo | null;
   onlineMeetingProvider?: OnlineMeetingProviderType;
   onlineMeetingUrl?: string | null;
   organizer?: Recipient;

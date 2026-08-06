@@ -14,6 +14,8 @@ import type {
   MicrosoftCalendar,
 } from "@analog/microsoft-calendar";
 
+import type { MicrosoftEventMetadata } from "@repo/schemas";
+
 import type { CalendarEvent, CalendarEventSyncItem } from "../../../interfaces";
 import type {
   CalendarProviderEvents,
@@ -29,6 +31,7 @@ import type {
 } from "../../../interfaces/providers";
 import { ProviderError } from "../../../lib/provider-error";
 import { formatEvent, formatEventPatch } from "./format";
+import type { FormatEventPatchOptions } from "./format";
 import { parseEvent } from "./parse";
 
 const MAX_EVENTS_PER_CALENDAR = 250;
@@ -406,22 +409,33 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
           eventId: options.eventId,
         });
 
-        return this.patchEvent(options, existingEvent.start);
+        const metadata = existingEvent.metadata as
+          | MicrosoftEventMetadata
+          | undefined;
+
+        return this.patchEvent(options, {
+          startForRecurrence: existingEvent.start,
+          recurrenceTimeZone:
+            metadata?.recurrenceTimeZone ??
+            metadata?.originalStartTimeZone?.raw,
+        });
       }
 
-      return this.patchEvent(options, options.event.start);
+      return this.patchEvent(options, {
+        startForRecurrence: options.event.start,
+      });
     });
   }
 
   private async patchEvent(
     { calendar, eventId, event }: CalendarProviderEventsUpdateOptions,
-    startForRecurrence: CalendarEvent["start"] | undefined,
+    patchOptions: FormatEventPatchOptions,
   ) {
     // First, perform the regular event update
     const updatedEvent = await this.eventsFor(calendar.id).update({
       userId: "me",
       eventId,
-      event: formatEventPatch(event, { startForRecurrence }),
+      event: formatEventPatch(event, patchOptions),
       ...(event.etag ? { ifMatch: event.etag } : {}),
       headers: { Prefer: TEXT_BODY_PREFERENCE },
     });
@@ -465,20 +479,17 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
 
         return;
       } catch (error) {
-        // Graph rejects the action with a client error when the event is not
-        // an organized meeting: fall back to deleting the event. Auth,
-        // throttling, server and network failures are transient and must
-        // surface instead of silently deleting without notifying anyone.
+        // Graph rejects cancel with 400 when the user does not organize the
+        // meeting (only the status and message are documented, no stable
+        // OData code) and with 404 when the event is not addressable through
+        // /me/events (calendars shared with the user resolve only through the
+        // calendar path); both mean cancel does not apply — fall back to
+        // deleting. Every other failure (auth, permission, conflict,
+        // throttling, server, network) must surface instead of silently
+        // deleting without notifying anyone.
         const status = error instanceof APIError ? error.status : undefined;
 
-        if (
-          status === undefined ||
-          status < 400 ||
-          status >= 500 ||
-          status === 401 ||
-          status === 408 ||
-          status === 429
-        ) {
+        if (status !== 400 && status !== 404) {
           throw error;
         }
       }
@@ -496,8 +507,13 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
     destinationCalendar,
     eventId,
     etag,
+    sendUpdate,
   }: CalendarProviderEventsMoveOptions) {
     return this.withErrorHandler("events.move", async () => {
+      if (sendUpdate === false) {
+        throw new Error("Microsoft Calendar does not support sendUpdate=false");
+      }
+
       // Graph cannot move an event between calendars, so copy it into the
       // destination calendar and delete the original. The source is read in UTC
       // so the copy keeps the absolute times of the original.
@@ -513,11 +529,26 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
         headers: { Prefer: TEXT_BODY_PREFERENCE },
       });
 
-      await this.eventsFor(sourceCalendar.id).delete({
-        userId: "me",
-        eventId,
-        ...(etag ? { ifMatch: etag } : {}),
-      });
+      try {
+        await this.eventsFor(sourceCalendar.id).delete({
+          userId: "me",
+          eventId,
+          ...(etag ? { ifMatch: etag } : {}),
+        });
+      } catch (error) {
+        // The copy already exists; remove it so a failed move does not leave
+        // the event in both calendars. The raw delete skips the cancel-first
+        // logic of delete(), which does not apply to an unsent copy.
+        if (createdEvent.id) {
+          await this.eventsFor(destinationCalendar.id)
+            .delete({ userId: "me", eventId: createdEvent.id })
+            .catch((rollbackError) =>
+              console.error("Failed to roll back move copy:", rollbackError),
+            );
+        }
+
+        throw error;
+      }
 
       return parseEvent({
         event: createdEvent,
