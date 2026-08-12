@@ -34,7 +34,7 @@ export const conferenceSchema = z.union([
   }),
 ]);
 
-const microsoftMetadataSchema = z.object({
+const microsoftMetadataSchema = z.strictObject({
   originalStartTimeZone: z
     .object({
       raw: z.string(),
@@ -79,7 +79,7 @@ const microsoftMetadataSchema = z.object({
   recurrenceTimeZone: z.string().optional(),
 });
 
-const googleMetadataSchema = z.object({
+const googleMetadataSchema = z.strictObject({
   conferenceData: z
     .object({
       conferenceId: z.string().optional(),

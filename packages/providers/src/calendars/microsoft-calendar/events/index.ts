@@ -14,7 +14,10 @@ import type {
   MicrosoftCalendar,
 } from "@analog/microsoft-calendar";
 
-import type { CalendarEvent, CalendarEventSyncItem } from "../../../interfaces";
+import type {
+  CalendarEventSyncItem,
+  MicrosoftCalendarEvent,
+} from "../../../interfaces";
 import type {
   CalendarProviderEvents,
   CalendarProviderEventsCreateOptions,
@@ -28,36 +31,13 @@ import type {
   CalendarProviderSyncResult,
 } from "../../../interfaces/providers";
 import { ProviderError } from "../../../lib/provider-error";
+import { RecurrenceConversionError } from "../recurrence/format";
 import { formatEvent, formatEventPatch } from "./format";
 import type { FormatEventPatchOptions } from "./format";
 import { parseEvent } from "./parse";
 
 const MAX_EVENTS_PER_CALENDAR = 250;
 
-// The stored recurrenceTimeZone round-trips to Graph verbatim, but
-// originalStartTimeZone.raw can be a marker like "tzone://Microsoft/Custom"
-// that Graph rejects as a recurrenceTimeZone, so fall back on the parsed
-// IANA zone.
-function parseStoredRecurrenceTimeZone(
-  metadata: Record<string, unknown> | undefined,
-) {
-  if (typeof metadata?.recurrenceTimeZone === "string") {
-    return metadata.recurrenceTimeZone;
-  }
-
-  const originalStartTimeZone = metadata?.originalStartTimeZone;
-
-  if (
-    typeof originalStartTimeZone === "object" &&
-    originalStartTimeZone !== null &&
-    "parsed" in originalStartTimeZone &&
-    typeof originalStartTimeZone.parsed === "string"
-  ) {
-    return originalStartTimeZone.parsed;
-  }
-
-  return undefined;
-}
 const TEXT_BODY_PREFERENCE = 'outlook.body-content-type="text"';
 
 // Graph owns these properties; they are rejected or silently ignored when they
@@ -146,7 +126,9 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
         Prefer: `outlook.timezone="${timeZone}", ${TEXT_BODY_PREFERENCE}`,
       };
 
-      const listPages = async (nextLink?: string): Promise<CalendarEvent[]> => {
+      const listPages = async (
+        nextLink?: string,
+      ): Promise<MicrosoftCalendarEvent[]> => {
         if (!nextLink) {
           const response = await this.calendarViewFor(calendar.id).list({
             userId: "me",
@@ -431,12 +413,19 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
           calendar: options.calendar,
           eventId: options.eventId,
         });
+        const recurrenceTimeZone =
+          existingEvent.metadata?.recurrenceTimeZone ??
+          existingEvent.metadata?.originalStartTimeZone?.parsed;
+
+        if (!recurrenceTimeZone) {
+          throw new RecurrenceConversionError(
+            "a recurrence change requires a supported event time zone",
+          );
+        }
 
         return this.patchEvent(options, {
           startForRecurrence: existingEvent.start,
-          recurrenceTimeZone: parseStoredRecurrenceTimeZone(
-            existingEvent.metadata,
-          ),
+          recurrenceTimeZone,
         });
       }
 

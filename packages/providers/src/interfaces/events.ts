@@ -1,5 +1,8 @@
 import type { Temporal } from "temporal-polyfill";
-import { GoogleEventMetadata, MicrosoftEventMetadata } from "@repo/schemas";
+import type {
+  GoogleEventMetadata,
+  MicrosoftEventMetadata,
+} from "@repo/schemas";
 
 type EventTime = Temporal.PlainDate | Temporal.Instant | Temporal.ZonedDateTime;
 
@@ -28,7 +31,6 @@ export type CalendarEvent<TTime extends EventTime = EventTime> = {
     status: AttendeeStatus;
     comment?: string | null;
   };
-  metadata?: Record<string, unknown>;
   conference?: Conference | null;
   recurrence?: Recurrence | null;
   recurringEventId?: string;
@@ -56,6 +58,12 @@ export type CalendarEvent<TTime extends EventTime = EventTime> = {
         metadata?: MicrosoftEventMetadata;
       }
   );
+
+export type MicrosoftCalendarEvent<TTime extends EventTime = EventTime> =
+  Extract<
+    CalendarEvent<TTime>,
+    { calendar: { provider: { id: "microsoft" } } }
+  >;
 
 export type AllDayEvent = CalendarEvent<Temporal.PlainDate>;
 export type TimedInstantEvent = CalendarEvent<Temporal.Instant>;

@@ -24,7 +24,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type { CalendarEvent } from "@/lib/interfaces";
+import type { Calendar, CalendarEvent } from "@/lib/interfaces";
 import { useTRPC } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
 import { isOnlineMeeting } from "@/lib/utils/events";
@@ -79,14 +79,36 @@ function EventContextMenuCalendarList({
   const updateAction = usePartialUpdateAction();
 
   const moveEvent = React.useCallback(
-    (calendar: {
-      id: string;
-      provider: { id: "google" | "microsoft"; accountId: string };
-    }) => {
+    (calendar: Calendar) => {
+      if (calendar.provider.id === "google") {
+        updateAction({
+          changes: {
+            id: event.id,
+            calendar: {
+              id: calendar.id,
+              provider: {
+                id: "google",
+                accountId: calendar.provider.accountId,
+              },
+            },
+            type: event.type,
+          },
+          notify: true,
+        });
+
+        return;
+      }
+
       updateAction({
         changes: {
           id: event.id,
-          calendar,
+          calendar: {
+            id: calendar.id,
+            provider: {
+              id: "microsoft",
+              accountId: calendar.provider.accountId,
+            },
+          },
           type: event.type,
         },
         notify: true,
@@ -108,9 +130,7 @@ function EventContextMenuCalendarList({
                     "--calendar-color": calendar.color,
                   }}
                   disabled={!canMoveBetweenCalendars(event, calendar)}
-                  onSelect={() =>
-                    moveEvent({ id: calendar.id, provider: calendar.provider })
-                  }
+                  onSelect={() => moveEvent(calendar)}
                 />
               </TooltipTrigger>
               <TooltipContent className="w-full max-w-48" sideOffset={8}>

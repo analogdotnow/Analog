@@ -5,11 +5,13 @@ import type {
 } from "@analog/microsoft-calendar";
 import { Temporal } from "temporal-polyfill";
 
+import type { MicrosoftEventMetadata } from "@repo/schemas";
+
 import type {
   Attendee,
   AttendeeStatus,
   Calendar,
-  CalendarEvent,
+  MicrosoftCalendarEvent,
 } from "../../../interfaces";
 import { parseConference } from "../conferences";
 import { parseRecurrence } from "../recurrence/parse";
@@ -21,28 +23,38 @@ function parseDate(date: string) {
 
 interface ParseEventOptions {
   calendar: Calendar;
-  event: MicrosoftEvent;
+  event: MicrosoftEvent & { "@odata.etag"?: string };
 }
 
-function parseStart(event: MicrosoftEvent) {
+function parseTime(event: MicrosoftEvent):
+  | {
+      allDay: true;
+      start: Temporal.PlainDate;
+      end: Temporal.PlainDate;
+    }
+  | {
+      allDay: false;
+      start: Temporal.ZonedDateTime;
+      end: Temporal.ZonedDateTime;
+    } {
   if (event.isAllDay) {
-    return parseDate(event.start.dateTime);
+    return {
+      allDay: true,
+      start: parseDate(event.start.dateTime),
+      end: parseDate(event.end.dateTime),
+    };
   }
 
-  return parseDateTime(event.start.dateTime, event.start.timeZone);
-}
-
-function parseEnd(event: MicrosoftEvent) {
-  if (event.isAllDay) {
-    return parseDate(event.end.dateTime);
-  }
-
-  return parseDateTime(event.end.dateTime, event.end.timeZone);
+  return {
+    allDay: false,
+    start: parseDateTime(event.start.dateTime, event.start.timeZone),
+    end: parseDateTime(event.end.dateTime, event.end.timeZone),
+  };
 }
 
 function parseVisibility(
   sensitivity: MicrosoftEvent["sensitivity"],
-): CalendarEvent["visibility"] {
+): MicrosoftCalendarEvent["visibility"] {
   if (sensitivity === "normal") return "default";
   if (sensitivity === "personal") return "private";
   return sensitivity;
@@ -174,7 +186,7 @@ function parseOnlineMeeting(event: MicrosoftEvent) {
   };
 }
 
-function parseMetadata(event: MicrosoftEvent) {
+function parseMetadata(event: MicrosoftEvent): MicrosoftEventMetadata {
   return {
     ...parseOriginalStartTimeZone(event),
     ...parseOriginalEndTimeZone(event),
@@ -186,14 +198,12 @@ function parseMetadata(event: MicrosoftEvent) {
 export function parseEvent({
   calendar,
   event,
-}: ParseEventOptions): CalendarEvent {
+}: ParseEventOptions): MicrosoftCalendarEvent {
   return {
     id: event.id!,
     title: event.subject!,
     description: event.body?.content ?? undefined,
-    start: parseStart(event),
-    end: parseEnd(event),
-    allDay: event.isAllDay ?? false,
+    ...parseTime(event),
     location: event.location?.displayName ?? undefined,
     availability: event.showAs === "free" ? "free" : "busy",
     visibility: parseVisibility(event.sensitivity),
@@ -202,7 +212,10 @@ export function parseEvent({
     etag: event["@odata.etag"],
     calendar: {
       id: calendar.id,
-      provider: calendar.provider,
+      provider: {
+        id: "microsoft",
+        accountId: calendar.provider.accountId,
+      },
     },
     readOnly: calendar.readOnly,
     conference: parseConference(event),
@@ -212,7 +225,7 @@ export function parseEvent({
     ...parseCreatedAt(event),
     ...parseUpdatedAt(event),
     metadata: parseMetadata(event),
-  } as CalendarEvent;
+  };
 }
 
 function parseAttendeeStatus(
