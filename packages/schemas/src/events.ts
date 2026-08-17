@@ -120,6 +120,8 @@ export const dateInputSchema = z.union([
   z.instanceof(Temporal.ZonedDateTime),
 ]);
 
+// Provider responses can contain attendees without email. Keep them through
+// the shared schema; provider formatters omit them when a write requires email.
 const attendeeSchema = z.object({
   id: z.string().optional(),
   email: z.string().email().optional(),

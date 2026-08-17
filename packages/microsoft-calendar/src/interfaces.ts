@@ -186,11 +186,10 @@ export interface Entity {
   [key: string]: unknown;
 }
 
-// Graph's OpenAPI marks every field optional. Calendar event docs always
-// expect start and end on GET/create; PATCH sends Partial<Event> with only
-// changed fields. Caveat: a $select that leaves out start or end returns
-// objects this type overpromises on — select both, or treat the response as
-// partial.
+// Graph's OpenAPI marks every field optional. This type deliberately requires
+// start and end because unprojected GET/create responses include both. PATCH
+// sends Partial<Event> with only changed fields. A $select that omits start or
+// end returns a partial shape; callers must select both or use a partial type.
 // https://learn.microsoft.com/en-us/graph/api/resources/event
 export interface Event extends OutlookItem {
   allowNewTimeProposals?: boolean | null;
