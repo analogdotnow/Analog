@@ -5,12 +5,14 @@ import { jotaiStore } from "@/atoms/store";
 import { useCreateAction } from "@/components/calendar/flows/create-event/use-create-action";
 import { useUpdateAction } from "@/components/calendar/flows/update-event/use-update-action";
 import {
+  deferredStageTokensAtom,
   formAtom,
   isPristineAtom,
   pendingFieldPatchAtom,
 } from "@/components/event-form/atoms/form";
 import { FormValues } from "@/components/event-form/utils/schema";
 import { toCalendarEvent } from "@/components/event-form/utils/transform/output";
+import { releaseDeferredEdits } from "@/components/event-form/utils/use-update-form-state";
 import type { CalendarEvent } from "@/lib/interfaces";
 import type { OnWriteSuccess } from "../write-lane";
 import { useWriteLane } from "../write-lane-provider";
@@ -45,6 +47,7 @@ export function useResetFormAction() {
 }
 
 export function useSaveAction() {
+  const lane = useWriteLane();
   const createAction = useCreateAction();
   const updateAction = useUpdateAction();
 
@@ -60,6 +63,7 @@ export function useSaveAction() {
           event: toCalendarEvent({ values }),
           notify,
           onSuccess,
+          onCancel,
         });
 
         return;
@@ -73,6 +77,10 @@ export function useSaveAction() {
       // mid-save); no snapshot exists then.
       const snapshot = jotaiStore.get(formAtom).event;
       const previous = snapshot?.id === values.id ? snapshot : undefined;
+      // The edits deferred into the form so far are dirty fields of `values`,
+      // so this save carries them; their own previews are redundant once it
+      // is staged.
+      const deferred = jotaiStore.get(deferredStageTokensAtom);
 
       await updateAction({
         event: toCalendarEvent({ values, event: previous }),
@@ -81,8 +89,9 @@ export function useSaveAction() {
         onSuccess,
         onCancel,
       });
+      releaseDeferredEdits(lane, deferred);
     },
-    [createAction, updateAction],
+    [lane, createAction, updateAction],
   );
 
   return save;
@@ -101,15 +110,10 @@ export function useDiscardAction() {
 
   return React.useCallback(
     (form: Resettable) => {
-      const event = jotaiStore.get(formAtom).event;
-
       form.reset();
       setPendingFieldPatch(null);
       setIsPristine(true);
-
-      if (event) {
-        lane.restoreOverlay(event.id);
-      }
+      releaseDeferredEdits(lane);
     },
     [lane, setPendingFieldPatch, setIsPristine],
   );

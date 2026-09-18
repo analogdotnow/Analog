@@ -16,14 +16,20 @@ export function useCreateAction() {
 
   const update = React.useCallback(
     async (req: CreateQueueRequest) => {
+      const token = await lane.stage(req.event.id, {
+        kind: "create",
+        event: req.event,
+      });
+
       // The draft overlay is superseded by the lane overlay for this event.
       removeDraftOptimisticActionsByEventId(req.event.id);
-      lane.preview(req.event);
 
       const item: CreateQueueItem = {
         event: req.event,
+        token,
         notify: req.notify,
         onSuccess: req.onSuccess,
+        onCancel: req.onCancel,
       };
 
       actorRef.send({ type: "START", item });

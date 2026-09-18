@@ -20,6 +20,7 @@ import {
 import { getDefaultEvent } from "@/components/event-form/utils/defaults";
 import { useDefaultCalendar } from "@/hooks/calendar/use-default-calendar";
 import { getEventById } from "@/lib/db";
+import type { CalendarEvent } from "@/lib/interfaces";
 import {
   requiresAttendeeConfirmation,
   requiresRecurrenceConfirmation,
@@ -204,6 +205,10 @@ export function useEventForm() {
   const loadingEvent = EventFormStateContext.useSelector((snapshot) =>
     snapshot.matches("loading") ? snapshot.context.formEvent : null,
   );
+  // The last event hydrated or merged. Compared by identity instead of
+  // formAtom.event: a re-key writes the returned event into the atom before
+  // the save reports it, which must not pass for a hydration.
+  const hydratedRef = React.useRef<CalendarEvent | null>(null);
 
   // Safety net: if the initial LOAD is missed (e.g. window expands late), refetch
   // the selected event by id and force a LOAD so the form hydrates on first try.
@@ -231,7 +236,7 @@ export function useEventForm() {
   }, [actorRef, selectedEventId]);
 
   React.useEffect(() => {
-    if (!loadingEvent || formState.event === loadingEvent) {
+    if (!loadingEvent || hydratedRef.current === loadingEvent) {
       return;
     }
 
@@ -239,6 +244,8 @@ export function useEventForm() {
     if (loadingEvent.type === "draft" && !defaultCalendar) {
       return;
     }
+
+    hydratedRef.current = loadingEvent;
 
     if (formState.event?.id !== loadingEvent.id || isPristine) {
       setIsPristine(true);
@@ -250,10 +257,14 @@ export function useEventForm() {
     // Dirty form, same event: the incoming event becomes the diff baseline
     // and fills every field the user has not edited; dirty fields keep the
     // user's value and win on the next save. Defaults move with the baseline
-    // (TanStack's update() leaves a touched form's values alone).
+    // (TanStack's update() leaves a touched form's values alone). Identity
+    // is not a field the user edits, so a create's returned id and type are
+    // always taken.
     const values = parseValues(loadingEvent);
 
     setFormState({ event: loadingEvent, values });
+    form.setFieldValue("id", values.id, { dontUpdateMeta: true });
+    form.setFieldValue("type", values.type, { dontUpdateMeta: true });
     applyFieldPatch(
       form,
       values,

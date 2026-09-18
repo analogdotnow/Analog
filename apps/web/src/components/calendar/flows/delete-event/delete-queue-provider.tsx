@@ -27,10 +27,11 @@ export function DeleteQueueProvider({ children }: DeleteQueueProviderProps) {
             event: item.event,
             scope: item.scope,
             notify: item.notify,
+            token: item.token,
           });
         },
         cancel: (item) => {
-          lane.restoreOverlay(item.event.id);
+          lane.unstage(item.token);
         },
       }),
     [lane],

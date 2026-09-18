@@ -5,6 +5,7 @@ import { assign, setup } from "xstate";
 import { Guard } from "xstate/guards";
 
 import type { CalendarEvent } from "@/lib/interfaces";
+import type { StageToken } from "../write-lane";
 
 export interface DeleteQueueRequest {
   event: CalendarEvent;
@@ -14,6 +15,7 @@ export interface DeleteQueueRequest {
 
 export interface DeleteQueueItem {
   event: CalendarEvent;
+  token: StageToken;
   scope?: "series" | "instance";
   notify?: boolean;
 }

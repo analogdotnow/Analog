@@ -28,6 +28,8 @@ export interface CreateWrite {
   event: CalendarEvent;
   notify?: boolean;
   onSuccess?: OnWriteSuccess;
+  // The staged preview this write takes over.
+  token?: StageToken;
 }
 
 export interface UpdateWrite {
@@ -37,6 +39,7 @@ export interface UpdateWrite {
   scope?: Scope;
   notify?: boolean;
   onSuccess?: OnWriteSuccess;
+  token?: StageToken;
 }
 
 export interface DeleteWrite {
@@ -44,9 +47,21 @@ export interface DeleteWrite {
   event: CalendarEvent;
   scope?: Scope;
   notify?: boolean;
+  token?: StageToken;
 }
 
 export type Write = CreateWrite | UpdateWrite | DeleteWrite;
+
+// An edit shown on the calendar before it is written: waiting on a prompt,
+// or deferred into a dirty form until its next save.
+export type Staged =
+  | { kind: "create"; event: CalendarEvent }
+  | { kind: "update"; changes: EventChanges }
+  | { kind: "delete" };
+
+export interface StageToken {
+  readonly id: string;
+}
 
 type Pending =
   | {
@@ -66,14 +81,17 @@ type Pending =
 
 // One lane per event: `sent` is the write in flight, `pending` is every write
 // enqueued since, merged into one. `baseline` is the last server-confirmed
-// event (absent while the create has not returned yet). `generation` counts
-// the writes taken so a settle that started before a later write cannot
-// tear the lane down.
+// event (absent while the create has not returned yet, or for a draft that
+// only exists as overlays). `staged` are the previews riding on top of that
+// state; they keep the lane alive but are not its to write. `generation`
+// counts the writes taken so a settle that started before a later write
+// cannot tear the lane down.
 interface Lane {
   id: string;
   baseline: CalendarEvent | undefined;
   sent: Pending | undefined;
   pending: Pending | undefined;
+  staged: Map<StageToken, Staged>;
   generation: number;
 }
 
@@ -99,13 +117,15 @@ export interface WriteLane {
   enqueue: (write: Write) => Promise<void>;
   has: (eventId: string) => boolean;
   // The event as it will look once every queued write has landed; undefined
-  // when the lane is deleting it.
+  // when the lane is deleting it. Staged edits are not included, so this is
+  // what the form may treat as its baseline.
   current: (eventId: string) => CalendarEvent | undefined;
-  // Overlay an edit that is still waiting on a prompt (scope, notify).
-  preview: (event: CalendarEvent) => void;
-  previewDelete: (eventId: string) => void;
-  // Reset the overlay to the lane state after a prompt is cancelled.
-  restoreOverlay: (eventId: string) => void;
+  // The event as the calendar shows it: `current` plus every staged edit.
+  shown: (eventId: string) => CalendarEvent | undefined;
+  // Show an edit before it is written; the token hands it to the write that
+  // takes it over (`enqueue`) or drops it (`unstage`).
+  stage: (eventId: string, staged: Staged) => Promise<StageToken>;
+  unstage: (token: StageToken) => void;
 }
 
 function unreachable(value: never): never {
@@ -143,10 +163,13 @@ export function createWriteLane(initialDeps: WriteLaneDeps): WriteLane {
     return next ? resolve(next) : id;
   }
 
-  function overlayEvent(lane: Lane) {
-    let event = lane.baseline;
+  function project(
+    baseline: CalendarEvent | undefined,
+    writes: Iterable<Pending | Staged | undefined>,
+  ) {
+    let event = baseline;
 
-    for (const write of [lane.sent, lane.pending]) {
+    for (const write of writes) {
       if (!write) {
         continue;
       }
@@ -171,8 +194,18 @@ export function createWriteLane(initialDeps: WriteLaneDeps): WriteLane {
     return event;
   }
 
+  function overlayEvent(lane: Lane) {
+    return project(lane.baseline, [lane.sent, lane.pending]);
+  }
+
+  function shownEvent(lane: Lane) {
+    return project(overlayEvent(lane), lane.staged.values());
+  }
+
   function isDeleting(lane: Lane) {
-    return lane.sent?.kind === "delete" || lane.pending?.kind === "delete";
+    return [lane.sent, lane.pending, ...lane.staged.values()].some(
+      (write) => write?.kind === "delete",
+    );
   }
 
   function setOverlay(lane: Lane) {
@@ -182,7 +215,7 @@ export function createWriteLane(initialDeps: WriteLaneDeps): WriteLane {
       return;
     }
 
-    const event = overlayEvent(lane);
+    const event = shownEvent(lane);
 
     if (!event) {
       jotaiStore.set(removeOptimisticActionAtom, lane.id);
@@ -214,14 +247,27 @@ export function createWriteLane(initialDeps: WriteLaneDeps): WriteLane {
     });
   }
 
+  function register(id: string, baseline: CalendarEvent | undefined) {
+    const lane: Lane = {
+      id,
+      baseline,
+      sent: undefined,
+      pending: undefined,
+      staged: new Map(),
+      generation: 0,
+    };
+
+    lanes.set(id, lane);
+
+    return lane;
+  }
+
+  // Registers a lane from the stored event; undefined when there is none.
+  // Callers look the lane up synchronously first: yielding for the db read
+  // while a lane exists would let a `finish` resuming in the same tick tear
+  // that lane down underneath the write.
   async function laneFor(requestedId: string) {
     const id = resolve(requestedId);
-    const existing = lanes.get(id);
-
-    if (existing) {
-      return existing;
-    }
-
     const baseline = await getEventById(id);
 
     // Another enqueue may have registered the lane while the db read was
@@ -236,17 +282,37 @@ export function createWriteLane(initialDeps: WriteLaneDeps): WriteLane {
       return undefined;
     }
 
-    const lane: Lane = {
-      id,
-      baseline,
-      sent: undefined,
-      pending: undefined,
-      generation: 0,
-    };
+    return register(id, baseline);
+  }
 
-    lanes.set(id, lane);
+  async function stage(eventId: string, staged: Staged) {
+    const lane =
+      lanes.get(resolve(eventId)) ??
+      (await laneFor(eventId)) ??
+      register(resolve(eventId), undefined);
+    const token: StageToken = { id: lane.id };
 
-    return lane;
+    lane.staged.set(token, staged);
+    setOverlay(lane);
+
+    return token;
+  }
+
+  function unstage(token: StageToken) {
+    const lane = lanes.get(resolve(token.id));
+
+    if (!lane?.staged.delete(token)) {
+      return;
+    }
+
+    if (lane.sent || lane.pending || lane.staged.size > 0) {
+      setOverlay(lane);
+
+      return;
+    }
+
+    lanes.delete(lane.id);
+    jotaiStore.set(removeOptimisticActionAtom, lane.id);
   }
 
   function mergeUpdate(lane: Lane, write: UpdateWrite) {
@@ -284,55 +350,82 @@ export function createWriteLane(initialDeps: WriteLaneDeps): WriteLane {
     }
   }
 
+  function writeId(write: Write) {
+    return resolve(write.kind === "update" ? write.id : write.event.id);
+  }
+
+  // Nothing is queued when taking a write fails (the db read for the lane
+  // threw), so the overlay falls back to what the lane still shows.
   async function enqueue(write: Write) {
+    try {
+      await take(write);
+    } catch (error) {
+      toast.error(errorMessage(error));
+
+      const lane = lanes.get(writeId(write));
+
+      if (lane) {
+        setOverlay(lane);
+
+        return;
+      }
+
+      jotaiStore.set(removeOptimisticActionAtom, writeId(write));
+    }
+  }
+
+  async function take(write: Write) {
+    // The write owns the change from here; the preview goes with it.
+    if (write.token) {
+      lanes.get(resolve(write.token.id))?.staged.delete(write.token);
+    }
+
     switch (write.kind) {
       case "create": {
         const existing = lanes.get(resolve(write.event.id));
 
-        // The form still calls the event a draft until the create returns, so
-        // a second save in that window is an edit of the pending create, not
-        // another create.
         if (existing) {
-          const shown = overlayEvent(existing);
+          const owned = overlayEvent(existing);
 
-          if (!shown) {
+          // The form still calls the event a draft until the create returns,
+          // so a second save in that window is an edit of the pending create,
+          // not another create.
+          if (owned) {
+            mergeUpdate(existing, {
+              kind: "update",
+              id: existing.id,
+              changes: changedFields(write.event, owned),
+              notify: write.notify,
+              onSuccess: write.onSuccess,
+            });
+            setOverlay(existing);
+            void drain(existing);
+
             return;
           }
 
-          mergeUpdate(existing, {
-            kind: "update",
-            id: existing.id,
-            changes: changedFields(write.event, shown),
-            notify: write.notify,
-            onSuccess: write.onSuccess,
-          });
-          setOverlay(existing);
-          void drain(existing);
-
-          return;
+          // A queued delete wins over a late save; a lane holding only
+          // staged edits of the draft takes the create.
+          if (existing.sent || existing.pending) {
+            return;
+          }
         }
 
-        const lane: Lane = {
-          id: write.event.id,
-          baseline: undefined,
-          sent: undefined,
-          pending: {
-            kind: "create",
-            event: write.event,
-            notify: write.notify,
-            onSuccess: write.onSuccess ? [write.onSuccess] : [],
-          },
-          generation: 0,
-        };
+        const lane = existing ?? register(write.event.id, undefined);
 
-        lanes.set(lane.id, lane);
+        lane.pending = {
+          kind: "create",
+          event: write.event,
+          notify: write.notify,
+          onSuccess: write.onSuccess ? [write.onSuccess] : [],
+        };
         setOverlay(lane);
         void drain(lane);
 
         return;
       }
       case "update": {
-        const lane = await laneFor(write.id);
+        const lane = lanes.get(resolve(write.id)) ?? (await laneFor(write.id));
 
         if (!lane) {
           jotaiStore.set(removeOptimisticActionAtom, resolve(write.id));
@@ -348,12 +441,17 @@ export function createWriteLane(initialDeps: WriteLaneDeps): WriteLane {
         return;
       }
       case "delete": {
-        const lane = await laneFor(write.event.id);
+        const lane =
+          lanes.get(resolve(write.event.id)) ?? (await laneFor(write.event.id));
 
-        if (!lane) {
+        if (
+          !lane ||
+          (!lane.baseline && !lane.sent && lane.pending?.kind !== "create")
+        ) {
           // A draft only exists as overlays.
           const id = resolve(write.event.id);
 
+          lanes.delete(id);
           jotaiStore.set(removeDraftOptimisticActionsByEventIdAtom, id);
           jotaiStore.set(removeOptimisticActionAtom, id);
 
@@ -556,11 +654,17 @@ export function createWriteLane(initialDeps: WriteLaneDeps): WriteLane {
     const deps = getDeps();
     const generation = lane.generation;
 
-    if (lane.baseline) {
-      await deps.writeThrough(lane.baseline);
-    }
+    // The write itself succeeded; a failed cache refresh must still let the
+    // lane go, or the overlay would stay up for good.
+    try {
+      if (lane.baseline) {
+        await deps.writeThrough(lane.baseline);
+      }
 
-    await deps.settle();
+      await deps.settle();
+    } catch (error) {
+      toast.error(errorMessage(error));
+    }
 
     // A write taken while settling owns the lane now, and only its own
     // settle may tear the lane down. A lane re-created under the same id in
@@ -571,6 +675,14 @@ export function createWriteLane(initialDeps: WriteLaneDeps): WriteLane {
       lane.pending ||
       lanes.get(lane.id) !== lane
     ) {
+      return;
+    }
+
+    // Staged edits need the baseline to show against; the lane stays until
+    // they are taken or dropped.
+    if (lane.staged.size > 0) {
+      setOverlay(lane);
+
       return;
     }
 
@@ -589,19 +701,12 @@ export function createWriteLane(initialDeps: WriteLaneDeps): WriteLane {
 
       return lane ? overlayEvent(lane) : undefined;
     },
-    preview,
-    previewDelete,
-    restoreOverlay: (eventId) => {
-      const id = resolve(eventId);
-      const lane = lanes.get(id);
+    shown: (eventId) => {
+      const lane = lanes.get(resolve(eventId));
 
-      if (lane) {
-        setOverlay(lane);
-
-        return;
-      }
-
-      jotaiStore.set(removeOptimisticActionAtom, id);
+      return lane ? shownEvent(lane) : undefined;
     },
+    stage,
+    unstage,
   };
 }

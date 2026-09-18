@@ -29,10 +29,11 @@ export function UpdateQueueProvider({ children }: UpdateQueueProviderProps) {
             scope: item.scope,
             notify: item.notify,
             onSuccess: item.onSuccess,
+            token: item.token,
           });
         },
         cancel: (item) => {
-          lane.restoreOverlay(item.event.id);
+          lane.unstage(item.token);
           item.onCancel?.();
         },
       }),

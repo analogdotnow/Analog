@@ -5,18 +5,22 @@ import { assign, setup } from "xstate";
 import { Guard } from "xstate/guards";
 
 import type { CalendarEvent } from "@/lib/interfaces";
-import type { OnWriteSuccess } from "../write-lane";
+import type { OnWriteSuccess, StageToken } from "../write-lane";
 
 export interface CreateQueueRequest {
   event: CalendarEvent;
   notify?: boolean;
   onSuccess?: OnWriteSuccess;
+  // Called when the user dismisses the notify prompt for this create.
+  onCancel?: () => void;
 }
 
 export interface CreateQueueItem {
   event: CalendarEvent;
+  token: StageToken;
   notify?: boolean;
   onSuccess?: OnWriteSuccess;
+  onCancel?: () => void;
 }
 
 export function hasAttendees(event: CalendarEvent) {

@@ -1,5 +1,6 @@
 import { atom } from "jotai";
 
+import type { StageToken } from "@/components/calendar/flows/write-lane";
 import { initialValues } from "@/components/event-form/utils/defaults";
 import type { FormValues } from "@/components/event-form/utils/schema";
 import type { CalendarEvent } from "@/lib/interfaces";
@@ -26,6 +27,11 @@ export interface FieldPatch {
 // so they survive merges and are emitted on save. formAtom.values (the reset
 // baseline) is left untouched so Discard reverts them.
 export const pendingFieldPatchAtom = atom<FieldPatch | null>(null);
+
+// The lane previews of the edits deferred into the form. They stay up until
+// a save carries the edits out of the form, or a discard/rehydration drops
+// them.
+export const deferredStageTokensAtom = atom<StageToken[]>([]);
 
 export const isPristineAtom = atom(true);
 

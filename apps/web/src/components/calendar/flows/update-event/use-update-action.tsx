@@ -21,11 +21,12 @@ import type {
 import { UpdateQueueContext } from "./update-queue-provider";
 import { changedFields } from "./utils";
 
-// The event as the user currently sees it: lane state when a write is
-// queued, otherwise the draft overlay or the stored event.
+// The event as the user currently sees it: lane state (including staged
+// edits) when the lane knows the event, otherwise the draft overlay or the
+// stored event.
 async function getOptimisticEvent(lane: WriteLane, eventId: string) {
   if (lane.has(eventId)) {
-    return lane.current(eventId);
+    return lane.shown(eventId);
   }
 
   const action = jotaiStore.get(optimisticActionsByEventIdAtom)[eventId];
@@ -41,11 +42,14 @@ async function getOptimisticEvent(lane: WriteLane, eventId: string) {
   return action.event;
 }
 
+// Changes carry the id they were made under, which is stale after a re-key;
+// the event the lane shows has the current one.
 function applyChanges(
   event: CalendarEvent,
   changes: EventChanges,
 ): CalendarEvent {
   return Object.assign({}, event, changes, {
+    id: event.id,
     updatedAt: Temporal.Now.instant(),
   });
 }
@@ -91,13 +95,16 @@ export function usePartialUpdateAction() {
         return;
       }
 
-      lane.preview(event);
+      const token = await lane.stage(event.id, {
+        kind: "update",
+        changes: req.changes,
+      });
 
       // If the event is in the form and the form is not pristine, patch only
       // the form values: overwriting formAtom.event would bake the deferred
       // change into the diff baseline and silently drop it from the next save.
-      if (isInForm(req.changes.id) && !isFormPristine()) {
-        await updateFormValues(event, req.changes);
+      if (isInForm(event.id) && !isFormPristine()) {
+        await updateFormValues(event, req.changes, token);
 
         return;
       }
@@ -105,6 +112,7 @@ export function usePartialUpdateAction() {
       const item: UpdateQueueItem = {
         event,
         changes: req.changes,
+        token,
         scope: req.scope,
         notify: req.notify,
         onSuccess: req.onSuccess,
@@ -133,12 +141,13 @@ export function useUpdateAction() {
         ...req.event,
         updatedAt: Temporal.Now.instant(),
       };
-
-      lane.preview(event);
+      const changes = changedFields(event, previous);
+      const token = await lane.stage(event.id, { kind: "update", changes });
 
       const item: UpdateQueueItem = {
         event,
-        changes: changedFields(event, previous),
+        changes,
+        token,
         scope: req.scope,
         notify: req.notify,
         onSuccess: req.onSuccess,

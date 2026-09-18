@@ -27,10 +27,12 @@ export function CreateQueueProvider({ children }: CreateQueueProviderProps) {
             event: item.event,
             notify: item.notify,
             onSuccess: item.onSuccess,
+            token: item.token,
           });
         },
         cancel: (item) => {
-          lane.restoreOverlay(item.event.id);
+          lane.unstage(item.token);
+          item.onCancel?.();
         },
       }),
     [lane],

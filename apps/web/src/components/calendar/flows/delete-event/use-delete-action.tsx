@@ -11,10 +11,11 @@ export function useDeleteAction() {
 
   const update = React.useCallback(
     async (req: DeleteQueueRequest) => {
-      lane.previewDelete(req.event.id);
+      const token = await lane.stage(req.event.id, { kind: "delete" });
 
       const item: DeleteQueueItem = {
         event: req.event,
+        token,
         scope: req.scope,
         notify: req.notify,
       };

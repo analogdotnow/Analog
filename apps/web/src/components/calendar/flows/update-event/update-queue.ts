@@ -5,7 +5,7 @@ import { assign, setup } from "xstate";
 import { Guard } from "xstate/guards";
 
 import type { CalendarEvent, EventChanges } from "@/lib/interfaces";
-import type { OnWriteSuccess } from "../write-lane";
+import type { OnWriteSuccess, StageToken } from "../write-lane";
 
 export interface UpdateQueueRequest {
   changes: EventChanges & Required<Pick<CalendarEvent, "id">>;
@@ -28,11 +28,13 @@ export interface ReplaceQueueRequest {
   onCancel?: () => void;
 }
 
-// `event` is the event as it will look after the edit; it drives the prompts
-// and the overlay. `changes` is what actually gets written.
+// `event` is the event as it will look after the edit; it drives the prompts.
+// `changes` is what actually gets written, staged in the lane under `token`
+// while the prompts are open.
 export interface UpdateQueueItem {
   event: CalendarEvent;
   changes: EventChanges;
+  token: StageToken;
   scope?: "series" | "instance";
   notify?: boolean;
   onSuccess?: OnWriteSuccess;
