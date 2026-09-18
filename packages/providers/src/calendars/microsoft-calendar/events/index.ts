@@ -405,22 +405,11 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
         throw new Error("Microsoft Calendar does not support sendUpdate=false");
       }
 
-      try {
-        return await this.updateOnce(options);
-      } catch (error) {
-        // Graph answers 412 ErrorIrresolvableConflict when the changeKey moved
-        // under the PATCH, at times transiently on its own side. The patch is
-        // sparse, so resending it is already a rebase; retry once.
-        if (!(error instanceof APIError) || error.status !== 412) {
-          throw error;
-        }
-
-        return this.updateOnce(options);
-      }
+      return this.resolveAndPatch(options);
     });
   }
 
-  private async updateOnce(options: CalendarProviderEventsUpdateOptions) {
+  private async resolveAndPatch(options: CalendarProviderEventsUpdateOptions) {
     // Graph requires recurrence.range.startDate to match the master's start
     // date; a sparse patch that changes recurrence without moving the event
     // does not carry it, so resolve it from the stored event.
@@ -455,7 +444,7 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
     patchOptions: FormatEventPatchOptions,
   ) {
     // First, perform the regular event update
-    const updatedEvent = await this.eventsFor(calendar.id).update({
+    const updatedEvent = await this.sendPatch(calendar.id, {
       userId: "me",
       eventId,
       event: formatEventPatch(event, patchOptions),
@@ -478,6 +467,24 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
       event: updatedEvent,
       calendar,
     });
+  }
+
+  private async sendPatch(
+    calendarId: string,
+    patch: DefaultCalendarUpdateEventInput,
+  ) {
+    try {
+      return await this.eventsFor(calendarId).update(patch);
+    } catch (error) {
+      // Graph answers 412 ErrorIrresolvableConflict when the changeKey moved
+      // under the PATCH, at times transiently on its own side. The patch is
+      // sparse, so resending it is already a rebase; retry once.
+      if (!(error instanceof APIError) || error.status !== 412) {
+        throw error;
+      }
+
+      return this.eventsFor(calendarId).update(patch);
+    }
   }
 
   async delete({
