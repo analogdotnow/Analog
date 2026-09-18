@@ -225,9 +225,11 @@ export function useWeekRowItems(
     );
   }, [collection.itemsByDay, showWeekends, range.start, range.end]);
 
-  return useMemo(() => {
-    return placeIntoLanes(items, defaultTimeZone).map((lane) =>
-      lane.map((p) => p.item),
-    );
-  }, [items, defaultTimeZone]);
+  return useMemo(
+    () =>
+      placeIntoLanes(items, defaultTimeZone).map((lane) =>
+        lane.map((p) => p.item),
+      ),
+    [items, defaultTimeZone],
+  );
 }

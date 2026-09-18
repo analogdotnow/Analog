@@ -11,11 +11,13 @@ export function useMonthViewGridLayout() {
   const showWeekends = useCalendarStore((s) => s.viewPreferences.showWeekends);
   const days = useWeekDays();
 
-  return React.useMemo(() => {
-    const columnSizes = days.map((day) => {
-      return showWeekends || !isWeekend(day) ? "minmax(0,1fr)" : "0fr";
-    });
-
-    return columnSizes.join(" ");
-  }, [days, showWeekends]);
+  return React.useMemo(
+    () =>
+      days
+        .map((day) =>
+          showWeekends || !isWeekend(day) ? "minmax(0,1fr)" : "0fr",
+        )
+        .join(" "),
+    [days, showWeekends],
+  );
 }

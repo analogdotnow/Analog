@@ -32,7 +32,7 @@ export function ConnectedAccountsList() {
     );
   }
 
-  if (data?.accounts.length === 0) {
+  if (data.accounts.length === 0) {
     return (
       <div className="py-8 text-center text-muted-foreground">
         <p>No accounts connected yet.</p>
@@ -43,7 +43,7 @@ export function ConnectedAccountsList() {
 
   return (
     <ul className="flex flex-col gap-y-2">
-      {data?.accounts.map((account) => (
+      {data.accounts.map((account) => (
         <React.Fragment key={account.id}>
           <AccountListItem account={account} />
           <Separator className="last:hidden" />

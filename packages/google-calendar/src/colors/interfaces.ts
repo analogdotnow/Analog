@@ -12,6 +12,6 @@ export interface Colors {
   updated?: string;
 }
 
-export interface GetColorsInput extends GoogleCalendarRequestOptions {}
+export type GetColorsInput = GoogleCalendarRequestOptions;
 
 export type GetColorsResponse = Colors;

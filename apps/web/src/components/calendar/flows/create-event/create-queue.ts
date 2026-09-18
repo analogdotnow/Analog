@@ -20,7 +20,7 @@ export interface CreateQueueItem {
 }
 
 export function hasAttendees(event: CalendarEvent) {
-  return !!event.attendees && event.attendees.length > 0;
+  return (event.attendees?.length ?? 0) > 0;
 }
 
 export type CreateEvent = (item: CreateQueueItem) => Promise<unknown>;

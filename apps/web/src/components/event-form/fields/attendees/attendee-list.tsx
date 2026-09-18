@@ -37,10 +37,7 @@ interface AttendeeAvatarProps {
 
 function AttendeeAvatar({ name, email, className }: AttendeeAvatarProps) {
   const initials = React.useMemo(() => {
-    const initials =
-      name?.trim().length && name?.trim().length > 0
-        ? name?.charAt(0)
-        : email.charAt(0);
+    const initials = name?.trim() ? name.charAt(0) : email.charAt(0);
 
     return initials.toUpperCase();
   }, [name, email]);
@@ -70,7 +67,7 @@ function AttendeeInfo({
   organizer,
   className,
 }: AttendeeInfoProps) {
-  const showName = name?.trim()?.length && name?.trim().length > 0;
+  const showName = name?.trim().length && name.trim().length > 0;
 
   return (
     <div className={cn("flex min-w-0 grow flex-col select-none", className)}>
@@ -124,10 +121,6 @@ function AttendeeStatusIcon({ status, className }: AttendeeStatusProps) {
         return null;
     }
   };
-
-  if (!Icon) {
-    return null;
-  }
 
   return (
     <div

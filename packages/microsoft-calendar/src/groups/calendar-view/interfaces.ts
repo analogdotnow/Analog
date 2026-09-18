@@ -1,5 +1,6 @@
 import type {
   DeltaCollectionResponse,
+  DeltaRemovedEvent,
   Event,
   EventCollectionResponse,
   MicrosoftCalendarRequestOptions,
@@ -35,4 +36,6 @@ export interface GroupCalendarViewDeltaInput extends MicrosoftCalendarRequestOpt
   expand?: string[];
 }
 
-export type GroupCalendarViewDeltaResponse = DeltaCollectionResponse<Event>;
+export type GroupCalendarViewDeltaResponse = DeltaCollectionResponse<
+  Event | DeltaRemovedEvent
+>;

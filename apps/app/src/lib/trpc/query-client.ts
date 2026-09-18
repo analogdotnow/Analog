@@ -29,7 +29,7 @@ export function makeQueryClient() {
     },
     queryCache: new QueryCache({
       onError: (error) => {
-        console.error(error.message ?? "Something went wrong");
+        console.error(error.message);
       },
     }),
   });

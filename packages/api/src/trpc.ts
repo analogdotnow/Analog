@@ -42,10 +42,10 @@ export const createTRPCContext = async (opts: {
       ...opts,
       db,
       redis,
-      session: opts.session?.session,
-      user: opts.session?.user,
+      session: opts.session.session,
+      user: opts.session.user,
       rateLimit: {
-        id: opts.session?.user?.id ?? getIp(opts.headers),
+        id: opts.session.user.id,
       },
     };
   }
@@ -61,7 +61,7 @@ export const createTRPCContext = async (opts: {
     session: session?.session,
     user: session?.user,
     rateLimit: {
-      id: session?.user?.id ?? getIp(opts.headers),
+      id: session?.user.id ?? getIp(opts.headers),
     },
   };
 };
@@ -128,7 +128,7 @@ export const protectedProcedure = t.procedure
       ctx: {
         ...ctx,
         session: ctx.session!,
-        user: ctx.user!,
+        user: ctx.user,
       },
     });
   });

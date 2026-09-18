@@ -20,11 +20,11 @@ export interface DeleteQueueItem {
 }
 
 export function isRecurring(event: CalendarEvent) {
-  return !!event.recurringEventId;
+  return Boolean(event.recurringEventId);
 }
 
 export function hasAttendees(event: CalendarEvent) {
-  return !!event.attendees && event.attendees.length > 0;
+  return (event.attendees?.length ?? 0) > 0;
 }
 
 export type DeleteEvent = (item: DeleteQueueItem) => Promise<unknown>;

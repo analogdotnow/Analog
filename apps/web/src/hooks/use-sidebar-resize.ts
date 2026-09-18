@@ -99,11 +99,8 @@ export function useSidebarResize({
   );
 
   const isIncreasingWidth = React.useCallback(
-    (currentX: number, referenceX: number): boolean => {
-      return direction === "left"
-        ? currentX < referenceX
-        : currentX > referenceX;
-    },
+    (currentX: number, referenceX: number): boolean =>
+      direction === "left" ? currentX < referenceX : currentX > referenceX,
     [direction],
   );
 

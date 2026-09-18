@@ -2,8 +2,8 @@ import * as z from "zod";
 
 export const autocompleteInputSchema = z.object({
   input: z.string().min(1).max(256),
-  languageCode: z.string().optional().default("en"),
-  limit: z.number().int().min(1).max(10).optional().default(5),
+  languageCode: z.string().default("en"),
+  limit: z.number().int().min(1).max(10).default(5),
 });
 
 export const placeResultSchema = z.object({

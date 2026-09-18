@@ -68,7 +68,7 @@ export const handleUnlinkAccount = createAuthMiddleware(async (ctx) => {
     }
 
     const defaultAccount = await db.query.account.findFirst({
-      where: (table, { eq }) => eq(table.id, user!.defaultAccountId),
+      where: (table, { eq }) => eq(table.id, user.defaultAccountId),
     });
 
     if (defaultAccount?.accountId !== ctx.body?.accountId) {
@@ -76,7 +76,7 @@ export const handleUnlinkAccount = createAuthMiddleware(async (ctx) => {
     }
 
     const newDefaultAccount = await db.query.account.findFirst({
-      where: (table, { eq }) => eq(table.userId, user!.id),
+      where: (table, { eq }) => eq(table.userId, user.id),
     });
 
     if (!newDefaultAccount) {

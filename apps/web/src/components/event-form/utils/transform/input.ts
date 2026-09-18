@@ -5,7 +5,7 @@ import type {
   FormValues,
 } from "@/components/event-form/utils/schema";
 import type { Calendar, CalendarEvent, DraftEvent } from "@/lib/interfaces";
-import { createEventId, isDraftEvent } from "@/lib/utils/calendar";
+import { isDraftEvent } from "@/lib/utils/calendar";
 
 interface ParseDateTimeOptions {
   defaultTimeZone: string;
@@ -32,7 +32,7 @@ export function parseAttendees(
   return (
     event.attendees?.map((attendee) => ({
       id: attendee.id,
-      email: attendee.email ?? "",
+      email: attendee.email,
       status: attendee.status,
       type: attendee.type,
       name: attendee.name ?? "",
@@ -60,7 +60,7 @@ export function parseDraftEvent({
   const end = parseDateTime(event.end, { defaultTimeZone: timeZone });
 
   return {
-    id: event?.id ?? createEventId(),
+    id: event.id,
     type: "draft",
     title: event.title ?? "",
     start,
@@ -73,7 +73,7 @@ export function parseDraftEvent({
     recurringEventId: event.recurringEventId,
     attendees: parseAttendees(event),
     response: event.response,
-    calendar: event?.calendar ?? {
+    calendar: event.calendar ?? {
       id: defaultCalendar.id,
       provider: defaultCalendar.provider,
     },
@@ -103,7 +103,7 @@ export function parseCalendarEvent({
     end,
     location: event.location ?? "",
     description: event.description ?? "",
-    allDay: event.allDay ?? false,
+    allDay: event.allDay,
     availability: event.availability ?? "busy",
     recurrence: event.recurrence,
     recurringEventId: event.recurringEventId,

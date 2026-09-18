@@ -43,8 +43,6 @@ const renderToolPart = (
   part: ChatMessagePart,
   index: number,
 ): React.ReactNode => {
-  if (!part.type?.startsWith("tool-")) return null;
-
   return <Tool key={`${part.type}-${index}`} toolPart={part as ToolPart} />;
 };
 
@@ -52,7 +50,7 @@ export function MessageComponent({
   message,
   isLastMessage,
 }: MessageComponentProps) {
-  const isAssistant = message?.role === "assistant";
+  const isAssistant = message.role === "assistant";
 
   return (
     <Message
@@ -64,17 +62,17 @@ export function MessageComponent({
       {isAssistant ? (
         <div className="group flex w-full flex-col gap-0 space-y-2">
           <div className="w-full">
-            {message?.parts
-              .filter((part) => part.type?.startsWith("tool-"))
+            {message.parts
+              .filter((part) => part.type.startsWith("tool-"))
               .map((part, index) => renderToolPart(part, index))}
           </div>
           <MessageContent
             className="prose w-full min-w-0 flex-1 rounded-lg bg-transparent p-0 text-foreground"
             markdown
           >
-            {message?.parts
+            {message.parts
               .filter((part) => part.type === "text")
-              .map((part) => (part.type === "text" ? part.text : ""))
+              .map((part) => part.text)
               .join("")}
           </MessageContent>
 
@@ -104,7 +102,7 @@ export function MessageComponent({
       ) : (
         <div className="group flex w-full flex-col items-end gap-1">
           <MessageContent className="max-w-[85%] rounded-3xl bg-muted px-5 py-2.5 whitespace-pre-wrap text-primary sm:max-w-[75%]">
-            {message?.parts
+            {message.parts
               .map((part) => (part.type === "text" ? part.text : ""))
               .join("")}
           </MessageContent>
@@ -193,7 +191,7 @@ function ThreadChatbot() {
             </div>
           )}
 
-          {messages?.map((message, index) => {
+          {messages.map((message, index) => {
             const isLastMessage = index === messages.length - 1;
 
             return (

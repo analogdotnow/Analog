@@ -40,7 +40,7 @@ export type FormConference = z.infer<typeof conferenceSchema>;
 const attendeeSchema = z.object({
   id: z.string().optional(),
   name: z.string().optional(),
-  email: z.string(),
+  email: z.string().optional(),
   status: z.enum(["accepted", "declined", "tentative", "unknown"]),
   type: z.enum(["required", "optional", "resource"]),
   organizer: z.boolean().optional(),

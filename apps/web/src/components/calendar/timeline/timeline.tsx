@@ -41,9 +41,9 @@ function useHours(timeZone: string) {
 
     const start = startOfDay(date, { timeZone: defaultTimeZone });
 
-    const hours = HOURS.map((time) => {
-      return start.add({ hours: time.hour }).withTimeZone(timeZone);
-    });
+    const hours = HOURS.map((time) =>
+      start.add({ hours: time.hour }).withTimeZone(timeZone),
+    );
 
     return hours.map((hour) => ({
       label: formatTime({

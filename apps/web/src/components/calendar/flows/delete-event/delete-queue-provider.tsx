@@ -55,12 +55,14 @@ export function DeleteQueueProvider({ children }: DeleteQueueProviderProps) {
     [deleteMutation, removeOptimisticAction],
   );
 
-  const logic = React.useMemo(() => {
-    return createDeleteQueueMachine({
-      deleteEvent,
-      removeOptimisticAction,
-    });
-  }, [deleteEvent, removeOptimisticAction]);
+  const logic = React.useMemo(
+    () =>
+      createDeleteQueueMachine({
+        deleteEvent,
+        removeOptimisticAction,
+      }),
+    [deleteEvent, removeOptimisticAction],
+  );
 
   return (
     <DeleteQueueContext.Provider logic={logic}>

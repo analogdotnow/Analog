@@ -1,4 +1,8 @@
 import type { Temporal } from "temporal-polyfill";
+import type {
+  GoogleEventMetadata,
+  MicrosoftEventMetadata,
+} from "@repo/schemas";
 
 type EventTime = Temporal.PlainDate | Temporal.Instant | Temporal.ZonedDateTime;
 
@@ -21,25 +25,45 @@ export type CalendarEvent<TTime extends EventTime = EventTime> = {
   color?: string | null;
   visibility?: "default" | "public" | "private" | "confidential";
   readOnly: boolean;
-  calendar: {
-    id: string;
-    provider: {
-      id: "google" | "microsoft";
-      accountId: string;
-    };
-  };
   createdAt?: Temporal.Instant;
   updatedAt?: Temporal.Instant;
   response?: {
     status: AttendeeStatus;
     comment?: string | null;
   };
-  metadata?: Record<string, unknown>;
   conference?: Conference | null;
   recurrence?: Recurrence | null;
   recurringEventId?: string;
   type?: "draft" | "event";
-} & TimeFields<TTime>;
+} & TimeFields<TTime> &
+  (
+    | {
+        calendar: {
+          id: string;
+          provider: {
+            id: "google";
+            accountId: string;
+          };
+        };
+        metadata?: GoogleEventMetadata;
+      }
+    | {
+        calendar: {
+          id: string;
+          provider: {
+            id: "microsoft";
+            accountId: string;
+          };
+        };
+        metadata?: MicrosoftEventMetadata;
+      }
+  );
+
+export type MicrosoftCalendarEvent<TTime extends EventTime = EventTime> =
+  Extract<
+    CalendarEvent<TTime>,
+    { calendar: { provider: { id: "microsoft" } } }
+  >;
 
 export type AllDayEvent = CalendarEvent<Temporal.PlainDate>;
 export type TimedInstantEvent = CalendarEvent<Temporal.Instant>;
@@ -173,7 +197,7 @@ export interface ConferenceData {
 
 export interface Attendee {
   id?: string;
-  email: string;
+  email?: string;
   name?: string;
   status: "accepted" | "tentative" | "declined" | "unknown";
   type: "required" | "optional" | "resource";
@@ -237,3 +261,13 @@ export interface Recurrence {
   rscale?: RScale;
   skip?: "OMIT" | "BACKWARD" | "FORWARD";
 }
+
+// CalendarEvent is a union over the allDay/start/end shapes, which `Omit` would
+// collapse into a single `allDay: boolean` object, so the required `attendees`
+// is intersected onto the union instead.
+// The structural type can only encode "attendees present" — isMeeting in
+// ../lib/events additionally requires another participant besides the
+// organizer, and parsed events always carry an attendees array (possibly
+// empty).
+export type Meeting = CalendarEvent &
+  Required<Pick<CalendarEvent, "attendees">>;

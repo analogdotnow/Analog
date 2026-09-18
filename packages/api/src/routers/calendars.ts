@@ -19,7 +19,7 @@ export const calendarsRouter = createTRPCRouter({
         ({ account }) => account.accountId === input.provider.accountId,
       );
 
-      if (!provider?.client) {
+      if (!provider) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: `Calendar client not found for providerAccountId: ${input.provider.accountId}`,
@@ -129,7 +129,7 @@ export const calendarsRouter = createTRPCRouter({
         ({ account }) => account.accountId === input.provider.accountId,
       );
 
-      if (!provider?.client) {
+      if (!provider) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: `Calendar client not found for providerAccountId: ${input.provider.accountId}`,
@@ -159,7 +159,7 @@ export const calendarsRouter = createTRPCRouter({
         ({ account }) => account.accountId === input.provider.accountId,
       );
 
-      if (!provider?.client) {
+      if (!provider) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: `Calendar client not found for providerAccountId: ${input.provider.accountId}`,
@@ -208,7 +208,7 @@ export const calendarsRouter = createTRPCRouter({
         ({ account }) => account.accountId === input.provider.accountId,
       );
 
-      if (!provider?.client) {
+      if (!provider) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: `Calendar client not found for providerAccountId: ${input.provider.accountId}`,

@@ -26,11 +26,13 @@ export function EventFormStateProvider({
     return item;
   }, []);
 
-  const logic = React.useMemo(() => {
-    return createEventFormMachine({
-      updateEvent,
-    });
-  }, [updateEvent]);
+  const logic = React.useMemo(
+    () =>
+      createEventFormMachine({
+        updateEvent,
+      }),
+    [updateEvent],
+  );
 
   return (
     <EventFormStateContext.Provider logic={logic}>

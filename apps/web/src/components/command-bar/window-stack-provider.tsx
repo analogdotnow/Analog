@@ -49,9 +49,10 @@ export function WindowStackProvider({ children }: WindowStackProviderProps) {
     ];
   }, [selectedEvents]);
 
-  const windows = React.useMemo<StackWindowEntry[]>(() => {
-    return [...eventWindows, ...stack];
-  }, [eventWindows, stack]);
+  const windows = React.useMemo<StackWindowEntry[]>(
+    () => [...eventWindows, ...stack],
+    [eventWindows, stack],
+  );
 
   const [activeWindowId, setActiveWindowId] = React.useState<string | null>(
     () => windows[0]?.id ?? null,

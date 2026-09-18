@@ -2,15 +2,15 @@ import type { Calendar as MicrosoftCalendar } from "@analog/microsoft-calendar";
 
 import type { Calendar } from "../../../interfaces";
 
-interface ParseMicrosoftCalendarOptions {
+interface ParseCalendarOptions {
   providerAccountId: string;
   calendar: MicrosoftCalendar;
 }
 
-export function parseMicrosoftCalendar({
+export function parseCalendar({
   providerAccountId,
   calendar,
-}: ParseMicrosoftCalendarOptions): Calendar {
+}: ParseCalendarOptions): Calendar {
   return {
     id: calendar.id!,
     name: calendar.name!,

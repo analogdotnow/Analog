@@ -34,7 +34,7 @@ export const conferenceSchema = z.union([
   }),
 ]);
 
-const microsoftMetadataSchema = z.object({
+const microsoftMetadataSchema = z.strictObject({
   originalStartTimeZone: z
     .object({
       raw: z.string(),
@@ -79,7 +79,7 @@ const microsoftMetadataSchema = z.object({
   recurrenceTimeZone: z.string().optional(),
 });
 
-const googleMetadataSchema = z.object({
+const googleMetadataSchema = z.strictObject({
   conferenceData: z
     .object({
       conferenceId: z.string().optional(),
@@ -120,9 +120,11 @@ export const dateInputSchema = z.union([
   z.instanceof(Temporal.ZonedDateTime),
 ]);
 
+// Provider responses can contain attendees without email. Keep them through
+// the shared schema; provider formatters omit them when a write requires email.
 const attendeeSchema = z.object({
   id: z.string().optional(),
-  email: z.string().email(),
+  email: z.string().email().optional(),
   name: z.string().optional(),
   status: z.enum(["accepted", "tentative", "declined", "unknown"]),
   type: z.enum(["required", "optional", "resource"]),

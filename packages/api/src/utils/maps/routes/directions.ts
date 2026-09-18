@@ -290,9 +290,7 @@ export async function directions(input: DirectionsInput) {
         ...(leg.duration
           ? {
               duration: {
-                trafficAware: leg.duration
-                  ? parseDuration(leg.duration)
-                  : undefined,
+                trafficAware: parseDuration(leg.duration),
                 static: leg.staticDuration
                   ? parseDuration(leg.staticDuration)
                   : undefined,

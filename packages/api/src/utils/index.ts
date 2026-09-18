@@ -16,7 +16,7 @@ export function findProviderOrThrow(
     ({ account }) => account.accountId === providerAccountId,
   );
 
-  if (!provider?.client) {
+  if (!provider) {
     throw new TRPCError({
       code: "NOT_FOUND",
       message: `Could not find provider for providerAccountId: ${providerAccountId}`,

@@ -1,15 +1,15 @@
 import type { Calendar } from "../../../interfaces";
 import type { GoogleCalendarCalendarListEntry } from "../interfaces";
 
-interface ParsedGoogleCalendarCalendarListEntryOptions {
+interface ParseCalendarOptions {
   providerAccountId: string;
   entry: GoogleCalendarCalendarListEntry;
 }
 
-export function parseGoogleCalendarCalendarListEntry({
+export function parseCalendar({
   providerAccountId,
   entry,
-}: ParsedGoogleCalendarCalendarListEntryOptions): Calendar {
+}: ParseCalendarOptions): Calendar {
   return {
     id: entry.id!,
     name: entry.summaryOverride ?? entry.summary!,

@@ -207,17 +207,19 @@ export function useLiveEventById(id: string) {
     [id],
   );
 
-  return React.useMemo(() => {
-    return result ? mapEventQuery(result) : undefined;
-  }, [result]);
+  return React.useMemo(
+    () => (result ? mapEventQuery(result) : undefined),
+    [result],
+  );
 }
 
 export function useOngoingEvent(): CalendarEvent[] {
   const now = useZonedDateTime();
 
-  const nowEpoch = React.useMemo(() => {
-    return now.toInstant().epochMilliseconds;
-  }, [now]);
+  const nowEpoch = React.useMemo(
+    () => now.toInstant().epochMilliseconds,
+    [now],
+  );
 
   const result = useLiveQuery(async () => {
     const rows = await db.events
@@ -235,9 +237,10 @@ export function useOngoingEvent(): CalendarEvent[] {
 export function useUpcomingEvent(): CalendarEvent[] {
   const now = useZonedDateTime();
 
-  const nowEpoch = React.useMemo(() => {
-    return now.toInstant().epochMilliseconds;
-  }, [now]);
+  const nowEpoch = React.useMemo(
+    () => now.toInstant().epochMilliseconds,
+    [now],
+  );
 
   const result = useLiveQuery(async () => {
     const candidates = await db.events

@@ -5,7 +5,7 @@ import type {
   CalendarProviderFreeBusyQueryOptions,
 } from "../../../interfaces/providers";
 import { ProviderError } from "../../../lib/provider-error";
-import { parseGoogleCalendarFreeBusy } from "./utils";
+import { parseFreeBusy } from "./parse";
 
 export class GoogleCalendarFreeBusy implements CalendarProviderFreeBusy {
   constructor(private readonly client: GoogleCalendar) {}
@@ -23,7 +23,7 @@ export class GoogleCalendarFreeBusy implements CalendarProviderFreeBusy {
         items: schedules.map((id) => ({ id })),
       });
 
-      return parseGoogleCalendarFreeBusy(response);
+      return parseFreeBusy(response);
     });
   }
 

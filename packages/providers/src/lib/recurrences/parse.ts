@@ -338,7 +338,7 @@ export function parseTextRecurrence({
   const rrule = parseRRule({ lines });
 
   return {
-    ...(rrule ? rrule : {}),
+    ...rrule,
     dtstart,
     exDate,
     rDate,

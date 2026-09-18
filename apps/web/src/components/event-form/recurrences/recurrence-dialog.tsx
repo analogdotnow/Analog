@@ -59,6 +59,31 @@ export const formRecurrenceSchema = z.object({
   byMonthDay: z.array(z.number().int().min(1).max(31)).optional(),
   byYearDay: z.array(z.number().int().min(1).max(366)).optional(),
   byWeekNo: z.array(z.number().int().min(1).max(53)).optional(),
+  // Passthrough only (no UI): dropping these on edit would change the rule's
+  // short-month semantics, e.g. Microsoft day-31 rules clamp via skip.
+  rscale: z
+    .enum([
+      "GREGORIAN",
+      "BUDDHIST",
+      "CHINESE",
+      "COPTIC",
+      "DANGI",
+      "ETHIOPIC",
+      "ETHIOAA",
+      "HEBREW",
+      "INDIAN",
+      "ISLAMIC",
+      "ISLAMIC-CIVIL",
+      "ISLAMIC-TBLA",
+      "ISLAMIC-UMALQURA",
+      "ISLAMIC-RGSA",
+      "ISO8601",
+      "JAPANESE",
+      "PERSIAN",
+      "ROC",
+    ])
+    .optional(),
+  skip: z.enum(["OMIT", "BACKWARD", "FORWARD"]).optional(),
 });
 
 function getDefaultValues(
@@ -78,6 +103,8 @@ function getDefaultValues(
     byMonthDay: recurrence?.byMonthDay,
     byYearDay: recurrence?.byYearDay,
     byWeekNo: recurrence?.byWeekNo,
+    rscale: recurrence?.rscale,
+    skip: recurrence?.skip,
   };
 }
 
@@ -110,9 +137,7 @@ export function RecurrenceDialog({
     },
   });
 
-  const min = React.useMemo(() => {
-    return toDate(start);
-  }, [start]);
+  const min = React.useMemo(() => toDate(start), [start]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
