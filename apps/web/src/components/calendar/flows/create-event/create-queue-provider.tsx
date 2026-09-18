@@ -1,6 +1,8 @@
 import * as React from "react";
 import { createActorContext } from "@xstate/react";
 
+import { jotaiStore } from "@/atoms/store";
+import { addOptimisticActionAtom } from "@/hooks/calendar/optimistic-actions";
 import { useWriteLane } from "../write-lane-provider";
 import { createCreateQueueMachine } from "./create-queue";
 
@@ -32,6 +34,13 @@ export function CreateQueueProvider({ children }: CreateQueueProviderProps) {
         },
         cancel: (item) => {
           lane.unstage(item.token);
+          // The create never went out, so the event is a draft again and
+          // must stay visible on the calendar like any other draft.
+          jotaiStore.set(addOptimisticActionAtom, {
+            type: "draft",
+            eventId: item.event.id,
+            event: { ...item.event, type: "draft" },
+          });
           item.onCancel?.();
         },
       }),

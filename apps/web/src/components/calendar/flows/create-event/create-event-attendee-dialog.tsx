@@ -4,7 +4,6 @@ import * as React from "react";
 
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -12,6 +11,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 import { isNotifyRequired } from "@/lib/providers";
 import { CreateQueueContext } from "./create-queue-provider";
 
@@ -56,17 +56,17 @@ export function CreateEventAttendeeDialog() {
         </AlertDialogHeader>
         <AlertDialogFooter className="sm:justify-between">
           <AlertDialogCancel>Discard</AlertDialogCancel>
+          {/* Plain buttons: an AlertDialogAction closes the dialog itself and
+              its onOpenChange(false) would CANCEL the next queued item. */}
           <div className="flex gap-2">
-            <AlertDialogAction
+            <Button
               variant="outline"
               disabled={notifyRequired}
               onClick={onSave}
             >
               Save
-            </AlertDialogAction>
-            <AlertDialogAction onClick={onSaveAndNotify}>
-              Save and notify attendees
-            </AlertDialogAction>
+            </Button>
+            <Button onClick={onSaveAndNotify}>Save and notify attendees</Button>
           </div>
         </AlertDialogFooter>
       </AlertDialogContent>

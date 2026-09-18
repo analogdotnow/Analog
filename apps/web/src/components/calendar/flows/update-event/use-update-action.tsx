@@ -1,4 +1,5 @@
 import * as React from "react";
+import { toast } from "sonner";
 import { Temporal } from "temporal-polyfill";
 
 import { jotaiStore } from "@/atoms/store";
@@ -32,7 +33,13 @@ async function getOptimisticEvent(lane: WriteLane, eventId: string) {
   const action = jotaiStore.get(optimisticActionsByEventIdAtom)[eventId];
 
   if (!action) {
-    return getEventById(eventId);
+    try {
+      return await getEventById(eventId);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : String(error));
+
+      return undefined;
+    }
   }
 
   if (action.type === "delete") {
@@ -100,17 +107,25 @@ export function usePartialUpdateAction() {
         changes: req.changes,
       });
 
+      // Two edits can arrive before either has staged; `shown` reads the
+      // lane after this one is in, so it carries both.
+      const shown = lane.shown(event.id);
+
+      if (!token || !shown) {
+        return;
+      }
+
       // If the event is in the form and the form is not pristine, patch only
       // the form values: overwriting formAtom.event would bake the deferred
       // change into the diff baseline and silently drop it from the next save.
-      if (isInForm(event.id) && !isFormPristine()) {
-        await updateFormValues(event, req.changes, token);
+      if (isInForm(shown.id) && !isFormPristine()) {
+        updateFormValues(shown, req.changes, token);
 
         return;
       }
 
       const item: UpdateQueueItem = {
-        event,
+        event: shown,
         changes: req.changes,
         token,
         scope: req.scope,
@@ -134,7 +149,7 @@ export function useUpdateAction() {
         req.previous ?? (await getOptimisticEvent(lane, req.event.id));
 
       if (!previous) {
-        return;
+        return false;
       }
 
       const event: CalendarEvent = {
@@ -143,6 +158,10 @@ export function useUpdateAction() {
       };
       const changes = changedFields(event, previous);
       const token = await lane.stage(event.id, { kind: "update", changes });
+
+      if (!token) {
+        return false;
+      }
 
       const item: UpdateQueueItem = {
         event,
@@ -155,6 +174,8 @@ export function useUpdateAction() {
       };
 
       actorRef.send({ type: "START", item });
+
+      return true;
     },
     [actorRef, lane],
   );

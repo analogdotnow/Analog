@@ -82,14 +82,17 @@ export function useSaveAction() {
       // is staged.
       const deferred = jotaiStore.get(deferredStageTokensAtom);
 
-      await updateAction({
+      const staged = await updateAction({
         event: toCalendarEvent({ values, event: previous }),
         previous,
         notify,
         onSuccess,
         onCancel,
       });
-      releaseDeferredEdits(lane, deferred);
+
+      if (staged) {
+        releaseDeferredEdits(lane, deferred);
+      }
     },
     [lane, createAction, updateAction],
   );

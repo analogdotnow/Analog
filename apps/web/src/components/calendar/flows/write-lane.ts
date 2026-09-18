@@ -93,6 +93,9 @@ interface Lane {
   pending: Pending | undefined;
   staged: Map<StageToken, Staged>;
   generation: number;
+  // True while `finish` refreshes the caches after the last write; the lane
+  // still speaks for the event until the stored copy has caught up.
+  settling: boolean;
 }
 
 export interface WriteLaneDeps {
@@ -116,6 +119,9 @@ export interface WriteLane {
   setDeps: (deps: WriteLaneDeps) => void;
   enqueue: (write: Write) => Promise<void>;
   has: (eventId: string) => boolean;
+  // True while the lane has a write in flight, queued, or settling into the
+  // caches: only then does `current` know more than the stored copy.
+  busy: (eventId: string) => boolean;
   // The event as it will look once every queued write has landed; undefined
   // when the lane is deleting it. Staged edits are not included, so this is
   // what the form may treat as its baseline.
@@ -123,9 +129,12 @@ export interface WriteLane {
   // The event as the calendar shows it: `current` plus every staged edit.
   shown: (eventId: string) => CalendarEvent | undefined;
   // Show an edit before it is written; the token hands it to the write that
-  // takes it over (`enqueue`) or drops it (`unstage`).
-  stage: (eventId: string, staged: Staged) => Promise<StageToken>;
+  // takes it over (`enqueue`) or drops it (`unstage`). Undefined (after a
+  // toast) when the stored event could not be read.
+  stage: (eventId: string, staged: Staged) => Promise<StageToken | undefined>;
   unstage: (token: StageToken) => void;
+  // Drops every overlay the lane put up; for when the calendar unmounts.
+  dispose: () => void;
 }
 
 function unreachable(value: never): never {
@@ -255,6 +264,7 @@ export function createWriteLane(initialDeps: WriteLaneDeps): WriteLane {
       pending: undefined,
       staged: new Map(),
       generation: 0,
+      settling: false,
     };
 
     lanes.set(id, lane);
@@ -285,11 +295,30 @@ export function createWriteLane(initialDeps: WriteLaneDeps): WriteLane {
     return register(id, baseline);
   }
 
+  // A lane without a stored event is a draft that only exists as overlays.
+  async function laneForStaging(eventId: string) {
+    const existing = lanes.get(resolve(eventId));
+
+    if (existing) {
+      return existing;
+    }
+
+    try {
+      return (await laneFor(eventId)) ?? register(resolve(eventId), undefined);
+    } catch (error) {
+      toast.error(errorMessage(error));
+
+      return undefined;
+    }
+  }
+
   async function stage(eventId: string, staged: Staged) {
-    const lane =
-      lanes.get(resolve(eventId)) ??
-      (await laneFor(eventId)) ??
-      register(resolve(eventId), undefined);
+    const lane = await laneForStaging(eventId);
+
+    if (!lane) {
+      return undefined;
+    }
+
     const token: StageToken = { id: lane.id };
 
     lane.staged.set(token, staged);
@@ -654,6 +683,8 @@ export function createWriteLane(initialDeps: WriteLaneDeps): WriteLane {
     const deps = getDeps();
     const generation = lane.generation;
 
+    lane.settling = true;
+
     // The write itself succeeded; a failed cache refresh must still let the
     // lane go, or the overlay would stay up for good.
     try {
@@ -665,6 +696,8 @@ export function createWriteLane(initialDeps: WriteLaneDeps): WriteLane {
     } catch (error) {
       toast.error(errorMessage(error));
     }
+
+    lane.settling = false;
 
     // A write taken while settling owns the lane now, and only its own
     // settle may tear the lane down. A lane re-created under the same id in
@@ -696,6 +729,11 @@ export function createWriteLane(initialDeps: WriteLaneDeps): WriteLane {
     },
     enqueue,
     has: (eventId) => lanes.has(resolve(eventId)),
+    busy: (eventId) => {
+      const lane = lanes.get(resolve(eventId));
+
+      return Boolean(lane && (lane.sent || lane.pending || lane.settling));
+    },
     current: (eventId) => {
       const lane = lanes.get(resolve(eventId));
 
@@ -708,5 +746,13 @@ export function createWriteLane(initialDeps: WriteLaneDeps): WriteLane {
     },
     stage,
     unstage,
+    dispose: () => {
+      for (const id of lanes.keys()) {
+        jotaiStore.set(removeOptimisticActionAtom, id);
+      }
+
+      lanes.clear();
+      aliases.clear();
+    },
   };
 }

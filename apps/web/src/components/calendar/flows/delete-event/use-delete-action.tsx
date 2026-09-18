@@ -13,6 +13,10 @@ export function useDeleteAction() {
     async (req: DeleteQueueRequest) => {
       const token = await lane.stage(req.event.id, { kind: "delete" });
 
+      if (!token) {
+        return;
+      }
+
       const item: DeleteQueueItem = {
         event: req.event,
         token,

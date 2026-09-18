@@ -21,6 +21,10 @@ export function useCreateAction() {
         event: req.event,
       });
 
+      if (!token) {
+        return;
+      }
+
       // The draft overlay is superseded by the lane overlay for this event.
       removeDraftOptimisticActionsByEventId(req.event.id);
 

@@ -27,9 +27,10 @@ export function LiveUpdateProvider({ children }: LiveUpdateProviderProps) {
 
   const stored = useLiveEventById(id);
   // The overlay changes with every lane state change, so reading it keeps
-  // `incoming` in step with the lane.
+  // `incoming` in step with the lane. A lane holding only staged edits knows
+  // nothing the stored copy does not, and must not hide remote changes.
   const overlay = useAtomValue(optimisticActionsByEventIdAtom)[id];
-  const incoming = overlay && lane.has(id) ? lane.current(id) : stored;
+  const incoming = overlay && lane.busy(id) ? lane.current(id) : stored;
 
   React.useEffect(() => {
     if (!incoming || !baseline) {

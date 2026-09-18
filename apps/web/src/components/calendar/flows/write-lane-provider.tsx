@@ -4,7 +4,10 @@ import * as React from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { jotaiStore } from "@/atoms/store";
-import { formAtom } from "@/components/event-form/atoms/form";
+import {
+  deferredStageTokensAtom,
+  formAtom,
+} from "@/components/event-form/atoms/form";
 import {
   useCreateEventMutation,
   useDeleteEventMutation,
@@ -121,6 +124,16 @@ export function WriteLaneProvider({ children }: WriteLaneProviderProps) {
   React.useEffect(() => {
     lane.setDeps(deps);
   });
+
+  // The overlays and deferred tokens live in the global store and would
+  // outlive this lane (and the calendar) otherwise.
+  React.useEffect(
+    () => () => {
+      jotaiStore.set(deferredStageTokensAtom, []);
+      lane.dispose();
+    },
+    [lane],
+  );
 
   return (
     <WriteLaneContext.Provider value={lane}>

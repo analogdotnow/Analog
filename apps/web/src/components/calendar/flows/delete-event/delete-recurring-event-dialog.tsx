@@ -4,7 +4,6 @@ import * as React from "react";
 
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -12,6 +11,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 import { DeleteQueueContext } from "./delete-queue-provider";
 
 export function DeleteRecurringEventDialog() {
@@ -52,13 +52,13 @@ export function DeleteRecurringEventDialog() {
         </AlertDialogHeader>
         <AlertDialogFooter className="sm:justify-between">
           <AlertDialogCancel>Cancel</AlertDialogCancel>
+          {/* Plain buttons: an AlertDialogAction closes the dialog itself and
+              its onOpenChange(false) would CANCEL the next queued item. */}
           <div className="flex gap-2">
-            <AlertDialogAction variant="outline" onClick={onSelectInstance}>
+            <Button variant="outline" onClick={onSelectInstance}>
               This event only
-            </AlertDialogAction>
-            <AlertDialogAction onClick={onSelectAll}>
-              All events
-            </AlertDialogAction>
+            </Button>
+            <Button onClick={onSelectAll}>All events</Button>
           </div>
         </AlertDialogFooter>
       </AlertDialogContent>
