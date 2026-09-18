@@ -1,30 +1,30 @@
-import { assign, fromPromise, setup } from "xstate";
+import { assign, setup } from "xstate";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: 'is declared but its value is never read': https://github.com/statelyai/xstate/issues/5090
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Guard } from "xstate/guards";
 
 import type { CalendarEvent } from "@/lib/interfaces";
+import type { OnWriteSuccess } from "../write-lane";
 
 export interface CreateQueueRequest {
   event: CalendarEvent;
   notify?: boolean;
-  onSuccess?: () => void;
+  onSuccess?: OnWriteSuccess;
 }
 
 export interface CreateQueueItem {
-  optimisticId: string;
   event: CalendarEvent;
   notify?: boolean;
-  onSuccess?: () => void;
+  onSuccess?: OnWriteSuccess;
 }
 
 export function hasAttendees(event: CalendarEvent) {
   return (event.attendees?.length ?? 0) > 0;
 }
 
-export type CreateEvent = (item: CreateQueueItem) => Promise<unknown>;
-export type RemoveOptimisticAction = (optimisticId: string) => void;
+export type Dispatch = (item: CreateQueueItem) => void;
+export type CancelItem = (item: CreateQueueItem) => void;
 
 export type Start = { type: "START"; item: CreateQueueItem };
 export type NotifyChoice = { type: "NOTIFY_CHOICE"; notify: boolean };
@@ -33,25 +33,20 @@ export type Cancel = { type: "CANCEL" };
 export type FlowEvent = Start | NotifyChoice | Cancel;
 
 export interface Ctx {
-  item: CreateQueueItem | null;
+  items: CreateQueueItem[];
+  item: CreateQueueItem | undefined;
 }
 
 export interface CreateCreateQueueMachineOptions {
-  createEvent: CreateEvent;
-  removeOptimisticAction: RemoveOptimisticAction;
+  dispatch: Dispatch;
+  cancel: CancelItem;
 }
 
-interface CreateEventActorOptions {
-  input: CreateQueueItem;
-}
-
-interface CreateEventMutateContextOptions {
-  context: Ctx;
-}
-
+// Prompts one item at a time for notify and hands it to the write lane; items
+// arriving while a prompt is open wait in `items`.
 export function createCreateQueueMachine({
-  createEvent,
-  removeOptimisticAction,
+  dispatch,
+  cancel,
 }: CreateCreateQueueMachineOptions) {
   return setup({
     types: {
@@ -59,82 +54,79 @@ export function createCreateQueueMachine({
       events: {} as FlowEvent,
     },
     guards: {
+      hasItems: ({ context }) => context.items.length > 0,
       needsNotify: ({ context }) => {
-        if (!context.item?.event || !hasAttendees(context.item.event)) {
+        if (!context.item || !hasAttendees(context.item.event)) {
           return false;
         }
 
-        return context.item?.notify === undefined;
+        return context.item.notify === undefined;
       },
     },
     actions: {
-      setItem: assign(({ event }) => ({
-        item: (event as Start).item,
+      enqueue: assign(({ context, event }) =>
+        event.type === "START" ? { items: [...context.items, event.item] } : {},
+      ),
+      shift: assign(({ context }) => ({
+        item: context.items[0],
+        items: context.items.slice(1),
       })),
       setNotify: assign(({ context, event }) => ({
-        item: context.item
-          ? { ...context.item, notify: (event as NotifyChoice).notify }
-          : context.item,
+        item:
+          context.item && event.type === "NOTIFY_CHOICE"
+            ? { ...context.item, notify: event.notify }
+            : context.item,
       })),
-      removeOptimisticAction: ({ context }) => {
-        if (!context.item?.optimisticId) {
-          return;
+      dispatch: ({ context }) => {
+        if (context.item) {
+          dispatch(context.item);
         }
-        removeOptimisticAction(context.item.optimisticId);
       },
-      clear: assign(() => ({ item: null })),
-    },
-    actors: {
-      createEventActor: fromPromise(
-        async ({ input }: CreateEventActorOptions) => createEvent(input),
-      ),
+      cancel: ({ context }) => {
+        if (context.item) {
+          cancel(context.item);
+        }
+      },
+      clear: assign(() => ({ item: undefined })),
     },
   }).createMachine({
     id: "createEvent",
-    context: { item: null },
+    context: { items: [], item: undefined },
     initial: "idle",
+    on: {
+      START: { actions: "enqueue" },
+    },
     states: {
       idle: {
         on: {
-          START: { target: "route", actions: "setItem" },
+          START: { target: "next", actions: "enqueue" },
         },
+      },
+
+      next: {
+        always: [
+          { guard: "hasItems", target: "route", actions: "shift" },
+          { target: "idle" },
+        ],
       },
 
       route: {
         always: [
-          {
-            guard: ({ context }) => !context.item?.event,
-            target: "finalize",
-          },
           { guard: "needsNotify", target: "askNotifyAttendee" },
-          { target: "mutate" },
+          { target: "dispatch" },
         ],
       },
 
       askNotifyAttendee: {
         on: {
           NOTIFY_CHOICE: { target: "route", actions: "setNotify" },
-          CANCEL: { target: "rollback" },
+          CANCEL: { target: "next", actions: ["cancel", "clear"] },
         },
       },
 
-      mutate: {
-        invoke: {
-          src: "createEventActor",
-          input: ({ context }: CreateEventMutateContextOptions) =>
-            context.item!,
-          onDone: { target: "finalize" },
-          onError: { target: "rollback" },
-        },
-      },
-
-      rollback: {
-        entry: "removeOptimisticAction",
-        always: { target: "idle", actions: "clear" },
-      },
-
-      finalize: {
-        always: { target: "idle", actions: "clear" },
+      dispatch: {
+        entry: ["dispatch", "clear"],
+        always: { target: "next" },
       },
     },
   });

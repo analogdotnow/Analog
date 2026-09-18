@@ -134,7 +134,6 @@ export function useDraggableEventActions(
     });
 
     updateAction({
-      // @ts-expect-error -- should both be of the same type
       changes: {
         id: item.event.id,
         start,

@@ -1,5 +1,4 @@
 import * as React from "react";
-import { useSetAtom } from "jotai";
 import { Temporal } from "temporal-polyfill";
 
 import { jotaiStore } from "@/atoms/store";
@@ -7,85 +6,58 @@ import { formAtom, isPristineAtom } from "@/components/event-form/atoms/form";
 import { useUpdateFormValues } from "@/components/event-form/utils/use-update-form-state";
 import {
   addOptimisticActionAtom,
-  generateOptimisticId,
   optimisticActionsByEventIdAtom,
   removeDraftOptimisticActionsByEventIdAtom,
 } from "@/hooks/calendar/optimistic-actions";
 import { getEventById } from "@/lib/db";
-import { CalendarEvent } from "@/lib/interfaces";
+import type { CalendarEvent, EventChanges } from "@/lib/interfaces";
+import type { WriteLane } from "../write-lane";
+import { useWriteLane } from "../write-lane-provider";
 import type {
   ReplaceQueueRequest,
   UpdateQueueItem,
   UpdateQueueRequest,
 } from "./update-queue";
 import { UpdateQueueContext } from "./update-queue-provider";
+import { changedFields } from "./utils";
 
-async function getOptimisticEvent(eventId: string) {
-  const optimisticActions = jotaiStore.get(optimisticActionsByEventIdAtom);
+// The event as the user currently sees it: lane state when a write is
+// queued, otherwise the draft overlay or the stored event.
+async function getOptimisticEvent(lane: WriteLane, eventId: string) {
+  if (lane.has(eventId)) {
+    return lane.current(eventId);
+  }
 
-  if (!optimisticActions[eventId]) {
+  const action = jotaiStore.get(optimisticActionsByEventIdAtom)[eventId];
+
+  if (!action) {
     return getEventById(eventId);
   }
 
-  if (optimisticActions[eventId].type === "delete") {
+  if (action.type === "delete") {
     return undefined;
   }
 
-  return optimisticActions[eventId].event;
+  return action.event;
 }
 
-async function constructEvent(req: UpdateQueueRequest) {
-  const event = await getOptimisticEvent(req.changes.id);
-
-  if (!event) {
-    return;
-  }
-
-  return {
-    ...event,
-    ...req.changes,
+function applyChanges(
+  event: CalendarEvent,
+  changes: EventChanges,
+): CalendarEvent {
+  return Object.assign({}, event, changes, {
     updatedAt: Temporal.Now.instant(),
-  } as CalendarEvent;
+  });
 }
 
-function useOptimisticUpdateAction() {
-  const addOptimisticAction = useSetAtom(addOptimisticActionAtom);
-  const removeDraftOptimisticActionsByEventId = useSetAtom(
-    removeDraftOptimisticActionsByEventIdAtom,
-  );
-
-  return React.useCallback(
-    async (
-      optimisticId: string,
-      event: CalendarEvent,
-      type?: "draft" | "event",
-    ) => {
-      React.startTransition(() => {
-        if (type === "draft") {
-          removeDraftOptimisticActionsByEventId(event.id);
-
-          addOptimisticAction({
-            id: optimisticId,
-            type: "draft",
-            eventId: event.id,
-            event,
-          });
-
-          return;
-        }
-
-        addOptimisticAction({
-          id: optimisticId,
-          type: "update",
-          eventId: event.id,
-          event,
-        });
-      });
-
-      return optimisticId;
-    },
-    [addOptimisticAction, removeDraftOptimisticActionsByEventId],
-  );
+// Drafts only exist as overlays; moving one never reaches the lane.
+function setDraftOverlay(event: CalendarEvent) {
+  jotaiStore.set(removeDraftOptimisticActionsByEventIdAtom, event.id);
+  jotaiStore.set(addOptimisticActionAtom, {
+    type: "draft",
+    eventId: event.id,
+    event,
+  });
 }
 
 function isInForm(eventId: string) {
@@ -100,78 +72,80 @@ function isFormPristine() {
 
 export function usePartialUpdateAction() {
   const actorRef = UpdateQueueContext.useActorRef();
+  const lane = useWriteLane();
   const updateFormValues = useUpdateFormValues();
-  const updateOptimisticUpdate = useOptimisticUpdateAction();
 
   return React.useCallback(
     async (req: UpdateQueueRequest) => {
-      const optimisticId = generateOptimisticId();
+      const current = await getOptimisticEvent(lane, req.changes.id);
 
-      const event = await constructEvent(req);
-
-      if (!event) {
-        // TODO: if the event is not found
+      if (!current) {
         return;
       }
+
+      const event = applyChanges(current, req.changes);
+
+      if (req.changes.type === "draft") {
+        setDraftOverlay(event);
+
+        return;
+      }
+
+      lane.preview(event);
 
       // If the event is in the form and the form is not pristine, patch only
       // the form values: overwriting formAtom.event would bake the deferred
       // change into the diff baseline and silently drop it from the next save.
       if (isInForm(req.changes.id) && !isFormPristine()) {
         await updateFormValues(event, req.changes);
-        await updateOptimisticUpdate(optimisticId, event, req.changes.type);
 
-        return optimisticId;
+        return;
       }
 
-      await updateOptimisticUpdate(optimisticId, event, req.changes.type);
-
       const item: UpdateQueueItem = {
-        optimisticId,
         event,
+        changes: req.changes,
         scope: req.scope,
         notify: req.notify,
         onSuccess: req.onSuccess,
       };
 
       actorRef.send({ type: "START", item });
-
-      // Return optimistic id to allow callers to await completion externally
-      return optimisticId;
     },
-    [actorRef, updateFormValues, updateOptimisticUpdate],
+    [actorRef, lane, updateFormValues],
   );
 }
 
 export function useUpdateAction() {
   const actorRef = UpdateQueueContext.useActorRef();
-  const updateOptimisticUpdate = useOptimisticUpdateAction();
+  const lane = useWriteLane();
 
   return React.useCallback(
     async (req: ReplaceQueueRequest) => {
-      const optimisticId = generateOptimisticId();
+      const previous =
+        req.previous ?? (await getOptimisticEvent(lane, req.event.id));
+
+      if (!previous) {
+        return;
+      }
 
       const event: CalendarEvent = {
         ...req.event,
         updatedAt: Temporal.Now.instant(),
       };
 
-      updateOptimisticUpdate(optimisticId, event, req.event.type);
+      lane.preview(event);
 
       const item: UpdateQueueItem = {
-        optimisticId,
         event,
-        previous: req.previous,
+        changes: changedFields(event, previous),
         scope: req.scope,
         notify: req.notify,
         onSuccess: req.onSuccess,
       };
 
       actorRef.send({ type: "START", item });
-
-      // Return optimistic id to allow callers to await completion externally
-      return optimisticId;
     },
-    [actorRef, updateOptimisticUpdate],
+    [actorRef, lane],
   );
 }

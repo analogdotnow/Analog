@@ -1,6 +1,6 @@
 import { Temporal } from "temporal-polyfill";
 
-import type { CalendarEvent } from "@/lib/interfaces";
+import type { CalendarEvent, EventChanges } from "@/lib/interfaces";
 
 // Thrown when a whole-series change cannot be transferred to the master
 // without being recurrence-aware (moving dates, changing time zones, etc.).
@@ -127,6 +127,38 @@ function diffEventFields(event: CalendarEvent, previous: CalendarEvent) {
   };
 }
 
+// The fields the user changed relative to the snapshot they edited, as
+// CalendarEvent-shaped values, so they can be merged onto a newer baseline
+// without re-emitting fields that only changed remotely in the meantime.
+export function changedFields(
+  event: CalendarEvent,
+  previous: CalendarEvent,
+): EventChanges {
+  const diff = diffEventFields(event, previous);
+
+  return {
+    ...("title" in diff ? { title: event.title } : {}),
+    ...("description" in diff ? { description: event.description } : {}),
+    ...("location" in diff ? { location: event.location } : {}),
+    ...("availability" in diff ? { availability: event.availability } : {}),
+    ...("visibility" in diff ? { visibility: event.visibility } : {}),
+    ...("color" in diff ? { color: event.color } : {}),
+    ...("start" in diff
+      ? { start: event.start, end: event.end, allDay: event.allDay }
+      : {}),
+    ...("attendees" in diff ? { attendees: event.attendees } : {}),
+    ...("conference" in diff ? { conference: event.conference } : {}),
+    ...("recurrence" in diff ? { recurrence: event.recurrence } : {}),
+    ...(isMovedBetweenCalendars(event, previous)
+      ? { calendar: event.calendar }
+      : {}),
+    ...((event.response?.status ?? "unknown") ===
+    (previous.response?.status ?? "unknown")
+      ? {}
+      : { response: event.response }),
+  };
+}
+
 export function isMovedBetweenCalendars(
   updated: CalendarEvent,
   previous: CalendarEvent,
@@ -195,7 +227,6 @@ export function buildUpdateEvent(
       id: event.id,
       calendar: isCalendarChanged ? previous.calendar : event.calendar,
       readOnly: event.readOnly,
-      ...(previous.etag ? { etag: previous.etag } : {}),
       ...(previous.metadata ? { metadata: previous.metadata } : {}),
       ...(previous.recurringEventId
         ? { recurringEventId: previous.recurringEventId }
@@ -215,7 +246,6 @@ const PATCH_ENVELOPE = new Set([
   "id",
   "calendar",
   "readOnly",
-  "etag",
   "metadata",
   "recurringEventId",
 ]);
@@ -334,7 +364,6 @@ export function buildUpdateSeries(
       id: master.id,
       calendar: isCalendarChanged ? previous.calendar : event.calendar,
       readOnly: master.readOnly,
-      ...(master.etag ? { etag: master.etag } : {}),
       ...(master.metadata ? { metadata: master.metadata } : {}),
       ...buildResponse(event, previous, options),
     },

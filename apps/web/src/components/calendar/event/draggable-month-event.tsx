@@ -102,7 +102,6 @@ function useEvent(event: EventDisplayItem["event"]) {
       });
 
       updateAction({
-        // @ts-expect-error -- should both be of the same type
         changes: {
           id: event.id,
           start,

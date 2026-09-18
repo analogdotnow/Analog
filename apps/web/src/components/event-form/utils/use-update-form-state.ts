@@ -7,7 +7,7 @@ import {
   type FormPatchKey,
 } from "@/components/event-form/atoms/form";
 import { useDefaultCalendar } from "@/hooks/calendar/use-default-calendar";
-import type { CalendarEvent } from "@/lib/interfaces";
+import type { CalendarEvent, EventChanges } from "@/lib/interfaces";
 import { useDefaultTimeZone } from "@/store/hooks";
 import type { FormValues } from "./schema";
 import { parseFormValues } from "./transform/input";
@@ -77,7 +77,7 @@ export function useUpdateFormValues() {
   const setPendingFieldPatch = useSetAtom(pendingFieldPatchAtom);
 
   return React.useCallback(
-    async (event: CalendarEvent, changes: Partial<CalendarEvent>) => {
+    async (event: CalendarEvent, changes: EventChanges) => {
       if (!defaultCalendar) {
         throw new Error("Default calendar not found");
       }

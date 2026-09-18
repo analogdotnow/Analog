@@ -1,0 +1,540 @@
+import { toast } from "sonner";
+
+import { jotaiStore } from "@/atoms/store";
+import {
+  addOptimisticActionAtom,
+  removeDraftOptimisticActionsByEventIdAtom,
+  removeOptimisticActionAtom,
+} from "@/hooks/calendar/optimistic-actions";
+import { getEventById } from "@/lib/db";
+import type { CalendarEvent, EventChanges } from "@/lib/interfaces";
+import type { RouterInputs, RouterOutputs } from "@/lib/trpc";
+import {
+  buildUpdateEvent,
+  buildUpdateSeries,
+  isEmptyUpdate,
+} from "./update-event/utils";
+
+type Scope = "series" | "instance";
+
+// Success passes back the canonical event returned by the provider (absent
+// when the update diffed to nothing), so callers can advance the baseline
+// they diff subsequent edits against.
+export type OnWriteSuccess = (event?: CalendarEvent) => void;
+
+export interface CreateWrite {
+  kind: "create";
+  event: CalendarEvent;
+  notify?: boolean;
+  onSuccess?: OnWriteSuccess;
+}
+
+export interface UpdateWrite {
+  kind: "update";
+  id: string;
+  changes: EventChanges;
+  scope?: Scope;
+  notify?: boolean;
+  onSuccess?: OnWriteSuccess;
+}
+
+export interface DeleteWrite {
+  kind: "delete";
+  event: CalendarEvent;
+  scope?: Scope;
+  notify?: boolean;
+}
+
+export type Write = CreateWrite | UpdateWrite | DeleteWrite;
+
+type Pending =
+  | {
+      kind: "create";
+      event: CalendarEvent;
+      notify?: boolean;
+      onSuccess: OnWriteSuccess[];
+    }
+  | {
+      kind: "update";
+      changes: EventChanges;
+      scope?: Scope;
+      notify?: boolean;
+      onSuccess: OnWriteSuccess[];
+    }
+  | { kind: "delete"; scope?: Scope; notify?: boolean };
+
+// One lane per event: `sent` is the write in flight, `pending` is every write
+// enqueued since, merged into one. `baseline` is the last server-confirmed
+// event (absent while the create has not returned yet).
+interface Lane {
+  id: string;
+  baseline: CalendarEvent | undefined;
+  sent: Pending | undefined;
+  pending: Pending | undefined;
+}
+
+export interface WriteLaneDeps {
+  create: (
+    input: RouterInputs["events"]["create"],
+  ) => Promise<RouterOutputs["events"]["create"]>;
+  update: (
+    input: RouterInputs["events"]["update"],
+  ) => Promise<RouterOutputs["events"]["update"]>;
+  delete: (input: RouterInputs["events"]["delete"]) => Promise<unknown>;
+  // Replace the event by id in every list cache and the local db.
+  writeThrough: (event: CalendarEvent) => Promise<void>;
+  // Drop the event by id from every list cache and the local db.
+  remove: (eventId: string) => Promise<void>;
+  // Refetch the list caches and resolve once they hold fresh server state.
+  settle: () => Promise<void>;
+  onIdChanged: (previousId: string, event: CalendarEvent) => void;
+}
+
+export interface WriteLane {
+  setDeps: (deps: WriteLaneDeps) => void;
+  enqueue: (write: Write) => Promise<void>;
+  has: (eventId: string) => boolean;
+  // The event as it will look once every queued write has landed; undefined
+  // when the lane is deleting it.
+  current: (eventId: string) => CalendarEvent | undefined;
+  // Overlay an edit that is still waiting on a prompt (scope, notify).
+  preview: (event: CalendarEvent) => void;
+  previewDelete: (eventId: string) => void;
+  // Reset the overlay to the lane state after a prompt is cancelled.
+  restoreOverlay: (eventId: string) => void;
+}
+
+function unreachable(value: never): never {
+  throw new Error(`Unhandled write: ${JSON.stringify(value)}`);
+}
+
+function applyChanges(
+  event: CalendarEvent,
+  changes: EventChanges,
+): CalendarEvent {
+  return Object.assign({}, event, changes);
+}
+
+function errorMessage(error: unknown) {
+  return error instanceof Error ? error.message : String(error);
+}
+
+// The lane outlives the renders that refresh the mutation and cache handles
+// it works with; `setDeps` swaps them in without dropping lane state.
+export function createWriteLane(initialDeps: WriteLaneDeps): WriteLane {
+  const lanes = new Map<string, Lane>();
+
+  let deps = initialDeps;
+
+  const getDeps = () => deps;
+
+  function overlayEvent(lane: Lane) {
+    let event = lane.baseline;
+
+    for (const write of [lane.sent, lane.pending]) {
+      if (!write) {
+        continue;
+      }
+
+      switch (write.kind) {
+        case "create":
+          event = write.event;
+          break;
+        case "update":
+          event = event ? applyChanges(event, write.changes) : event;
+          break;
+        case "delete":
+          return undefined;
+        default:
+          return unreachable(write);
+      }
+    }
+
+    return event;
+  }
+
+  function isDeleting(lane: Lane) {
+    return lane.sent?.kind === "delete" || lane.pending?.kind === "delete";
+  }
+
+  function setOverlay(lane: Lane) {
+    if (isDeleting(lane)) {
+      previewDelete(lane.id);
+
+      return;
+    }
+
+    const event = overlayEvent(lane);
+
+    if (!event) {
+      jotaiStore.set(removeOptimisticActionAtom, lane.id);
+
+      return;
+    }
+
+    preview(event);
+  }
+
+  function preview(event: CalendarEvent) {
+    jotaiStore.set(addOptimisticActionAtom, {
+      id: event.id,
+      type: "update",
+      eventId: event.id,
+      event,
+    });
+  }
+
+  function previewDelete(eventId: string) {
+    jotaiStore.set(addOptimisticActionAtom, {
+      id: eventId,
+      type: "delete",
+      eventId,
+    });
+  }
+
+  async function laneFor(id: string) {
+    const existing = lanes.get(id);
+
+    if (existing) {
+      return existing;
+    }
+
+    const baseline = await getEventById(id);
+
+    // Another enqueue may have registered the lane while the db read was
+    // pending; it owns the id now.
+    const raced = lanes.get(id);
+
+    if (raced) {
+      return raced;
+    }
+
+    if (!baseline) {
+      return undefined;
+    }
+
+    const lane: Lane = { id, baseline, sent: undefined, pending: undefined };
+
+    lanes.set(id, lane);
+
+    return lane;
+  }
+
+  function mergeUpdate(lane: Lane, write: UpdateWrite) {
+    const onSuccess = write.onSuccess ? [write.onSuccess] : [];
+    const pending = lane.pending;
+
+    if (!pending) {
+      lane.pending = {
+        kind: "update",
+        changes: write.changes,
+        scope: write.scope,
+        notify: write.notify,
+        onSuccess,
+      };
+
+      return;
+    }
+
+    switch (pending.kind) {
+      case "create":
+        // Not sent yet: fold the edit into the create instead of a follow-up.
+        pending.event = applyChanges(pending.event, write.changes);
+        pending.onSuccess.push(...onSuccess);
+        return;
+      case "update":
+        pending.changes = { ...pending.changes, ...write.changes };
+        pending.scope = write.scope ?? pending.scope;
+        pending.notify = write.notify ?? pending.notify;
+        pending.onSuccess.push(...onSuccess);
+        return;
+      case "delete":
+        return;
+      default:
+        return unreachable(pending);
+    }
+  }
+
+  async function enqueue(write: Write) {
+    switch (write.kind) {
+      case "create": {
+        const lane: Lane = {
+          id: write.event.id,
+          baseline: undefined,
+          sent: undefined,
+          pending: {
+            kind: "create",
+            event: write.event,
+            notify: write.notify,
+            onSuccess: write.onSuccess ? [write.onSuccess] : [],
+          },
+        };
+
+        lanes.set(lane.id, lane);
+        setOverlay(lane);
+        void drain(lane);
+
+        return;
+      }
+      case "update": {
+        const lane = await laneFor(write.id);
+
+        if (!lane) {
+          jotaiStore.set(removeOptimisticActionAtom, write.id);
+          toast.error("Event not found");
+
+          return;
+        }
+
+        mergeUpdate(lane, write);
+        setOverlay(lane);
+        void drain(lane);
+
+        return;
+      }
+      case "delete": {
+        const lane = await laneFor(write.event.id);
+
+        if (!lane) {
+          // A draft only exists as overlays.
+          jotaiStore.set(
+            removeDraftOptimisticActionsByEventIdAtom,
+            write.event.id,
+          );
+          jotaiStore.set(removeOptimisticActionAtom, write.event.id);
+
+          return;
+        }
+
+        if (lane.pending?.kind === "create") {
+          // The create never left the client; there is nothing to delete.
+          lanes.delete(lane.id);
+          jotaiStore.set(removeOptimisticActionAtom, lane.id);
+
+          return;
+        }
+
+        lane.pending = {
+          kind: "delete",
+          scope: write.scope,
+          notify: write.notify,
+        };
+        setOverlay(lane);
+        void drain(lane);
+
+        return;
+      }
+      default:
+        return unreachable(write);
+    }
+  }
+
+  async function drain(lane: Lane) {
+    if (lane.sent || !lane.pending) {
+      return;
+    }
+
+    const sent = lane.pending;
+
+    lane.sent = sent;
+    lane.pending = undefined;
+
+    try {
+      await perform(lane, sent);
+    } catch (error) {
+      fail(lane, sent, error);
+    }
+
+    lane.sent = undefined;
+
+    if (lane.pending) {
+      setOverlay(lane);
+
+      return drain(lane);
+    }
+
+    await finish(lane);
+  }
+
+  async function buildUpdatePayload(
+    merged: CalendarEvent,
+    baseline: CalendarEvent,
+    sent: Extract<Pending, { kind: "update" }>,
+  ) {
+    if (merged.recurringEventId && sent.scope === "series") {
+      // Whole-series edits target the master with only the changed fields;
+      // sending an occurrence's dates under the master ID re-anchors the
+      // series on the provider side.
+      const master = await getEventById(merged.recurringEventId);
+
+      if (!master) {
+        throw new Error("The series this event belongs to isn't loaded yet.");
+      }
+
+      return buildUpdateSeries(merged, baseline, master, {
+        sendUpdate: sent.notify,
+      });
+    }
+
+    return buildUpdateEvent(merged, baseline, { sendUpdate: sent.notify });
+  }
+
+  async function perform(lane: Lane, sent: Pending) {
+    const deps = getDeps();
+
+    switch (sent.kind) {
+      case "create": {
+        const { event } = await deps.create({
+          ...sent.event,
+          sendUpdate: sent.notify,
+        });
+
+        if (event.id === lane.id) {
+          lane.baseline = event;
+        } else {
+          await rekey(lane, event);
+        }
+
+        for (const onSuccess of sent.onSuccess) {
+          onSuccess(event);
+        }
+
+        return;
+      }
+      case "update": {
+        if (!lane.baseline) {
+          throw new Error("Event not found");
+        }
+
+        const baseline = lane.baseline;
+        const merged = applyChanges(baseline, sent.changes);
+        const payload = await buildUpdatePayload(merged, baseline, sent);
+
+        if (isEmptyUpdate(payload)) {
+          for (const onSuccess of sent.onSuccess) {
+            onSuccess();
+          }
+
+          return;
+        }
+
+        const { event } = await deps.update(payload);
+
+        if (event.id === lane.id) {
+          lane.baseline = event;
+        } else if (event.id === merged.recurringEventId) {
+          // A series write returns the master; the occurrence itself is only
+          // known locally until the next refetch.
+          lane.baseline = merged;
+          await deps.writeThrough(event);
+        } else {
+          await rekey(lane, event);
+        }
+
+        for (const onSuccess of sent.onSuccess) {
+          onSuccess(event);
+        }
+
+        return;
+      }
+      case "delete": {
+        if (!lane.baseline) {
+          throw new Error("Event not found");
+        }
+
+        const baseline = lane.baseline;
+        const eventId =
+          baseline.recurringEventId && sent.scope === "series"
+            ? baseline.recurringEventId
+            : lane.id;
+
+        await deps.delete({
+          calendar: baseline.calendar,
+          eventId,
+          sendUpdate: sent.notify,
+        });
+        await deps.remove(lane.id);
+
+        lane.baseline = undefined;
+
+        return;
+      }
+      default:
+        return unreachable(sent);
+    }
+  }
+
+  // The provider already rebased and retried; what remains is a real
+  // failure. The baseline stays, so the overlay falls back to server state
+  // for the failed fields while later pending writes still go out.
+  function fail(lane: Lane, sent: Pending, error: unknown) {
+    toast.error(errorMessage(error));
+
+    if (sent.kind === "create") {
+      lane.pending = undefined;
+    }
+  }
+
+  // Microsoft creates and cross-calendar moves hand back a new id; the lane,
+  // its overlay, selection, and form follow it.
+  async function rekey(lane: Lane, event: CalendarEvent) {
+    const previousId = lane.id;
+
+    lanes.delete(previousId);
+    lane.id = event.id;
+    lane.baseline = event;
+    lanes.set(lane.id, lane);
+
+    jotaiStore.set(removeOptimisticActionAtom, previousId);
+    setOverlay(lane);
+
+    await getDeps().remove(previousId);
+    getDeps().onIdChanged(previousId, event);
+  }
+
+  // Write-through first, then wait for the refetch, and only then drop the
+  // overlay so the event never flickers back to stale cache state.
+  async function finish(lane: Lane) {
+    const deps = getDeps();
+
+    if (lane.baseline) {
+      await deps.writeThrough(lane.baseline);
+    }
+
+    await deps.settle();
+
+    // A write enqueued while settling owns the lane now.
+    if (lane.sent || lane.pending) {
+      return;
+    }
+
+    jotaiStore.set(removeOptimisticActionAtom, lane.id);
+    lanes.delete(lane.id);
+  }
+
+  return {
+    setDeps: (next) => {
+      deps = next;
+    },
+    enqueue,
+    has: (eventId) => lanes.has(eventId),
+    current: (eventId) => {
+      const lane = lanes.get(eventId);
+
+      return lane ? overlayEvent(lane) : undefined;
+    },
+    preview,
+    previewDelete,
+    restoreOverlay: (eventId) => {
+      const lane = lanes.get(eventId);
+
+      if (lane) {
+        setOverlay(lane);
+
+        return;
+      }
+
+      jotaiStore.set(removeOptimisticActionAtom, eventId);
+    },
+  };
+}
