@@ -405,8 +405,45 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
         throw new Error("Microsoft Calendar does not support sendUpdate=false");
       }
 
-      return this.resolveAndPatch(options);
+      const { calendar, eventId, event } = options;
+      const updatedEvent = await this.resolveAndPatchWithRetry(options);
+
+      // Then, handle response status update if present (Microsoft-specific approach)
+      if (event.response && event.response.status !== "unknown") {
+        await this.respondToEvent(eventId, event.response.status, {
+          comment: event.response.comment,
+          sendResponse: event.response.sendUpdate,
+        });
+
+        // The respond actions return no body and advance the changeKey, so the
+        // PATCH response is stale; re-fetch to return the final server state.
+        return this.get({ calendar, eventId });
+      }
+
+      return parseEvent({
+        event: updatedEvent,
+        calendar,
+      });
     });
+  }
+
+  private async resolveAndPatchWithRetry(
+    options: CalendarProviderEventsUpdateOptions,
+  ) {
+    try {
+      return await this.resolveAndPatch(options);
+    } catch (error) {
+      // Graph answers 412 ErrorIrresolvableConflict when the changeKey moved
+      // under the PATCH, at times transiently on its own side. The patch is
+      // sparse, so resending it is already a rebase; retry once, resolving the
+      // recurrence anchor again in case the series master itself moved. The
+      // RSVP action stays outside the retry so it is never sent twice.
+      if (!(error instanceof APIError) || error.status !== 412) {
+        throw error;
+      }
+
+      return this.resolveAndPatch(options);
+    }
   }
 
   private async resolveAndPatch(options: CalendarProviderEventsUpdateOptions) {
@@ -439,52 +476,16 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
     });
   }
 
-  private async patchEvent(
+  private patchEvent(
     { calendar, eventId, event }: CalendarProviderEventsUpdateOptions,
     patchOptions: FormatEventPatchOptions,
   ) {
-    // First, perform the regular event update
-    const updatedEvent = await this.sendPatch(calendar.id, {
+    return this.eventsFor(calendar.id).update({
       userId: "me",
       eventId,
       event: formatEventPatch(event, patchOptions),
       headers: { Prefer: TEXT_BODY_PREFERENCE },
     });
-
-    // Then, handle response status update if present (Microsoft-specific approach)
-    if (event.response && event.response.status !== "unknown") {
-      await this.respondToEvent(eventId, event.response.status, {
-        comment: event.response.comment,
-        sendResponse: event.response.sendUpdate,
-      });
-
-      // The respond actions return no body and advance the changeKey, so the
-      // PATCH response is stale; re-fetch to return the final server state.
-      return this.get({ calendar, eventId });
-    }
-
-    return parseEvent({
-      event: updatedEvent,
-      calendar,
-    });
-  }
-
-  private async sendPatch(
-    calendarId: string,
-    patch: DefaultCalendarUpdateEventInput,
-  ) {
-    try {
-      return await this.eventsFor(calendarId).update(patch);
-    } catch (error) {
-      // Graph answers 412 ErrorIrresolvableConflict when the changeKey moved
-      // under the PATCH, at times transiently on its own side. The patch is
-      // sparse, so resending it is already a rebase; retry once.
-      if (!(error instanceof APIError) || error.status !== 412) {
-        throw error;
-      }
-
-      return this.eventsFor(calendarId).update(patch);
-    }
   }
 
   async delete({
