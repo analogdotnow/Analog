@@ -138,7 +138,10 @@ export function createWriteLane(initialDeps: WriteLaneDeps): WriteLane {
 
       switch (write.kind) {
         case "create":
-          event = write.event;
+          // Once the create has returned, the server copy is the truth.
+          if (!event) {
+            event = write.event;
+          }
           break;
         case "update":
           event = event ? applyChanges(event, write.changes) : event;
