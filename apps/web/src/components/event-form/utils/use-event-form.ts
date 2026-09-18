@@ -1,12 +1,12 @@
 "use client";
 
 import * as React from "react";
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 
-import { jotaiStore } from "@/atoms/store";
 import { EventFormStateContext } from "@/components/calendar/flows/event-form/event-form-state-provider";
 import { getDifferences } from "@/components/calendar/flows/event-form/merge-changes";
 import {
+  useDiscardAction,
   useFormAction,
   useSaveAction,
 } from "@/components/calendar/flows/event-form/use-form-action";
@@ -32,7 +32,11 @@ import {
 import { defaultFormMeta } from "./defaults";
 import { useAppForm } from "./form";
 import { FormValues, formSchema } from "./schema";
-import { useUpdateFormState } from "./use-update-form-state";
+import {
+  patchableFields,
+  useParseFormValues,
+  useUpdateFormState,
+} from "./use-update-form-state";
 
 function requiresConfirmation(values: FormValues) {
   return (
@@ -41,50 +45,65 @@ function requiresConfirmation(values: FormValues) {
   );
 }
 
-function applyFieldPatch(form: Form, values: FormValues, keys: FormPatchKey[]) {
+interface ApplyFieldPatchOptions {
+  // Deferred edits are user intent and mark the field dirty; merged external
+  // state must not, or it would be treated as the user's edit from then on.
+  dontUpdateMeta: boolean;
+}
+
+function applyFieldPatch(
+  form: Form,
+  values: FormValues,
+  keys: FormPatchKey[],
+  options: ApplyFieldPatchOptions,
+) {
   for (const key of keys) {
     switch (key) {
       case "title":
-        form.setFieldValue("title", values.title);
+        form.setFieldValue("title", values.title, options);
         break;
       case "description":
-        form.setFieldValue("description", values.description);
+        form.setFieldValue("description", values.description, options);
         break;
       case "location":
-        form.setFieldValue("location", values.location);
+        form.setFieldValue("location", values.location, options);
         break;
       case "start":
-        form.setFieldValue("start", values.start);
+        form.setFieldValue("start", values.start, options);
         break;
       case "end":
-        form.setFieldValue("end", values.end);
+        form.setFieldValue("end", values.end, options);
         break;
       case "allDay":
-        form.setFieldValue("allDay", values.allDay);
+        form.setFieldValue("allDay", values.allDay, options);
         break;
       case "availability":
-        form.setFieldValue("availability", values.availability);
+        form.setFieldValue("availability", values.availability, options);
         break;
       case "visibility":
-        form.setFieldValue("visibility", values.visibility);
+        form.setFieldValue("visibility", values.visibility, options);
         break;
       case "attendees":
-        form.setFieldValue("attendees", values.attendees);
+        form.setFieldValue("attendees", values.attendees, options);
         break;
       case "response":
-        form.setFieldValue("response", values.response);
+        form.setFieldValue("response", values.response, options);
         break;
       case "recurrence":
-        form.setFieldValue("recurrence", values.recurrence);
+        form.setFieldValue("recurrence", values.recurrence, options);
         break;
       case "recurringEventId":
-        form.setFieldValue("recurringEventId", values.recurringEventId);
+        form.setFieldValue(
+          "recurringEventId",
+          values.recurringEventId,
+          options,
+        );
         break;
       case "conference":
-        form.setFieldValue("conference", values.conference);
+        form.setFieldValue("conference", values.conference, options);
         break;
       case "calendar":
-        form.setFieldValue("calendar", values.calendar);
+        form.setFieldValue("calendar", values.calendar, options);
         break;
       default: {
         const unhandled: never = key;
@@ -104,9 +123,14 @@ export function useEventForm() {
 
   const defaultValues = useAtomValue(defaultValuesAtom);
   const formState = useAtomValue(formAtom);
+  const setFormState = useSetAtom(formAtom);
   const saveAction = useSaveAction();
   const formAction = useFormAction();
+  const discardAction = useDiscardAction();
   const [isPristine, setIsPristine] = useAtom(isPristineAtom);
+  const [pendingFieldPatch, setPendingFieldPatch] = useAtom(
+    pendingFieldPatchAtom,
+  );
 
   const form = useAppForm({
     defaultValues,
@@ -120,15 +144,24 @@ export function useEventForm() {
         return;
       }
 
-      await saveAction(value, meta?.sendUpdate, () => {
-        actorRef.send({ type: "CONFIRMED" });
+      await saveAction(
+        value,
+        meta?.sendUpdate,
+        (saved) => {
+          // Edits made while the save was in flight must not be marked clean:
+          // the pristine guard above would silently drop them on the next blur.
+          if (getDifferences(value, formApi.state.values).length === 0) {
+            setIsPristine(true);
+          }
 
-        // Edits made while the save was in flight must not be marked clean:
-        // the pristine guard above would silently drop them on the next blur.
-        if (getDifferences(value, formApi.state.values).length === 0) {
-          setIsPristine(true);
-        }
-      });
+          // Resync from the server copy: a pristine form rehydrates, a dirty
+          // one merges its untouched fields (see the hydration effect).
+          if (saved) {
+            actorRef.send({ type: "LOAD", item: saved });
+          }
+        },
+        () => discardAction(formApi),
+      );
     },
     listeners: {
       onBlur: async ({ formApi }) => {
@@ -152,27 +185,21 @@ export function useEventForm() {
     },
   });
 
-  // Keyed on values, not the whole form state: a successful save advances
-  // formAtom.event (the diff baseline) without touching values, and resetting
-  // then would wipe anything typed since the save was fired.
+  // A pending field patch is an edit deferred into this dirty form; apply
+  // just those fields so the user's in-progress edits survive.
   React.useEffect(() => {
-    // A pending field patch is an edit deferred into this dirty form; apply
-    // just those fields so the user's in-progress edits survive — a full
-    // reset would restore defaultValues and wipe them.
-    const patch = jotaiStore.get(pendingFieldPatchAtom);
-
-    if (patch) {
-      jotaiStore.set(pendingFieldPatchAtom, null);
-      applyFieldPatch(form, formState.values, patch);
-
+    if (!pendingFieldPatch) {
       return;
     }
 
-    form.reset();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formState.values]);
+    setPendingFieldPatch(null);
+    applyFieldPatch(form, pendingFieldPatch.values, pendingFieldPatch.keys, {
+      dontUpdateMeta: false,
+    });
+  }, [form, pendingFieldPatch, setPendingFieldPatch]);
 
   const updateFormState = useUpdateFormState();
+  const parseValues = useParseFormValues();
 
   const loadingEvent = EventFormStateContext.useSelector((snapshot) =>
     snapshot.matches("loading") ? snapshot.context.formEvent : null,
@@ -204,7 +231,7 @@ export function useEventForm() {
   }, [actorRef, selectedEventId]);
 
   React.useEffect(() => {
-    if (!loadingEvent) {
+    if (!loadingEvent || formState.event === loadingEvent) {
       return;
     }
 
@@ -215,15 +242,34 @@ export function useEventForm() {
 
     if (formState.event?.id !== loadingEvent.id || isPristine) {
       setIsPristine(true);
-      updateFormState(loadingEvent);
+      form.reset(updateFormState(loadingEvent));
+
+      return;
     }
+
+    // Dirty form, same event: the incoming event becomes the diff baseline
+    // and fills every field the user has not edited; dirty fields keep the
+    // user's value and win on the next save. Defaults move with the baseline
+    // (TanStack's update() leaves a touched form's values alone).
+    const values = parseValues(loadingEvent);
+
+    setFormState({ event: loadingEvent, values });
+    applyFieldPatch(
+      form,
+      values,
+      patchableFields.filter((key) => !form.getFieldMeta(key)?.isDirty),
+      { dontUpdateMeta: true },
+    );
   }, [
     loadingEvent,
     defaultCalendar,
-    formState.event?.id,
+    formState.event,
     isPristine,
     setIsPristine,
+    setFormState,
     updateFormState,
+    parseValues,
+    form,
   ]);
 
   React.useEffect(() => {

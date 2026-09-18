@@ -7,16 +7,12 @@ export interface LoadEvent {
   item: CalendarEvent;
 }
 
-export interface ConfirmedEvent {
-  type: "CONFIRMED";
-}
-
 export interface SaveEvent {
   type: "SAVE";
   notify?: boolean;
 }
 
-export type FormMachineEvent = LoadEvent | ConfirmedEvent | SaveEvent;
+export type FormMachineEvent = LoadEvent | SaveEvent;
 
 export interface Ctx {
   formEvent: CalendarEvent | null;
@@ -72,9 +68,10 @@ export function createEventFormMachine(options: CreateEventFormMachineOptions) {
           },
         ],
       },
+      // Stays here for the session: a save resyncs through LOAD, so the live
+      // link to the shown event is never cut.
       loading: {
         on: {
-          CONFIRMED: { target: "ready" },
           LOAD: { actions: ["queueEvent"] },
         },
         always: [

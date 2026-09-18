@@ -24,6 +24,8 @@ export interface ReplaceQueueRequest {
   scope?: "series" | "instance";
   notify?: boolean;
   onSuccess?: OnWriteSuccess;
+  // Called when the user dismisses a scope/notify prompt for this edit.
+  onCancel?: () => void;
 }
 
 // `event` is the event as it will look after the edit; it drives the prompts
@@ -34,6 +36,7 @@ export interface UpdateQueueItem {
   scope?: "series" | "instance";
   notify?: boolean;
   onSuccess?: OnWriteSuccess;
+  onCancel?: () => void;
 }
 
 export function isRecurring(event: CalendarEvent) {

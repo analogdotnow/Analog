@@ -123,10 +123,19 @@ function errorMessage(error: unknown) {
 // it works with; `setDeps` swaps them in without dropping lane state.
 export function createWriteLane(initialDeps: WriteLaneDeps): WriteLane {
   const lanes = new Map<string, Lane>();
+  // Old id → new id after a provider re-keyed an event, so an edit that was
+  // queued (e.g. behind a prompt) under the old id still finds its lane.
+  const aliases = new Map<string, string>();
 
   let deps = initialDeps;
 
   const getDeps = () => deps;
+
+  function resolve(id: string): string {
+    const next = aliases.get(id);
+
+    return next ? resolve(next) : id;
+  }
 
   function overlayEvent(lane: Lane) {
     let event = lane.baseline;
@@ -179,23 +188,28 @@ export function createWriteLane(initialDeps: WriteLaneDeps): WriteLane {
   }
 
   function preview(event: CalendarEvent) {
+    const id = resolve(event.id);
+
     jotaiStore.set(addOptimisticActionAtom, {
-      id: event.id,
+      id,
       type: "update",
-      eventId: event.id,
-      event,
+      eventId: id,
+      event: id === event.id ? event : { ...event, id },
     });
   }
 
   function previewDelete(eventId: string) {
+    const id = resolve(eventId);
+
     jotaiStore.set(addOptimisticActionAtom, {
-      id: eventId,
+      id,
       type: "delete",
-      eventId,
+      eventId: id,
     });
   }
 
-  async function laneFor(id: string) {
+  async function laneFor(requestedId: string) {
+    const id = resolve(requestedId);
     const existing = lanes.get(id);
 
     if (existing) {
@@ -283,7 +297,7 @@ export function createWriteLane(initialDeps: WriteLaneDeps): WriteLane {
         const lane = await laneFor(write.id);
 
         if (!lane) {
-          jotaiStore.set(removeOptimisticActionAtom, write.id);
+          jotaiStore.set(removeOptimisticActionAtom, resolve(write.id));
           toast.error("Event not found");
 
           return;
@@ -300,11 +314,10 @@ export function createWriteLane(initialDeps: WriteLaneDeps): WriteLane {
 
         if (!lane) {
           // A draft only exists as overlays.
-          jotaiStore.set(
-            removeDraftOptimisticActionsByEventIdAtom,
-            write.event.id,
-          );
-          jotaiStore.set(removeOptimisticActionAtom, write.event.id);
+          const id = resolve(write.event.id);
+
+          jotaiStore.set(removeDraftOptimisticActionsByEventIdAtom, id);
+          jotaiStore.set(removeOptimisticActionAtom, id);
 
           return;
         }
@@ -484,6 +497,7 @@ export function createWriteLane(initialDeps: WriteLaneDeps): WriteLane {
     const previousId = lane.id;
 
     lanes.delete(previousId);
+    aliases.set(previousId, event.id);
     lane.id = event.id;
     lane.baseline = event;
     lanes.set(lane.id, lane);
@@ -520,16 +534,17 @@ export function createWriteLane(initialDeps: WriteLaneDeps): WriteLane {
       deps = next;
     },
     enqueue,
-    has: (eventId) => lanes.has(eventId),
+    has: (eventId) => lanes.has(resolve(eventId)),
     current: (eventId) => {
-      const lane = lanes.get(eventId);
+      const lane = lanes.get(resolve(eventId));
 
       return lane ? overlayEvent(lane) : undefined;
     },
     preview,
     previewDelete,
     restoreOverlay: (eventId) => {
-      const lane = lanes.get(eventId);
+      const id = resolve(eventId);
+      const lane = lanes.get(id);
 
       if (lane) {
         setOverlay(lane);
@@ -537,7 +552,7 @@ export function createWriteLane(initialDeps: WriteLaneDeps): WriteLane {
         return;
       }
 
-      jotaiStore.set(removeOptimisticActionAtom, eventId);
+      jotaiStore.set(removeOptimisticActionAtom, id);
     },
   };
 }

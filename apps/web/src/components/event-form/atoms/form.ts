@@ -16,10 +16,16 @@ export const formAtom = atom<Form>({
 
 export type FormPatchKey = Exclude<keyof FormValues, "id" | "type">;
 
-// Keys of formAtom.values changed by an edit deferred into a dirty form
-// (drag, RSVP, calendar move). The live form applies just these fields via
-// setFieldValue instead of a full reset, so in-progress edits survive.
-export const pendingFieldPatchAtom = atom<FormPatchKey[] | null>(null);
+export interface FieldPatch {
+  values: FormValues;
+  keys: FormPatchKey[];
+}
+
+// An edit deferred into a dirty form (drag, RSVP, calendar move): the live
+// form applies `keys` from `values` via setFieldValue, which marks them dirty
+// so they survive merges and are emitted on save. formAtom.values (the reset
+// baseline) is left untouched so Discard reverts them.
+export const pendingFieldPatchAtom = atom<FieldPatch | null>(null);
 
 export const isPristineAtom = atom(true);
 
@@ -34,14 +40,3 @@ export const defaultValuesAtom = atom((get) => {
 
   return form.values;
 });
-
-export const getEventInForm = (eventId: string) =>
-  atom((get) => {
-    const form = get(formAtom);
-
-    if (form.event?.id !== eventId) {
-      return undefined;
-    }
-
-    return form.event;
-  });

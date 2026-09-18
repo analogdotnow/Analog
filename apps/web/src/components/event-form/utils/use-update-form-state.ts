@@ -9,23 +9,35 @@ import {
 import { useDefaultCalendar } from "@/hooks/calendar/use-default-calendar";
 import type { CalendarEvent, EventChanges } from "@/lib/interfaces";
 import { useDefaultTimeZone } from "@/store/hooks";
-import type { FormValues } from "./schema";
 import { parseFormValues } from "./transform/input";
 
-export function useUpdateFormState() {
+export function useParseFormValues() {
   const defaultCalendar = useDefaultCalendar();
   const defaultTimeZone = useDefaultTimeZone();
+
+  return React.useCallback(
+    (event: CalendarEvent) => {
+      if (!defaultCalendar) {
+        throw new Error("Default calendar not found");
+      }
+
+      return parseFormValues(event, defaultCalendar, defaultTimeZone);
+    },
+    [defaultCalendar, defaultTimeZone],
+  );
+}
+
+// Full hydration: the event becomes both the diff baseline and the reset
+// baseline; any deferred patch belonged to the previous state.
+export function useUpdateFormState() {
+  const parseValues = useParseFormValues();
 
   const setFormState = useSetAtom(formAtom);
   const setPendingFieldPatch = useSetAtom(pendingFieldPatchAtom);
 
   return React.useCallback(
-    async (event: CalendarEvent) => {
-      if (!defaultCalendar) {
-        throw new Error("Default calendar not found");
-      }
-
-      const values = parseFormValues(event, defaultCalendar, defaultTimeZone);
+    (event: CalendarEvent) => {
+      const values = parseValues(event);
 
       setFormState({
         event,
@@ -33,13 +45,13 @@ export function useUpdateFormState() {
       });
       setPendingFieldPatch(null);
 
-      return;
+      return values;
     },
-    [defaultCalendar, setFormState, defaultTimeZone, setPendingFieldPatch],
+    [parseValues, setFormState, setPendingFieldPatch],
   );
 }
 
-const patchableFields: FormPatchKey[] = [
+export const patchableFields: FormPatchKey[] = [
   "title",
   "description",
   "location",
@@ -56,61 +68,26 @@ const patchableFields: FormPatchKey[] = [
   "calendar",
 ];
 
-function assignFormValue<K extends FormPatchKey>(
-  target: FormValues,
-  source: FormValues,
-  key: K,
-) {
-  target[key] = source[key];
-}
-
-// Patches the form for an edit deferred into a dirty form: only the fields
-// present in `changes` are merged into formAtom.values and queued for the
-// live form to apply, so in-progress edits to other fields survive, while
-// formAtom.event — the frozen diff baseline — stays untouched and the
-// deferred change still diffs against the snapshot and is emitted on save.
+// Defers an edit into a dirty form: only the fields present in `changes` are
+// queued for the live form to apply, so in-progress edits to other fields
+// survive, while the baselines stay untouched and the deferred change still
+// diffs against the snapshot and is emitted on save.
 export function useUpdateFormValues() {
-  const defaultCalendar = useDefaultCalendar();
-  const defaultTimeZone = useDefaultTimeZone();
+  const parseValues = useParseFormValues();
 
-  const setFormState = useSetAtom(formAtom);
   const setPendingFieldPatch = useSetAtom(pendingFieldPatchAtom);
 
   return React.useCallback(
-    async (event: CalendarEvent, changes: EventChanges) => {
-      if (!defaultCalendar) {
-        throw new Error("Default calendar not found");
-      }
+    (event: CalendarEvent, changes: EventChanges) => {
+      const values = parseValues(event);
+      const keys = patchableFields.filter((field) => field in changes);
 
-      const values = parseFormValues(event, defaultCalendar, defaultTimeZone);
-      const keys: FormPatchKey[] = [];
-
-      for (const field of patchableFields) {
-        if (field in changes) {
-          keys.push(field);
-        }
-      }
-
-      setFormState((prev) => {
-        const merged = { ...prev.values };
-
-        for (const key of keys) {
-          assignFormValue(merged, values, key);
-        }
-
-        return { event: prev.event, values: merged };
-      });
-
-      setPendingFieldPatch((prev) => {
-        if (!prev) {
-          return keys;
-        }
-
-        return [...prev, ...keys];
-      });
-
-      return;
+      // `event` already carries every earlier deferred change, so its values
+      // are current for the accumulated keys too.
+      setPendingFieldPatch((prev) =>
+        prev ? { values, keys: [...prev.keys, ...keys] } : { values, keys },
+      );
     },
-    [defaultCalendar, setFormState, defaultTimeZone, setPendingFieldPatch],
+    [parseValues, setPendingFieldPatch],
   );
 }

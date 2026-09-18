@@ -33,6 +33,7 @@ export function UpdateQueueProvider({ children }: UpdateQueueProviderProps) {
         },
         cancel: (item) => {
           lane.restoreOverlay(item.event.id);
+          item.onCancel?.();
         },
       }),
     [lane],

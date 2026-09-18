@@ -12,6 +12,7 @@ import {
 } from "@heroicons/react/16/solid";
 import { useAtomValue } from "jotai";
 
+import { useDiscardAction } from "@/components/calendar/flows/event-form/use-form-action";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
@@ -44,6 +45,7 @@ interface EventFormProps {
 
 export function EventForm({ className }: EventFormProps) {
   const form = useEventForm();
+  const discardAction = useDiscardAction();
   const disabled = useAtomValue(formDisabledAtom);
   const setActiveLayout = useCalendarStore((s) => s.setActiveLayout);
 
@@ -280,7 +282,7 @@ export function EventForm({ className }: EventFormProps) {
                 onSaveWithoutNotifying={() =>
                   form.handleSubmit({ sendUpdate: false })
                 }
-                onDiscard={() => form.reset()}
+                onDiscard={() => discardAction(form)}
               />
             );
           }}

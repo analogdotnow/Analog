@@ -142,6 +142,7 @@ export function useUpdateAction() {
         scope: req.scope,
         notify: req.notify,
         onSuccess: req.onSuccess,
+        onCancel: req.onCancel,
       };
 
       actorRef.send({ type: "START", item });
