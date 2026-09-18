@@ -4,7 +4,6 @@ import * as React from "react";
 
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -12,6 +11,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 import { isNotifyRequired } from "@/lib/providers";
 import { DeleteQueueContext } from "./delete-queue-provider";
 
@@ -56,17 +56,19 @@ export function DeleteEventAttendeeDialog() {
         </AlertDialogHeader>
         <AlertDialogFooter className="sm:justify-between">
           <AlertDialogCancel>Discard</AlertDialogCancel>
+          {/* Plain buttons: an AlertDialogAction closes the dialog itself and
+              its onOpenChange(false) would CANCEL the next queued item. */}
           <div className="flex gap-2">
-            <AlertDialogAction
+            <Button
               variant="outline"
               disabled={notifyRequired}
               onClick={onSave}
             >
               Delete
-            </AlertDialogAction>
-            <AlertDialogAction onClick={onSaveAndNotify}>
+            </Button>
+            <Button onClick={onSaveAndNotify}>
               Delete and notify attendees
-            </AlertDialogAction>
+            </Button>
           </div>
         </AlertDialogFooter>
       </AlertDialogContent>

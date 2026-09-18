@@ -277,69 +277,86 @@ export class GoogleCalendarEvents implements CalendarProviderEvents {
     });
   }
 
-  async update({
+  async update(options: CalendarProviderEventsUpdateOptions) {
+    return this.withErrorHandler("events.update", async () => {
+      try {
+        return await this.updateOnce(options);
+      } catch (error) {
+        // 412 means the event changed between the GET and the PUT below.
+        // The patch is sparse, so laying it over a fresh copy is the rebase;
+        // one retry covers the race without looping on a real conflict.
+        if (!(error instanceof APIError) || error.status !== 412) {
+          throw error;
+        }
+
+        return this.updateOnce(options);
+      }
+    });
+  }
+
+  private async updateOnce({
     calendar,
     eventId,
     event,
     sendUpdate = false,
   }: CalendarProviderEventsUpdateOptions) {
-    return this.withErrorHandler("events.update", async () => {
-      const existingEvent = await this.client.events.get({
-        calendarId: calendar.id,
-        eventId,
-      });
+    const existingEvent = await this.client.events.get({
+      calendarId: calendar.id,
+      eventId,
+    });
 
-      const response =
-        event.response && event.response.status !== "unknown"
-          ? event.response
-          : undefined;
-      const selfEmail = existingEvent.attendees?.find(
-        (attendee) => attendee.self,
-      )?.email;
+    const response =
+      event.response && event.response.status !== "unknown"
+        ? event.response
+        : undefined;
+    const selfEmail = existingEvent.attendees?.find(
+      (attendee) => attendee.self,
+    )?.email;
 
-      const updatedEvent = await this.client.events.update({
-        eventId,
-        ...formatEventInput(existingEvent),
-        ...formatEventPatch(event, existingEvent),
-        ...(response
-          ? event.attendees === undefined
-            ? {
-                attendees: attendeesWithSelfResponse(
-                  existingEvent.attendees,
-                  response.status,
-                  response.comment,
+    const updatedEvent = await this.client.events.update({
+      eventId,
+      ...formatEventInput(existingEvent),
+      ...formatEventPatch(event, existingEvent),
+      ...(response
+        ? event.attendees === undefined
+          ? {
+              attendees: attendeesWithSelfResponse(
+                existingEvent.attendees,
+                response.status,
+                response.comment,
+              ),
+              attendeesOmitted: true,
+            }
+          : {
+              // An RSVP combined with an attendee edit merges into the
+              // patched list; attendeesOmitted would discard the edit.
+              attendees: event.attendees
+                .filter((attendee) => attendee.email)
+                .map((attendee) =>
+                  attendee.email === selfEmail
+                    ? {
+                        ...formatAttendee(attendee),
+                        ...(response.comment !== undefined
+                          ? { comment: response.comment }
+                          : {}),
+                        responseStatus: formatAttendeeStatus(response.status),
+                      }
+                    : formatAttendee(attendee),
                 ),
-                attendeesOmitted: true,
-              }
-            : {
-                // An RSVP combined with an attendee edit merges into the
-                // patched list; attendeesOmitted would discard the edit.
-                attendees: event.attendees
-                  .filter((attendee) => attendee.email)
-                  .map((attendee) =>
-                    attendee.email === selfEmail
-                      ? {
-                          ...formatAttendee(attendee),
-                          ...(response.comment !== undefined
-                            ? { comment: response.comment }
-                            : {}),
-                          responseStatus: formatAttendeeStatus(response.status),
-                        }
-                      : formatAttendee(attendee),
-                  ),
-              }
-          : {}),
-        sendUpdates: (response ? response.sendUpdate : sendUpdate)
-          ? "all"
-          : "none",
-        supportsAttachments: true,
-        headers: { "If-Match": event.etag ?? existingEvent.etag },
-      });
+            }
+        : {}),
+      sendUpdates: (response ? response.sendUpdate : sendUpdate)
+        ? "all"
+        : "none",
+      supportsAttachments: true,
+      // The etag from the GET above guards only the GET→PUT window; a
+      // client-side etag would reject every edit that followed another.
+      headers: { "If-Match": existingEvent.etag },
+    });
 
-      return parseEvent({
-        calendar,
-        event: updatedEvent,
-      });
+    return parseEvent({
+      calendar,
+      event: updatedEvent,
     });
   }
 

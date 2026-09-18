@@ -7,6 +7,7 @@ import { EventFormStateProvider } from "./event-form/event-form-state-provider";
 import { UpdateEventAttendeeDialog } from "./update-event/update-event-attendee-dialog";
 import { UpdateQueueProvider } from "./update-event/update-queue-provider";
 import { UpdateRecurringEventDialog } from "./update-event/update-recurring-event-dialog";
+import { WriteLaneProvider } from "./write-lane-provider";
 
 interface FlowsProviderProps {
   children: React.ReactNode;
@@ -14,19 +15,21 @@ interface FlowsProviderProps {
 
 export function FlowsProvider({ children }: FlowsProviderProps) {
   return (
-    <UpdateQueueProvider>
-      <CreateQueueProvider>
-        <EventFormStateProvider>
-          <CreateEventAttendeeDialog />
-          <UpdateEventAttendeeDialog />
-          <UpdateRecurringEventDialog />
-          <DeleteQueueProvider>
-            <DeleteEventAttendeeDialog />
-            <DeleteRecurringEventDialog />
-            {children}
-          </DeleteQueueProvider>
-        </EventFormStateProvider>
-      </CreateQueueProvider>
-    </UpdateQueueProvider>
+    <WriteLaneProvider>
+      <UpdateQueueProvider>
+        <CreateQueueProvider>
+          <EventFormStateProvider>
+            <CreateEventAttendeeDialog />
+            <UpdateEventAttendeeDialog />
+            <UpdateRecurringEventDialog />
+            <DeleteQueueProvider>
+              <DeleteEventAttendeeDialog />
+              <DeleteRecurringEventDialog />
+              {children}
+            </DeleteQueueProvider>
+          </EventFormStateProvider>
+        </CreateQueueProvider>
+      </UpdateQueueProvider>
+    </WriteLaneProvider>
   );
 }

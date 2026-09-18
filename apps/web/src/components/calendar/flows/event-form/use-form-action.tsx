@@ -1,12 +1,21 @@
 import * as React from "react";
+import { useSetAtom } from "jotai";
 
 import { jotaiStore } from "@/atoms/store";
 import { useCreateAction } from "@/components/calendar/flows/create-event/use-create-action";
 import { useUpdateAction } from "@/components/calendar/flows/update-event/use-update-action";
-import { formAtom } from "@/components/event-form/atoms/form";
+import {
+  deferredStageTokensAtom,
+  formAtom,
+  isPristineAtom,
+  pendingFieldPatchAtom,
+} from "@/components/event-form/atoms/form";
 import { FormValues } from "@/components/event-form/utils/schema";
 import { toCalendarEvent } from "@/components/event-form/utils/transform/output";
+import { releaseDeferredEdits } from "@/components/event-form/utils/use-update-form-state";
 import type { CalendarEvent } from "@/lib/interfaces";
+import type { OnWriteSuccess } from "../write-lane";
+import { useWriteLane } from "../write-lane-provider";
 import { EventFormStateContext } from "./event-form-state-provider";
 
 export function useFormAction() {
@@ -38,61 +47,77 @@ export function useResetFormAction() {
 }
 
 export function useSaveAction() {
-  const actorRef = EventFormStateContext.useActorRef();
-
+  const lane = useWriteLane();
   const createAction = useCreateAction();
   const updateAction = useUpdateAction();
 
   const save = React.useCallback(
-    async (values: FormValues, notify?: boolean, onSuccess?: () => void) => {
-      const event = toCalendarEvent({ values });
-
+    async (
+      values: FormValues,
+      notify?: boolean,
+      onSuccess?: OnWriteSuccess,
+      onCancel?: () => void,
+    ) => {
       if (values.type === "draft") {
         await createAction({
-          event,
+          event: toCalendarEvent({ values }),
           notify,
           onSuccess,
+          onCancel,
         });
 
         return;
       }
 
-      // The snapshot the form hydrated from, frozen while the form is dirty.
-      // Diffing against it (instead of the current db event) keeps remote
-      // edits out of the payload and sends ITS etag, so the provider can 412
-      // on true conflicts. A mismatched id means the form has since loaded
-      // another event (selection changed mid-save); no snapshot exists then.
+      // The snapshot the form hydrated from. Diffing against it (instead of
+      // the current db event) keeps remote edits out of the payload, and
+      // building the event on top of it carries the fields the form does not
+      // edit (color, metadata) so they are not seen as cleared. A mismatched
+      // id means the form has since loaded another event (selection changed
+      // mid-save); no snapshot exists then.
       const snapshot = jotaiStore.get(formAtom).event;
-      const previous = snapshot?.id === event.id ? snapshot : undefined;
+      const previous = snapshot?.id === values.id ? snapshot : undefined;
+      // The edits deferred into the form so far are dirty fields of `values`,
+      // so this save carries them; their own previews are redundant once it
+      // is staged.
+      const deferred = jotaiStore.get(deferredStageTokensAtom);
 
-      await updateAction({
-        event,
+      const staged = await updateAction({
+        event: toCalendarEvent({ values, event: previous }),
         previous,
         notify,
-        onSuccess: (saved) => {
-          // Advance the frozen baseline to the canonical saved event so the
-          // next save diffs against the server's state and carries its fresh
-          // etag; keeping the old snapshot would replay this save's fields
-          // and 412 against our own write. Values are left untouched — the
-          // live form is their source while editing continues.
-          if (saved) {
-            jotaiStore.set(formAtom, (prev) => {
-              if (prev.event?.id !== saved.id) {
-                return prev;
-              }
-
-              return { ...prev, event: saved };
-            });
-          }
-
-          onSuccess?.();
-        },
+        onSuccess,
+        onCancel,
       });
 
-      actorRef.send({ type: "SAVE", notify });
+      if (staged) {
+        releaseDeferredEdits(lane, deferred);
+      }
     },
-    [actorRef, createAction, updateAction],
+    [lane, createAction, updateAction],
   );
 
   return save;
+}
+
+interface Resettable {
+  reset: () => void;
+}
+
+// Drops every unsaved edit, including ones deferred into the form from the
+// calendar, and puts the calendar back to what is actually written.
+export function useDiscardAction() {
+  const lane = useWriteLane();
+  const setPendingFieldPatch = useSetAtom(pendingFieldPatchAtom);
+  const setIsPristine = useSetAtom(isPristineAtom);
+
+  return React.useCallback(
+    (form: Resettable) => {
+      form.reset();
+      setPendingFieldPatch(null);
+      setIsPristine(true);
+      releaseDeferredEdits(lane);
+    },
+    [lane, setPendingFieldPatch, setIsPristine],
+  );
 }

@@ -1,43 +1,32 @@
 import * as React from "react";
-import { useSetAtom } from "jotai";
 
-import {
-  addOptimisticActionAtom,
-  generateOptimisticId,
-} from "@/hooks/calendar/optimistic-actions";
+import { useWriteLane } from "../write-lane-provider";
 import type { DeleteQueueItem, DeleteQueueRequest } from "./delete-queue";
 import { DeleteQueueContext } from "./delete-queue-provider";
 
 export function useDeleteAction() {
-  const addOptimisticAction = useSetAtom(addOptimisticActionAtom);
+  const lane = useWriteLane();
 
   const actorRef = DeleteQueueContext.useActorRef();
 
   const update = React.useCallback(
     async (req: DeleteQueueRequest) => {
-      const optimisticId = generateOptimisticId();
+      const token = await lane.stage(req.event.id, { kind: "delete" });
 
-      React.startTransition(() => {
-        addOptimisticAction({
-          id: optimisticId,
-          type: "delete",
-          eventId: req.event.id,
-        });
-      });
+      if (!token) {
+        return;
+      }
 
       const item: DeleteQueueItem = {
-        optimisticId,
         event: req.event,
+        token,
         scope: req.scope,
         notify: req.notify,
       };
 
       actorRef.send({ type: "START", item });
-
-      // Return optimistic id to allow callers to await completion externally
-      return optimisticId;
     },
-    [actorRef, addOptimisticAction],
+    [actorRef, lane],
   );
 
   return update;

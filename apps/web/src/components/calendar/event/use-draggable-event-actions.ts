@@ -1,14 +1,9 @@
 import * as React from "react";
-import { useAtomValue } from "jotai";
 import { Temporal } from "temporal-polyfill";
 
 import { isSameDay, isSameTime } from "@repo/temporal";
 
 import { usePartialUpdateAction } from "@/components/calendar/flows/update-event/use-update-action";
-import {
-  getEventInForm,
-  isPristineAtom,
-} from "@/components/event-form/atoms/form";
 import { EventDisplayItem, isInstantEvent } from "@/lib/display-item";
 import { useSetDraggingEventId, useSetResizing } from "@/store/hooks";
 
@@ -29,13 +24,6 @@ export function useDraggableEventActions(
 ) {
   const itemRef = React.useRef(item);
 
-  const eventInFormAtom = React.useMemo(
-    () => getEventInForm(item.event.id),
-    [item.event.id],
-  );
-
-  const eventInForm = useAtomValue(eventInFormAtom);
-  const isPristine = useAtomValue(isPristineAtom);
   const setIsResizing = useSetResizing();
   const setDraggingEventId = useSetDraggingEventId();
 
@@ -134,7 +122,6 @@ export function useDraggableEventActions(
     });
 
     updateAction({
-      // @ts-expect-error -- should both be of the same type
       changes: {
         id: item.event.id,
         start,
@@ -168,15 +155,11 @@ export function useDraggableEventActions(
     });
   };
 
+  // Moves and resizes are relative to what the calendar shows, which already
+  // reflects queued and deferred edits through the overlay.
   React.useLayoutEffect(() => {
-    if (!isPristine && eventInForm) {
-      itemRef.current = { ...item, event: eventInForm };
-
-      return;
-    }
-
     itemRef.current = item;
-  }, [isPristine, eventInForm, item]);
+  }, [item]);
 
   return {
     setIsDragging,

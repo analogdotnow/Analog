@@ -1,15 +1,15 @@
 import * as React from "react";
 import { createActorContext } from "@xstate/react";
-import { useSetAtom } from "jotai";
 
-import { removeOptimisticActionAtom } from "@/hooks/calendar/optimistic-actions";
-import { useCreateEventMutation } from "@/hooks/calendar/use-event-mutations";
-import { createCreateQueueMachine, type CreateQueueItem } from "./create-queue";
+import { jotaiStore } from "@/atoms/store";
+import { addOptimisticActionAtom } from "@/hooks/calendar/optimistic-actions";
+import { useWriteLane } from "../write-lane-provider";
+import { createCreateQueueMachine } from "./create-queue";
 
 export const CreateQueueContext = createActorContext(
   createCreateQueueMachine({
-    createEvent: async () => {},
-    removeOptimisticAction: () => {},
+    dispatch: () => {},
+    cancel: () => {},
   }),
 );
 
@@ -18,33 +18,33 @@ interface CreateQueueProviderProps {
 }
 
 export function CreateQueueProvider({ children }: CreateQueueProviderProps) {
-  const createMutation = useCreateEventMutation();
-  const removeOptimisticAction = useSetAtom(removeOptimisticActionAtom);
-
-  const createEvent = React.useCallback(
-    async (item: CreateQueueItem) => {
-      createMutation.mutate(
-        { ...item.event, sendUpdate: item.notify },
-        {
-          onSuccess: () => {
-            item.onSuccess?.();
-          },
-          onSettled: () => {
-            removeOptimisticAction(item.optimisticId);
-          },
-        },
-      );
-    },
-    [createMutation, removeOptimisticAction],
-  );
+  const lane = useWriteLane();
 
   const logic = React.useMemo(
     () =>
       createCreateQueueMachine({
-        createEvent,
-        removeOptimisticAction,
+        dispatch: (item) => {
+          void lane.enqueue({
+            kind: "create",
+            event: item.event,
+            notify: item.notify,
+            onSuccess: item.onSuccess,
+            token: item.token,
+          });
+        },
+        cancel: (item) => {
+          lane.unstage(item.token);
+          // The create never went out, so the event is a draft again and
+          // must stay visible on the calendar like any other draft.
+          jotaiStore.set(addOptimisticActionAtom, {
+            type: "draft",
+            eventId: item.event.id,
+            event: { ...item.event, type: "draft" },
+          });
+          item.onCancel?.();
+        },
       }),
-    [createEvent, removeOptimisticAction],
+    [lane],
   );
 
   return (

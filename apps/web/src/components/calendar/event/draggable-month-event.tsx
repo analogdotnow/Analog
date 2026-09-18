@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { useAtomValue } from "jotai";
 import {
   PanInfo,
   motion,
@@ -18,7 +17,6 @@ import {
   calculateColumnOffset,
   calculateRowOffset,
 } from "@/components/calendar/month-view/utils";
-import { getEventInForm } from "@/components/event-form/atoms/form";
 import { ContextMenuTrigger } from "@/components/ui/context-menu";
 import { EventDisplayItem } from "@/lib/display-item";
 import { cn } from "@/lib/utils";
@@ -74,13 +72,6 @@ function useEvent(event: EventDisplayItem["event"]) {
 
   const eventRef = React.useRef(event);
 
-  const eventInFormAtom = React.useMemo(
-    () => getEventInForm(event.id),
-    [event.id],
-  );
-
-  const eventInForm = useAtomValue(eventInFormAtom);
-
   const setDraggingEventId = useSetDraggingEventId();
 
   const updateAction = usePartialUpdateAction();
@@ -102,7 +93,6 @@ function useEvent(event: EventDisplayItem["event"]) {
       });
 
       updateAction({
-        // @ts-expect-error -- should both be of the same type
         changes: {
           id: event.id,
           start,
@@ -122,8 +112,8 @@ function useEvent(event: EventDisplayItem["event"]) {
   );
 
   React.useEffect(() => {
-    eventRef.current = eventInForm ?? event;
-  }, [event, eventInForm]);
+    eventRef.current = event;
+  }, [event]);
 
   return { setIsDragging, moveEvent };
 }

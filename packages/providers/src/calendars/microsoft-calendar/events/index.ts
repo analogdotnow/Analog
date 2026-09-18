@@ -405,64 +405,86 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
         throw new Error("Microsoft Calendar does not support sendUpdate=false");
       }
 
-      // Graph requires recurrence.range.startDate to match the master's start
-      // date; a sparse patch that changes recurrence without moving the event
-      // does not carry it, so resolve it from the stored event.
-      if (options.event.recurrence && !options.event.start) {
-        const existingEvent = await this.get({
-          calendar: options.calendar,
-          eventId: options.eventId,
-        });
-        const recurrenceTimeZone =
-          existingEvent.metadata?.recurrenceTimeZone ??
-          existingEvent.metadata?.originalStartTimeZone?.parsed;
+      const { calendar, eventId, event } = options;
+      const updatedEvent = await this.resolveAndPatchWithRetry(options);
 
-        if (!recurrenceTimeZone) {
-          throw new RecurrenceConversionError(
-            "a recurrence change requires a supported event time zone",
-          );
-        }
-
-        return this.patchEvent(options, {
-          startForRecurrence: existingEvent.start,
-          recurrenceTimeZone,
+      // Then, handle response status update if present (Microsoft-specific approach)
+      if (event.response && event.response.status !== "unknown") {
+        await this.respondToEvent(eventId, event.response.status, {
+          comment: event.response.comment,
+          sendResponse: event.response.sendUpdate,
         });
+
+        // The respond actions return no body and advance the changeKey, so the
+        // PATCH response is stale; re-fetch to return the final server state.
+        return this.get({ calendar, eventId });
       }
 
-      return this.patchEvent(options, {
-        startForRecurrence: options.event.start,
+      return parseEvent({
+        event: updatedEvent,
+        calendar,
       });
     });
   }
 
-  private async patchEvent(
+  private async resolveAndPatchWithRetry(
+    options: CalendarProviderEventsUpdateOptions,
+  ) {
+    try {
+      return await this.resolveAndPatch(options);
+    } catch (error) {
+      // Graph answers 412 ErrorIrresolvableConflict when the changeKey moved
+      // under the PATCH, at times transiently on its own side. The patch is
+      // sparse, so resending it is already a rebase; retry once, resolving the
+      // recurrence anchor again in case the series master itself moved. The
+      // RSVP action stays outside the retry so it is never sent twice.
+      if (!(error instanceof APIError) || error.status !== 412) {
+        throw error;
+      }
+
+      return this.resolveAndPatch(options);
+    }
+  }
+
+  private async resolveAndPatch(options: CalendarProviderEventsUpdateOptions) {
+    // Graph requires recurrence.range.startDate to match the master's start
+    // date; a sparse patch that changes recurrence without moving the event
+    // does not carry it, so resolve it from the stored event.
+    if (options.event.recurrence && !options.event.start) {
+      const existingEvent = await this.get({
+        calendar: options.calendar,
+        eventId: options.eventId,
+      });
+      const recurrenceTimeZone =
+        existingEvent.metadata?.recurrenceTimeZone ??
+        existingEvent.metadata?.originalStartTimeZone?.parsed;
+
+      if (!recurrenceTimeZone) {
+        throw new RecurrenceConversionError(
+          "a recurrence change requires a supported event time zone",
+        );
+      }
+
+      return this.patchEvent(options, {
+        startForRecurrence: existingEvent.start,
+        recurrenceTimeZone,
+      });
+    }
+
+    return this.patchEvent(options, {
+      startForRecurrence: options.event.start,
+    });
+  }
+
+  private patchEvent(
     { calendar, eventId, event }: CalendarProviderEventsUpdateOptions,
     patchOptions: FormatEventPatchOptions,
   ) {
-    // First, perform the regular event update
-    const updatedEvent = await this.eventsFor(calendar.id).update({
+    return this.eventsFor(calendar.id).update({
       userId: "me",
       eventId,
       event: formatEventPatch(event, patchOptions),
-      ...(event.etag ? { ifMatch: event.etag } : {}),
       headers: { Prefer: TEXT_BODY_PREFERENCE },
-    });
-
-    // Then, handle response status update if present (Microsoft-specific approach)
-    if (event.response && event.response.status !== "unknown") {
-      await this.respondToEvent(eventId, event.response.status, {
-        comment: event.response.comment,
-        sendResponse: event.response.sendUpdate,
-      });
-
-      // The respond actions return no body and advance the changeKey, so the
-      // PATCH response is stale; re-fetch to return the final server state.
-      return this.get({ calendar, eventId });
-    }
-
-    return parseEvent({
-      event: updatedEvent,
-      calendar,
     });
   }
 

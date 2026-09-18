@@ -1,16 +1,13 @@
 import * as React from "react";
 import { createActorContext } from "@xstate/react";
-import { useSetAtom } from "jotai";
 
-import { removeOptimisticActionAtom } from "@/hooks/calendar/optimistic-actions";
-import { useDeleteEventMutation } from "@/hooks/calendar/use-event-mutations";
-import { getEventById } from "@/lib/db";
-import { createDeleteQueueMachine, type DeleteQueueItem } from "./delete-queue";
+import { useWriteLane } from "../write-lane-provider";
+import { createDeleteQueueMachine } from "./delete-queue";
 
 export const DeleteQueueContext = createActorContext(
   createDeleteQueueMachine({
-    deleteEvent: async () => {},
-    removeOptimisticAction: () => {},
+    dispatch: () => {},
+    cancel: () => {},
   }),
 );
 
@@ -19,49 +16,25 @@ interface DeleteQueueProviderProps {
 }
 
 export function DeleteQueueProvider({ children }: DeleteQueueProviderProps) {
-  const deleteMutation = useDeleteEventMutation();
-  const removeOptimisticAction = useSetAtom(removeOptimisticActionAtom);
-
-  const deleteEvent = React.useCallback(
-    async (item: DeleteQueueItem) => {
-      const prevEvent = await getEventById(item.event.id);
-
-      if (!prevEvent) {
-        if (item.event?.type === "draft") {
-          removeOptimisticAction(item.optimisticId);
-        }
-
-        return;
-      }
-
-      const eventId =
-        item.event.recurringEventId && item.scope === "series"
-          ? item.event.recurringEventId
-          : item.event.id;
-
-      deleteMutation.mutate(
-        {
-          calendar: item.event.calendar,
-          eventId,
-          sendUpdate: item.notify,
-        },
-        {
-          onSettled: () => {
-            removeOptimisticAction(item.optimisticId);
-          },
-        },
-      );
-    },
-    [deleteMutation, removeOptimisticAction],
-  );
+  const lane = useWriteLane();
 
   const logic = React.useMemo(
     () =>
       createDeleteQueueMachine({
-        deleteEvent,
-        removeOptimisticAction,
+        dispatch: (item) => {
+          void lane.enqueue({
+            kind: "delete",
+            event: item.event,
+            scope: item.scope,
+            notify: item.notify,
+            token: item.token,
+          });
+        },
+        cancel: (item) => {
+          lane.unstage(item.token);
+        },
       }),
-    [deleteEvent, removeOptimisticAction],
+    [lane],
   );
 
   return (
