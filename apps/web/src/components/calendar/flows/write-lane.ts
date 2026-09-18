@@ -12,6 +12,7 @@ import type { RouterInputs, RouterOutputs } from "@/lib/trpc";
 import {
   buildUpdateEvent,
   buildUpdateSeries,
+  changedFields,
   isEmptyUpdate,
 } from "./update-event/utils";
 
@@ -65,12 +66,15 @@ type Pending =
 
 // One lane per event: `sent` is the write in flight, `pending` is every write
 // enqueued since, merged into one. `baseline` is the last server-confirmed
-// event (absent while the create has not returned yet).
+// event (absent while the create has not returned yet). `generation` counts
+// the writes taken so a settle that started before a later write cannot
+// tear the lane down.
 interface Lane {
   id: string;
   baseline: CalendarEvent | undefined;
   sent: Pending | undefined;
   pending: Pending | undefined;
+  generation: number;
 }
 
 export interface WriteLaneDeps {
@@ -108,11 +112,13 @@ function unreachable(value: never): never {
   throw new Error(`Unhandled write: ${JSON.stringify(value)}`);
 }
 
+// Partial changes carry the id they were made under; after a re-key that is
+// stale, so the target's id always wins.
 function applyChanges(
   event: CalendarEvent,
   changes: EventChanges,
 ): CalendarEvent {
-  return Object.assign({}, event, changes);
+  return Object.assign({}, event, changes, { id: event.id });
 }
 
 function errorMessage(error: unknown) {
@@ -230,7 +236,13 @@ export function createWriteLane(initialDeps: WriteLaneDeps): WriteLane {
       return undefined;
     }
 
-    const lane: Lane = { id, baseline, sent: undefined, pending: undefined };
+    const lane: Lane = {
+      id,
+      baseline,
+      sent: undefined,
+      pending: undefined,
+      generation: 0,
+    };
 
     lanes.set(id, lane);
 
@@ -275,6 +287,31 @@ export function createWriteLane(initialDeps: WriteLaneDeps): WriteLane {
   async function enqueue(write: Write) {
     switch (write.kind) {
       case "create": {
+        const existing = lanes.get(resolve(write.event.id));
+
+        // The form still calls the event a draft until the create returns, so
+        // a second save in that window is an edit of the pending create, not
+        // another create.
+        if (existing) {
+          const shown = overlayEvent(existing);
+
+          if (!shown) {
+            return;
+          }
+
+          mergeUpdate(existing, {
+            kind: "update",
+            id: existing.id,
+            changes: changedFields(write.event, shown),
+            notify: write.notify,
+            onSuccess: write.onSuccess,
+          });
+          setOverlay(existing);
+          void drain(existing);
+
+          return;
+        }
+
         const lane: Lane = {
           id: write.event.id,
           baseline: undefined,
@@ -285,6 +322,7 @@ export function createWriteLane(initialDeps: WriteLaneDeps): WriteLane {
             notify: write.notify,
             onSuccess: write.onSuccess ? [write.onSuccess] : [],
           },
+          generation: 0,
         };
 
         lanes.set(lane.id, lane);
@@ -354,6 +392,7 @@ export function createWriteLane(initialDeps: WriteLaneDeps): WriteLane {
 
     lane.sent = sent;
     lane.pending = undefined;
+    lane.generation += 1;
 
     try {
       await perform(lane, sent);
@@ -447,8 +486,10 @@ export function createWriteLane(initialDeps: WriteLaneDeps): WriteLane {
           await rekey(lane, event);
         }
 
+        // Callers get the event they edited (the occurrence for a series
+        // write), never the master that came back.
         for (const onSuccess of sent.onSuccess) {
-          onSuccess(event);
+          onSuccess(lane.baseline);
         }
 
         return;
@@ -513,6 +554,7 @@ export function createWriteLane(initialDeps: WriteLaneDeps): WriteLane {
   // overlay so the event never flickers back to stale cache state.
   async function finish(lane: Lane) {
     const deps = getDeps();
+    const generation = lane.generation;
 
     if (lane.baseline) {
       await deps.writeThrough(lane.baseline);
@@ -520,8 +562,15 @@ export function createWriteLane(initialDeps: WriteLaneDeps): WriteLane {
 
     await deps.settle();
 
-    // A write enqueued while settling owns the lane now.
-    if (lane.sent || lane.pending) {
+    // A write taken while settling owns the lane now, and only its own
+    // settle may tear the lane down. A lane re-created under the same id in
+    // the meantime owns the overlay too.
+    if (
+      generation !== lane.generation ||
+      lane.sent ||
+      lane.pending ||
+      lanes.get(lane.id) !== lane
+    ) {
       return;
     }
 
