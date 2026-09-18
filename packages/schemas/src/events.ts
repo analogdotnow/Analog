@@ -267,7 +267,6 @@ export const patchEventInputSchema = z.object({
   conference: conferenceSchema.nullish(),
   createdAt: z.instanceof(Temporal.Instant).optional(),
   updatedAt: z.instanceof(Temporal.Instant).optional(),
-  etag: z.string().optional(),
   response: z
     .object({
       status: z.enum(["accepted", "tentative", "declined", "unknown"]),

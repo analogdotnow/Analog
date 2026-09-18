@@ -405,33 +405,48 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
         throw new Error("Microsoft Calendar does not support sendUpdate=false");
       }
 
-      // Graph requires recurrence.range.startDate to match the master's start
-      // date; a sparse patch that changes recurrence without moving the event
-      // does not carry it, so resolve it from the stored event.
-      if (options.event.recurrence && !options.event.start) {
-        const existingEvent = await this.get({
-          calendar: options.calendar,
-          eventId: options.eventId,
-        });
-        const recurrenceTimeZone =
-          existingEvent.metadata?.recurrenceTimeZone ??
-          existingEvent.metadata?.originalStartTimeZone?.parsed;
-
-        if (!recurrenceTimeZone) {
-          throw new RecurrenceConversionError(
-            "a recurrence change requires a supported event time zone",
-          );
+      try {
+        return await this.updateOnce(options);
+      } catch (error) {
+        // Graph answers 412 ErrorIrresolvableConflict when the changeKey moved
+        // under the PATCH, at times transiently on its own side. The patch is
+        // sparse, so resending it is already a rebase; retry once.
+        if (!(error instanceof APIError) || error.status !== 412) {
+          throw error;
         }
 
-        return this.patchEvent(options, {
-          startForRecurrence: existingEvent.start,
-          recurrenceTimeZone,
-        });
+        return this.updateOnce(options);
+      }
+    });
+  }
+
+  private async updateOnce(options: CalendarProviderEventsUpdateOptions) {
+    // Graph requires recurrence.range.startDate to match the master's start
+    // date; a sparse patch that changes recurrence without moving the event
+    // does not carry it, so resolve it from the stored event.
+    if (options.event.recurrence && !options.event.start) {
+      const existingEvent = await this.get({
+        calendar: options.calendar,
+        eventId: options.eventId,
+      });
+      const recurrenceTimeZone =
+        existingEvent.metadata?.recurrenceTimeZone ??
+        existingEvent.metadata?.originalStartTimeZone?.parsed;
+
+      if (!recurrenceTimeZone) {
+        throw new RecurrenceConversionError(
+          "a recurrence change requires a supported event time zone",
+        );
       }
 
       return this.patchEvent(options, {
-        startForRecurrence: options.event.start,
+        startForRecurrence: existingEvent.start,
+        recurrenceTimeZone,
       });
+    }
+
+    return this.patchEvent(options, {
+      startForRecurrence: options.event.start,
     });
   }
 
@@ -444,7 +459,6 @@ export class MicrosoftCalendarEvents implements CalendarProviderEvents {
       userId: "me",
       eventId,
       event: formatEventPatch(event, patchOptions),
-      ...(event.etag ? { ifMatch: event.etag } : {}),
       headers: { Prefer: TEXT_BODY_PREFERENCE },
     });
 
