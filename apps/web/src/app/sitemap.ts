@@ -4,15 +4,14 @@ import { getPosts } from "@/lib/blog-query";
 import { URLS } from "@/lib/urls";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const data = await getPosts();
+  const posts = await getPosts();
 
-  const postPages: MetadataRoute.Sitemap =
-    data?.posts?.map((post) => ({
-      url: `${URLS.SITE}/blog/${post.slug}`,
-      lastModified: new Date(post.publishedAt),
-      changeFrequency: "monthly",
-      priority: 0.8,
-    })) ?? [];
+  const postPages: MetadataRoute.Sitemap = posts.map((post) => ({
+    url: `${URLS.SITE}/blog/${post.slug}`,
+    lastModified: post.publishedAt,
+    changeFrequency: "monthly",
+    priority: 0.8,
+  }));
 
   return [
     {

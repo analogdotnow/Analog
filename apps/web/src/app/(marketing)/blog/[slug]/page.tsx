@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import { notFound } from "next/navigation";
 
 import { Prose } from "@/components/prose";
 import { AnimatedGroup } from "@/components/ui/animated-group";
@@ -13,7 +12,7 @@ import {
 export const revalidate = 300;
 
 export async function generateStaticParams() {
-  const { posts } = await getPosts();
+  const posts = await getPosts();
   return posts.map((post) => ({
     slug: post.slug,
   }));
@@ -29,44 +28,24 @@ export async function generateMetadata({
 }: PageProps): Promise<Metadata> {
   const slug = (await params).slug;
 
-  const data = await getSinglePost(slug);
-
-  if (!data || !data.post) {
-    return {};
-  }
+  const post = await getSinglePost(slug);
 
   return {
-    title: `${data.post.title} - Analog`,
-    description: data.post.description,
+    title: `${post.title} - Analog`,
+    description: post.description,
     twitter: {
-      title: `${data.post.title} - Analog`,
-      description: data.post.description,
+      title: `${post.title} - Analog`,
+      description: post.description,
       card: "summary_large_image",
-      images: [
-        {
-          url: data.post.coverImage,
-          width: "1200",
-          height: "630",
-          alt: data.post.title,
-        },
-      ],
+      images: post.coverImage ? [post.coverImage] : undefined,
     },
     openGraph: {
-      title: `${data.post.title} - Analog`,
-      description: data.post.description,
+      title: `${post.title} - Analog`,
+      description: post.description,
       type: "article",
-      images: [
-        {
-          url: data.post.coverImage,
-          width: "1200",
-          height: "630",
-          alt: data.post.title,
-        },
-      ],
-      publishedTime: new Date(data.post.publishedAt).toISOString(),
-      authors: [
-        ...data.post.authors.map((author: { name: string }) => author.name),
-      ],
+      images: post.coverImage ? [post.coverImage] : undefined,
+      publishedTime: post.publishedAt.toISOString(),
+      authors: post.authors.map((author) => author.name),
     },
   };
 }
@@ -78,11 +57,7 @@ interface PostPageProps {
 export default async function PostPage({ params }: PostPageProps) {
   const slug = (await params).slug;
 
-  const { post } = await getSinglePost(slug);
-
-  if (!post) {
-    return notFound();
-  }
+  const post = await getSinglePost(slug);
 
   return (
     <div className="min-h-[calc(100vh-8rem)] py-20 sm:py-28 md:py-32 lg:py-40">
@@ -109,8 +84,8 @@ export default async function PostPage({ params }: PostPageProps) {
                       {post.category.name}
                     </span>
                     <span>•</span>
-                    <time dateTime={post.publishedAt.toString()}>
-                      {new Date(post.publishedAt).toLocaleDateString("en-US", {
+                    <time dateTime={post.publishedAt.toISOString()}>
+                      {post.publishedAt.toLocaleDateString("en-US", {
                         year: "numeric",
                         month: "long",
                         day: "numeric",
@@ -131,13 +106,15 @@ export default async function PostPage({ params }: PostPageProps) {
                   <div className="flex flex-wrap items-center gap-4">
                     {post.authors.map((author) => (
                       <div key={author.id} className="flex items-center gap-2">
-                        <Image
-                          src={author.image}
-                          alt={author.name}
-                          width={32}
-                          height={32}
-                          className="rounded-full"
-                        />
+                        {author.image && (
+                          <Image
+                            src={author.image}
+                            alt={author.name}
+                            width={32}
+                            height={32}
+                            className="rounded-full"
+                          />
+                        )}
                         <span className="text-sm font-medium">
                           {author.name}
                         </span>
@@ -163,22 +140,6 @@ export default async function PostPage({ params }: PostPageProps) {
                 <AnimatedGroup variants={delayedTransitionVariants}>
                   <Prose html={post.content} className="max-w-3xl" />
                 </AnimatedGroup>
-
-                {post.attribution && (
-                  <div className="mt-8 rounded-lg bg-muted/50 p-4">
-                    <p className="text-sm text-muted-foreground">
-                      Attribution:{" "}
-                      <a
-                        href={post.attribution.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary hover:underline"
-                      >
-                        {post.attribution.author}
-                      </a>
-                    </p>
-                  </div>
-                )}
               </div>
             </article>
           </AnimatedGroup>
