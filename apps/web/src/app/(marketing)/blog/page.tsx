@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 };
 
 export default async function BlogPage() {
-  const { posts } = await getPosts();
+  const posts = await getPosts();
 
   return (
     <div className="min-h-[calc(100vh-8rem)] py-20 sm:py-28 md:py-32 lg:py-40">
@@ -82,15 +82,12 @@ export default async function BlogPage() {
                               {post.category.name}
                             </span>
                             <span>•</span>
-                            <time dateTime={post.publishedAt.toString()}>
-                              {new Date(post.publishedAt).toLocaleDateString(
-                                "en-US",
-                                {
-                                  year: "numeric",
-                                  month: "short",
-                                  day: "numeric",
-                                },
-                              )}
+                            <time dateTime={post.publishedAt.toISOString()}>
+                              {post.publishedAt.toLocaleDateString("en-US", {
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric",
+                              })}
                             </time>
                           </div>
 
@@ -106,16 +103,20 @@ export default async function BlogPage() {
 
                           <div className="mt-auto flex items-center justify-between pt-4">
                             <div className="flex items-center gap-2">
-                              {post.authors.slice(0, 2).map((author) => (
-                                <Image
-                                  key={author.id}
-                                  src={author.image}
-                                  alt={author.name}
-                                  width={24}
-                                  height={24}
-                                  className="rounded-full"
-                                />
-                              ))}
+                              {post.authors
+                                .slice(0, 2)
+                                .map((author) =>
+                                  author.image ? (
+                                    <Image
+                                      key={author.id}
+                                      src={author.image}
+                                      alt={author.name}
+                                      width={24}
+                                      height={24}
+                                      className="rounded-full"
+                                    />
+                                  ) : null,
+                                )}
                               {post.authors.length > 0 && (
                                 <span className="text-xs text-muted-foreground">
                                   {post.authors[0]?.name}

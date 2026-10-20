@@ -1,48 +1,34 @@
 import { cache } from "react";
+import { notFound } from "next/navigation";
+import { Marble } from "@usemarble/sdk";
+import type { Post } from "@usemarble/sdk/models";
+import { NotFoundError } from "@usemarble/sdk/models/errors";
 
 import { env } from "@repo/env/server";
 
-import type {
-  MarbleAuthorList,
-  MarbleCategoryList,
-  MarblePost,
-  MarblePostList,
-  MarbleTagList,
-} from "@/types/post";
+export const getPosts = cache(async (): Promise<Post[]> => {
+  if (!env.MARBLE_API_KEY) return [];
 
-async function fetchFromMarble<T>(endpoint: string): Promise<T> {
+  const pages = await new Marble({ apiKey: env.MARBLE_API_KEY }).posts.list({
+    limit: 100,
+  });
+  const posts: Post[] = [];
+  for await (const page of pages) posts.push(...page.result.posts);
+  return posts;
+});
+
+export const getSinglePost = cache(async (slug: string): Promise<Post> => {
+  if (!env.MARBLE_API_KEY) notFound();
+
   try {
-    const response = await fetch(
-      `${env.MARBLE_API_URL}/${env.MARBLE_WORKSPACE_KEY}/${endpoint}`,
+    const { post } = await new Marble({ apiKey: env.MARBLE_API_KEY }).posts.get(
+      {
+        identifier: slug,
+      },
     );
-    if (!response.ok) {
-      throw new Error(
-        `Failed to fetch ${endpoint}: ${response.status} ${response.statusText}`,
-      );
-    }
-    return (await response.json()) as T;
+    return post;
   } catch (error) {
-    console.error(`Error fetching ${endpoint}:`, error);
+    if (error instanceof NotFoundError) notFound();
     throw error;
   }
-}
-
-export const getPosts = cache(async () => {
-  return fetchFromMarble<MarblePostList>("posts");
-});
-
-export const getTags = cache(async () => {
-  return fetchFromMarble<MarbleTagList>("tags");
-});
-
-export const getSinglePost = cache(async (slug: string) => {
-  return fetchFromMarble<MarblePost>(`posts/${slug}`);
-});
-
-export const getCategories = cache(async () => {
-  return fetchFromMarble<MarbleCategoryList>("categories");
-});
-
-export const getAuthors = cache(async () => {
-  return fetchFromMarble<MarbleAuthorList>("authors");
 });
